@@ -4,7 +4,7 @@ import "./ESMintableToken.sol";
 import "../../ownership/rbac/RBAC.sol";
 
 
-contract ESRBACMintableToken is MintableToken, RBAC {
+contract ESRBACMintableToken is ESMintableToken, RBAC {
   /**
    * A constant role name for indicating minters.
    */
