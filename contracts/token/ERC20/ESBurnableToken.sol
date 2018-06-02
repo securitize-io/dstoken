@@ -11,12 +11,12 @@ contract ESBurnableToken is ESBasicToken {
   }
 
   function _burn(address _who, uint256 _value) internal {
-    require(_value <= _storage.getUint(keccak256("balances", _who)));
+    require(_value <= getUint(keccak256("balances", _who)));
     // no need to require value <= totalSupply, since that would imply the
     // sender's balance is greater than the totalSupply, which *should* be an assertion failure
 
-    _storage.setUint(keccak256("balances", _who), _storage.getUint(keccak256("balances", _who)).sub(_value));
-    _storage.setUint(keccak256("totalSupply"), _storage.getUint(keccak256("totalSupply")).sub(_value));
+    setUint(keccak256("balances", _who), getUint(keccak256("balances", _who)).sub(_value));
+    setUint(keccak256("totalSupply"), getUint(keccak256("totalSupply")).sub(_value));
     emit Burn(_who, _value);
     emit Transfer(_who, address(0), _value);
   }

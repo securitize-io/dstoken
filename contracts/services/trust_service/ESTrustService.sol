@@ -1,34 +1,34 @@
 pragma solidity ^0.4.23;
 
-import "./DSTrustServiceInterface.sol";
 import "../../storage/EternalStorageUser.sol";
+import "./DSTrustServiceInterface.sol";
 
 contract ESTrustService is DSTrustServiceInterface, EternalStorageUser {
   mapping (address => uint8) roles;
 
   address public owner;
 
-  constructor(address _address) public EternalStorageUser(_address) {
-    _storage.setAddress(keccak256("owner"), msg.sender);
-    _storage.setUint(keccak256("roles", msg.sender), MASTER);
+  constructor(address _address, string _namespace) public EternalStorageUser(_address, _namespace) {
+    setAddress(keccak256("owner"), msg.sender);
+    setUint(keccak256("roles", msg.sender), MASTER);
   }
 
   modifier onlyMaster() {
-    require(_storage.getUint(keccak256("roles", msg.sender)) == MASTER);
+    require(getUint(keccak256("roles", msg.sender)) == MASTER);
     _;
   }
 
   modifier onlyMasterOrIssuer() {
-    require(_storage.getUint(keccak256("roles", msg.sender)) == MASTER || _storage.getUint(keccak256("roles", msg.sender)) == ISSUER);
+    require(getUint(keccak256("roles", msg.sender)) == MASTER || getUint(keccak256("roles", msg.sender)) == ISSUER);
     _;
   }
 
   function setRoleImpl(address _address, uint8 _role) internal returns (bool) {
-    uint8 old_role = _storage.getUint(keccak256("roles", _address));
+    uint8 old_role = uint8(getUint(keccak256("roles", _address)));
 
     require(old_role == NONE || _role == NONE);
 
-    _storage.setUint(keccak256("roles", _address), _role);
+    setUint(keccak256("roles", _address), _role);
 
     if (old_role == NONE) {
       emit DSTrustServiceRoleAdded(_address, _role);
@@ -41,7 +41,7 @@ contract ESTrustService is DSTrustServiceInterface, EternalStorageUser {
 
   function setOwner(address _address) public onlyMaster returns (bool) {
     require(setRoleImpl(owner, NONE));
-    _storage.setAddress(keccak256("owner"), _address);
+    setAddress(keccak256("owner"), _address);
     require(setRoleImpl(_address, MASTER));
     return true;
   }
@@ -53,7 +53,7 @@ contract ESTrustService is DSTrustServiceInterface, EternalStorageUser {
   }
 
   function removeRole(address _address) public onlyMasterOrIssuer returns (bool) {
-    uint8 role = _storage.getUint(keccak256("roles", _address));
+    uint8 role = uint8(getUint(keccak256("roles", _address)));
 
     require(role == ISSUER || role == EXCHANGE);
 
@@ -61,7 +61,7 @@ contract ESTrustService is DSTrustServiceInterface, EternalStorageUser {
   }
 
   function getRole(address _address) public view returns (uint8) {
-    uint8 role = _storage.getUint(keccak256("roles", _address));
+    uint8 role = uint8(getUint(keccak256("roles", _address)));
     require(role != NONE);
     return role;
   }

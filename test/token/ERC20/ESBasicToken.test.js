@@ -7,8 +7,7 @@ contract('ESStandardToken', function ([_, owner, recipient, anotherAccount]) {
 
   beforeEach(async function () {
     this.storage = await EternalStorage.new();
-    this.token = await ESBasicToken.new(this.storage.address, owner, 100);
-    console.log("A");
+    this.token = await ESBasicToken.new(this.storage.address, "ESBasicToken", owner, 100);
   });
 
   describe('total supply', function () {
