@@ -3,14 +3,14 @@ pragma solidity ^0.4.23;
 
 import "./ERC20Basic.sol";
 import "../../math/SafeMath.sol";
-import "../../storage/EternalStorageUser.sol";
+import "../../storage/EternalStorageClient.sol";
 
 
 /**
  * @title Basic token
  * @dev Basic version of StandardToken, with no allowances.
  */
-contract ESBasicToken is ERC20Basic, EternalStorageUser {
+contract ESBasicToken is ERC20Basic, EternalStorageClient {
   using SafeMath for uint256;
 
   /**

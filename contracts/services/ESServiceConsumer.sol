@@ -1,10 +1,10 @@
 pragma solidity ^0.4.23;
 
-import "../storage/EternalStorageUser.sol";
+import "../storage/EternalStorageClient.sol";
 import "./DSServiceConsumerInterface.sol";
 
-contract ESServiceConsumer is DSServiceConsumerInterface, EternalStorageUser {
-  constructor(address _address, string _namespace, address _trustManagerAddress) public EternalStorageUser(_address, _namespace) {
+contract ESServiceConsumer is DSServiceConsumerInterface, EternalStorageClient {
+  constructor(address _address, string _namespace, address _trustManagerAddress) public EternalStorageClient(_address, _namespace) {
     setAddress(keccak256("services", TRUST_SERVICE), _trustManagerAddress);
   }
 

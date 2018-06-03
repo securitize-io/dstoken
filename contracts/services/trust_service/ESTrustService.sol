@@ -1,14 +1,14 @@
 pragma solidity ^0.4.23;
 
-import "../../storage/EternalStorageUser.sol";
+import "../../storage/EternalStorageClient.sol";
 import "./DSTrustServiceInterface.sol";
 
-contract ESTrustService is DSTrustServiceInterface, EternalStorageUser {
+contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {
   mapping (address => uint8) roles;
 
   address public owner;
 
-  constructor(address _address, string _namespace) public EternalStorageUser(_address, _namespace) {
+  constructor(address _address, string _namespace) public EternalStorageClient(_address, _namespace) {
     setAddress(keccak256("owner"), msg.sender);
     setUint(keccak256("roles", msg.sender), MASTER);
   }

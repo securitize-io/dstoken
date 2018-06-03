@@ -1,8 +1,8 @@
 pragma solidity ^0.4.23;
 
-import "../storage/EternalStorageUser.sol";
+import "../storage/EternalStorageClient.sol";
 
-contract ESPausable is EternalStorageUser {
+contract ESPausable is EternalStorageClient {
   event Pause();
   event Unpause();
 
