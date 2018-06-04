@@ -61,8 +61,6 @@ contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {
   }
 
   function getRole(address _address) public view returns (uint8) {
-    uint8 role = uint8(getUint(keccak256("roles", _address)));
-    require(role != NONE);
-    return role;
+    return uint8(getUint(keccak256("roles", _address)));
   }
 }

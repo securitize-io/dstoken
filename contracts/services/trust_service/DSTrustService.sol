@@ -60,8 +60,6 @@ contract DSTrustService is DSTrustServiceInterface {
   }
 
   function getRole(address _address) public view returns (uint8) {
-    uint8 role = roles[_address];
-    require(role != NONE);
-    return role;
+    return roles[_address];
   }
 }
