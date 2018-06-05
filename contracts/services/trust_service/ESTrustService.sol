@@ -4,13 +4,19 @@ import "../../storage/EternalStorageClient.sol";
 import "./DSTrustServiceInterface.sol";
 
 contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {
+  constructor(address _address, string _namespace) public EternalStorageClient(_address, _namespace) {}
+
   mapping (address => uint8) roles;
 
   address public owner;
 
-  constructor(address _address, string _namespace) public EternalStorageClient(_address, _namespace) {
+  bool public initialized = false;
+
+  function initialize() public onlyOwner {
+    require(!initialized);
     setAddress(keccak256("owner"), msg.sender);
     setUint(keccak256("roles", msg.sender), MASTER);
+    initialized = true;
   }
 
   modifier onlyMaster() {
@@ -31,9 +37,9 @@ contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {
     setUint(keccak256("roles", _address), _role);
 
     if (old_role == NONE) {
-      emit DSTrustServiceRoleAdded(_address, _role);
+      emit DSTrustServiceRoleAdded(_address, _role, msg.sender);
     } else {
-      emit DSTrustServiceRoleRemoved(_address, old_role);
+      emit DSTrustServiceRoleRemoved(_address, old_role, msg.sender);
     }
 
     return true;

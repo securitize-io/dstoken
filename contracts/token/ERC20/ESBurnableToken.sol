@@ -3,6 +3,7 @@ pragma solidity ^0.4.23;
 import "./ESBasicToken.sol";
 
 contract ESBurnableToken is ESBasicToken {
+  constructor(address _address, string _namespace) public ESBasicToken(_address, _namespace) {}
 
   event Burn(address indexed burner, uint256 value);
 

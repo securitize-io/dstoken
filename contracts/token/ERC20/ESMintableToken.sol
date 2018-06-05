@@ -5,6 +5,8 @@ import "../../ownership/Ownable.sol";
 
 
 contract ESMintableToken is ESStandardToken {
+  constructor(address _address, string _namespace) public ESStandardToken(_address, _namespace) {}
+
   event Mint(address indexed to, uint256 amount);
   event MintFinished();
 

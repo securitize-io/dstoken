@@ -1,8 +1,8 @@
 pragma solidity ^0.4.23;
 
 contract DSTrustServiceInterface {
-  event DSTrustServiceRoleAdded(address _address,uint8 _role);
-  event DSTrustServiceRoleRemoved(address _address, uint8 _role);
+  event DSTrustServiceRoleAdded(address _address,uint8 _role, address _sender);
+  event DSTrustServiceRoleRemoved(address _address, uint8 _role, address _sender);
 
   uint8 public constant NONE = 0;
   uint8 public constant MASTER = 1;

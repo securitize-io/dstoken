@@ -4,7 +4,8 @@ import "./ESStandardToken.sol";
 import "../../lifecycle/ESPausable.sol";
 
 
-contract PausableToken is ESStandardToken, ESPausable {
+contract ESPausableToken is ESStandardToken, ESPausable {
+  constructor(address _address, string _namespace) public ESStandardToken(_address, _namespace) ESPausable(_address, _namespace) {}
 
   function transfer(
     address _to,

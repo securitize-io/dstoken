@@ -30,9 +30,9 @@ contract DSTrustService is DSTrustServiceInterface {
     roles[_address] = _role;
 
     if (old_role == NONE) {
-      emit DSTrustServiceRoleAdded(_address, _role);
+      emit DSTrustServiceRoleAdded(_address, _role, msg.sender);
     } else {
-      emit DSTrustServiceRoleRemoved(_address, old_role);
+      emit DSTrustServiceRoleRemoved(_address, old_role, msg.sender);
     }
 
     return true;

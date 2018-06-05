@@ -5,6 +5,8 @@ import "../../ownership/rbac/RBAC.sol";
 
 
 contract ESRBACMintableToken is ESMintableToken, RBAC {
+  constructor(address _address, string _namespace) public ESMintableToken(_address, _namespace) {}
+
   /**
    * A constant role name for indicating minters.
    */

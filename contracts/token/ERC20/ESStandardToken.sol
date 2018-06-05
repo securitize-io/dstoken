@@ -4,6 +4,8 @@ import "./ESBasicToken.sol";
 import "./ERC20.sol";
 
 contract ESStandardToken is ERC20, ESBasicToken {
+  constructor(address _address, string _namespace) public ESBasicToken(_address, _namespace) {}
+
   function transferFrom(
     address _from,
     address _to,

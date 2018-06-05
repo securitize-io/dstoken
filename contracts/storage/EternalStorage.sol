@@ -14,27 +14,27 @@ contract EternalStorage is RBACWithAdmin {
 
   Storage internal s;
 
-  function setBoolean(bytes32 h, bool v) public {
+  function setBoolean(bytes32 h, bool v) public onlyRole("write") {
     s._bool[h] = v;
   }
 
-  function setInt(bytes32 h, int v) public {
+  function setInt(bytes32 h, int v) public onlyRole("write") {
     s._int[h] = v;
   }
 
-  function setUint(bytes32 h, uint256 v) public {
+  function setUint(bytes32 h, uint256 v) public onlyRole("write") {
     s._uint[h] = v;
   }
 
-  function setAddress(bytes32 h, address v) public {
+  function setAddress(bytes32 h, address v) public onlyRole("write") {
     s._address[h] = v;
   }
 
-  function setString(bytes32 h, string v) public {
+  function setString(bytes32 h, string v) public onlyRole("write") {
     s._string[h] = v;
   }
 
-  function setBytes(bytes32 h, bytes v) public {
+  function setBytes(bytes32 h, bytes v) public onlyRole("write") {
     s._bytes[h] = v;
   }
 

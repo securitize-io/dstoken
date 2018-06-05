@@ -4,9 +4,7 @@ import "../storage/EternalStorageClient.sol";
 import "./DSServiceConsumerInterface.sol";
 
 contract ESServiceConsumer is DSServiceConsumerInterface, EternalStorageClient {
-  constructor(address _address, string _namespace, address _trustManagerAddress) public EternalStorageClient(_address, _namespace) {
-    setAddress(keccak256("services", TRUST_SERVICE), _trustManagerAddress);
-  }
+  constructor(address _address, string _namespace) public EternalStorageClient(_address, _namespace) {}
 
   modifier onlyMaster {
     DSTrustServiceInterface trustManager = DSTrustServiceInterface(getAddress(keccak256("services", TRUST_SERVICE)));

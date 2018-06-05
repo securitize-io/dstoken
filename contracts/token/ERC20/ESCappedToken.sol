@@ -3,9 +3,15 @@ pragma solidity ^0.4.23;
 import "./ESMintableToken.sol";
 
 contract ESCappedToken is ESMintableToken {
-  constructor(address _address, string _namespace, uint256 _cap) public EternalStorageClient(_address, _namespace) {
+  constructor(address _address, string _namespace) public ESMintableToken(_address, _namespace) {}
+
+  bool public initialized = false;
+
+  function initialize(uint256 _cap) public onlyOwner {
+    require(!initialized);
     require(_cap > 0);
     setUint(keccak256("cap"), _cap);
+    initialized = true;
   }
 
   /**
