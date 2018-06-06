@@ -7,29 +7,29 @@ contract ESServiceConsumer is DSServiceConsumerInterface, EternalStorageClient {
   constructor(address _address, string _namespace) public EternalStorageClient(_address, _namespace) {}
 
   modifier onlyMaster {
-    DSTrustServiceInterface trustManager = DSTrustServiceInterface(getAddress(keccak256(abi.encodePacked("services", TRUST_SERVICE))));
+    DSTrustServiceInterface trustManager = DSTrustServiceInterface(getAddress8("services",  TRUST_SERVICE));
     require(trustManager.getRole(msg.sender) == trustManager.MASTER());
     _;
   }
 
   modifier onlyIssuer {
-    DSTrustServiceInterface trustManager = DSTrustServiceInterface(getAddress(keccak256(abi.encodePacked("services", TRUST_SERVICE))));
+    DSTrustServiceInterface trustManager = DSTrustServiceInterface(getAddress8("services", TRUST_SERVICE));
     require(trustManager.getRole(msg.sender) == trustManager.ISSUER());
     _;
   }
 
   modifier onlyExchange {
-    DSTrustServiceInterface trustManager = DSTrustServiceInterface(getAddress(keccak256(abi.encodePacked("services", TRUST_SERVICE))));
+    DSTrustServiceInterface trustManager = DSTrustServiceInterface(getAddress8("services", TRUST_SERVICE));
     require(trustManager.getRole(msg.sender) == trustManager.EXCHANGE());
     _;
   }
 
   function getDSService(uint8 _serviceId) public view returns (address) {
-    return getAddress(keccak256(abi.encodePacked("services", _serviceId)));
+    return getAddress8("services", _serviceId);
   }
 
   function setDSService(uint8 _serviceId, address _address) public onlyMaster returns (bool) {
-    setAddress(keccak256(abi.encodePacked("services", _serviceId)), _address);
+    setAddress8("services", _serviceId, _address);
     return true;
   }
 }

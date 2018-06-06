@@ -11,8 +11,8 @@ contract ESBasicTokenMock is ESBasicToken {
 
   function initialize(address initialAccount, uint256 initialBalance) public onlyOwner {
     require(!initialized);
-    setUint(keccak256(abi.encodePacked("balances", initialAccount)), initialBalance);
-    setUint(keccak256(abi.encodePacked("totalSupply")), initialBalance);
+    setUint("balances", initialAccount, initialBalance);
+    setUint("totalSupply", initialBalance);
     initialized = true;
   }
 

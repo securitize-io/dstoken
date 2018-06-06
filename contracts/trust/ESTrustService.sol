@@ -14,27 +14,27 @@ contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {
 
   function initialize() public onlyOwner {
     require(!initialized,"must be initialized");
-    setAddress(keccak256("owner"), msg.sender);
-    setUint(keccak256("roles", msg.sender), MASTER);
+    setAddress("owner", msg.sender);
+    setUint("roles", msg.sender, MASTER);
     initialized = true;
   }
 
   modifier onlyMaster() {
-    require(getUint(keccak256("roles", msg.sender)) == MASTER);
+    require(getUint("roles", msg.sender) == MASTER);
     _;
   }
 
   modifier onlyMasterOrIssuer() {
-    require(getUint(keccak256("roles", msg.sender)) == MASTER || getUint(keccak256("roles", msg.sender)) == ISSUER);
+    require(getUint("roles", msg.sender) == MASTER || getUint("roles", msg.sender) == ISSUER);
     _;
   }
 
   function setRoleImpl(address _address, uint8 _role) internal returns (bool) {
-    uint8 old_role = uint8(getUint(keccak256("roles", _address)));
+    uint8 old_role = uint8(getUint("roles", _address));
 
     require(old_role == NONE || _role == NONE);
 
-    setUint(keccak256("roles", _address), _role);
+    setUint("roles", _address, _role);
 
     if (old_role == NONE) {
       emit DSTrustServiceRoleAdded(_address, _role, msg.sender);
@@ -47,7 +47,7 @@ contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {
 
   function setOwner(address _address) public onlyMaster returns (bool) {
     require(setRoleImpl(owner, NONE));
-    setAddress(keccak256("owner"), _address);
+    setAddress("owner", _address);
     require(setRoleImpl(_address, MASTER));
     return true;
   }
@@ -59,7 +59,7 @@ contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {
   }
 
   function removeRole(address _address) public onlyMasterOrIssuer returns (bool) {
-    uint8 role = uint8(getUint(keccak256("roles", _address)));
+    uint8 role = uint8(getUint("roles", _address));
 
     require(role == ISSUER || role == EXCHANGE);
 
@@ -67,6 +67,6 @@ contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {
   }
 
   function getRole(address _address) public view returns (uint8) {
-    return uint8(getUint(keccak256("roles", _address)));
+    return uint8(getUint("roles", _address));
   }
 }

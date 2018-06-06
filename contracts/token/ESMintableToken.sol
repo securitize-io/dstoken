@@ -9,7 +9,7 @@ contract ESMintableToken is ESStandardToken {
   event MintFinished();
 
   modifier canMint() {
-    require(!getBoolean(keccak256(abi.encodePacked("mintingFinished"))));
+    require(!getBoolean("mintingFinished"));
     _;
   }
 
@@ -27,15 +27,15 @@ contract ESMintableToken is ESStandardToken {
     public
     returns (bool)
   {
-    setUint(keccak256("totalSupply"), getUint(keccak256(abi.encodePacked("totalSupply"))).add(_amount));
-    setUint(keccak256("balances", _to), getUint(keccak256(abi.encodePacked("balances",_to))).add(_amount));
+    setUint("totalSupply", getUint("totalSupply").add(_amount));
+    setUint("balances", _to, getUint("balances",_to).add(_amount));
     emit Mint(_to, _amount);
     emit Transfer(address(0), _to, _amount);
     return true;
   }
 
   function finishMinting() onlyOwner canMint public returns (bool) {
-    setBoolean(keccak256(abi.encodePacked("mintingFinished")), true);
+    setBoolean("mintingFinished", true);
     emit MintFinished();
     return true;
   }

@@ -3,6 +3,15 @@ pragma solidity ^0.4.21;
 import '../zeppelin/ownership/Ownable.sol';
 import '../zeppelin/storage/EternalStorage.sol';
 
+/**
+* @title EternalStorageClient
+* @dev communicates with the eternal storage provider for a contract, providing convenience functions for accessing
+* different types of variables
+*
+* NOTE: this is a AUTOMATICALLY GENERATED file, and can be OVERWRITTEN. it should not be manually edited.
+*/
+
+
 contract EternalStorageClient is Ownable {
   EternalStorage public eternalStorage;
   string public namespace;
@@ -16,51 +25,229 @@ contract EternalStorageClient is Ownable {
     eternalStorage = EternalStorage(_address);
   }
 
-  function setBoolean(bytes32 h, bool v) internal {
-    eternalStorage.setBoolean(keccak256(abi.encodePacked(namespace, h)), v);
+
+
+/* Boolean functions */
+
+  function getBoolean(string p1) view internal returns (bool) {
+    return eternalStorage.getBoolean(keccak256(abi.encodePacked(namespace, p1)));
   }
 
-  function setInt(bytes32 h, int v) internal {
-    eternalStorage.setInt(keccak256(abi.encodePacked(namespace, h)), v);
+  function getBoolean(string p1,address p2) view internal returns (bool) {
+    return eternalStorage.getBoolean(keccak256(abi.encodePacked(namespace, p1,p2)));
   }
 
-  function setUint(bytes32 h, uint256 v) internal {
-    eternalStorage.setUint(keccak256(abi.encodePacked(namespace, h)), v);
+  function getBoolean(string p1,address p2,address p3) view internal returns (bool) {
+    return eternalStorage.getBoolean(keccak256(abi.encodePacked(namespace, p1,p2,p3)));
   }
 
-  function setAddress(bytes32 h, address v) internal {
-    eternalStorage.setAddress(keccak256(abi.encodePacked(namespace, h)), v);
+  function getBoolean8(string p1,uint8 p2) view internal returns (bool) {
+    return eternalStorage.getBoolean(keccak256(abi.encodePacked(namespace, p1,p2)));
   }
 
-  function setString(bytes32 h, string v) internal {
-    eternalStorage.setString(keccak256(abi.encodePacked(namespace, h)), v);
+  function setBoolean(string p1, bool v) internal {
+    eternalStorage.setBoolean(keccak256(abi.encodePacked(namespace, p1)), v);
   }
 
-  function setBytes(bytes32 h, bytes v) internal {
-    eternalStorage.setBytes(keccak256(abi.encodePacked(namespace, h)), v);
+  function setBoolean(string p1,address p2, bool v) internal {
+    eternalStorage.setBoolean(keccak256(abi.encodePacked(namespace, p1,p2)), v);
   }
 
-  function getBoolean(bytes32 h) view internal returns (bool) {
-    return eternalStorage.getBoolean(keccak256(abi.encodePacked(namespace, h)));
+  function setBoolean(string p1,address p2,address p3, bool v) internal {
+    eternalStorage.setBoolean(keccak256(abi.encodePacked(namespace, p1,p2,p3)), v);
+  }
+  function setBoolean8(string p1,uint8 p2, bool v) internal {
+    eternalStorage.setBoolean(keccak256(abi.encodePacked(namespace, p1,p2)), v);
   }
 
-  function getInt(bytes32 h) view internal returns (int) {
-    return eternalStorage.getInt(keccak256(abi.encodePacked(namespace, h)));
+
+
+
+
+/* Uint functions */
+
+  function getUint(string p1) view internal returns (uint256) {
+    return eternalStorage.getUint(keccak256(abi.encodePacked(namespace, p1)));
   }
 
-  function getUint(bytes32 h) view internal returns (uint256) {
-    return eternalStorage.getUint(keccak256(abi.encodePacked(namespace, h)));
+  function getUint(string p1,address p2) view internal returns (uint256) {
+    return eternalStorage.getUint(keccak256(abi.encodePacked(namespace, p1,p2)));
   }
 
-  function getAddress(bytes32 h) view internal returns (address) {
-    return eternalStorage.getAddress(keccak256(abi.encodePacked(namespace, h)));
+  function getUint(string p1,address p2,address p3) view internal returns (uint256) {
+    return eternalStorage.getUint(keccak256(abi.encodePacked(namespace, p1,p2,p3)));
   }
 
-  function getString(bytes32 h) view internal returns (string) {
-    return eternalStorage.getString(keccak256(abi.encodePacked(namespace, h)));
+  function getUint8(string p1,uint8 p2) view internal returns (uint256) {
+    return eternalStorage.getUint(keccak256(abi.encodePacked(namespace, p1,p2)));
   }
 
-  function getBytes(bytes32 h) view internal returns (bytes) {
-    return eternalStorage.getBytes(keccak256(abi.encodePacked(namespace, h)));
+  function setUint(string p1, uint256 v) internal {
+    eternalStorage.setUint(keccak256(abi.encodePacked(namespace, p1)), v);
   }
+
+  function setUint(string p1,address p2, uint256 v) internal {
+    eternalStorage.setUint(keccak256(abi.encodePacked(namespace, p1,p2)), v);
+  }
+
+  function setUint(string p1,address p2,address p3, uint256 v) internal {
+    eternalStorage.setUint(keccak256(abi.encodePacked(namespace, p1,p2,p3)), v);
+  }
+  function setUint8(string p1,uint8 p2, uint256 v) internal {
+    eternalStorage.setUint(keccak256(abi.encodePacked(namespace, p1,p2)), v);
+  }
+
+
+
+
+
+/* Int functions */
+
+  function getInt(string p1) view internal returns (int) {
+    return eternalStorage.getInt(keccak256(abi.encodePacked(namespace, p1)));
+  }
+
+  function getInt(string p1,address p2) view internal returns (int) {
+    return eternalStorage.getInt(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
+
+  function getInt(string p1,address p2,address p3) view internal returns (int) {
+    return eternalStorage.getInt(keccak256(abi.encodePacked(namespace, p1,p2,p3)));
+  }
+
+  function getInt8(string p1,uint8 p2) view internal returns (int) {
+    return eternalStorage.getInt(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
+
+  function setInt(string p1, int v) internal {
+    eternalStorage.setInt(keccak256(abi.encodePacked(namespace, p1)), v);
+  }
+
+  function setInt(string p1,address p2, int v) internal {
+    eternalStorage.setInt(keccak256(abi.encodePacked(namespace, p1,p2)), v);
+  }
+
+  function setInt(string p1,address p2,address p3, int v) internal {
+    eternalStorage.setInt(keccak256(abi.encodePacked(namespace, p1,p2,p3)), v);
+  }
+  function setInt8(string p1,uint8 p2, int v) internal {
+    eternalStorage.setInt(keccak256(abi.encodePacked(namespace, p1,p2)), v);
+  }
+
+
+
+
+
+/* Address functions */
+
+  function getAddress(string p1) view internal returns (address) {
+    return eternalStorage.getAddress(keccak256(abi.encodePacked(namespace, p1)));
+  }
+
+  function getAddress(string p1,address p2) view internal returns (address) {
+    return eternalStorage.getAddress(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
+
+  function getAddress(string p1,address p2,address p3) view internal returns (address) {
+    return eternalStorage.getAddress(keccak256(abi.encodePacked(namespace, p1,p2,p3)));
+  }
+
+  function getAddress8(string p1,uint8 p2) view internal returns (address) {
+    return eternalStorage.getAddress(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
+
+  function setAddress(string p1, address v) internal {
+    eternalStorage.setAddress(keccak256(abi.encodePacked(namespace, p1)), v);
+  }
+
+  function setAddress(string p1,address p2, address v) internal {
+    eternalStorage.setAddress(keccak256(abi.encodePacked(namespace, p1,p2)), v);
+  }
+
+  function setAddress(string p1,address p2,address p3, address v) internal {
+    eternalStorage.setAddress(keccak256(abi.encodePacked(namespace, p1,p2,p3)), v);
+  }
+  function setAddress8(string p1,uint8 p2, address v) internal {
+    eternalStorage.setAddress(keccak256(abi.encodePacked(namespace, p1,p2)), v);
+  }
+
+
+
+
+
+/* String functions */
+
+  function getString(string p1) view internal returns (string) {
+    return eternalStorage.getString(keccak256(abi.encodePacked(namespace, p1)));
+  }
+
+  function getString(string p1,address p2) view internal returns (string) {
+    return eternalStorage.getString(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
+
+  function getString(string p1,address p2,address p3) view internal returns (string) {
+    return eternalStorage.getString(keccak256(abi.encodePacked(namespace, p1,p2,p3)));
+  }
+
+  function getString8(string p1,uint8 p2) view internal returns (string) {
+    return eternalStorage.getString(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
+
+  function setString(string p1, string v) internal {
+    eternalStorage.setString(keccak256(abi.encodePacked(namespace, p1)), v);
+  }
+
+  function setString(string p1,address p2, string v) internal {
+    eternalStorage.setString(keccak256(abi.encodePacked(namespace, p1,p2)), v);
+  }
+
+  function setString(string p1,address p2,address p3, string v) internal {
+    eternalStorage.setString(keccak256(abi.encodePacked(namespace, p1,p2,p3)), v);
+  }
+  function setString8(string p1,uint8 p2, string v) internal {
+    eternalStorage.setString(keccak256(abi.encodePacked(namespace, p1,p2)), v);
+  }
+
+
+
+
+
+/* Bytes functions */
+
+  function getBytes(string p1) view internal returns (bytes) {
+    return eternalStorage.getBytes(keccak256(abi.encodePacked(namespace, p1)));
+  }
+
+  function getBytes(string p1,address p2) view internal returns (bytes) {
+    return eternalStorage.getBytes(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
+
+  function getBytes(string p1,address p2,address p3) view internal returns (bytes) {
+    return eternalStorage.getBytes(keccak256(abi.encodePacked(namespace, p1,p2,p3)));
+  }
+
+  function getBytes8(string p1,uint8 p2) view internal returns (bytes) {
+    return eternalStorage.getBytes(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
+
+  function setBytes(string p1, bytes v) internal {
+    eternalStorage.setBytes(keccak256(abi.encodePacked(namespace, p1)), v);
+  }
+
+  function setBytes(string p1,address p2, bytes v) internal {
+    eternalStorage.setBytes(keccak256(abi.encodePacked(namespace, p1,p2)), v);
+  }
+
+  function setBytes(string p1,address p2,address p3, bytes v) internal {
+    eternalStorage.setBytes(keccak256(abi.encodePacked(namespace, p1,p2,p3)), v);
+  }
+  function setBytes8(string p1,uint8 p2, bytes v) internal {
+    eternalStorage.setBytes(keccak256(abi.encodePacked(namespace, p1,p2)), v);
+  }
+
+
+
+
+
 }
+

@@ -8,22 +8,22 @@ contract ESPausable is EternalStorageClient {
   event Unpause();
 
   modifier whenNotPaused() {
-    require(!getBoolean(keccak256("paused")));
+    require(!getBoolean("paused"),"Contract is paused");
     _;
   }
 
   modifier whenPaused() {
-    require(getBoolean(keccak256("paused")));
+    require(getBoolean("paused"),"Contract is not paused");
     _;
   }
 
   function pause() onlyOwner whenNotPaused public {
-    setBoolean(keccak256("paused"), true);
+    setBoolean("paused", true);
     emit Pause();
   }
 
   function unpause() onlyOwner whenPaused public {
-    setBoolean(keccak256("paused"), false);
+    setBoolean("paused", false);
     emit Unpause();
   }
 }

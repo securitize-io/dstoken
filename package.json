@@ -10,7 +10,8 @@
     "test": "truffle compile && ./scripts/test.sh",
     "coverage": "truffle compile && ./node_modules/.bin/solidity-coverage",
     "compile": "truffle compile",
-    "migrate": "truffle compile && truffle migrate"
+    "migrate": "truffle compile && truffle migrate",
+    "generate": "node ./generators/EternalStorageClientGenerator.js"
   },
   "contributors": [
     {
@@ -38,6 +39,7 @@
     "chai-bignumber": "^2.0.0",
     "coveralls": "^2.13.1",
     "dotenv": "^4.0.0",
+    "ejs": "^2.6.1",
     "eslint": "^4.11.0",
     "eslint-config-standard": "^10.2.1",
     "eslint-plugin-import": "^2.8.0",

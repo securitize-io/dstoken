@@ -1,0 +1,68 @@
+pragma solidity ^0.4.21;
+
+import '../zeppelin/ownership/Ownable.sol';
+import '../zeppelin/storage/EternalStorage.sol';
+
+/**
+* @title EternalStorageClient
+* @dev communicates with the eternal storage provider for a contract, providing convenience functions for accessing
+* different types of variables
+*
+* NOTE: this is a AUTOMATICALLY GENERATED file, and can be OVERWRITTEN. it should not be manually edited.
+*/
+
+
+contract EternalStorageClient is Ownable {
+  EternalStorage public eternalStorage;
+  string public namespace;
+
+  constructor(address _address, string _namespace) public {
+    eternalStorage = EternalStorage(_address);
+    namespace = _namespace;
+  }
+
+  function setStorage(address _address) onlyOwner internal {
+    eternalStorage = EternalStorage(_address);
+  }
+
+<% for (let i = 0 ; i < names.length ; i++) { %>
+
+/* <%=names[i]%> functions */
+
+  function get<%=names[i]%>(string p1) view internal returns (<%=types[i]%>) {
+    return eternalStorage.get<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1)));
+  }
+
+  function get<%=names[i]%>(string p1,address p2) view internal returns (<%=types[i]%>) {
+    return eternalStorage.get<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
+
+  function get<%=names[i]%>(string p1,address p2,address p3) view internal returns (<%=types[i]%>) {
+    return eternalStorage.get<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2,p3)));
+  }
+
+  function get<%=names[i]%>8(string p1,uint8 p2) view internal returns (<%=types[i]%>) {
+    return eternalStorage.get<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
+
+  function set<%=names[i]%>(string p1, <%=types[i]%> v) internal {
+    eternalStorage.set<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1)), v);
+  }
+
+  function set<%=names[i]%>(string p1,address p2, <%=types[i]%> v) internal {
+    eternalStorage.set<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2)), v);
+  }
+
+  function set<%=names[i]%>(string p1,address p2,address p3, <%=types[i]%> v) internal {
+    eternalStorage.set<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2,p3)), v);
+  }
+  function set<%=names[i]%>8(string p1,uint8 p2, <%=types[i]%> v) internal {
+    eternalStorage.set<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2)), v);
+  }
+
+
+
+<% } %>
+
+}
+

@@ -17,7 +17,7 @@ contract ESBasicToken is ERC20Basic, EternalStorageClient {
   * @dev total number of tokens in existence
   */
   function totalSupply() public view returns (uint256) {
-    return getUint(keccak256(abi.encodePacked("totalSupply")));
+    return getUint("totalSupply");
   }
 
   /**
@@ -27,10 +27,10 @@ contract ESBasicToken is ERC20Basic, EternalStorageClient {
   */
   function transfer(address _to, uint256 _value) public returns (bool) {
     require(_to != address(0));
-    require(_value <= getUint(keccak256(abi.encodePacked("balances", msg.sender))));
+    require(_value <= getUint("balances", msg.sender));
 
-    setUint(keccak256(abi.encodePacked("balances", msg.sender)), getUint(keccak256(abi.encodePacked("balances", msg.sender))).sub(_value));
-    setUint(keccak256(abi.encodePacked("balances", _to)), getUint(keccak256(abi.encodePacked("balances", _to))).add(_value));
+    setUint("balances", msg.sender, getUint("balances", msg.sender).sub(_value));
+    setUint("balances", _to, getUint("balances", _to).add(_value));
     emit Transfer(msg.sender, _to, _value);
     return true;
   }
@@ -41,6 +41,6 @@ contract ESBasicToken is ERC20Basic, EternalStorageClient {
   * @return An uint256 representing the amount owned by the passed address.
   */
   function balanceOf(address _owner) public view returns (uint256) {
-    return getUint(keccak256(abi.encodePacked("balances", _owner)));
+    return getUint("balances", _owner);
   }
 }

@@ -9,7 +9,7 @@ contract ESCappedToken is ESMintableToken {
   function initialize(uint256 _cap) public onlyOwner {
     require(!initialized);
     require(_cap > 0);
-    setUint(keccak256("cap"), _cap);
+    setUint("cap", _cap);
     initialized = true;
   }
 
@@ -28,7 +28,7 @@ contract ESCappedToken is ESMintableToken {
     public
     returns (bool)
   {
-    require(getUint(keccak256(abi.encodePacked("totalSupply"))).add(_amount) <= getUint(keccak256(abi.encodePacked("cap"))));
+    require(getUint("totalSupply").add(_amount) <= getUint("cap"));
 
     return super.mint(_to, _amount);
   }
