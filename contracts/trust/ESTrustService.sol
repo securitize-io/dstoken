@@ -1,6 +1,6 @@
 pragma solidity ^0.4.23;
 
-import "../../storage/EternalStorageClient.sol";
+import "../util/EternalStorageClient.sol";
 import "./DSTrustServiceInterface.sol";
 
 contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {
@@ -13,7 +13,7 @@ contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {
   bool public initialized = false;
 
   function initialize() public onlyOwner {
-    require(!initialized);
+    require(!initialized,"must be initialized");
     setAddress(keccak256("owner"), msg.sender);
     setUint(keccak256("roles", msg.sender), MASTER);
     initialized = true;

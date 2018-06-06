@@ -3,7 +3,6 @@ pragma solidity ^0.4.23;
 import "./ESMintableToken.sol";
 
 contract ESCappedToken is ESMintableToken {
-  constructor(address _address, string _namespace) public ESMintableToken(_address, _namespace) {}
 
   bool public initialized = false;
 
@@ -29,7 +28,7 @@ contract ESCappedToken is ESMintableToken {
     public
     returns (bool)
   {
-    require(getUint(keccak256("totalSupply")).add(_amount) <= getUint(keccak256("cap")));
+    require(getUint(keccak256(abi.encodePacked("totalSupply"))).add(_amount) <= getUint(keccak256(abi.encodePacked("cap"))));
 
     return super.mint(_to, _amount);
   }

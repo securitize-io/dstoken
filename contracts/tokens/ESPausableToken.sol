@@ -1,11 +1,10 @@
 pragma solidity ^0.4.23;
 
 import "./ESStandardToken.sol";
-import "../../lifecycle/ESPausable.sol";
+import "../util/ESPausable.sol";
 
 
 contract ESPausableToken is ESStandardToken, ESPausable {
-  constructor(address _address, string _namespace) public ESStandardToken(_address, _namespace) ESPausable(_address, _namespace) {}
 
   function transfer(
     address _to,

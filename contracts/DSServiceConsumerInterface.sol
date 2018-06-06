@@ -1,6 +1,6 @@
 pragma solidity ^0.4.23;
 
-import "./trust_service/DSTrustServiceInterface.sol";
+import "./trust/DSTrustServiceInterface.sol";
 
 contract DSServiceConsumerInterface {
   uint8 public constant TRUST_SERVICE = 1;
@@ -25,5 +25,5 @@ contract DSServiceConsumerInterface {
   }
 
   function getDSService(uint8 _serviceId) public view returns (address);
-  function setDSService(uint8 _serviceId, address _address) public onlyMaster returns (bool);
+  function setDSService(uint8 _serviceId, address _address) public /*onlyMaster*/ returns (bool);
 }

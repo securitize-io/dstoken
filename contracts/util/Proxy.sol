@@ -1,6 +1,6 @@
 pragma solidity ^0.4.21;
 
-import "../ownership/Ownable.sol";
+import "../zeppelin/ownership/Ownable.sol";
 
 contract Proxy is Ownable {
   address public target;

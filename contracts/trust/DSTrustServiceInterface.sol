@@ -20,8 +20,8 @@ contract DSTrustServiceInterface {
   }
 
   function setRoleImpl(address _address, uint8 _role) internal returns (bool);
-  function setOwner(address _address) public onlyMaster returns (bool);
-  function setRole(address _address, uint8 _role) public onlyMasterOrIssuer returns (bool);
-  function removeRole(address _address) public onlyMasterOrIssuer returns (bool);
+  function setOwner(address _address) public /*onlyMaster*/ returns (bool);
+  function setRole(address _address, uint8 _role) public /*onlyMasterOrIssuer*/ returns (bool);
+  function removeRole(address _address) public /*onlyMasterOrIssuer*/ returns (bool);
   function getRole(address _address) public view returns (uint8);
 }

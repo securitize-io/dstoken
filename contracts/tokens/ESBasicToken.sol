@@ -1,9 +1,9 @@
 pragma solidity ^0.4.23;
 
 
-import "./ERC20Basic.sol";
-import "../../math/SafeMath.sol";
-import "../../storage/EternalStorageClient.sol";
+import "../zeppelin/token/ERC20/ERC20Basic.sol";
+import "../zeppelin/math/SafeMath.sol";
+import "../util/EternalStorageClient.sol";
 
 
 /**
@@ -13,13 +13,11 @@ import "../../storage/EternalStorageClient.sol";
 contract ESBasicToken is ERC20Basic, EternalStorageClient {
   using SafeMath for uint256;
 
-  constructor(address _address, string _namespace) public EternalStorageClient(_address, _namespace) {}
-
   /**
   * @dev total number of tokens in existence
   */
   function totalSupply() public view returns (uint256) {
-    return getUint(keccak256("totalSupply"));
+    return getUint(keccak256(abi.encodePacked("totalSupply")));
   }
 
   /**
@@ -29,10 +27,10 @@ contract ESBasicToken is ERC20Basic, EternalStorageClient {
   */
   function transfer(address _to, uint256 _value) public returns (bool) {
     require(_to != address(0));
-    require(_value <= getUint(keccak256("balances", msg.sender)));
+    require(_value <= getUint(keccak256(abi.encodePacked("balances", msg.sender))));
 
-    setUint(keccak256("balances", msg.sender), getUint(keccak256("balances", msg.sender)).sub(_value));
-    setUint(keccak256("balances", _to), getUint(keccak256("balances", _to)).add(_value));
+    setUint(keccak256(abi.encodePacked("balances", msg.sender)), getUint(keccak256(abi.encodePacked("balances", msg.sender))).sub(_value));
+    setUint(keccak256(abi.encodePacked("balances", _to)), getUint(keccak256(abi.encodePacked("balances", _to))).add(_value));
     emit Transfer(msg.sender, _to, _value);
     return true;
   }
@@ -43,6 +41,6 @@ contract ESBasicToken is ERC20Basic, EternalStorageClient {
   * @return An uint256 representing the amount owned by the passed address.
   */
   function balanceOf(address _owner) public view returns (uint256) {
-    return getUint(keccak256("balances", _owner));
+    return getUint(keccak256(abi.encodePacked("balances", _owner)));
   }
 }
