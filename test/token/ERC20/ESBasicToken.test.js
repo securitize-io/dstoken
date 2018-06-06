@@ -7,8 +7,8 @@ contract('ESStandardToken', function ([_, owner, recipient, anotherAccount]) {
 
   beforeEach(async function () {
     this.storage = await EternalStorage.new();
-    this.token = await ESBasicToken.new(this.storage.address, "ESBasicToken");
-    await this.storage.adminAddRole(this.token.address, "write");
+    this.token = await ESBasicToken.new(this.storage.address, 'ESBasicToken');
+    await this.storage.adminAddRole(this.token.address, 'write');
     await this.token.initialize(owner, 100);
   });
 

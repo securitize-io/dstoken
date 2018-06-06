@@ -1,7 +1,7 @@
 pragma solidity ^0.4.23;
 
+import "../token/ESBasicToken.sol";
 
-import "../tokens/ESBasicToken.sol";
 
 
 // mock class using BasicToken
