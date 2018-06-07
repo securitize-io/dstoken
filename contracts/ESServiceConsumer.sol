@@ -14,13 +14,16 @@ contract ESServiceConsumer is DSServiceConsumerInterface, EternalStorageClient {
 
   modifier onlyIssuer {
     DSTrustServiceInterface trustManager = DSTrustServiceInterface(getAddress8("services", TRUST_SERVICE));
-    require(trustManager.getRole(msg.sender) == trustManager.ISSUER());
+    require(trustManager.getRole(msg.sender) == trustManager.ISSUER()
+    || trustManager.getRole(msg.sender) == trustManager.MASTER());
     _;
   }
 
   modifier onlyExchange {
     DSTrustServiceInterface trustManager = DSTrustServiceInterface(getAddress8("services", TRUST_SERVICE));
-    require(trustManager.getRole(msg.sender) == trustManager.EXCHANGE());
+    require(trustManager.getRole(msg.sender) == trustManager.EXCHANGE()
+    || trustManager.getRole(msg.sender) == trustManager.ISSUER()
+    || trustManager.getRole(msg.sender) == trustManager.MASTER());
     _;
   }
 
