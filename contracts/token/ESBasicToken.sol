@@ -12,8 +12,6 @@ import "../util/EternalStorageClient.sol";
  */
 contract ESBasicToken is ERC20Basic, EternalStorageClient {
 
-    constructor(address _address, string _namespace) public EternalStorageClient(_address, _namespace) {}
-
     using SafeMath for uint256;
 
   /**

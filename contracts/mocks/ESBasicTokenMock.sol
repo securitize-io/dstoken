@@ -7,7 +7,7 @@ import "../token/ESBasicToken.sol";
 // mock class using BasicToken
 contract ESBasicTokenMock is ESBasicToken {
 
-    constructor(address _address, string _namespace) public ESBasicToken(_address, _namespace) {}
+    constructor(address _address, string _namespace) public EternalStorageClient(_address, _namespace) {}
 
 
     bool public initialized = false;
