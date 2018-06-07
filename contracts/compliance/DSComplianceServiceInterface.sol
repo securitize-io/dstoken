@@ -12,7 +12,7 @@ contract DSComplianceServiceInterface is DSServiceConsumerInterface {
 
     function validateIssuance(address to, uint amount) /*onlyToken*/ public;
     function validate(address from, address to, uint amount) /*onlyToken*/ public;
-    function preTransferCheck(address from, address to, uint amount) view /*onlyExchange*/ public returns (bool);
+    function preTransferCheck(address from, address to, uint amount) view /*onlyExchangeOrAbove*/ public returns (bool);
 
     //more functions to-be-added
 

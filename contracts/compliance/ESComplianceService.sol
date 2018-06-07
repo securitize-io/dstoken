@@ -1,12 +1,12 @@
 pragma solidity ^0.4.23;
 
 import "./DSComplianceServiceInterface.sol";
-import "../util/EternalStorageClient.sol";
+import "../ESServiceConsumer.sol";
 
 
-contract ESComplianceService is DSComplianceServiceInterface,EternalStorageClient {
+contract ESComplianceService is DSServiceConsumerInterface,ESServiceConsumer {
 
-    constructor(address _address, string _namespace) public EternalStorageClient(_address, _namespace) {}
+    constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
 
 
     modifier onlyToken() {
@@ -23,7 +23,7 @@ contract ESComplianceService is DSComplianceServiceInterface,EternalStorageClien
         require (recordTransfer(from,to,amount));
     }
 
-    function preTransferCheck(address from, address to, uint amount) view onlyExchange public returns (bool){
+    function onlyExchangeOrAbove(address from, address to, uint amount) view onlyExchangeOrAbove public returns (bool){
         return(checkTransfer(from,to,amount));
     }
 
