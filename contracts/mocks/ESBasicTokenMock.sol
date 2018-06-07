@@ -7,13 +7,16 @@ import "../token/ESBasicToken.sol";
 // mock class using BasicToken
 contract ESBasicTokenMock is ESBasicToken {
 
-  bool public initialized = false;
+    constructor(address _address, string _namespace) public ESBasicToken(_address, _namespace) {}
 
-  function initialize(address initialAccount, uint256 initialBalance) public onlyOwner {
-    require(!initialized);
-    setUint("balances", initialAccount, initialBalance);
-    setUint("totalSupply", initialBalance);
-    initialized = true;
-  }
+
+    bool public initialized = false;
+
+    function initialize(address initialAccount, uint256 initialBalance) public onlyOwner {
+        require(!initialized);
+        setUint("balances", initialAccount, initialBalance);
+        setUint("totalSupply", initialBalance);
+        initialized = true;
+    }
 
 }

@@ -14,9 +14,9 @@ cleanup() {
 }
 
 if [ "$SOLIDITY_COVERAGE" = true ]; then
-  ganache_port=8555
+  ganache_port=7555
 else
-  ganache_port=8545
+  ganache_port=7545
 fi
 
 ganache_running() {
@@ -41,7 +41,7 @@ start_ganache() {
   if [ "$SOLIDITY_COVERAGE" = true ]; then
     node_modules/.bin/testrpc-sc --gasLimit 0xfffffffffff --port "$ganache_port" "${accounts[@]}" > /dev/null &
   else
-    node_modules/.bin/ganache-cli --gasLimit 0xfffffffffff "${accounts[@]}" > /dev/null &
+    node_modules/.bin/ganache-cli --gasLimit 0xfffffffffff --port "$ganache_port" "${accounts[@]}" > /dev/null &
   fi
 
   ganache_pid=$!
