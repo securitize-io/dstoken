@@ -5,7 +5,7 @@ import "./ESPausableToken.sol";
 import "../zeppelin/token/ERC20/DetailedERC20.sol";
 import "../ESServiceConsumer.sol";
 
-contract DSToken is ESStandardToken,ESPausableToken,DetailedERC20,ESServiceConsumer {
+contract DSToken is ESServiceConsumer,ESStandardToken,ESPausableToken,DetailedERC20 {
 
     constructor(
         string _name,

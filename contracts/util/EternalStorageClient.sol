@@ -172,9 +172,6 @@ contract EternalStorageClient is Ownable {
   }
 
 
-
-
-
 /* String functions */
 
   function getString(string p1) view internal returns (string) {

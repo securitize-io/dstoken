@@ -13,7 +13,7 @@ contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {
   bool public initialized = false;
 
   function initialize() public onlyOwner {
-    require(!initialized,"must be initialized");
+    require(!initialized,"must not be initialized");
     setAddress("owner", msg.sender);
     setUint("roles", msg.sender, MASTER);
     initialized = true;

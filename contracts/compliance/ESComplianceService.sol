@@ -23,7 +23,7 @@ contract ESComplianceService is DSServiceConsumerInterface,ESServiceConsumer {
         require (recordTransfer(from,to,amount));
     }
 
-    function onlyExchangeOrAbove(address from, address to, uint amount) view onlyExchangeOrAbove public returns (bool){
+    function preTransferCheck(address from, address to, uint amount) view onlyExchangeOrAbove public returns (bool){
         return(checkTransfer(from,to,amount));
     }
 
