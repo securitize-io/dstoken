@@ -37,6 +37,10 @@ contract EternalStorageClient is Ownable {
     return eternalStorage.get<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2)));
   }
 
+  function get<%=names[i]%>(string p1,uint256 p2) view internal returns (<%=types[i]%>) {
+    return eternalStorage.get<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
+
   function get<%=names[i]%>(string p1,address p2,address p3) view internal returns (<%=types[i]%>) {
     return eternalStorage.get<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2,p3)));
   }
@@ -50,6 +54,10 @@ contract EternalStorageClient is Ownable {
   }
 
   function set<%=names[i]%>(string p1,address p2, <%=types[i]%> v) internal {
+    eternalStorage.set<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2)), v);
+  }
+
+  function set<%=names[i]%>(string p1,uint256 p2, <%=types[i]%> v) internal {
     eternalStorage.set<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2)), v);
   }
 
