@@ -11,14 +11,14 @@ contract DSServiceConsumer is DSServiceConsumerInterface {
     _;
   }
 
-  modifier onlyIssuer {
+  modifier onlyIssuerOrAbove {
     DSTrustServiceInterface trustManager = DSTrustServiceInterface(services[TRUST_SERVICE]);
       require(trustManager.getRole(msg.sender) == trustManager.ISSUER()
       || trustManager.getRole(msg.sender) == trustManager.MASTER());
     _;
   }
 
-  modifier onlyExchange {
+  modifier onlyExchangeOrAbove {
     DSTrustServiceInterface trustManager = DSTrustServiceInterface(services[TRUST_SERVICE]);
       require(trustManager.getRole(msg.sender) == trustManager.EXCHANGE()
       || trustManager.getRole(msg.sender) == trustManager.ISSUER()

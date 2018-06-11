@@ -14,12 +14,12 @@ contract DSServiceConsumerInterface {
     _;
   }
 
-  modifier onlyIssuer {
+  modifier onlyIssuerOrAbove {
     assert(false);
     _;
   }
 
-  modifier onlyExchange {
+  modifier onlyExchangeOrAbove {
     assert(false);
     _;
   }
