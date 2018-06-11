@@ -1,7 +1,7 @@
 pragma solidity ^0.4.21;
 
 import '../zeppelin/ownership/Ownable.sol';
-import '../zeppelin/storage/EternalStorage.sol';
+import './DSEternalStorage.sol';
 
 /**
 * @title EternalStorageClient

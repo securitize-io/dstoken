@@ -9,6 +9,6 @@ const types = ['bool', 'uint256', 'int', 'address', 'string', 'bytes'];
 
 const data = ejs.render(template, { names,types });
 
-fs.writeFileSync(path.join(__dirname, '../contracts/util/EternalStorageClient.sol'), data);
+fs.writeFileSync(path.join(__dirname, '../contracts/storage/EternalStorageClient.sol'), data);
 
 console.log('EternalStorageClient contract file generated');

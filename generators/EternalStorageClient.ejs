@@ -1,7 +1,7 @@
 pragma solidity ^0.4.21;
 
 import '../zeppelin/ownership/Ownable.sol';
-import '../zeppelin/storage/EternalStorage.sol';
+import './DSEternalStorage.sol';
 
 /**
 * @title EternalStorageClient
@@ -60,7 +60,21 @@ contract EternalStorageClient is Ownable {
     eternalStorage.set<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2)), v);
   }
 
+  function delete<%=names[i]%>(string p1) view internal returns (<%=types[i]%>) {
+    return eternalStorage.delete<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1)));
+  }
 
+  function delete<%=names[i]%>(string p1,address p2) view internal returns (<%=types[i]%>) {
+    return eternalStorage.delete<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
+
+  function delete<%=names[i]%>(string p1,address p2,address p3) view internal returns (<%=types[i]%>) {
+    return eternalStorage.delete<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2,p3)));
+  }
+
+  function delete<%=names[i]%>8(string p1,uint8 p2) view internal returns (<%=types[i]%>) {
+    return eternalStorage.delete<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
 
 <% } %>
 
