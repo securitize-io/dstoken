@@ -2,7 +2,11 @@ pragma solidity ^0.4.23;
 
 /**
  * @title DSTrustServiceInterface
+<<<<<<< HEAD
  * @dev An interface for a trust service which allows role-based access control for other contracts.
+=======
+ * @dev An interface for a trust service which allows role-based access control for other contracts
+>>>>>>> add some documentation
  */
 contract DSTrustServiceInterface {
   /**
