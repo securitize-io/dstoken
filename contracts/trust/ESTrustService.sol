@@ -1,6 +1,6 @@
 pragma solidity ^0.4.23;
 
-import "../util/EternalStorageClient.sol";
+import "../storage/EternalStorageClient.sol";
 import "./DSTrustServiceInterface.sol";
 
 contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {

@@ -13,16 +13,16 @@ import './DSEternalStorage.sol';
 
 
 contract EternalStorageClient is Ownable {
-  EternalStorage public eternalStorage;
+  DSEternalStorage public eternalStorage;
   string public namespace;
 
   constructor(address _address, string _namespace) public {
-    eternalStorage = EternalStorage(_address);
+    eternalStorage = DSEternalStorage(_address);
     namespace = _namespace;
   }
 
   function setStorage(address _address) onlyOwner internal {
-    eternalStorage = EternalStorage(_address);
+    eternalStorage = DSEternalStorage(_address);
   }
 
 <% for (let i = 0 ; i < names.length ; i++) { %>
@@ -68,19 +68,19 @@ contract EternalStorageClient is Ownable {
     eternalStorage.set<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2)), v);
   }
 
-  function delete<%=names[i]%>(string p1) view internal returns (<%=types[i]%>) {
+  function delete<%=names[i]%>(string p1) internal {
     return eternalStorage.delete<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1)));
   }
 
-  function delete<%=names[i]%>(string p1,address p2) view internal returns (<%=types[i]%>) {
+  function delete<%=names[i]%>(string p1,address p2) internal {
     return eternalStorage.delete<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2)));
   }
 
-  function delete<%=names[i]%>(string p1,address p2,address p3) view internal returns (<%=types[i]%>) {
+  function delete<%=names[i]%>(string p1,address p2,address p3) internal {
     return eternalStorage.delete<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2,p3)));
   }
 
-  function delete<%=names[i]%>8(string p1,uint8 p2) view internal returns (<%=types[i]%>) {
+  function delete<%=names[i]%>8(string p1,uint8 p2) internal {
     return eternalStorage.delete<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2)));
   }
 

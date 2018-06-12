@@ -1,7 +1,7 @@
 pragma solidity ^0.4.23;
 
-import "./util/EternalStorageClient.sol";
 import "./DSServiceConsumerInterface.sol";
+import "./storage/EternalStorageClient.sol";
 
 contract ESServiceConsumer is DSServiceConsumerInterface, EternalStorageClient {
   constructor(address _address, string _namespace) public EternalStorageClient(_address, _namespace) {}

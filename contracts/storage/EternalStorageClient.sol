@@ -13,16 +13,16 @@ import './DSEternalStorage.sol';
 
 
 contract EternalStorageClient is Ownable {
-  EternalStorage public eternalStorage;
+  DSEternalStorage public eternalStorage;
   string public namespace;
 
   constructor(address _address, string _namespace) public {
-    eternalStorage = EternalStorage(_address);
+    eternalStorage = DSEternalStorage(_address);
     namespace = _namespace;
   }
 
   function setStorage(address _address) onlyOwner internal {
-    eternalStorage = EternalStorage(_address);
+    eternalStorage = DSEternalStorage(_address);
   }
 
 
@@ -68,7 +68,21 @@ contract EternalStorageClient is Ownable {
     eternalStorage.setBoolean(keccak256(abi.encodePacked(namespace, p1,p2)), v);
   }
 
+  function deleteBoolean(string p1) internal {
+    return eternalStorage.deleteBoolean(keccak256(abi.encodePacked(namespace, p1)));
+  }
 
+  function deleteBoolean(string p1,address p2) internal {
+    return eternalStorage.deleteBoolean(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
+
+  function deleteBoolean(string p1,address p2,address p3) internal {
+    return eternalStorage.deleteBoolean(keccak256(abi.encodePacked(namespace, p1,p2,p3)));
+  }
+
+  function deleteBoolean8(string p1,uint8 p2) internal {
+    return eternalStorage.deleteBoolean(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
 
 
 
@@ -113,7 +127,21 @@ contract EternalStorageClient is Ownable {
     eternalStorage.setUint(keccak256(abi.encodePacked(namespace, p1,p2)), v);
   }
 
+  function deleteUint(string p1) internal {
+    return eternalStorage.deleteUint(keccak256(abi.encodePacked(namespace, p1)));
+  }
 
+  function deleteUint(string p1,address p2) internal {
+    return eternalStorage.deleteUint(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
+
+  function deleteUint(string p1,address p2,address p3) internal {
+    return eternalStorage.deleteUint(keccak256(abi.encodePacked(namespace, p1,p2,p3)));
+  }
+
+  function deleteUint8(string p1,uint8 p2) internal {
+    return eternalStorage.deleteUint(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
 
 
 
@@ -158,7 +186,21 @@ contract EternalStorageClient is Ownable {
     eternalStorage.setInt(keccak256(abi.encodePacked(namespace, p1,p2)), v);
   }
 
+  function deleteInt(string p1) internal {
+    return eternalStorage.deleteInt(keccak256(abi.encodePacked(namespace, p1)));
+  }
 
+  function deleteInt(string p1,address p2) internal {
+    return eternalStorage.deleteInt(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
+
+  function deleteInt(string p1,address p2,address p3) internal {
+    return eternalStorage.deleteInt(keccak256(abi.encodePacked(namespace, p1,p2,p3)));
+  }
+
+  function deleteInt8(string p1,uint8 p2) internal {
+    return eternalStorage.deleteInt(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
 
 
 
@@ -203,7 +245,21 @@ contract EternalStorageClient is Ownable {
     eternalStorage.setAddress(keccak256(abi.encodePacked(namespace, p1,p2)), v);
   }
 
+  function deleteAddress(string p1) internal {
+    return eternalStorage.deleteAddress(keccak256(abi.encodePacked(namespace, p1)));
+  }
 
+  function deleteAddress(string p1,address p2) internal {
+    return eternalStorage.deleteAddress(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
+
+  function deleteAddress(string p1,address p2,address p3) internal {
+    return eternalStorage.deleteAddress(keccak256(abi.encodePacked(namespace, p1,p2,p3)));
+  }
+
+  function deleteAddress8(string p1,uint8 p2) internal {
+    return eternalStorage.deleteAddress(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
 
 
 
@@ -248,7 +304,21 @@ contract EternalStorageClient is Ownable {
     eternalStorage.setString(keccak256(abi.encodePacked(namespace, p1,p2)), v);
   }
 
+  function deleteString(string p1) internal {
+    return eternalStorage.deleteString(keccak256(abi.encodePacked(namespace, p1)));
+  }
 
+  function deleteString(string p1,address p2) internal {
+    return eternalStorage.deleteString(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
+
+  function deleteString(string p1,address p2,address p3) internal {
+    return eternalStorage.deleteString(keccak256(abi.encodePacked(namespace, p1,p2,p3)));
+  }
+
+  function deleteString8(string p1,uint8 p2) internal {
+    return eternalStorage.deleteString(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
 
 
 
@@ -293,7 +363,21 @@ contract EternalStorageClient is Ownable {
     eternalStorage.setBytes(keccak256(abi.encodePacked(namespace, p1,p2)), v);
   }
 
+  function deleteBytes(string p1) internal {
+    return eternalStorage.deleteBytes(keccak256(abi.encodePacked(namespace, p1)));
+  }
 
+  function deleteBytes(string p1,address p2) internal {
+    return eternalStorage.deleteBytes(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
+
+  function deleteBytes(string p1,address p2,address p3) internal {
+    return eternalStorage.deleteBytes(keccak256(abi.encodePacked(namespace, p1,p2,p3)));
+  }
+
+  function deleteBytes8(string p1,uint8 p2) internal {
+    return eternalStorage.deleteBytes(keccak256(abi.encodePacked(namespace, p1,p2)));
+  }
 
 
 

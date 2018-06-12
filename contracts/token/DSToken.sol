@@ -47,7 +47,6 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESStandardToken,ESPausabl
     */
 
     function issueTokens(address _to, uint256 _value) onlyIssuerOrAbove public returns (bool){
-        //TODO: discuss empty string here (and reason string in general)
         issueTokensWithLocking(_to, _value, 0,"", 0);
     }
 
@@ -97,15 +96,29 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESStandardToken,ESPausabl
     // TOKEN BURNING
     //*********************
 
-    function burn(address _who, uint256 _value) onlyIssuerOrAbove public {
+    function burn(address _who, uint256 _value,string _reason) onlyIssuerOrAbove public {
         require(_value <= getUint("balances", _who));
         // no need to require value <= totalSupply, since that would imply the
         // sender's balance is greater than the totalSupply, which *should* be an assertion failure
 
         setUint("balances", _who, getUint("balances", _who).sub(_value));
         setUint("totalSupply", getUint("totalSupply").sub(_value));
-        emit Burn(_who, _value);
+        emit Burn(_who, _value,_reason);
         emit Transfer(_who, address(0), _value);
+    }
+
+    //*********************
+    // TOKEN SEIZING
+    //*********************
+
+    function seize(address _from, address _to, uint256 _value,string _reason) onlyIssuerOrAbove public{
+        require(_from != address(0));
+        require(_to != address(0));
+        require(_value <= getUint("balances", _from));
+        setUint("balances", _from, getUint("balances", _from).sub(_value));
+        setUint("balances", _to, getUint("balances", _to).add(_value));
+        emit Seize(_from, _to, _value,_reason);
+        emit Transfer(_from, _to, _value);
     }
 
     //*********************
@@ -190,12 +203,10 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESStandardToken,ESPausabl
             uint lastIndex = getUint("walletCount");
             address lastWalletAddress = getAddress("walletList",lastIndex);
             setAddress("walletList",existingIndex,lastWalletAddress);
-
             //Decrease the total count
             setUint("walletCount",lastIndex.sub(1));
-
             //Remove from reverse index
-            setAddress("walletToIndex",_address,0);
+            deleteAddress("walletToIndex",_address);
 
         }
 

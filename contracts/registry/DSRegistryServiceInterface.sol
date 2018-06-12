@@ -21,7 +21,7 @@ contract DSRegistryServiceInterface is DSServiceConsumerInterface {
   function getCountry(string _id) public view returns (string);
   function getCollisionHash(string _id) public view returns (string);
   function setAttribute(string _id, uint8 _attributeId, uint256 _value, uint256 _expiry) public /*onlyExchangeOrAbove*/ returns (bool);
-  function getAttributeValue(string _id, uint8 _attributeId) public view returns (uint256)
+  function getAttributeValue(string _id, uint8 _attributeId) public view returns (uint256);
   function getAttributeExpiry(string _id, uint8 _attributeId) public view returns (uint256);
   function getAttributeProofHash(string _id, uint8 _attributeId) public view returns (string);
   function addWallet(address _address, string _id) public /*onlyExchangeOrAbove*/ returns (bool);

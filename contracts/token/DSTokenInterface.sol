@@ -5,7 +5,9 @@ import "../zeppelin/token/ERC20/ERC20.sol";
 contract DSTokenInterface is ERC20 {
 
     event Issue(address indexed to, uint256 value, uint256 valueLocked);
-    event Burn(address indexed burner, uint256 value);
+    event Burn(address indexed burner, uint256 value, string reason);
+    event Seize(address indexed from,address indexed to, uint256 value, string reason);
+
     event WalletAdded(address wallet);
     event WalletRemoved(address wallet);
 
@@ -50,13 +52,13 @@ contract DSTokenInterface is ERC20 {
     // TOKEN BURNING
     //*********************
 
-    function burn(address _who, uint256 _value) /*onlyIssuerOrAbove*/ public;
+    function burn(address _who, uint256 _value,string _reason) /*onlyIssuerOrAbove*/ public;
 
     //*********************
     // TOKEN SIEZING
     //*********************
 
-    //function sieze(address _from, address _to, uint256 _value) onlyIssuerOrAbove public;
+    function seize(address _from, address _to, uint256 _value,string _reason) /*onlyIssuerOrAbove*/ public;
 
     //*********************
     // WALLET ENUMERATION

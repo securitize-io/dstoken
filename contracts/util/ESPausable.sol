@@ -1,6 +1,6 @@
 pragma solidity ^0.4.23;
 
-import "./EternalStorageClient.sol";
+import "../storage/EternalStorageClient.sol";
 
 contract ESPausable is EternalStorageClient {
 

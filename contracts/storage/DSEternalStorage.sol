@@ -14,27 +14,27 @@ contract DSEternalStorage is EternalStorage {
 
   // Registry internal r;
 
-  function deleteBoolean(bytes32 h, bool v) public onlyRole("write") {
+  function deleteBoolean(bytes32 h) public onlyRole("write") {
     delete(s._bool[h]);
   }
 
-  function deleteInt(bytes32 h, int v) public onlyRole("write") {
+  function deleteInt(bytes32 h) public onlyRole("write") {
     delete(s._int[h]);
   }
 
-  function deleteUint(bytes32 h, uint256 v) public onlyRole("write") {
+  function deleteUint(bytes32 h) public onlyRole("write") {
     delete(s._uint[h]);
   }
 
-  function deleteAddress(bytes32 h, address v) public onlyRole("write") {
+  function deleteAddress(bytes32 h) public onlyRole("write") {
     delete(s._address[h]);
   }
 
-  function deleteString(bytes32 h, string v) public onlyRole("write") {
+  function deleteString(bytes32 h) public onlyRole("write") {
     delete(s._string[h]);
   }
 
-  function deleteBytes(bytes32 h, bytes v) public onlyRole("write") {
+  function deleteBytes(bytes32 h) public onlyRole("write") {
     delete(s._bytes[h]);
   }
 

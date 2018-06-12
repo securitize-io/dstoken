@@ -3,7 +3,7 @@ pragma solidity ^0.4.23;
 
 import "../zeppelin/token/ERC20/ERC20Basic.sol";
 import "../zeppelin/math/SafeMath.sol";
-import "../util/EternalStorageClient.sol";
+import "../storage/EternalStorageClient.sol";
 
 
 /**
