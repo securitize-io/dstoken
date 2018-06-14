@@ -27,5 +27,5 @@ contract DSRegistryServiceInterface is DSServiceConsumerInterface {
   function addWallet(address _address, string _id) public /*onlyExchangeOrAbove*/ returns (bool);
   function removeWallet(address _address, string _id) public /*onlyExchangeOrAbove*/ returns (bool);
   function getInvestor(address _address) public view returns (string);
-  function getInvestorDetails(address _address) public view returns (string, address);
+  function getInvestorDetails(address _address) public view returns (string, string);
 }
