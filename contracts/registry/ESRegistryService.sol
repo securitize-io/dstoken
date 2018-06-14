@@ -121,6 +121,7 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
   }
 
   function getInvestorDetails(address _address) public view returns (string, string) {
+    // TODO: make code cleaner
     return (getString("wallets", _address, "owner"), getCountry(getString("wallets", _address, "owner")));
   }
 }
