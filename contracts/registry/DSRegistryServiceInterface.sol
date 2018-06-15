@@ -20,7 +20,7 @@ contract DSRegistryServiceInterface is DSServiceConsumerInterface {
   function setCountry(string _id, string _country) public /*onlyExchangeOrAbove*/ returns (bool);
   function getCountry(string _id) public view returns (string);
   function getCollisionHash(string _id) public view returns (string);
-  function setAttribute(string _id, uint8 _attributeId, uint256 _value, uint256 _expiry) public /*onlyExchangeOrAbove*/ returns (bool);
+  function setAttribute(string _id, uint8 _attributeId, uint256 _value, uint256 _expiry, string _proofHash) public /*onlyExchangeOrAbove*/ returns (bool);
   function getAttributeValue(string _id, uint8 _attributeId) public view returns (uint256);
   function getAttributeExpiry(string _id, uint8 _attributeId) public view returns (uint256);
   function getAttributeProofHash(string _id, uint8 _attributeId) public view returns (string);
