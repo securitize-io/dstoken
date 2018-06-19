@@ -10,7 +10,7 @@ import './DSIssuanceInformationManagerInterface.sol';
  */
 contract ESIssuanceInformationManager is DSIssuanceInformationManagerInterface, ESServiceConsumer {
   /**
-   * @dev The constructor delegates the paramters to EternalStorageClient.
+   * @dev The constructor delegates the paramters to ESServiceConsumer.
    */
   constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
 

@@ -10,7 +10,7 @@ import './DSWalletManagerInterface.sol';
  */
 contract ESWalletManager is DSWalletManagerInterface, ESServiceConsumer {
   /**
-   * @dev The constructor delegates the paramters to EternalStorageClient.
+   * @dev The constructor delegates the paramters to ESServiceConsumer.
    */
   constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
 
