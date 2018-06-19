@@ -61,8 +61,16 @@ contract EternalStorageClient is Ownable {
     return eternalStorage.get<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2)));
   }
 
+  function get<%=names[i]%>8(string p1, string p2, string p3, uint8 p4) view internal returns (<%=types[i]%>) {
+    return eternalStorage.get<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1, p2, p3, p4)));
+  }
+
   function get<%=names[i]%>8(string p1, string p2, uint8 p3, string p4) view internal returns (<%=types[i]%>) {
     return eternalStorage.get<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1, p2, p3, p4)));
+  }
+
+  function get<%=names[i]%>8(string p1, address p2, string p3, string p4, uint8 p5) view internal returns (<%=types[i]%>) {
+    return eternalStorage.get<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1, p2, p3, p4, p5)));
   }
 
   function set<%=names[i]%>(string p1, <%=types[i]%> v) internal {
@@ -97,8 +105,16 @@ contract EternalStorageClient is Ownable {
     eternalStorage.set<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2)), v);
   }
 
+  function set<%=names[i]%>8(string p1, string p2, string p3, uint8 p4, <%=types[i]%> v) internal {
+    eternalStorage.set<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2,p3,p4)), v);
+  }
+
   function set<%=names[i]%>8(string p1, string p2, uint8 p3, string p4, <%=types[i]%> v) internal {
     eternalStorage.set<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2,p3,p4)), v);
+  }
+
+  function set<%=names[i]%>8(string p1, address p2, string p3, string p4, uint8 p5, <%=types[i]%> v) internal {
+    eternalStorage.set<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2,p3,p4,p5)), v);
   }
 
   function delete<%=names[i]%>(string p1) internal {
@@ -129,8 +145,16 @@ contract EternalStorageClient is Ownable {
     return eternalStorage.delete<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2)));
   }
 
+  function delete<%=names[i]%>8(string p1, string p2, string p3, uint8 p4) internal {
+    return eternalStorage.delete<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2,p3,p4)));
+  }
+
   function delete<%=names[i]%>8(string p1, string p2, uint8 p3, string p4) internal {
     return eternalStorage.delete<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2,p3,p4)));
+  }
+
+  function delete<%=names[i]%>8(string p1, address p2, string p3, string p4, uint8 p5) internal {
+    return eternalStorage.delete<%=names[i]%>(keccak256(abi.encodePacked(namespace, p1,p2,p3,p4,p5)));
   }
 <% } %>
 

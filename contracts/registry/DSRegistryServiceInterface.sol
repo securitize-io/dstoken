@@ -3,11 +3,11 @@ pragma solidity ^0.4.23;
 import '../DSServiceConsumerInterface.sol';
 
 contract DSRegistryServiceInterface is DSServiceConsumerInterface {
-  event DSRegistryServiceInvestorAdded(string _investor_id, address _sender);
-  event DSRegistryServiceInvestorRemoved(string _investor_id, address _sender);
-  event DSRegistryServiceInvestorChanged(string _investor_id, address _sender);
-  event DSRegistryServiceWalletAdded(address _wallet, string _investor_id, address _sender);
-  event DSRegistryServiceWalletRemoved(address _wallet, string _investor_id, address _sender);
+  event DSRegistryServiceInvestorAdded(string _investorId, address _sender);
+  event DSRegistryServiceInvestorRemoved(string _investorId, address _sender);
+  event DSRegistryServiceInvestorChanged(string _investorId, address _sender);
+  event DSRegistryServiceWalletAdded(address _wallet, string _investorId, address _sender);
+  event DSRegistryServiceWalletRemoved(address _wallet, string _investorId, address _sender);
 
   uint8 public constant NONE = 0;
   uint8 public constant KYC_APPROVED = 1;
