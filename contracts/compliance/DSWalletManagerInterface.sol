@@ -46,9 +46,10 @@ contract DSWalletManagerInterface {
   /**
    * @dev Sets a wallet to be an exchange wallet.
    * @param _address The address of the wallet.
+   * @param _owner The address of the owner.
    * @return A boolean that indicates if the operation was successful.
    */
-  function addExchangeWallet(address _wallet) public /*onlyIssuerOrAbove*/ returns (bool);
+  function addExchangeWallet(address _wallet, address _owner) public /*onlyIssuerOrAbove*/ returns (bool);
   /**
    * @dev Removes a special wallet.
    * @param _address The address of the wallet.

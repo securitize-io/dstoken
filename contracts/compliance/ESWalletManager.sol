@@ -56,9 +56,12 @@ contract ESWalletManager is DSWalletManagerInterface, ESServiceConsumer {
   /**
    * @dev Sets a wallet to be an exchange wallet.
    * @param _address The address of the wallet.
+   * @param _owner The address of the owner.
    * @return A boolean that indicates if the operation was successful.
    */
-  function addExchangeWallet(address _wallet) public onlyIssuerOrAbove returns (bool) {
+  function addExchangeWallet(address _wallet, address _owner) public onlyIssuerOrAbove returns (bool) {
+    DSTrustServiceInterface trustManager = DSTrustServiceInterface(getDSService(TRUST_SERVICE));
+    require(trustManager.getRole(_owner) == trustManager.EXCHANGE());
     return setSpecialWallet(_wallet, EXCHANGE);
   }
 
