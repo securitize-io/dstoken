@@ -2,9 +2,10 @@ pragma solidity ^0.4.23;
 
 import "./DSComplianceServiceInterface.sol";
 import "../ESServiceConsumer.sol";
+import "./ESLockManager.sol";
 
 
-contract ESComplianceService is DSServiceConsumerInterface,ESServiceConsumer {
+contract ESComplianceService is DSComplianceServiceInterface,ESLockManager,ESServiceConsumer {
 
     constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
 
