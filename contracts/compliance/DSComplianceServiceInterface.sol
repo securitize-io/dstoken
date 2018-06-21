@@ -15,9 +15,9 @@ contract DSComplianceServiceInterface is DSServiceConsumerInterface {
     // ISSUANCE AND TRANSFER VALIDATION
     //*****************************************
 
-    function validateIssuance(address to, uint amount) /*onlyToken*/ public;
-    function validate(address from, address to, uint amount) /*onlyToken*/ public;
-    function preTransferCheck(address from, address to, uint amount) view /*onlyExchangeOrAbove*/ public returns (bool);
+    function validateIssuance(address _to, uint _value) /*onlyToken*/ public;
+    function validate(address _from, address _to, uint _value) /*onlyToken*/ public;
+    function preTransferCheck(address _from, address _to, uint _value) view /*onlyExchangeOrAbove*/ public returns (bool);
 
 
 
@@ -75,7 +75,11 @@ contract DSComplianceServiceInterface is DSServiceConsumerInterface {
     */
     function lockInfo(address _who, uint _index) public constant returns (uint reasonCode, string reasonString, uint value, uint autoReleaseTime);
 
-
-
+    /**
+    * @dev get total number of transferable tokens for a user, at a certain time
+    * @param _who address to get number of transferable tokens for
+    * @param _time time to calculate for
+    */
+    function getTransferableTokens(address _who, uint64 _time) public view returns (uint);
 
 }

@@ -10,7 +10,7 @@ import "./DSTrustServiceInterface.sol";
  */
 contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {
   /**
-   * @dev The constructor delegates the paramters to EternalStorageClient.
+   * @dev The constructor delegates the parameters to EternalStorageClient.
    */
   constructor(address _address, string _namespace) public EternalStorageClient(_address, _namespace) {}
 
@@ -53,7 +53,7 @@ contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {
   function setRoleImpl(address _address, uint8 _role) internal returns (bool) {
     uint8 old_role = uint8(getUint("roles", _address));
 
-    require(old_role == NONE || _role == NONE);
+    require(old_role == NONE || _role == NONE,"No direct role-to-role change");
 
     setUint("roles", _address, _role);
 
