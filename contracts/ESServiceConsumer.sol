@@ -8,14 +8,14 @@ contract ESServiceConsumer is DSServiceConsumerInterface, EternalStorageClient {
 
   modifier onlyMaster {
     DSTrustServiceInterface trustManager = DSTrustServiceInterface(getDSService(TRUST_SERVICE));
-    require(this.owner() == msg.sender || trustManager.getRole(msg.sender) == trustManager.MASTER());
+    require(this.owner() == msg.sender || trustManager.getRole(msg.sender) == trustManager.MASTER(),"Insufficient trust level");
     _;
   }
 
   modifier onlyIssuerOrAbove {
     DSTrustServiceInterface trustManager = DSTrustServiceInterface(getDSService(TRUST_SERVICE));
     require(trustManager.getRole(msg.sender) == trustManager.ISSUER()
-    || trustManager.getRole(msg.sender) == trustManager.MASTER());
+    || trustManager.getRole(msg.sender) == trustManager.MASTER(),"Insufficient trust level");
     _;
   }
 
@@ -23,7 +23,7 @@ contract ESServiceConsumer is DSServiceConsumerInterface, EternalStorageClient {
     DSTrustServiceInterface trustManager = DSTrustServiceInterface(getDSService(TRUST_SERVICE));
     require(trustManager.getRole(msg.sender) == trustManager.EXCHANGE()
     || trustManager.getRole(msg.sender) == trustManager.ISSUER()
-    || trustManager.getRole(msg.sender) == trustManager.MASTER());
+    || trustManager.getRole(msg.sender) == trustManager.MASTER(),"Insufficient trust level");
     _;
   }
 

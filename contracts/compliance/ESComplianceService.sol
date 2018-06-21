@@ -5,13 +5,13 @@ import "../ESServiceConsumer.sol";
 import "./ESLockManager.sol";
 
 
-contract ESComplianceService is DSComplianceServiceInterface,ESLockManager,ESServiceConsumer {
+contract ESComplianceService is DSComplianceServiceInterface,ESLockManager {
 
     constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
 
 
     modifier onlyToken() {
-        require(msg.sender == getAddress8("services", DS_TOKEN));
+        require(msg.sender == getAddress8("services", DS_TOKEN),"This function can only called by the associated token");
         _;
     }
 
@@ -30,24 +30,6 @@ contract ESComplianceService is DSComplianceServiceInterface,ESLockManager,ESSer
     function preTransferCheck(address from, address to, uint amount) view onlyExchangeOrAbove public returns (bool){
         return(checkTransfer(from,to,amount));
     }
-
-    function addManualLockRecord(/*address to, uint valueLocked, string reason, uint64 releaseTime*/) onlyIssuerOrAbove
-    public returns (uint64){
-
-        //TODO: complete this
-        //TODO: issuer or exchange?
-
-    }
-
-    function removeLockRecord(/*address to, uint64 lockId*/) onlyIssuerOrAbove public returns (bool){
-        //TODO: complete this
-    }
-
-    /*
-    function lockInfo(address who, uint64 index) public constant returns (uint64 id, uint8 lockType, string reason, uint value, uint64 autoReleaseTime){
-        //TODO: Complete this
-    }*/
-
 
     function recordIssuance(address to, uint amount) internal returns (bool);
     function checkTransfer(address from, address to, uint amount) view internal returns (bool);
