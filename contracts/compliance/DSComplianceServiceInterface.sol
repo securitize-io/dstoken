@@ -2,7 +2,6 @@ pragma solidity ^0.4.23;
 
 import "../DSServiceConsumerInterface.sol";
 import "../zeppelin/token/ERC20/ERC20.sol";
-import "./DSLockManagerInterface.sol";
 
 contract DSComplianceServiceInterface is DSServiceConsumerInterface {
 
@@ -25,7 +24,8 @@ contract DSComplianceServiceInterface is DSServiceConsumerInterface {
     //*****************************************
     // LOCKING
     //*****************************************
-    event Locked(address indexed who, uint256 value, LockReason reason, uint releaseTime, uint lockId);
+    event Locked(address indexed who, uint256 value, uint indexed reason, string reasonString, uint releaseTime);
+    event Unlocked(address indexed who, uint256 value, uint indexed reason, string reasonString, uint releaseTime);
 
 
     /**
@@ -38,7 +38,7 @@ contract DSComplianceServiceInterface is DSServiceConsumerInterface {
     * Note: The user MAY have at a certain time more locked tokens than actual tokens
     */
 
-    function addManualLockRecord(address _to, uint _valueLocked, string _reason, uint _releaseTime) /*issuerOrAbove*/ public returns (uint);
+    function addManualLockRecord(address _to, uint _valueLocked, string _reason, uint _releaseTime) /*issuerOrAbove*/ public;
 
     /**
     * @dev Releases a specific lock record
@@ -58,7 +58,7 @@ contract DSComplianceServiceInterface is DSServiceConsumerInterface {
    *
    * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
    */
-    function lockCount(address _who) public view returns (uint64);
+    function lockCount(address _who) public view returns (uint);
 
     /**
     * @dev Get details of a specific lock associated with an address
@@ -73,7 +73,7 @@ contract DSComplianceServiceInterface is DSServiceConsumerInterface {
     *
     * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
     */
-    function lockInfo(address _who, uint64 _index) public constant returns (uint8 lockType, string reason, uint value, uint64 autoReleaseTime);
+    function lockInfo(address _who, uint _index) public constant returns (uint reasonCode, string reasonString, uint value, uint autoReleaseTime);
 
 
 
