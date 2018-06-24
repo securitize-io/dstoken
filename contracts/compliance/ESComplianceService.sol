@@ -28,14 +28,26 @@ contract ESComplianceService is DSComplianceServiceInterface,ESLockManager {
     function validate(address _from, address _to, uint _value) onlyToken public{
 
         //TODO: Check issuer wallet rules
+        // if issuer is _from - it always succeeds
 
         //TODO: Check platform wallet rules
+        // if platform wallet is _to - it always succeeds
 
         //Check locks
-
         require(getTransferableTokens(_from,uint64(now)) >= _value,"Value cannot be transferred due to active locks");
+
         require (checkTransfer(_from,_to,_value));
         require (recordTransfer(_from,_to,_value));
+    }
+
+    function validateBurn(address _who, uint _value) onlyToken public returns (bool){
+        require(recordBurn(_who,_value));
+    }
+
+    function validateSeize(address _from, address _to, uint _value) onlyToken public returns (bool){
+        //Only allow seizing, if the target is an issuer wallet (can be overriden)
+
+        require(validateSeize(_from,_to,_value));
     }
 
     function getTransferableTokens(address _who, uint64 _time) public view returns (uint) {
@@ -75,12 +87,15 @@ contract ESComplianceService is DSComplianceServiceInterface,ESLockManager {
 //
 //    }
 
-    function preTransferCheck(address from, address to, uint amount) view onlyExchangeOrAbove public returns (bool){
-        return(checkTransfer(from,to,amount));
+    function preTransferCheck(address _from, address _to, uint _value) view public returns (bool){
+        //Check if the token is paused
+        return(checkTransfer(_from,_to,_value));
     }
 
-    function recordIssuance(address to, uint amount) internal returns (bool);
-    function checkTransfer(address from, address to, uint amount) view internal returns (bool);
-    function recordTransfer(address from, address to, uint amount) internal returns (bool);
+    function recordIssuance(address _to, uint _value) internal returns (bool);
+    function checkTransfer(address _from, address _to, uint _value) view internal returns (bool);
+    function recordTransfer(address _from, address _to, uint _value) internal returns (bool);
+    function recordBurn(address _who, uint _value) internal returns (bool);
+    function recordSeize(address _from, address _to, uint _value) internal returns (bool);
 
 }

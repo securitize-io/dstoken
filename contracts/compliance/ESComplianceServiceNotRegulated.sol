@@ -16,4 +16,11 @@ contract ESComplianceServiceNotRegulated is ESComplianceService{
     function checkTransfer(address, address, uint) view internal returns (bool){
         return true;
     }
+
+    function recordBurn(address, uint) internal returns (bool){
+        return true;
+    }
+    function recordSeize(address, address, uint) internal returns (bool){
+        return true;
+    }
 }
