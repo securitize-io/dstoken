@@ -65,6 +65,10 @@ contract ESWalletManager is DSComplianceServiceInterface, ESServiceConsumer {
     return setSpecialWallet(_wallet, EXCHANGE);
   }
 
+  function getWalletType(address _wallet) public view returns (uint8){
+    return uint8(getUint("wallets", _wallet, "type"));
+  }
+
   /**
    * @dev Removes a special wallet.
    * @param _wallet The address of the wallet.
