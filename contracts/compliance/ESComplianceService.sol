@@ -5,9 +5,10 @@ import "../ESServiceConsumer.sol";
 import "./ESLockManager.sol";
 import "../token/DSTokenInterface.sol";
 import "../zeppelin/math/Math.sol";
+import "./ESWalletManager.sol";
 
 
-contract ESComplianceService is DSComplianceServiceInterface,ESLockManager {
+contract ESComplianceService is DSComplianceServiceInterface,ESWalletManager,ESLockManager {
 
     constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
     using SafeMath for uint256;
