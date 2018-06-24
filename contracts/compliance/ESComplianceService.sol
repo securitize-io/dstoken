@@ -32,7 +32,6 @@ contract ESComplianceService is DSComplianceServiceInterface, ESWalletManager, E
 
     //Check if there are locks (currently, all lock types)
     require(getTransferableTokens(_from, uint64(now)) >= _value, "Value cannot be transferred due to active locks");
-
     require(checkTransfer(_from, _to, _value));
     require(recordTransfer(_from, _to, _value));
   }
@@ -42,9 +41,11 @@ contract ESComplianceService is DSComplianceServiceInterface, ESWalletManager, E
   }
 
   function validateSeize(address _from, address _to, uint _value) onlyToken public returns (bool){
+
     //Only allow seizing, if the target is an issuer wallet (can be overridden)
     require(getWalletType(_to) == ISSUER);
-    require(validateSeize(_from, _to, _value));
+    require(recordSeize(_from, _to, _value));
+    
   }
 
   function getTransferableTokens(address _who, uint64 _time) public view returns (uint) {
