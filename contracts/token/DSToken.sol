@@ -146,7 +146,10 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESStandardToken,ESPausabl
      * @param _to The address that will receive the tokens.
      * @param _value The amount of tokens to be transferred.
      */
-    function transfer(address _to, uint256 _value) canTransfer(msg.sender, _to, _value) public returns (bool) {
+
+  //TODO: check if "whenNotPaused" is needed here or the super implementation gets called automatically
+  function transfer(address _to, uint256 _value) whenNotPaused canTransfer(msg.sender, _to, _value)  public returns (bool) {
+
         bool result = super.transfer(_to, _value);
         checkWalletsForList(msg.sender,_to);
         return result;
@@ -158,7 +161,9 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESStandardToken,ESPausabl
     * @param _to The address that will receive the tokens.
     * @param _value The amount of tokens to be transferred.
     */
-    function transferFrom(address _from, address _to, uint256 _value) canTransfer(_from, _to, _value) public returns (bool) {
+
+  //TODO: check if "whenNotPaused" is needed here or the super implementation gets called automatically
+  function transferFrom(address _from, address _to, uint256 _value) whenNotPaused canTransfer(_from, _to, _value) public returns (bool) {
         bool result = super.transferFrom(_from, _to, _value);
         checkWalletsForList(_from,_to);
         return result;
@@ -219,4 +224,12 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESStandardToken,ESPausabl
 
     }
 
+
+  //**************************************
+  // MISCELLANEOUS FUNCTIONS
+  //**************************************
+
+  function isPaused() view public returns (bool){
+    return (getBoolean("paused"));
+  }
 }

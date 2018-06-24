@@ -9,11 +9,21 @@ import "./ESWalletManager.sol";
 import "./ESIssuanceInformationManager.sol";
 
 
+/**
+*   @title Compliance service main implementation (based on eternal storage).
+*
+*   Combines the different implementation files for the compliance service and serves as a base class for
+*   concrete implementation.
+*
+*   To create a concrete implementation of a compliance service, one should inherit from this contract,
+*   and implement the five functions - recordIssuance,checkTransfer,recordTransfer,recordBurn and recordSeize.
+*   The rest of the functions should only be overridden in rare circumstances.
+*/
+
 contract ESComplianceService is DSComplianceServiceInterface, ESWalletManager, ESLockManager, ESIssuanceInformationManager {
 
   constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
   using SafeMath for uint256;
-
 
   modifier onlyToken() {
     require(msg.sender == getAddress8("services", DS_TOKEN), "This function can only called by the associated token");
@@ -45,7 +55,7 @@ contract ESComplianceService is DSComplianceServiceInterface, ESWalletManager, E
     //Only allow seizing, if the target is an issuer wallet (can be overridden)
     require(getWalletType(_to) == ISSUER);
     require(recordSeize(_from, _to, _value));
-    
+
   }
 
   function getTransferableTokens(address _who, uint64 _time) public view returns (uint) {
@@ -76,28 +86,22 @@ contract ESComplianceService is DSComplianceServiceInterface, ESWalletManager, E
     return transferable;
   }
 
-
-  //    function validateSeize(address _from,address _to) onlyToken public{
-  //        //TODO: Make sure _to is an issuer wallet
-  //    }
-  //
-  //    function validateBurn(address _who,uint _amount) onlyToken public{
-  //
-  //    }
-
   function preTransferCheck(address _from, address _to, uint _value) view public returns (bool){
     //Check if the token is paused
-    return (checkTransfer(_from, _to, _value));
+    if (getToken().isPaused())
+      return false;
+    else
+      return (checkTransfer(_from, _to, _value));
   }
 
+
+
+  //These functions should be implemented by the concrete compliance manager
+
   function recordIssuance(address _to, uint _value) internal returns (bool);
-
   function checkTransfer(address _from, address _to, uint _value) view internal returns (bool);
-
   function recordTransfer(address _from, address _to, uint _value) internal returns (bool);
-
   function recordBurn(address _who, uint _value) internal returns (bool);
-
   function recordSeize(address _from, address _to, uint _value) internal returns (bool);
 
 }
