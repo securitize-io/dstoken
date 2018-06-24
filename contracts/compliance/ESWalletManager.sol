@@ -16,7 +16,7 @@ contract ESWalletManager is DSWalletManagerInterface, ESServiceConsumer {
 
   /**
    * @dev Sets a wallet to be an special wallet. (internal)
-   * @param _address The address of the wallet.
+   * @param _wallet The address of the wallet.
    * @param _type The type of the wallet.
    * @return A boolean that indicates if the operation was successful.
    */
@@ -37,7 +37,7 @@ contract ESWalletManager is DSWalletManagerInterface, ESServiceConsumer {
 
   /**
    * @dev Sets a wallet to be an issuer wallet.
-   * @param _address The address of the wallet.
+   * @param _wallet The address of the wallet.
    * @return A boolean that indicates if the operation was successful.
    */
   function addIssuerWallet(address _wallet) public onlyIssuerOrAbove returns (bool) {
@@ -46,7 +46,7 @@ contract ESWalletManager is DSWalletManagerInterface, ESServiceConsumer {
 
   /**
    * @dev Sets a wallet to be an platform wallet.
-   * @param _address The address of the wallet.
+   * @param _wallet The address of the wallet.
    * @return A boolean that indicates if the operation was successful.
    */
   function addPlatformWallet(address _wallet) public onlyIssuerOrAbove returns (bool) {
@@ -55,7 +55,7 @@ contract ESWalletManager is DSWalletManagerInterface, ESServiceConsumer {
 
   /**
    * @dev Sets a wallet to be an exchange wallet.
-   * @param _address The address of the wallet.
+   * @param _wallet The address of the wallet.
    * @param _owner The address of the owner.
    * @return A boolean that indicates if the operation was successful.
    */
@@ -67,7 +67,7 @@ contract ESWalletManager is DSWalletManagerInterface, ESServiceConsumer {
 
   /**
    * @dev Removes a special wallet.
-   * @param _address The address of the wallet.
+   * @param _wallet The address of the wallet.
    * @return A boolean that indicates if the operation was successful.
    */
   function removeSpecialWallet(address _wallet) public onlyIssuerOrAbove returns (bool) {
@@ -77,7 +77,7 @@ contract ESWalletManager is DSWalletManagerInterface, ESServiceConsumer {
 
   /**
    * @dev Sets the amount of reserved slots for a wallet based on country and accreditation status.
-   * @param _address The address of the wallet.
+   * @param _wallet The address of the wallet.
    * @param _country The investors' country.
    * @param _accreditationStatus the investors' accrediation status.
    * @param _slots number of reserved slots.
@@ -94,7 +94,7 @@ contract ESWalletManager is DSWalletManagerInterface, ESServiceConsumer {
 
   /**
    * @dev Gets the amount of reserved slots for a wallet based on country and accreditation status.
-   * @param _address The address of the wallet.
+   * @param _wallet The address of the wallet.
    * @param _country The investors' country.
    * @param _accreditationStatus the investors' accrediation status.
    * @return The number of reserved slots.
