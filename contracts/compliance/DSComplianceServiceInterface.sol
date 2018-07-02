@@ -19,47 +19,52 @@ contract DSComplianceServiceInterface is DSServiceConsumerInterface {
     function validate(address from, address to, uint amount) /*onlyToken*/ public;
     function preTransferCheck(address from, address to, uint amount) view /*onlyExchangeOrAbove*/ public returns (bool);
 
-    //****************************************
-    // LOCK RECORDS
-    //****************************************
+
+
+    //*****************************************
+    // LOCKING
+    //*****************************************
+    event Locked(address indexed who, uint256 value, uint indexed reason, string reasonString, uint releaseTime);
+    event Unlocked(address indexed who, uint256 value, uint indexed reason, string reasonString, uint releaseTime);
+
 
     /**
     * @dev creates a lock record
-    * @param to address to lock the tokens at
-    * @param valueLocked value of tokens to lock
-    * @param reason reason for lock
-    * @param releaseTime timestamp to release the lock (or 0 for locks which can only released by an unlockTokens call)
+    * @param _to address to lock the tokens at
+    * @param _valueLocked value of tokens to lock
+    * @param _reason reason for lock
+    * @param _releaseTime timestamp to release the lock (or 0 for locks which can only released by an unlockTokens call)
     * @return A unique id for the newly created lock.
     * Note: The user MAY have at a certain time more locked tokens than actual tokens
     */
 
-    function addManualLockRecord(address to, uint valueLocked, string reason, uint64 releaseTime) /*issuerOrAbove*/ public returns (uint64);
+    function addManualLockRecord(address _to, uint _valueLocked, string _reason, uint _releaseTime) /*issuerOrAbove*/ public;
 
     /**
     * @dev Releases a specific lock record
-    * @param to address to release the tokens for
-    * @param lockId the unique lock-id to release
+    * @param _to address to release the tokens for
+    * @param _index the index of the lock to remove
     *
     * note - this may change the order of the locks on an address, so if iterating the iteration should be restarted.
     * @return true on success
     */
-    function removeLockRecord(address to, uint64 lockId) /*issuerOrAbove*/ public returns (bool);
+    function removeLockRecord(address _to, uint _index) /*issuerOrAbove*/ public returns (bool);
 
     /**
    * @dev Get number of locks currently associated with an address
-   * @param who address to get token lock for
+   * @param _who address to get token lock for
    *
    * @return number of locks
    *
    * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
    */
-    function lockCount(address who) public view returns (uint64);
+    function lockCount(address _who) public view returns (uint);
 
     /**
     * @dev Get details of a specific lock associated with an address
     * can be used to iterate through the locks of a user
-    * @param who address to get token lock for
-    * @param index the 0 based index of the lock.
+    * @param _who address to get token lock for
+    * @param _index the 0 based index of the lock.
     * @return id the unique lock id
     * @return type the lock type (manual or other)
     * @return reason the reason for the lock
@@ -68,5 +73,9 @@ contract DSComplianceServiceInterface is DSServiceConsumerInterface {
     *
     * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
     */
-    function lockInfo(address who, uint64 index) public constant returns (uint64 id, uint8 lockType, string reason, uint value, uint64 autoReleaseTime);
+    function lockInfo(address _who, uint _index) public constant returns (uint reasonCode, string reasonString, uint value, uint autoReleaseTime);
+
+
+
+
 }
