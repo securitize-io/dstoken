@@ -3,36 +3,103 @@ pragma solidity ^0.4.23;
 import "./DSComplianceServiceInterface.sol";
 import "../ESServiceConsumer.sol";
 import "./ESLockManager.sol";
+import "../token/DSTokenInterface.sol";
+import "../zeppelin/math/Math.sol";
+import "./ESWalletManager.sol";
+import "./ESIssuanceInformationManager.sol";
 
 
-contract ESComplianceService is DSComplianceServiceInterface,ESLockManager {
+/**
+*   @title Compliance service main implementation (based on eternal storage).
+*
+*   Combines the different implementation files for the compliance service and serves as a base class for
+*   concrete implementation.
+*
+*   To create a concrete implementation of a compliance service, one should inherit from this contract,
+*   and implement the five functions - recordIssuance,checkTransfer,recordTransfer,recordBurn and recordSeize.
+*   The rest of the functions should only be overridden in rare circumstances.
+*/
+contract ESComplianceService is DSComplianceServiceInterface, ESWalletManager, ESLockManager, ESIssuanceInformationManager {
 
-    constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
+  constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
+  using SafeMath for uint256;
 
+  modifier onlyToken() {
+    require(msg.sender == getAddress8("services", DS_TOKEN), "This function can only called by the associated token");
+    _;
+  }
 
-    modifier onlyToken() {
-        require(msg.sender == getAddress8("services", DS_TOKEN),"This function can only called by the associated token");
-        _;
+  function getToken() private view returns (DSTokenInterface){
+    return DSTokenInterface(getAddress8("services", DS_TOKEN));
+  }
+
+  function validateIssuance(address _to, uint _value) onlyToken public {
+    require(recordIssuance(_to, _value));
+  }
+
+  function validate(address _from, address _to, uint _value) onlyToken public {
+
+    //Check if there are locks (currently, all lock types)
+    require(getTransferableTokens(_from, uint64(now)) >= _value, "Value cannot be transferred due to active locks");
+    require(checkTransfer(_from, _to, _value));
+    require(recordTransfer(_from, _to, _value));
+  }
+
+  function validateBurn(address _who, uint _value) onlyToken public returns (bool){
+    require(recordBurn(_who, _value));
+  }
+
+  function validateSeize(address _from, address _to, uint _value) onlyToken public returns (bool){
+
+    //Only allow seizing, if the target is an issuer wallet (can be overridden)
+    require(getWalletType(_to) == ISSUER);
+    require(recordSeize(_from, _to, _value));
+
+  }
+
+  function getTransferableTokens(address _who, uint64 _time) public view returns (uint) {
+
+    require(_time > 0, "time must be greater than zero");
+    uint balanceOfHolder = getToken().balanceOf(_who);
+
+    uint holderLockCount = getUint("lockCount", _who);
+
+    //No locks, go to base class implementation
+    if (holderLockCount == 0) {
+      return balanceOfHolder;
     }
 
-    function validateIssuance(address to, uint amount) onlyToken public{
-        require (recordIssuance(to,amount));
+    uint totalLockedTokens = 0;
+    for (uint i = 0; i < holderLockCount; i ++) {
+
+      uint autoReleaseTime = getUint("locks_releaseTime", _who, i);
+
+      if (autoReleaseTime == 0 || autoReleaseTime > _time) {
+        totalLockedTokens = totalLockedTokens.add(getUint("locks_value", _who, i));
+      }
     }
 
-    function validate(address from, address to, uint amount) onlyToken public{
+    //there may be more locked tokens than actual tokens, so the minimum between the two
+    uint transferable = SafeMath.sub(balanceOfHolder, Math.min256(totalLockedTokens, balanceOfHolder));
 
-        //TODO: Check lock
-        require (checkTransfer(from,to,amount));
-        require (recordTransfer(from,to,amount));
+    return transferable;
+  }
 
-    }
+  function preTransferCheck(address _from, address _to, uint _value) view public returns (bool){
+    //Check if the token is paused
+    if (getToken().isPaused())
+      return false;
+    else
+      return (checkTransfer(_from, _to, _value));
+  }
 
-    function preTransferCheck(address from, address to, uint amount) view onlyExchangeOrAbove public returns (bool){
-        return(checkTransfer(from,to,amount));
-    }
 
-    function recordIssuance(address to, uint amount) internal returns (bool);
-    function checkTransfer(address from, address to, uint amount) view internal returns (bool);
-    function recordTransfer(address from, address to, uint amount) internal returns (bool);
 
+  //These functions should be implemented by the concrete compliance manager
+
+  function recordIssuance(address _to, uint _value) internal returns (bool);
+  function checkTransfer(address _from, address _to, uint _value) view internal returns (bool);
+  function recordTransfer(address _from, address _to, uint _value) internal returns (bool);
+  function recordBurn(address _who, uint _value) internal returns (bool);
+  function recordSeize(address _from, address _to, uint _value) internal returns (bool);
 }

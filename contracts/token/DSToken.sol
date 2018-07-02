@@ -101,6 +101,9 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESStandardToken,ESPausabl
         // no need to require value <= totalSupply, since that would imply the
         // sender's balance is greater than the totalSupply, which *should* be an assertion failure
 
+        DSComplianceServiceInterface complianceManager = DSComplianceServiceInterface(getDSService(COMPLIANCE_SERVICE));
+        complianceManager.validateBurn(_who,_value);
+
         setUint("balances", _who, getUint("balances", _who).sub(_value));
         setUint("totalSupply", getUint("totalSupply").sub(_value));
         emit Burn(_who, _value,_reason);
@@ -115,6 +118,10 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESStandardToken,ESPausabl
         require(_from != address(0));
         require(_to != address(0));
         require(_value <= getUint("balances", _from));
+
+        DSComplianceServiceInterface complianceManager = DSComplianceServiceInterface(getDSService(COMPLIANCE_SERVICE));
+        complianceManager.validateSeize(_from,_to,_value);
+
         setUint("balances", _from, getUint("balances", _from).sub(_value));
         setUint("balances", _to, getUint("balances", _to).add(_value));
         emit Seize(_from, _to, _value,_reason);
@@ -139,7 +146,10 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESStandardToken,ESPausabl
      * @param _to The address that will receive the tokens.
      * @param _value The amount of tokens to be transferred.
      */
-    function transfer(address _to, uint256 _value) canTransfer(msg.sender, _to, _value) public returns (bool) {
+
+  //TODO: check if "whenNotPaused" is needed here or the super implementation gets called automatically
+  function transfer(address _to, uint256 _value) whenNotPaused canTransfer(msg.sender, _to, _value)  public returns (bool) {
+
         bool result = super.transfer(_to, _value);
         checkWalletsForList(msg.sender,_to);
         return result;
@@ -151,7 +161,9 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESStandardToken,ESPausabl
     * @param _to The address that will receive the tokens.
     * @param _value The amount of tokens to be transferred.
     */
-    function transferFrom(address _from, address _to, uint256 _value) canTransfer(_from, _to, _value) public returns (bool) {
+
+  //TODO: check if "whenNotPaused" is needed here or the super implementation gets called automatically
+  function transferFrom(address _from, address _to, uint256 _value) whenNotPaused canTransfer(_from, _to, _value) public returns (bool) {
         bool result = super.transferFrom(_from, _to, _value);
         checkWalletsForList(_from,_to);
         return result;
@@ -212,4 +224,12 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESStandardToken,ESPausabl
 
     }
 
+
+  //**************************************
+  // MISCELLANEOUS FUNCTIONS
+  //**************************************
+
+  function isPaused() view public returns (bool){
+    return (getBoolean("paused"));
+  }
 }

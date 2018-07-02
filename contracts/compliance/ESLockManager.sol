@@ -112,7 +112,7 @@ contract ESLockManager is DSComplianceServiceInterface,ESServiceConsumer {
     *
     * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
     */
-    function lockInfo(address _who, uint _lockIndex) public constant returns (uint reasonCode, string reasonString, uint value, uint autoReleaseTime){
+    function lockInfo(address _who, uint _lockIndex) public view returns (uint reasonCode, string reasonString, uint value, uint autoReleaseTime){
         require (_who != address(0));
         uint lastLockNumber = getUint("lockCount",_who);
         require(_lockIndex > 0 && _lockIndex < lastLockNumber,"Index is greater than the number of locks");
@@ -121,6 +121,4 @@ contract ESLockManager is DSComplianceServiceInterface,ESServiceConsumer {
         value = getUint("locks_value",_who,_lockIndex);
         autoReleaseTime = getUint("locks_releaseTime",_who,_lockIndex);
     }
-
-
 }
