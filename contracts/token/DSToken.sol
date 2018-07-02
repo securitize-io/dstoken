@@ -66,7 +66,7 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESStandardToken,ESPausabl
         //Check input values
         require(_to != address(0));
         require(_value > 0);
-        require(_valueLocked >= 0 && _valueLocked <= _value);
+        require(_valueLocked <= _value);
         uint cap = getUint("cap");
 
         //Make sure we are not hitting the cap

@@ -40,4 +40,10 @@ module.exports = {
       network_id: '*', // eslint-disable-line camelcase
     },
   },
+  solc: {
+    optimizer: {
+      "enabled": true,
+      "runs": 200
+    }
+  }
 };
