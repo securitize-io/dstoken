@@ -48,29 +48,91 @@ contract('ESStandardToken', function ([_, owner, recipient, anotherAccount]) {
   });
 
   describe('cap', function() {
-    it('cannot be set twice', async function() {
+    beforeEach(async function() {
       await this.token.setCap(1000);
+    });
+
+    it('cannot be set twice', async function() {
       await assertRevert(this.token.setCap(1000));
     });
 
     it('doesn\'t prevent issuing tokens within limit', async function() {
-      await this.token.setCap(1000);
       await this.token.issueTokens(owner, 500);
       await this.token.issueTokens(owner, 500);
     });
 
     it('prevents issuing too many tokens', async function() {
-      await this.token.setCap(1000);
       await this.token.issueTokens(owner, 500);
       await assertRevert(this.token.issueTokens(owner, 501));
     });
   });
 
   describe('issuance', function () {
-    it('should issue tokens to a wallet', async function () {
+    beforeEach(async function() {
       await this.token.issueTokens(owner, 100);
+    });
+
+    it('should issue tokens to a wallet', async function () {
       const balance = await this.token.balanceOf(owner);
       assert.equal(balance, 100);
+    });
+
+    it('should issue unlocked tokens to a wallet', async function() {
+      const balance = await this.token.balanceOf(owner);
+      assert.equal(balance, 100);
+      await this.token.transfer(recipient, 100, {from: owner});
+      const ownerBalance = await this.token.balanceOf(owner);
+      assert.equal(ownerBalance, 0);
+      const recipientBalance = await this.token.balanceOf(recipient);
+      assert.equal(recipientBalance, 100);
+    });
+
+    it('should record the number of total issued token correctly', async function () {
+      await this.token.issueTokens(owner, 100);
+      await this.token.issueTokens(owner, 100);
+
+      const totalIssued = await this.token.totalIssued();
+
+      assert.equal(totalIssued, 300);
+    });
+
+    it('should record the number of total issued token correctly after burn', async function () {
+      await this.token.issueTokens(owner, 100);
+      await this.token.issueTokens(owner, 100);
+      await this.token.burn(owner, 100, 'test burn');
+
+      const totalIssued = await this.token.totalIssued();
+      assert.equal(totalIssued, 300);
+    });
+  });
+
+  describe('burn', function () {
+    it('should burn tokens from a specific wallet', async function () {
+      await this.token.issueTokens(owner, 100);
+      await this.token.burn(owner, 50, 'test burn');
+
+      const balance = await this.token.balanceOf(owner);
+      assert.equal(balance, 50);
+    });
+  });
+
+  describe('seize', function () {
+    beforeEach(async function() {
+      await this.trustService.setRole(recipient, ISSUER);
+      await this.token.issueTokens(owner, 100);
+    });
+
+    it('should seize tokens correctly', async function () {
+      await this.token.seize(owner, recipient, 50, 'test seize');
+
+      const ownerBalance = await this.token.balanceOf(owner);
+      assert.equal(ownerBalance, 50);
+      const recipientBalance = await this.token.balanceOf(recipient);
+      assert.equal(recipientBalance, 50);
+    });
+
+    it('cannot seize more than balance', async function () {
+      await assertRevert(this.token.seize(owner, recipient, 150, 'test seize'));
     });
   });
 });
