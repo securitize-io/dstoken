@@ -1,6 +1,6 @@
 import assertRevert from './helpers/assertRevert';
 const EternalStorage = artifacts.require('EternalStorage');
-const DSToken = artifacts.require('DSToken');
+const DSToken = artifacts.require('DSTokenMock');
 const ESComplianceServiceNotRegulated = artifacts.require('ESComplianceServiceNotRegulated');
 const ESTrustService = artifacts.require('ESTrustService');
 
@@ -21,15 +21,16 @@ contract('ESStandardToken', function ([_, owner, recipient, anotherAccount]) {
   beforeEach(async function () {
 
     this.storage = await EternalStorage.new();
-    this.token = await DSToken.new('DSTokenTest', 'DST', 18, this.storage.address, 'DSTokenTest');
-    this.complianceService = await ESComplianceServiceNotRegulated.new(this.storage.address, 'DSTokenTestComplianceManager');
     this.trustService = await ESTrustService.new(this.storage.address, 'DSTokenTestTrustManager');
+    this.complianceService = await ESComplianceServiceNotRegulated.new(this.storage.address, 'DSTokenTestComplianceManager');
+    this.token = await DSToken.new(this.storage.address);
     await this.storage.adminAddRole(this.trustService.address, 'write');
-    await this.trustService.initialize();
-    await this.storage.adminAddRole(this.token.address, 'write');
     await this.storage.adminAddRole(this.complianceService.address, 'write');
-    await this.token.setDSService(COMPLIANCE_SERVICE,this.complianceService.address);
+    await this.storage.adminAddRole(this.token.address, 'write');
+    await this.trustService.initialize();
+    await this.complianceService.setDSService(TRUST_SERVICE,this.trustService.address);
     await this.token.setDSService(TRUST_SERVICE,this.trustService.address);
+    await this.token.setDSService(COMPLIANCE_SERVICE,this.complianceService.address);
     await this.complianceService.setDSService(DS_TOKEN,this.token.address);
   });
 
@@ -40,7 +41,7 @@ contract('ESStandardToken', function ([_, owner, recipient, anotherAccount]) {
       const decimals = await this.token.decimals.call();
       const totalSupply = await this.token.totalSupply.call();
 
-      assert.equal(name, 'DSTokenTest');
+      assert.equal(name, 'DSTokenMock');
       assert.equal(symbol, 'DST');
       assert.equal(decimals.valueOf(), 18);
       assert.equal(totalSupply.valueOf(), 0);
@@ -118,7 +119,7 @@ contract('ESStandardToken', function ([_, owner, recipient, anotherAccount]) {
 
   describe('seize', function () {
     beforeEach(async function() {
-      await this.trustService.setRole(recipient, ISSUER);
+      await this.complianceService.addIssuerWallet(recipient);
       await this.token.issueTokens(owner, 100);
     });
 

@@ -1,13 +1,12 @@
 pragma solidity ^0.4.23;
 
-import "../token/ESBasicToken.sol";
+import "../token/DSToken.sol";
 
 
 
-// mock class using BasicToken
-contract ESBasicTokenMock is ESBasicToken {
-    constructor(address _address, string _namespace) public EternalStorageClient(_address, _namespace) {}
-
+// mock class using DSToken
+contract DSTokenMock is DSToken {
+    constructor(address _address) public DSToken("DSTokenMock", "DST", 18, _address, "DSTokenMock") {}
 
     bool public initialized = false;
 

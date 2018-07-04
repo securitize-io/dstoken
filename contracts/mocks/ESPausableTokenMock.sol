@@ -1,13 +1,12 @@
 pragma solidity ^0.4.23;
 
-import "../token/ESBasicToken.sol";
+import "../token/ESPausableToken.sol";
 
 
 
-// mock class using BasicToken
-contract ESBasicTokenMock is ESBasicToken {
+// mock class using PausableToken
+contract ESPausableTokenMock is ESPausableToken {
     constructor(address _address, string _namespace) public EternalStorageClient(_address, _namespace) {}
-
 
     bool public initialized = false;
 
@@ -17,5 +16,4 @@ contract ESBasicTokenMock is ESBasicToken {
         setUint("totalSupply", initialBalance);
         initialized = true;
     }
-
 }
