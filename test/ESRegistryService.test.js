@@ -21,8 +21,8 @@ const investorCollisionHash = generateCollisionHash(investorFullName,investorBir
 
 const attributeValue1 = 1;
 
-contract('ESRegistryService', function ([owner, noneAccount, account1, account3, account4, account5]) {
-  beforeEach(async function () {
+contract('ESRegistryService', function ([owner, noneAccount, account1, account2, account3, account4]) {
+  before(async function () {
     this.storage = await EternalStorage.new();
     this.trustService = await ESTrustService.new(this.storage.address, 'DSTokenTestTrustManager');
     this.registryService = await ESRegistryService.new(this.storage.address, 'DSTokenTestESRegistryService');
@@ -63,19 +63,17 @@ contract('ESRegistryService', function ([owner, noneAccount, account1, account3,
       assert.equal(logs[0].args._sender, owner);
     });
 
-    // TODO: Check why we can`t get the country.
-    // it('Trying to get the country for investor', async function () {
-    //   const country = await this.registryService.getCountry(investorId);
-    //
-    //   assert.equal(country, investorCountry);
-    // });
+    it('Trying to get the country for investor', async function () {
+      const country = await this.registryService.getCountry(investorId);
 
-    // TODO: Check why we can`t get the collision hash.
-    // it('Trying to get the collision hash', async function () {
-    //   const collisionHash = await this.registryService.getCollisionHash(investorId);
-    //
-    //   assert.equal(collisionHash, investorCollisionHash);
-    // });
+      assert.equal(country, investorCountry);
+    });
+
+    it('Trying to get the collision hash', async function () {
+      const collisionHash = await this.registryService.getCollisionHash(investorId);
+
+      assert.equal(collisionHash, investorCollisionHash);
+    });
 
     it(`Trying to add the wallet - ${account1}`, async function () {
       const { logs } = await this.registryService.addWallet(account1, investorId);
@@ -97,12 +95,11 @@ contract('ESRegistryService', function ([owner, noneAccount, account1, account3,
     //   await assertRevert(await this.registryService.addWallet(account1, investorId));
     // });
 
-    // TODO: Check why we can`t get the investor
-    // it('Trying to get the investor', async function () {
-    //   const investorID = await this.registryService.getInvestor(account1);
-    //
-    //   assert.equal(investorID, investorId);
-    // });
+    it('Trying to get the investor', async function () {
+      const investorID = await this.registryService.getInvestor(account1);
+
+      assert.equal(investorID, investorId);
+    });
 
     it(`Trying to set the attribute`, async function () {
       const { logs } = await this.registryService.setAttribute(investorId, 1, attributeValue1, '17062018', '');
@@ -113,12 +110,11 @@ contract('ESRegistryService', function ([owner, noneAccount, account1, account3,
       assert.equal(logs[0].args._sender, owner);
     });
 
-    // TODO: Check why if we change the attributeID we always get the 0 value;
-    // it('Trying to get attribute value', async function () {
-    //   const attributeValue = await this.registryService.getAttributeValue(investorId, 1);
-    //
-    //   assert.equal(attributeValue.c[0], attributeValue1);
-    // });
+    it('Trying to get attribute value', async function () {
+      const attributeValue = await this.registryService.getAttributeValue(investorId, 1);
+
+      assert.equal(attributeValue.c[0], attributeValue1);
+    });
   });
 });
 
