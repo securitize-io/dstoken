@@ -7,7 +7,7 @@ import "../ESServiceConsumer.sol";
 import "../compliance/DSComplianceServiceInterface.sol";
 import "./DSTokenInterface.sol";
 
-contract DSToken is DSTokenInterface,ESServiceConsumer,ESStandardToken,ESPausableToken,DetailedERC20 {
+contract DSToken is DSTokenInterface,ESServiceConsumer,ESPausableToken,DetailedERC20 {
 
 
     constructor(
@@ -32,6 +32,10 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESStandardToken,ESPausabl
         require(cap == 0,"Token cap already set");
         require(_cap > 0);
         setUint("cap", _cap);
+    }
+
+    function cap() view public returns (uint256) {
+        return getUint("cap");
     }
 
 

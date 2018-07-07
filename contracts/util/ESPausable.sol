@@ -26,4 +26,8 @@ contract ESPausable is EternalStorageClient {
     setBoolean("paused", false);
     emit Unpause();
   }
+
+  function paused() view public returns (bool) {
+    return getBoolean("paused");
+  }
 }
