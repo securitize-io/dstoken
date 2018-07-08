@@ -15,7 +15,7 @@ const MASTER = 1;
 const ISSUER = 2;
 const EXCHANGE = 4;
 
-contract('ESStandardToken', function ([_, owner, recipient, anotherAccount]) {
+contract('DSToken', function ([_, owner, recipient, anotherAccount]) {
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
   beforeEach(async function () {

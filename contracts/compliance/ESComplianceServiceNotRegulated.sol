@@ -20,8 +20,8 @@ contract ESComplianceServiceNotRegulated is ESComplianceService{
         return true;
     }
 
-    function checkTransfer(address, address, uint) view internal returns (bool){
-        return true;
+    function checkTransfer(address, address, uint) view internal returns (uint, string){
+        return (0, "Valid");
     }
 
     function recordBurn(address, uint) internal returns (bool){

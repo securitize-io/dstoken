@@ -38,10 +38,9 @@ contract ESComplianceService is DSComplianceServiceInterface, ESWalletManager, E
   }
 
   function validate(address _from, address _to, uint _value) onlyToken public {
+    uint code;
 
-    //Check if there are locks (currently, all lock types)
-    require(getTransferableTokens(_from, uint64(now)) >= _value, "Value cannot be transferred due to active locks");
-    require(checkTransfer(_from, _to, _value));
+    (code,) = preTransferCheck(_from, _to, _value);
     require(recordTransfer(_from, _to, _value));
   }
 
@@ -85,12 +84,20 @@ contract ESComplianceService is DSComplianceServiceInterface, ESWalletManager, E
     return transferable;
   }
 
-  function preTransferCheck(address _from, address _to, uint _value) view public returns (bool){
-    //Check if the token is paused
-    if (getToken().isPaused())
-      return false;
-    else
-      return (checkTransfer(_from, _to, _value));
+  function preTransferCheck(address _from, address _to, uint _value) view public returns (uint code, string reason) {
+    if (getToken().isPaused()) {
+      return (10, "Token Paused");
+    }
+
+    if (getToken().balanceOf(_from) < _value) {
+      return (15, "Not Enough Tokens");
+    }
+
+    if (getTransferableTokens(_from, uint64(now)) < _value) {
+      return (16, "Tokens Locked");
+    }
+
+    return checkTransfer(_from, _to, _value);
   }
 
 
@@ -98,7 +105,7 @@ contract ESComplianceService is DSComplianceServiceInterface, ESWalletManager, E
   //These functions should be implemented by the concrete compliance manager
 
   function recordIssuance(address _to, uint _value) internal returns (bool);
-  function checkTransfer(address _from, address _to, uint _value) view internal returns (bool);
+  function checkTransfer(address _from, address _to, uint _value) view internal returns (uint, string);
   function recordTransfer(address _from, address _to, uint _value) internal returns (bool);
   function recordBurn(address _who, uint _value) internal returns (bool);
   function recordSeize(address _from, address _to, uint _value) internal returns (bool);

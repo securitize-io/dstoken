@@ -71,10 +71,10 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESPausableToken,DetailedE
         require(_to != address(0));
         require(_value > 0);
         require(_valueLocked <= _value, "valueLocked must be smaller than value");
-        uint cap = getUint("cap");
+        uint localCap = cap();
 
         //Make sure we are not hitting the cap
-        require(cap == 0 || ( getUint("totalIssued").add(_value)) <= cap,"Token Cap Hit");
+        require(localCap == 0 || ( getUint("totalIssued").add(_value)) <= localCap,"Token Cap Hit");
 
         //Check issuance is allowed (and inform the compliance manager, possibly adding locks)
         complianceManager.validateIssuance(_to,_value);
