@@ -18,6 +18,13 @@ contract ESLockManager is DSComplianceServiceInterface,ESServiceConsumer {
 
     uint256 constant MAX_LOCKS_PER_ADDRESS = 30;
 
+    function setLockInfoImpl(address _to, uint _lockCount, uint _valueLocked, uint _reasonCode, string _reasonString, uint _releaseTime) internal {
+      setUint("locks_value",_to,_lockCount,_valueLocked);
+      setUint("locks_reason",_to,_lockCount,_reasonCode);
+      setString("locks_reasonString",_to,_lockCount,_reasonString);
+      setUint("locks_releaseTime",_to,_lockCount,_releaseTime);
+    }
+
     function createLock(address _to, uint _valueLocked,uint _reasonCode, string _reasonString,uint _releaseTime) internal{
 
         //Get total count
@@ -27,10 +34,7 @@ contract ESLockManager is DSComplianceServiceInterface,ESServiceConsumer {
         require(lockCount < MAX_LOCKS_PER_ADDRESS,"Too many locks for this address");
 
         //Add the lock
-        setUint("locks_value",_to,lockCount,_valueLocked);
-        setUint("locks_reason",_to,lockCount,_reasonCode);
-        setString("locks_reasonString",_to,lockCount,_reasonString);
-        setUint("locks_releaseTime",_to,lockCount,_releaseTime);
+        setLockInfoImpl(_to, lockCount, _valueLocked, _reasonCode, _reasonString, _releaseTime);
 
         //Increase the lock counter for the user
         setUint("lockCount",_to,lockCount.add(1));
@@ -66,11 +70,9 @@ contract ESLockManager is DSComplianceServiceInterface,ESServiceConsumer {
         emit Unlocked(_to,getUint("locks_value",_to,_lockIndex),getUint("locks_reason",_to,_lockIndex),getString("locks_reasonString",_to,_lockIndex),getUint("locks_releaseTime",_to,_lockIndex));
 
         //Move the  the lock
-        setUint("locks_value",_to,_lockIndex,getUint("locks_value",_to,lastLockNumber));
         uint reasonCode = getUint("locks_reason",_to,lastLockNumber);
-        setUint("locks_reason",_to,_lockIndex,reasonCode);
-        setString("locks_reasonString",_to,_lockIndex,getString("locks_reasonString",_to,lastLockNumber));
-        setUint("locks_releaseTime",_to,_lockIndex,getUint("locks_releaseTime",_to,lastLockNumber));
+
+        setLockInfoImpl(_to, _lockIndex, getUint("locks_value",_to,lastLockNumber), reasonCode, getString("locks_reasonString",_to,lastLockNumber), getUint("locks_releaseTime",_to,lastLockNumber));
 
         //delete the last _lock
         //Remove from reverse index
