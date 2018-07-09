@@ -39,8 +39,10 @@ contract ESComplianceService is DSComplianceServiceInterface, ESWalletManager, E
 
   function validate(address _from, address _to, uint _value) onlyToken public {
     uint code;
+    string memory reason;
 
-    (code,) = preTransferCheck(_from, _to, _value);
+    (code, reason) = preTransferCheck(_from, _to, _value);
+    require(code == 0, reason);
     require(recordTransfer(_from, _to, _value));
   }
 
