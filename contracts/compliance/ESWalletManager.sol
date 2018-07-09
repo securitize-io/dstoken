@@ -21,7 +21,7 @@ contract ESWalletManager is DSComplianceServiceInterface, ESServiceConsumer {
    * @return A boolean that indicates if the operation was successful.
    */
   function setSpecialWallet(address _wallet, uint8 _type) internal returns (bool) {
-    uint8 oldType = uint8(getUint("wallets", _wallet, "type"));
+    uint8 oldType = getWalletType(_wallet);
     require(oldType == NONE || _type == NONE);
 
     setUint("wallets", _wallet, "type", _type);
