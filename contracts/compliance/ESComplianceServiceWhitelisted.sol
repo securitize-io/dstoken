@@ -18,8 +18,7 @@ contract ESComplianceServiceWhitelisted is ESComplianceService{
     }
 
     function recordTransfer(address, address _to, uint) internal returns (bool){
-        DSRegistryServiceInterface registry = DSRegistryServiceInterface(getDSService(REGISTRY_SERVICE));
-        return getWalletType(_to) != NONE || keccak256(abi.encodePacked(registry.getInvestor(_to))) != keccak256("");
+        return true;
     }
 
     function checkTransfer(address, address _to, uint) view internal returns (uint, string){
