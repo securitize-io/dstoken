@@ -12,29 +12,32 @@ contract ESComplianceServiceWhitelisted is ESComplianceService{
 
     constructor(address _address, string _namespace) public ESComplianceService(_address, _namespace) {}
 
-    function recordIssuance(address _to, uint) internal returns (bool){
-        DSRegistryServiceInterface registry = DSRegistryServiceInterface(getDSService(REGISTRY_SERVICE));
-        return getWalletType(_to) != NONE || keccak256(abi.encodePacked(registry.getInvestor(_to))) != keccak256("");
+    function checkWhitelisted(address _who) view internal returns (bool) {
+      DSRegistryServiceInterface registry = DSRegistryServiceInterface(getDSService(REGISTRY_SERVICE));
+      return getWalletType(_who) != NONE || keccak256(abi.encodePacked(registry.getInvestor(_who))) != keccak256("");
     }
 
-    function recordTransfer(address, address _to, uint) internal returns (bool){
-        return true;
+    function recordIssuance(address _to, uint) internal returns (bool){
+      return checkWhitelisted(_to);
+    }
+
+    function recordTransfer(address, address, uint) internal returns (bool){
+      return true;
     }
 
     function checkTransfer(address, address _to, uint) view internal returns (uint, string){
-        DSRegistryServiceInterface registry = DSRegistryServiceInterface(getDSService(REGISTRY_SERVICE));
-        if (getWalletType(_to) == NONE && keccak256(abi.encodePacked(registry.getInvestor(_to))) == keccak256("")) {
-          return (20, "Wallet Not In Registry Service");
-        }
+      if (!checkWhitelisted(_to)) {
+        return (20, "Wallet Not In Registry Service");
+      }
 
-        return (0, "Valid");
+      return (0, "Valid");
     }
 
     function recordBurn(address, uint) internal returns (bool){
-        return true;
+      return true;
     }
 
     function recordSeize(address, address, uint) internal returns (bool){
-        return true;
+      return true;
     }
 }
