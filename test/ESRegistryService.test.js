@@ -209,6 +209,9 @@ contract('ESRegistryService', function ([owner, noneAccount, account1, wallet1, 
     });
 
     describe('Wallets', function () {
+      before(async function () {
+        await this.registryService.addWallet(wallet3, investorId);
+      });
       it(`Trying to add the wallet - ${wallet1}`, async function () {
         const { logs } = await this.registryService.addWallet(wallet1, investorId);
 
@@ -217,6 +220,14 @@ contract('ESRegistryService', function ([owner, noneAccount, account1, wallet1, 
         assert.equal(logs[0].args._investorId, investorId);
         assert.equal(logs[0].args._wallet, wallet1);
         assert.equal(logs[0].args._sender, owner);
+      });
+
+      // TODO: check why it is not working,
+      it(`Trying to remove the wallet with MASTER - ${MASTER} permissions`, async function () {
+        const { logs } = await this.registryService.removeWallet(wallet1, investorId);
+
+        assert.equal(logs.length, 1);
+        assert.equal(logs[0].event, 'DSRegistryServiceWalletRemoved');
       });
 
       describe('Wallets: negative tests', function () {
@@ -232,6 +243,7 @@ contract('ESRegistryService', function ([owner, noneAccount, account1, wallet1, 
         });
       });
     });
+
     describe('Get the investor', function () {
       it('Trying to get the investor', async function () {
         const investorID = await this.registryService.getInvestor(wallet1);
