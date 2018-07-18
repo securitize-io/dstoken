@@ -1,9 +1,20 @@
 pragma solidity ^0.4.21;
 
-import "../zeppelin/ownership/Ownable.sol";
-
-contract Proxy is Ownable {
+contract Proxy{
+  address public owner;
   address public target;
+
+  constructor () public{
+    owner = msg.sender;
+  }
+
+  /**
+   * @dev Throws if called by any account other than the owner.
+   */
+  modifier onlyOwner() {
+    require(msg.sender == owner);
+    _;
+  }
 
   function setTarget(address _target) public onlyOwner {
     target = _target;
@@ -16,7 +27,7 @@ contract Proxy is Ownable {
     assembly {
       let ptr := mload(0x40)
       calldatacopy(ptr, 0, calldatasize)
-      let result := call(gas, _impl, 0, ptr, calldatasize, 0, 0)
+      let result := delegatecall(gas, _impl, ptr, calldatasize, 0, 0)
       let size := returndatasize
       returndatacopy(ptr, 0, size)
 
