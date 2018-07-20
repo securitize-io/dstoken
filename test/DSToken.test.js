@@ -1,9 +1,9 @@
 import assertRevert from './helpers/assertRevert';
 const EternalStorage = artifacts.require('EternalStorage');
-const DSToken = artifacts.require('DSTokenMock');
+const DSToken = artifacts.require('DSToken');
 const ESComplianceServiceNotRegulated = artifacts.require('ESComplianceServiceNotRegulated');
 const ESTrustService = artifacts.require('ESTrustService');
-
+const Proxy = artifacts.require('proxy')
 const TRUST_SERVICE=1;
 const DS_TOKEN=2;
 const REGISTRY_SERVICE=4;
@@ -19,11 +19,14 @@ contract('DSToken', function ([_, owner, recipient, anotherAccount]) {
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
   beforeEach(async function () {
-
     this.storage = await EternalStorage.new();
     this.trustService = await ESTrustService.new(this.storage.address, 'DSTokenTestTrustManager');
     this.complianceService = await ESComplianceServiceNotRegulated.new(this.storage.address, 'DSTokenTestComplianceManager');
-    this.token = await DSToken.new(this.storage.address);
+    this.tokenImpl = await DSToken.new();
+    this.proxy = await Proxy.new();
+    await this.proxy.setTarget(this.tokenImpl.address);
+    this.token = DSToken.at(this.proxy.address);
+    await this.token.initialize("DSTokenMock", "DST", 18, this.storage.address, "DSTokenMock");
     await this.storage.adminAddRole(this.trustService.address, 'write');
     await this.storage.adminAddRole(this.complianceService.address, 'write');
     await this.storage.adminAddRole(this.token.address, 'write');
