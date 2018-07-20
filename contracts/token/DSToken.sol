@@ -23,6 +23,7 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
     string _namespace) public {
 
     require(!initialized, "already initialized");
+    require (___t1 != address(0x0),"Must be initialized from proxy");
     owner = msg.sender;
     initialized = true;
     name = _name;
