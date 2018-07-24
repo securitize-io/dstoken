@@ -34,7 +34,6 @@ let attributeStatuses = [PENDING, APPROVED, REJECTED];
 const expiry = '10072018';
 const proofHash = generateRandomInvestorId();
 
-// TODO: add more tests for the wallet and modifier checkers.
 contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, exchangeAccount, account1, wallet1, wallet2, issuerWallet, exchangeWallet, neverUsedWallet]) {
   before(async function () {
     this.storage = await EternalStorage.new();
