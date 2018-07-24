@@ -35,7 +35,7 @@ const expiry = '10072018';
 const proofHash = generateRandomInvestorId();
 
 // TODO: add more tests for the wallet and modifier checkers.
-contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, account1, wallet1, wallet2, wallet3]) {
+contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, exchangeAccount, account1, wallet1, wallet2, issuerWallet, exchangeWallet, neverUsedWallet]) {
   before(async function () {
     this.storage = await EternalStorage.new();
     this.trustService = await ESTrustService.new(this.storage.address, 'DSTokenTestTrustManager');
@@ -166,7 +166,6 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, acco
 
       describe('Attributes: negative tests', function () {
         it(`Trying to set the attribute using the account with NONE - ${NONE} permissions - should be the error`, async function () {
-          const newInvestorId = generateRandomInvestorId();
           const role = await this.trustService.getRole(account1);
 
           assert.equal(role.c[0], NONE);
@@ -210,9 +209,10 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, acco
 
     describe('Wallets', function () {
       before(async function () {
-
-        await this.registryService.addWallet(wallet3, investorId);
         this.trustService.setRole(issuerAccount, ISSUER);
+        await this.registryService.addWallet(issuerWallet, investorId, { from: issuerAccount });
+        this.trustService.setRole(exchangeAccount, EXCHANGE);
+        await this.registryService.addWallet(exchangeWallet, investorId, { from: exchangeAccount });
       });
       it(`Trying to add the wallet - ${wallet1}`, async function () {
         const { logs } = await this.registryService.addWallet(wallet1, investorId);
@@ -233,13 +233,32 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, acco
 
       it(`Trying to remove the wallet with ISSUER - ${ISSUER} permissions`, async function () {
         const role = await this.trustService.getRole(issuerAccount);
-        const { logs } = await this.registryService.removeWallet(wallet1, investorId, { from: issuerAccount });
+
+        assert.equal(role.c[0], ISSUER);
+
+        const { logs } = await this.registryService.removeWallet(issuerWallet, investorId, { from: issuerAccount });
+
+        assert.equal(logs.length, 1);
+        assert.equal(logs[0].event, 'DSRegistryServiceWalletRemoved');
+      });
+
+      it(`Trying to remove the wallet with EXCHANGE - ${EXCHANGE} permissions`, async function () {
+        const role = await this.trustService.getRole(exchangeAccount);
+
+        assert.equal(role.c[0], EXCHANGE);
+
+        const { logs } = await this.registryService.removeWallet(exchangeWallet, investorId, { from: exchangeAccount });
 
         assert.equal(logs.length, 1);
         assert.equal(logs[0].event, 'DSRegistryServiceWalletRemoved');
       });
 
       describe('Wallets: negative tests', function () {
+        before(async function () {
+          await this.registryService.addWallet(wallet1, investorId);
+          this.registryService.addWallet(exchangeWallet, investorId, { from: exchangeAccount });
+        });
+
         it(`Trying to add the wallet with NONE permissions`, async function () {
           const role = await this.trustService.getRole(account1);
 
@@ -249,6 +268,20 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, acco
 
         it(`Trying to add the same wallet - should be the error`, async function () {
           await assertRevert(this.registryService.addWallet(wallet1, investorId));
+        });
+
+        it(`Trying to remove the wallet from the investor that doesn't exist - should be the error`, async function () {
+          const newInvestorId = generateRandomInvestorId();
+
+          await assertRevert(this.registryService.removeWallet(wallet1, newInvestorId));
+        });
+
+        it(`Trying to remove the wallet that not exist - should be the error`, async function () {
+          await assertRevert(this.registryService.removeWallet(neverUsedWallet, investorId));
+        });
+
+        it(`Trying to remove the wallet that was not be added by the sender - should be the error`, async function () {
+          await assertRevert(this.registryService.removeWallet(exchangeWallet, investorId, { from: issuerAccount }));
         });
       });
     });
@@ -268,11 +301,11 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, acco
       });
       describe('Get the investor: negative tests', function () {
         it('Trying to get the investor using the wrong Wallet - should be the error', async function () {
-          await assertRevert(this.registryService.getInvestor(wallet3));
+          await assertRevert(this.registryService.getInvestor(neverUsedWallet));
         });
 
         it('Trying to get the investor details using the wrong Wallet - should be the error', async function () {
-          await assertRevert(this.registryService.getInvestorDetails(wallet3));
+          await assertRevert(this.registryService.getInvestorDetails(neverUsedWallet));
         });
       });
     });
