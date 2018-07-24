@@ -1,5 +1,5 @@
 import assertRevert from './helpers/assertRevert';
-const EternalStorage = artifacts.require('EternalStorage');
+const EternalStorage = artifacts.require('DSEternalStorage');
 const crypto = require('crypto');
 const ESTrustService = artifacts.require('ESTrustService');
 const ESRegistryService = artifacts.require('ESRegistryService');
@@ -35,7 +35,7 @@ const expiry = '10072018';
 const proofHash = generateRandomInvestorId();
 
 // TODO: add more tests for the wallet and modifier checkers.
-contract('ESRegistryService', function ([owner, noneAccount, account1, wallet1, wallet2, wallet3]) {
+contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, account1, wallet1, wallet2, wallet3]) {
   before(async function () {
     this.storage = await EternalStorage.new();
     this.trustService = await ESTrustService.new(this.storage.address, 'DSTokenTestTrustManager');
@@ -81,7 +81,7 @@ contract('ESRegistryService', function ([owner, noneAccount, account1, wallet1, 
 
     describe('SET | GET the country', function () {
       it('Trying to set the country for the investor', async function () {
-        const {logs} = await this.registryService.setCountry(investorId, investorCountry);
+        const { logs } = await this.registryService.setCountry(investorId, investorCountry);
 
         assert.equal(logs.length, 1);
         assert.equal(logs[0].event, 'DSRegistryServiceInvestorChanged');
@@ -210,7 +210,9 @@ contract('ESRegistryService', function ([owner, noneAccount, account1, wallet1, 
 
     describe('Wallets', function () {
       before(async function () {
+
         await this.registryService.addWallet(wallet3, investorId);
+        this.trustService.setRole(issuerAccount, ISSUER);
       });
       it(`Trying to add the wallet - ${wallet1}`, async function () {
         const { logs } = await this.registryService.addWallet(wallet1, investorId);
@@ -222,9 +224,16 @@ contract('ESRegistryService', function ([owner, noneAccount, account1, wallet1, 
         assert.equal(logs[0].args._sender, owner);
       });
 
-      // TODO: check why it is not working,
       it(`Trying to remove the wallet with MASTER - ${MASTER} permissions`, async function () {
         const { logs } = await this.registryService.removeWallet(wallet1, investorId);
+
+        assert.equal(logs.length, 1);
+        assert.equal(logs[0].event, 'DSRegistryServiceWalletRemoved');
+      });
+
+      it(`Trying to remove the wallet with ISSUER - ${ISSUER} permissions`, async function () {
+        const role = await this.trustService.getRole(issuerAccount);
+        const { logs } = await this.registryService.removeWallet(wallet1, investorId, { from: issuerAccount });
 
         assert.equal(logs.length, 1);
         assert.equal(logs[0].event, 'DSRegistryServiceWalletRemoved');
