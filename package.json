@@ -54,5 +54,9 @@
     "truffle": "^4.1.8",
     "minimist": "^1.2.0",
     "truffle-hdwallet-provider": "0.0.3"
+  },
+  "dependencies": {
+    "ethereumjs-wallet": "^0.6.0",
+    "truffle-wallet-provider": "0.0.5"
   }
 }

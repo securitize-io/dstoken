@@ -1,21 +1,15 @@
+/* eslint-disable camelcase */
 require('dotenv').config();
 require('babel-register');
 require('babel-polyfill');
 
-const HDWalletProvider = require('truffle-hdwallet-provider');
-
-const providerWithMnemonic = (mnemonic, rpcEndpoint) =>
-  new HDWalletProvider(mnemonic, rpcEndpoint);
-
-const infuraProvider = network => providerWithMnemonic(
-  process.env.MNEMONIC || '',
-  `https://${network}.infura.io/${process.env.INFURA_API_KEY}`
-);
-
-const ropstenProvider = process.env.SOLIDITY_COVERAGE
-  ? undefined
-  : infuraProvider('ropsten');
-
+const WalletProvider = require('truffle-wallet-provider');
+let privateKey = null;
+if (process.env.PRIVATE_KEY) {
+  privateKey = require('ethereumjs-wallet').fromPrivateKey(Buffer.from(process.env.PRIVATE_KEY, 'hex'));
+} else {
+  privateKey = require('ethereumjs-wallet').fromPrivateKey(Buffer.from('9de51fddb94bc44f2eeaa2fd346befdd2dd7a18945689f8ed42c041d8a9dd459', 'hex')); // Fake private key
+}
 module.exports = {
   networks: {
     development: {
@@ -24,7 +18,7 @@ module.exports = {
       network_id: '*', // eslint-disable-line camelcase
     },
     ropsten: {
-      provider: ropstenProvider,
+      provider: new WalletProvider(privateKey, `https://ropsten.infura.io/${process.env.INFURA_API_KEY}`),
       network_id: 3, // eslint-disable-line camelcase
     },
     coverage: {
@@ -39,11 +33,22 @@ module.exports = {
       port: 8545,
       network_id: '*', // eslint-disable-line camelcase
     },
+    rinkeby: {
+      'gasPrice': 20000000000,
+      provider: new WalletProvider(privateKey, `https://rinkeby.infura.io/${process.env.INFURA_API_KEY}`),
+      network_id: '4',
+    },
+    live: {
+      //  "gas":      20000000,
+      'gasPrice': 22000000000,
+      provider: new WalletProvider(privateKey, `https://mainnet.infura.io/${process.env.INFURA_API_KEY}`),
+      network_id: '1',
+    },
   },
   solc: {
     optimizer: {
-      "enabled": true,
-      "runs": 200
-    }
-  }
+      'enabled': true,
+      'runs': 200,
+    },
+  },
 };
