@@ -2,6 +2,10 @@
 var EternalStorage = artifacts.require('./EternalStorage');
 const ESTrustService = artifacts.require('ESTrustService');
 const ESComplianceServiceNotRegulated = artifacts.require('ESComplianceServiceNotRegulated');
+const ESComplianceServiceWhitelisted = artifacts.require('ESComplianceServiceWhitelisted');
+const ESComplianceServiceNormal = artifacts.require('ESComplianceServiceWhitelisted'); // TODO: change this!
+
+const ESRegistryService = artifacts.require('ESRegistryService');
 const DSToken = artifacts.require('DSToken');
 const Proxy = artifacts.require('proxy');
 const argv = require('minimist')(process.argv.slice(2));
@@ -22,12 +26,17 @@ module.exports = function (deployer) {
   const name = argv.name;
   const symbol = argv.symbol;
   const decimals = parseInt(argv.decimals);
-
-  if (!name || !symbol || !decimals || isNaN(decimals)) {
+  const complianceManagerType = argv.compliance || 'NORMAL';
+  if (argv.help || !name || !symbol || !decimals || isNaN(decimals)) {
     console.log('Token Deployer');
-    console.log('Usage: truffle migrate (--reset) --name <token name>' +
+    console.log('Usage: truffle migrate [OPTIONS] --name <token name>' +
       ' --symbol <token symbol> --decimals <token decimals>');
-    throw Error('Invalid Parameters');
+    console.log('   --reset - re-deploys the contracts');
+    console.log('   --no_registry - skip registry service');
+    console.log('   --compliance - compliance service type (NOT_REGULATED,WHITELABEL,NORMAL) - if omitted, NORMAL is selected');
+    console.log('   --help - outputs this help');
+    console.log('\n');
+    process.exit(0);
   }
 
 
@@ -39,16 +48,39 @@ module.exports = function (deployer) {
   let tokenImpl = null;
   let proxy = null;
   let token = null;
+  let registry = null;
+
   // Deploy eternal storage
   deployer.deploy(EternalStorage).then(s => {
     // Deploy trust manager
     storage = s;
     return deployer.deploy(ESTrustService, storage.address, `${name}TrustManager`);
   }).then(s => {
-    // Deploy compliance manager
-    // TODO: choose compliance manager type
     trustService = s;
-    return deployer.deploy(ESComplianceServiceNotRegulated, storage.address, `${name}ComplianceManager`);
+    // Deploy registry service, if needed
+    if (!argv.no_registry) {
+      return deployer.deploy(ESRegistryService, storage.address, `${name}Registry`);
+    } else {
+      console.log('Skipping registry service');
+    }
+  }).then(s => {
+    registry = s;
+    // Deploy compliance service
+    switch (complianceManagerType) {
+    case 'NOT_REGULATED':
+      console.log('deploying NOT REGULATED compliance service');
+      return deployer.deploy(ESComplianceServiceNotRegulated, storage.address, `${name}ComplianceManager`);
+      break;
+    case 'WHITELABEL':
+      console.log('deploying WHITELABEL compliance service');
+      return deployer.deploy(ESComplianceServiceWhitelisted, storage.address, `${name}ComplianceManager`);
+      break;
+    case 'NORMAL':
+      console.log('deploying NORMAL compliance service');
+      return deployer.deploy(ESComplianceServiceNormal, storage.address, `${name}ComplianceManager`);
+    default:
+      break;
+    }
   }).then(s => {
     // Deploy token
     complianceService = s;
@@ -73,6 +105,11 @@ module.exports = function (deployer) {
     console.log('Adding write right on eternal storage to compliance service');
     return storage.adminAddRole(complianceService.address, 'write');
   }).then(() => {
+    if (registry) {
+      console.log('Adding write right on eternal storage to registry');
+      return storage.adminAddRole(registry.address, 'write');
+    }
+  }).then(() => {
     console.log('Adding write right on eternal storage to token');
     return storage.adminAddRole(token.address, 'write');
   }).then(() => {
@@ -81,6 +118,16 @@ module.exports = function (deployer) {
   }).then(() => {
     console.log('Connecting compliance manager to trust service');
     return complianceService.setDSService(TRUST_SERVICE, trustService.address);
+  }).then(() => {
+    if (registry) {
+      console.log('Connecting compliance manager to registry');
+      return complianceService.setDSService(REGISTRY_SERVICE, registry.address);
+    }
+  }).then(() => {
+    if (registry) {
+      console.log('Connecting registry to trust service');
+      return registry.setDSService(TRUST_SERVICE, trustService.address);
+    }
   }).then(() => {
     console.log('Connecting token to trust service');
     return token.setDSService(TRUST_SERVICE, trustService.address);
@@ -95,9 +142,14 @@ module.exports = function (deployer) {
     console.log('-------------------------');
     console.log(`Token is at address: ${token.address} (behind proxy)`);
     console.log(`Token implementation is at address: ${tokenImpl.address}`);
-    console.log(`Compliance service is at address: ${complianceService.address}`);
+    console.log(`Compliance service is at address: ${complianceService.address}, and is of type ${complianceManagerType}.`);
     console.log(`Trust service is at address: ${trustService.address}`);
     console.log(`Eternal storage is at address: ${storage.address}`);
+    if (registry) {
+      console.log(`Investor registry is at address: ${registry.address}`);
+    } else {
+      console.log('No investors registry was deployed');
+    }
     console.log('\n');
   }).catch((ex) => {
     console.log('\nAn error occured during token deployment\n');
