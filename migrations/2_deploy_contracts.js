@@ -17,83 +17,73 @@ const ISSUER = 2;
 const EXCHANGE = 4;
 
 
-module.exports = async function (deployer) {
-  try {
-    // Deploy eternal storage
-    let storage = null;
-    await deployer.deploy(EternalStorage).then(s => {
-      storage = s;
-    });
-
+module.exports = function (deployer) {
+  // Deploy eternal storage
+  let storage = null;
+  let trustService = null;
+  let complianceService = null;
+  let tokenImpl = null;
+  let proxy = null;
+  let token = null;
+  // Deploy eternal storage
+  deployer.deploy(EternalStorage).then(s => {
     // Deploy trust manager
-    let trustService = null;
-    await deployer.deploy(ESTrustService, storage.address, 'DSTokenTestTrustManager').then(s => {
-      trustService = s;
-    });
-
+    storage = s;
+    return deployer.deploy(ESTrustService, storage.address, 'DSTokenTestTrustManager');
+  }).then(s => {
     // Deploy compliance manager
-    let complianceService = null;
     // TODO: choose compliance manager type
-    await deployer.deploy(ESComplianceServiceNotRegulated, storage.address, 'DSTokenTestComplianceManager')
-      .then(s => {
-        complianceService = s;
-      });
-
+    trustService = s;
+    return deployer.deploy(ESComplianceServiceNotRegulated, storage.address, 'DSTokenTestComplianceManager');
+  }).then(s => {
     // Deploy token
-    let tokenImpl = null;
-    await deployer.deploy(DSToken).then(s => {
-      tokenImpl = s;
-    });
-
+    complianceService = s;
+    return deployer.deploy(DSToken);
+  }).then(s => {
+    tokenImpl = s;
     // Deploy proxy
-    let proxy = null;
-    await deployer.deploy(Proxy).then(s => {
-      proxy = s;
-    });
-
-
-    let token = null;
-
+    return deployer.deploy(Proxy);
+  }).then(s => {
+    proxy = s;
     // Connect proxy to token
-    await deployer.then(() => {
-      proxy.setTarget(tokenImpl.address);
-      token = DSToken.at(proxy.address);
-    });
-
+    return proxy.setTarget(tokenImpl.address);
+  }).then(() => {
+    token = DSToken.at(proxy.address);
     // Initialize the token parameters
-    await deployer.then(() => {
-      token.initialize('DSTokenMock', 'DST', 18, storage.address, 'DSTokenMock');
-    });
-
+    return token.initialize('DSTokenMock', 'DST', 18, storage.address, 'DSTokenMock');
+  }).then(() => {
     // Allow all contracts to write to eternal storage
-    await deployer.then(() => storage.adminAddRole(trustService.address, 'write'));
-    await deployer.then(() => storage.adminAddRole(complianceService.address, 'write'));
-    await deployer.then(() => storage.adminAddRole(token.address, 'write'));
-
+    console.log('Adding write right on eternal storage to trust service');
+    return storage.adminAddRole(trustService.address, 'write');
+  }).then(() => {
+    console.log('Adding write right on eternal storage to compliance service');
+    return storage.adminAddRole(complianceService.address, 'write');
+  }).then(() => {
+    console.log('Adding write right on eternal storage to token');
+    return storage.adminAddRole(token.address, 'write');
+  }).then(() => {
     console.log('Initializing trust service');
-    await deployer.then(() => trustService.initialize());
-
+    return trustService.initialize();
+  }).then(() => {
     console.log('Connecting compliance manager to trust service');
-    await deployer.then(() => complianceService.setDSService(TRUST_SERVICE, trustService.address));
-
+    return complianceService.setDSService(TRUST_SERVICE, trustService.address);
+  }).then(() => {
     console.log('Connecting token to trust service');
-    await deployer.then(() => token.setDSService(TRUST_SERVICE, trustService.address));
-
+    return token.setDSService(TRUST_SERVICE, trustService.address);
+  }).then(() => {
     console.log('Connecting token to compliance service');
-
-    await deployer.then(() => token.setDSService(COMPLIANCE_SERVICE, complianceService.address));
-
+    return token.setDSService(COMPLIANCE_SERVICE, complianceService.address);
+  }).then(() => {
     console.log('Connecting compliance service to token');
-    await deployer.then(() => complianceService.setDSService(DS_TOKEN, token.address));
-
+    return complianceService.setDSService(DS_TOKEN, token.address);
+  }).then(() => {
     console.log('\n\nToken deployment complete');
-  } catch (ex) {
-    console.log('\n\n--- ERROR ---\n ');
-    console.log(' There has been an error deploying the contracts ');
-    console.log(' if other contracts were already deployed, they should be considered unstable and discarded ');
+    console.log('-------------------------');
+    console.log(`Token is at address: ${token.address} (behind proxy)`);
+    console.log(`Token implementation is at address: ${tokenImpl.address}`);
+    console.log(`Compliance service is at address: ${complianceService.address}`);
+    console.log(`Trust service is at address: ${trustService.address}`);
+    console.log(`Eternal storage is at address: ${storage.address}`);
     console.log('\n');
-    console.log(ex);
-  }
-
-  // deployer.deploy(DSTokenMock);
+  });
 };
