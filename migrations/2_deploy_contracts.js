@@ -4,6 +4,7 @@ const ESTrustService = artifacts.require('ESTrustService');
 const ESComplianceServiceNotRegulated = artifacts.require('ESComplianceServiceNotRegulated');
 const DSToken = artifacts.require('DSToken');
 const Proxy = artifacts.require('proxy');
+const argv = require('minimist')(process.argv.slice(2));
 
 const TRUST_SERVICE = 1;
 const DS_TOKEN = 2;
@@ -18,6 +19,19 @@ const EXCHANGE = 4;
 
 
 module.exports = function (deployer) {
+  const name = argv.name;
+  const symbol = argv.symbol;
+  const decimals = parseInt(argv.decimals);
+
+  if (!name || !symbol || !decimals || isNaN(decimals)) {
+    console.log('Token Deployer');
+    console.log('Usage: truffle migrate (--reset) --name <token name>' +
+      ' --symbol <token symbol> --decimals <token decimals>');
+    throw Error('Invalid Parameters');
+  }
+
+
+
   // Deploy eternal storage
   let storage = null;
   let trustService = null;
@@ -29,12 +43,12 @@ module.exports = function (deployer) {
   deployer.deploy(EternalStorage).then(s => {
     // Deploy trust manager
     storage = s;
-    return deployer.deploy(ESTrustService, storage.address, 'DSTokenTestTrustManager');
+    return deployer.deploy(ESTrustService, storage.address, `${name}TrustManager`);
   }).then(s => {
     // Deploy compliance manager
     // TODO: choose compliance manager type
     trustService = s;
-    return deployer.deploy(ESComplianceServiceNotRegulated, storage.address, 'DSTokenTestComplianceManager');
+    return deployer.deploy(ESComplianceServiceNotRegulated, storage.address, `${name}ComplianceManager`);
   }).then(s => {
     // Deploy token
     complianceService = s;
@@ -50,7 +64,7 @@ module.exports = function (deployer) {
   }).then(() => {
     token = DSToken.at(proxy.address);
     // Initialize the token parameters
-    return token.initialize('DSTokenMock', 'DST', 18, storage.address, 'DSTokenMock');
+    return token.initialize(name, symbol, decimals, storage.address, `${name}Token`);
   }).then(() => {
     // Allow all contracts to write to eternal storage
     console.log('Adding write right on eternal storage to trust service');
@@ -77,7 +91,7 @@ module.exports = function (deployer) {
     console.log('Connecting compliance service to token');
     return complianceService.setDSService(DS_TOKEN, token.address);
   }).then(() => {
-    console.log('\n\nToken deployment complete');
+    console.log(`\n\nToken ${name} deployment complete`);
     console.log('-------------------------');
     console.log(`Token is at address: ${token.address} (behind proxy)`);
     console.log(`Token implementation is at address: ${tokenImpl.address}`);
@@ -85,5 +99,8 @@ module.exports = function (deployer) {
     console.log(`Trust service is at address: ${trustService.address}`);
     console.log(`Eternal storage is at address: ${storage.address}`);
     console.log('\n');
+  }).catch((ex) => {
+    console.log('\nAn error occured during token deployment\n');
+    console.log(ex);
   });
 };
