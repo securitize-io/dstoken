@@ -3,12 +3,17 @@ const EternalStorage = artifacts.require('EternalStorage');
 const ESStandardToken = artifacts.require('DSTokenMock');
 const ESComplianceServiceNotRegulated = artifacts.require('ESComplianceServiceNotRegulated');
 const ESTrustService = artifacts.require('ESTrustService');
+const ESWalletManager = artifacts.require('ESWalletManager');
+const ESLockManager = artifacts.require('ESLockManager');
 
 const TRUST_SERVICE=1;
 const DS_TOKEN=2;
 const REGISTRY_SERVICE=4;
 const COMPLIANCE_SERVICE=8;
 const COMMS_SERVICE=16;
+const WALLET_MANAGER=32;
+const LOCK_MANAGER=64;
+const ISSUANCE_INFORMATION_MANAGER=128;
 
 const NONE = 0;
 const MASTER = 1;
@@ -22,15 +27,26 @@ contract('ESStandardToken', function ([_, owner, recipient, anotherAccount]) {
     this.storage = await EternalStorage.new();
     this.trustService = await ESTrustService.new(this.storage.address, 'DSTokenTestTrustManager');
     this.complianceService = await ESComplianceServiceNotRegulated.new(this.storage.address, 'DSTokenTestComplianceManager');
+    this.walletManager = await ESWalletManager.new(this.storage.address, 'DSTokenTestWalletManager');
+    this.lockManager = await ESLockManager.new(this.storage.address, 'DSTokenTestLockManager');
     this.token = await ESStandardToken.new(this.storage.address);
     await this.storage.adminAddRole(this.trustService.address, 'write');
     await this.storage.adminAddRole(this.complianceService.address, 'write');
+    await this.storage.adminAddRole(this.walletManager.address, 'write');
+    await this.storage.adminAddRole(this.lockManager.address, 'write');
     await this.storage.adminAddRole(this.token.address, 'write');
     await this.trustService.initialize();
     await this.complianceService.setDSService(TRUST_SERVICE,this.trustService.address);
+    await this.complianceService.setDSService(LOCK_MANAGER,this.lockManager.address);
+    await this.complianceService.setDSService(WALLET_MANAGER,this.walletManager.address);
     await this.token.setDSService(TRUST_SERVICE,this.trustService.address);
     await this.token.setDSService(COMPLIANCE_SERVICE,this.complianceService.address);
+    await this.token.setDSService(LOCK_MANAGER,this.lockManager.address);
+    await this.token.setDSService(WALLET_MANAGER,this.walletManager.address);
     await this.complianceService.setDSService(DS_TOKEN,this.token.address);
+    await this.lockManager.setDSService(TRUST_SERVICE,this.trustService.address);
+    await this.lockManager.setDSService(DS_TOKEN, this.token.address);
+    await this.walletManager.setDSService(TRUST_SERVICE,this.trustService.address);
     await this.token.initialize(owner, 100);
   });
 

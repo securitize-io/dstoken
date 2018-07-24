@@ -8,7 +8,7 @@ import "./ESComplianceService.sol";
 *   it simply returns true for all checks.
 */
 
-contract ESComplianceServiceNotRegulated is ESComplianceService{
+contract ESComplianceServiceNotRegulated is ESComplianceService {
 
     constructor(address _address, string _namespace) public ESComplianceService(_address, _namespace) {}
 

@@ -1,14 +1,14 @@
 pragma solidity ^0.4.23;
 
 import '../ESServiceConsumer.sol';
-import "./DSComplianceServiceInterface.sol";
+import "./DSIssuanceInformationManagerInterface.sol";
 
 /**
  * @title ESIssuanceInformationManager
  * @dev An issuance information manager which allows managing compliance information.
  * @dev Implements DSIssuanceInformationManagerInterface and ESServiceConsumer.
  */
-contract ESIssuanceInformationManager is DSComplianceServiceInterface, ESServiceConsumer {
+contract ESIssuanceInformationManager is DSIssuanceInformationManagerInterface, ESServiceConsumer {
   /**
    * @dev The constructor delegates the paramters to ESServiceConsumer.
    */

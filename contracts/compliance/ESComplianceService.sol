@@ -19,18 +19,14 @@ import "./ESIssuanceInformationManager.sol";
 *   and implement the five functions - recordIssuance,checkTransfer,recordTransfer,recordBurn and recordSeize.
 *   The rest of the functions should only be overridden in rare circumstances.
 */
-contract ESComplianceService is DSComplianceServiceInterface, ESWalletManager, ESLockManager, ESIssuanceInformationManager {
+contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer {
 
   constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
   using SafeMath for uint256;
 
   modifier onlyToken() {
-    require(msg.sender == getAddress8("services", DS_TOKEN), "This function can only called by the associated token");
+    require(msg.sender == getDSService(DS_TOKEN), "This function can only called by the associated token");
     _;
-  }
-
-  function getToken() private view returns (DSTokenInterface){
-    return DSTokenInterface(getAddress8("services", DS_TOKEN));
   }
 
   function validateIssuance(address _to, uint _value) onlyToken public {
@@ -53,37 +49,9 @@ contract ESComplianceService is DSComplianceServiceInterface, ESWalletManager, E
   function validateSeize(address _from, address _to, uint _value) onlyToken public returns (bool){
 
     //Only allow seizing, if the target is an issuer wallet (can be overridden)
-    require(getWalletType(_to) == ISSUER);
+    require(getWalletManager().getWalletType(_to) == getWalletManager().ISSUER());
     require(recordSeize(_from, _to, _value));
 
-  }
-
-  function getTransferableTokens(address _who, uint64 _time) public view returns (uint) {
-
-    require(_time > 0, "time must be greater than zero");
-    uint balanceOfHolder = getToken().balanceOf(_who);
-
-    uint holderLockCount = getUint("lockCount", _who);
-
-    //No locks, go to base class implementation
-    if (holderLockCount == 0) {
-      return balanceOfHolder;
-    }
-
-    uint totalLockedTokens = 0;
-    for (uint i = 0; i < holderLockCount; i ++) {
-
-      uint autoReleaseTime = getUint("locks_releaseTime", _who, i);
-
-      if (autoReleaseTime == 0 || autoReleaseTime > _time) {
-        totalLockedTokens = totalLockedTokens.add(getUint("locks_value", _who, i));
-      }
-    }
-
-    //there may be more locked tokens than actual tokens, so the minimum between the two
-    uint transferable = SafeMath.sub(balanceOfHolder, Math.min256(totalLockedTokens, balanceOfHolder));
-
-    return transferable;
   }
 
   function preTransferCheck(address _from, address _to, uint _value) view public returns (uint code, string reason) {
@@ -95,7 +63,7 @@ contract ESComplianceService is DSComplianceServiceInterface, ESWalletManager, E
       return (15, "Not Enough Tokens");
     }
 
-    if (getTransferableTokens(_from, uint64(now)) < _value) {
+    if (getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
       return (16, "Tokens Locked");
     }
 

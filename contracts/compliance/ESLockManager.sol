@@ -1,20 +1,20 @@
 pragma solidity ^0.4.23;
 
 import "../ESServiceConsumer.sol";
-import "./DSComplianceServiceInterface.sol";
+import "./DSLockManagerInterface.sol";
+import "../zeppelin/math/Math.sol";
 import "../zeppelin/math/SafeMath.sol";
 
 
 /**
- * @title DSLockManagerInterface
+ * @title ESLockManager
  * @dev An interface for controlling and getting information about locked funds in a compliance manager
  */
-contract ESLockManager is DSComplianceServiceInterface,ESServiceConsumer {
+contract ESLockManager is DSLockManagerInterface,ESServiceConsumer {
 
-//    constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
+   constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
 
     using SafeMath for uint256;
-
 
     uint256 constant MAX_LOCKS_PER_ADDRESS = 30;
 
@@ -122,5 +122,33 @@ contract ESLockManager is DSComplianceServiceInterface,ESServiceConsumer {
         reasonString= getString("locks_reasonString",_who,_lockIndex);
         value = getUint("locks_value",_who,_lockIndex);
         autoReleaseTime = getUint("locks_releaseTime",_who,_lockIndex);
+    }
+
+    function getTransferableTokens(address _who, uint64 _time) public view returns (uint) {
+      require(_time > 0, "time must be greater than zero");
+
+      uint balanceOfHolder = getToken().balanceOf(_who);
+
+      uint holderLockCount = getUint("lockCount", _who);
+
+      //No locks, go to base class implementation
+      if (holderLockCount == 0) {
+        return balanceOfHolder;
+      }
+
+      uint totalLockedTokens = 0;
+      for (uint i = 0; i < holderLockCount; i ++) {
+
+        uint autoReleaseTime = getUint("locks_releaseTime", _who, i);
+
+        if (autoReleaseTime == 0 || autoReleaseTime > _time) {
+          totalLockedTokens = totalLockedTokens.add(getUint("locks_value", _who, i));
+        }
+      }
+
+      //there may be more locked tokens than actual tokens, so the minimum between the two
+      uint transferable = SafeMath.sub(balanceOfHolder, Math.min256(totalLockedTokens, balanceOfHolder));
+
+      return transferable;
     }
 }

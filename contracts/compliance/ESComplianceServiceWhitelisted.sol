@@ -14,7 +14,7 @@ contract ESComplianceServiceWhitelisted is ESComplianceService{
 
     function checkWhitelisted(address _who) view internal returns (bool) {
       DSRegistryServiceInterface registry = DSRegistryServiceInterface(getDSService(REGISTRY_SERVICE));
-      return getWalletType(_who) != NONE || keccak256(abi.encodePacked(registry.getInvestor(_who))) != keccak256("");
+      return getWalletManager().getWalletType(_who) != getWalletManager().NONE() || keccak256(abi.encodePacked(registry.getInvestor(_who))) != keccak256("");
     }
 
     function recordIssuance(address _to, uint) internal returns (bool){

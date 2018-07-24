@@ -2,6 +2,10 @@ pragma solidity ^0.4.23;
 
 import "./DSServiceConsumerInterface.sol";
 import "./storage/EternalStorageClient.sol";
+import "./token/DSTokenInterface.sol";
+import "./compliance/DSWalletManagerInterface.sol";
+import "./compliance/DSLockManagerInterface.sol";
+import "./compliance/DSComplianceServiceInterface.sol";
 
 contract ESServiceConsumer is DSServiceConsumerInterface, EternalStorageClient {
   constructor(address _address, string _namespace) public EternalStorageClient(_address, _namespace) {}
@@ -27,12 +31,28 @@ contract ESServiceConsumer is DSServiceConsumerInterface, EternalStorageClient {
     _;
   }
 
-  function getDSService(uint8 _serviceId) public view returns (address) {
-    return getAddress8("services", _serviceId);
+  function getDSService(uint _serviceId) public view returns (address) {
+    return getAddress("services", _serviceId);
   }
 
-  function setDSService(uint8 _serviceId, address _address) public onlyMaster returns (bool) {
-    setAddress8("services", _serviceId, _address);
+  function setDSService(uint _serviceId, address _address) public onlyMaster returns (bool) {
+    setAddress("services", _serviceId, _address);
     return true;
+  }
+
+  function getToken() internal view returns (DSTokenInterface){
+    return DSTokenInterface(getDSService(DS_TOKEN));
+  }
+
+  function getWalletManager() internal view returns (DSWalletManagerInterface) {
+    return DSWalletManagerInterface(getDSService(WALLET_MANAGER));
+  }
+
+  function getLockManager() internal view returns (DSLockManagerInterface) {
+    return DSLockManagerInterface(getDSService(LOCK_MANAGER));
+  }
+
+  function getComplianceService() internal view returns (DSComplianceServiceInterface) {
+    return DSComplianceServiceInterface(getDSService(COMPLIANCE_SERVICE));
   }
 }

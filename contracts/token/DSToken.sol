@@ -5,6 +5,7 @@ import "./ESPausableToken.sol";
 import "../zeppelin/token/ERC20/DetailedERC20.sol";
 import "../ESServiceConsumer.sol";
 import "../compliance/DSComplianceServiceInterface.sol";
+import "../compliance/DSLockManagerInterface.sol";
 import "./DSTokenInterface.sol";
 
 contract DSToken is DSTokenInterface,ESServiceConsumer,ESPausableToken,DetailedERC20 {
@@ -64,9 +65,6 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESPausableToken,DetailedE
     * @return true if successful
     */
     function issueTokensWithLocking(address _to, uint256 _value, uint256 _valueLocked, string _reason, uint64 _releaseTime) onlyIssuerOrAbove public returns (bool){
-
-        DSComplianceServiceInterface complianceManager = DSComplianceServiceInterface(getDSService(COMPLIANCE_SERVICE));
-
         //Check input values
         require(_to != address(0));
         require(_value > 0);
@@ -77,7 +75,7 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESPausableToken,DetailedE
         require(localCap == 0 || ( getUint("totalIssued").add(_value)) <= localCap,"Token Cap Hit");
 
         //Check issuance is allowed (and inform the compliance manager, possibly adding locks)
-        complianceManager.validateIssuance(_to,_value);
+        getComplianceService().validateIssuance(_to,_value);
 
         //Adding and subtracting is done through safemath
         setUint("totalSupply", getUint("totalSupply").add(_value));
@@ -88,7 +86,7 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESPausableToken,DetailedE
         emit Transfer(address(0), _to, _value);
 
         if (_valueLocked > 0) {
-            complianceManager.addManualLockRecord(_to, _valueLocked, _reason, _releaseTime);
+            getLockManager().addManualLockRecord(_to, _valueLocked, _reason, _releaseTime);
         }
     }
 
@@ -105,8 +103,7 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESPausableToken,DetailedE
         // no need to require value <= totalSupply, since that would imply the
         // sender's balance is greater than the totalSupply, which *should* be an assertion failure
 
-        DSComplianceServiceInterface complianceManager = DSComplianceServiceInterface(getDSService(COMPLIANCE_SERVICE));
-        complianceManager.validateBurn(_who,_value);
+        getComplianceService().validateBurn(_who,_value);
 
         setUint("balances", _who, getUint("balances", _who).sub(_value));
         setUint("totalSupply", getUint("totalSupply").sub(_value));
@@ -123,8 +120,7 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESPausableToken,DetailedE
         require(_to != address(0));
         require(_value <= getUint("balances", _from));
 
-        DSComplianceServiceInterface complianceManager = DSComplianceServiceInterface(getDSService(COMPLIANCE_SERVICE));
-        complianceManager.validateSeize(_from,_to,_value);
+        getComplianceService().validateSeize(_from,_to,_value);
 
         setUint("balances", _from, getUint("balances", _from).sub(_value));
         setUint("balances", _to, getUint("balances", _to).add(_value));
@@ -140,8 +136,7 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESPausableToken,DetailedE
     * @dev Checks whether it can transfer with the compliance manager, if not -throws.
     */
     modifier canTransfer(address _sender, address _receiver, uint256 _value)  {
-        DSComplianceServiceInterface complianceManager = DSComplianceServiceInterface(getDSService(COMPLIANCE_SERVICE));
-        complianceManager.validate(_sender,_receiver,_value);
+        getComplianceService().validate(_sender,_receiver,_value);
         _;
     }
 
@@ -153,7 +148,6 @@ contract DSToken is DSTokenInterface,ESServiceConsumer,ESPausableToken,DetailedE
 
   //TODO: check if "whenNotPaused" is needed here or the super implementation gets called automatically
   function transfer(address _to, uint256 _value) whenNotPaused canTransfer(msg.sender, _to, _value)  public returns (bool) {
-
         bool result = super.transfer(_to, _value);
         checkWalletsForList(msg.sender,_to);
         return result;
