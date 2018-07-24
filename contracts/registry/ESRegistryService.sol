@@ -9,9 +9,17 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
 
   constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
 
-  function registerInvestor(string _id, string _collision_hash) public onlyExchangeOrAbove returns (bool) {
-    require(keccak256(abi.encodePacked(getString("investors", _id, "id"))) == keccak256(""));
+  modifier investorExists(string _id) {
+    require(isInvestor(_id));
+    _;
+  }
 
+  modifier newInvestor(string _id) {
+    require(!isInvestor(_id));
+    _;
+  }
+
+  function registerInvestor(string _id, string _collision_hash) public onlyExchangeOrAbove newInvestor(_id) returns (bool) {
     setString("investors", _id, "id", _id);
     setString("investors", _id, "collision_hash", _collision_hash);
     setAddress("investors", _id, "creator", msg.sender);
@@ -22,8 +30,7 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
     return true;
   }
 
-  function removeInvestor(string _id) public onlyExchangeOrAbove returns (bool) {
-    require(keccak256(abi.encodePacked(getString("investors", _id, "id"))) != keccak256(""));
+  function removeInvestor(string _id) public onlyExchangeOrAbove investorExists(_id) returns (bool) {
     DSTrustServiceInterface trustManager = DSTrustServiceInterface(getDSService(TRUST_SERVICE));
     require(trustManager.getRole(msg.sender) != trustManager.EXCHANGE() ||
             getAddress("investors", _id, "creator") == msg.sender);
@@ -47,7 +54,7 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
     return true;
   }
 
-  function setCountry(string _id, string _country) public onlyExchangeOrAbove returns (bool) {
+  function setCountry(string _id, string _country) public onlyExchangeOrAbove investorExists(_id) returns (bool) {
     setString("investors", _id, "country", _country);
     setAddress("investors", _id, "last_updated_by", msg.sender);
 
@@ -123,5 +130,9 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
   function getInvestorDetails(address _address) public view returns (string, string) {
     // TODO: make code cleaner
     return (getString("wallets", _address, "owner"), getCountry(getString("wallets", _address, "owner")));
+  }
+
+  function isInvestor(string _id) public view returns (bool) {
+    return keccak256(abi.encodePacked(getString("investors", _id, "id"))) != keccak256("");
   }
 }
