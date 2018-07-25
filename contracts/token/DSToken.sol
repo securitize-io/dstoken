@@ -97,7 +97,7 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
     emit Transfer(address(0), _to, _value);
 
     if (_valueLocked > 0) {
-      getComplianceService().addManualLockRecord(_to, _valueLocked, _reason, _releaseTime);
+      getLockManager().addManualLockRecord(_to, _valueLocked, _reason, _releaseTime);
     }
   }
 
