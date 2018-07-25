@@ -97,7 +97,7 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
     emit Transfer(address(0), _to, _value);
 
     if (_valueLocked > 0) {
-      complianceManager.addManualLockRecord(_to, _valueLocked, _reason, _releaseTime);
+      getComplianceService().addManualLockRecord(_to, _valueLocked, _reason, _releaseTime);
     }
   }
 
@@ -114,7 +114,6 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
     // no need to require value <= totalSupply, since that would imply the
     // sender's balance is greater than the totalSupply, which *should* be an assertion failure
 
-    DSComplianceServiceInterface complianceManager = DSComplianceServiceInterface(getDSService(COMPLIANCE_SERVICE));
     getComplianceService().validateBurn(_who,_value);
 
     setUint("balances", _who, getUint("balances", _who).sub(_value));
