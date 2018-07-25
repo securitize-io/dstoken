@@ -1,11 +1,12 @@
 import assertRevert from './helpers/assertRevert';
 const EternalStorage = artifacts.require('EternalStorage');
-const DSToken = artifacts.require('DSTokenMock');
+const DSToken = artifacts.require('DSToken');
 const ESComplianceServiceNotRegulated = artifacts.require('ESComplianceServiceNotRegulated');
 const ESWalletManager = artifacts.require('ESWalletManager');
 const ESLockManager = artifacts.require('ESLockManager');
 const ESTrustService = artifacts.require('ESTrustService');
 
+const Proxy = artifacts.require('proxy');
 const TRUST_SERVICE=1;
 const DS_TOKEN=2;
 const REGISTRY_SERVICE=4;
@@ -24,13 +25,16 @@ contract('DSToken', function ([_, owner, recipient, anotherAccount]) {
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
   beforeEach(async function () {
-
     this.storage = await EternalStorage.new();
     this.trustService = await ESTrustService.new(this.storage.address, 'DSTokenTestTrustManager');
     this.complianceService = await ESComplianceServiceNotRegulated.new(this.storage.address, 'DSTokenTestComplianceManager');
     this.walletManager = await ESWalletManager.new(this.storage.address, 'DSTokenTestWalletManager');
     this.lockManager = await ESLockManager.new(this.storage.address, 'DSTokenTestLockManager');
-    this.token = await DSToken.new(this.storage.address);
+    this.tokenImpl = await DSToken.new();
+    this.proxy = await Proxy.new();
+    await this.proxy.setTarget(this.tokenImpl.address);
+    this.token = DSToken.at(this.proxy.address);
+    await this.token.initialize('DSTokenMock', 'DST', 18, this.storage.address, 'DSTokenMock');
     await this.storage.adminAddRole(this.trustService.address, 'write');
     await this.storage.adminAddRole(this.complianceService.address, 'write');
     await this.storage.adminAddRole(this.walletManager.address, 'write');
@@ -62,30 +66,34 @@ contract('DSToken', function ([_, owner, recipient, anotherAccount]) {
       assert.equal(decimals, 18);
       assert.equal(totalSupply, 0);
     });
+    it('should not allow instantiating the token without a proxy', async function () {
+      const token = await DSToken.new();
+      await assertRevert(token.initialize('DSTokenMock', 'DST', 18, this.storage.address, 'DSTokenMock'));
+    });
   });
 
-  describe('cap', function() {
-    beforeEach(async function() {
+  describe('cap', function () {
+    beforeEach(async function () {
       await this.token.setCap(1000);
     });
 
-    it('cannot be set twice', async function() {
+    it('cannot be set twice', async function () {
       await assertRevert(this.token.setCap(1000));
     });
 
-    it('doesn\'t prevent issuing tokens within limit', async function() {
+    it('doesn\'t prevent issuing tokens within limit', async function () {
       await this.token.issueTokens(owner, 500);
       await this.token.issueTokens(owner, 500);
     });
 
-    it('prevents issuing too many tokens', async function() {
+    it('prevents issuing too many tokens', async function () {
       await this.token.issueTokens(owner, 500);
       await assertRevert(this.token.issueTokens(owner, 501));
     });
   });
 
   describe('issuance', function () {
-    beforeEach(async function() {
+    beforeEach(async function () {
       await this.token.issueTokens(owner, 100);
     });
 
@@ -94,10 +102,10 @@ contract('DSToken', function ([_, owner, recipient, anotherAccount]) {
       assert.equal(balance, 100);
     });
 
-    it('should issue unlocked tokens to a wallet', async function() {
+    it('should issue unlocked tokens to a wallet', async function () {
       const balance = await this.token.balanceOf(owner);
       assert.equal(balance, 100);
-      await this.token.transfer(recipient, 100, {from: owner});
+      await this.token.transfer(recipient, 100, { from: owner });
       const ownerBalance = await this.token.balanceOf(owner);
       assert.equal(ownerBalance, 0);
       const recipientBalance = await this.token.balanceOf(recipient);
