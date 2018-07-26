@@ -4,6 +4,11 @@ import "../DSServiceConsumerInterface.sol";
 import "../zeppelin/token/ERC20/ERC20.sol";
 
 contract DSComplianceServiceInterface is DSServiceConsumerInterface {
+  uint public constant NONE = 0;
+  uint public constant US = 1;
+  uint public constant EU = 2;
+  uint public constant FORBIDDEN = 4;
+
   modifier onlyToken() {
     assert(false);
     _;
@@ -22,4 +27,8 @@ contract DSComplianceServiceInterface is DSServiceConsumerInterface {
   function validate(address _from, address _to, uint _value) /*onlyToken*/ public;
 
   function preTransferCheck(address _from, address _to, uint _value) view public returns (uint code, string reason);
+
+  function setCountryCompliance(string _country, uint _value) /*onlyIssuerOrAbove*/ public returns (bool);
+
+  function getCountryCompliance(string _country) public returns (uint);
 }

@@ -65,7 +65,6 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
   function issueTokens(address _to, uint256 _value) onlyIssuerOrAbove public returns (bool){
     issueTokensWithLocking(_to, _value, 0, "", 0);
   }
-
   /**
   * @dev Issuing tokens from the fund
   * @param _to address The address which is going to receive the newly issued tokens
@@ -92,6 +91,7 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
     setUint("totalSupply", getUint("totalSupply").add(_value));
     setUint("totalIssued", getUint("totalIssued").add(_value));
     setUint("balances", _to, getUint("balances", _to).add(_value));
+    updateInvestorBalance(_to, _value, true);
 
     emit Issue(_to, _value, _valueLocked);
     emit Transfer(address(0), _to, _value);
@@ -117,6 +117,7 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
     getComplianceService().validateBurn(_who,_value);
 
     setUint("balances", _who, getUint("balances", _who).sub(_value));
+    updateInvestorBalance(_who, _value, false);
     setUint("totalSupply", getUint("totalSupply").sub(_value));
     emit Burn(_who, _value, _reason);
     emit Transfer(_who, address(0), _value);
@@ -132,9 +133,10 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
     require(_value <= getUint("balances", _from));
 
     getComplianceService().validateSeize(_from,_to,_value);
-
     setUint("balances", _from, getUint("balances", _from).sub(_value));
     setUint("balances", _to, getUint("balances", _to).add(_value));
+    updateInvestorBalance(_from, _value, false);
+    updateInvestorBalance(_to, _value, true);
     emit Seize(_from, _to, _value, _reason);
     emit Transfer(_from, _to, _value);
   }
@@ -160,7 +162,14 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
   //TODO: check if "whenNotPaused" is needed here or the super implementation gets called automatically
   function transfer(address _to, uint256 _value) whenNotPaused canTransfer(msg.sender, _to, _value) public returns (bool) {
     bool result = super.transfer(_to, _value);
-    checkWalletsForList(msg.sender, _to);
+
+    if (result) {
+      updateInvestorBalance(msg.sender, _value, false);
+      updateInvestorBalance(_to, _value, true);
+    }
+
+    checkWalletsForList(msg.sender,_to);
+
     return result;
   }
 
@@ -174,7 +183,14 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
   //TODO: check if "whenNotPaused" is needed here or the super implementation gets called automatically
   function transferFrom(address _from, address _to, uint256 _value) whenNotPaused canTransfer(_from, _to, _value) public returns (bool) {
     bool result = super.transferFrom(_from, _to, _value);
-    checkWalletsForList(_from, _to);
+
+    if (result) {
+      updateInvestorBalance(_from, _value, false);
+      updateInvestorBalance(_to, _value, true);
+    }
+
+    checkWalletsForList(_from,_to);
+
     return result;
   }
 
@@ -241,5 +257,22 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
 
   function isPaused() view public returns (bool){
     return (getBoolean("paused"));
+  }
+
+  function balanceOfInvestor(string _id) view public returns (uint256) {
+    return getUint("investors", "balances", _id);
+  }
+
+  function updateInvestorBalance(address _wallet, uint _value, bool _increase) internal returns (bool) {
+    string memory investor = getRegistryService().getInvestor(_wallet);
+    if (keccak256(abi.encodePacked(investor)) != keccak256("")) {
+      uint balance = getUint("investors", "balances", investor);
+      if (_increase) {
+        balance = balance.add(_value);
+      } else {
+        balance = balance.sub(_value);
+      }
+      setUint("investors", "balances", investor, balance);
+    }
   }
 }

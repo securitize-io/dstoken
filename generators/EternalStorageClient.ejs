@@ -45,6 +45,10 @@ contract EternalStorageClient is Ownable {
     return get<%=names[i]%>Generic(abi.encodePacked(namespace, p1));
   }
 
+  function get<%=names[i]%>(string p1, string p2) view internal returns (<%=types[i]%>) {
+    return get<%=names[i]%>Generic(abi.encodePacked(namespace, p1, p2));
+  }
+
   function get<%=names[i]%>(string p1,address p2) view internal returns (<%=types[i]%>) {
     return get<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2));
   }
@@ -93,6 +97,10 @@ contract EternalStorageClient is Ownable {
     set<%=names[i]%>Generic(abi.encodePacked(namespace, p1), v);
   }
 
+  function set<%=names[i]%>(string p1, string p2, <%=types[i]%> v) internal {
+    set<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2), v);
+  }
+
   function set<%=names[i]%>(string p1,address p2, <%=types[i]%> v) internal {
     set<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2), v);
   }
@@ -139,6 +147,10 @@ contract EternalStorageClient is Ownable {
 
   function delete<%=names[i]%>(string p1) internal {
     delete<%=names[i]%>Generic(abi.encodePacked(namespace, p1));
+  }
+
+  function delete<%=names[i]%>(string p1,string p2) internal {
+    delete<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2));
   }
 
   function delete<%=names[i]%>(string p1,address p2) internal {

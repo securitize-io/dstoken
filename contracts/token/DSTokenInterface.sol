@@ -74,4 +74,7 @@ contract DSTokenInterface is ERC20 {
   //**************************************
   function isPaused() view public returns (bool);
 
+  function balanceOfInvestor(string _id) view public returns (uint256);
+
+  function updateInvestorBalance(address _wallet, uint _value, bool _increase) internal returns (bool);
 }

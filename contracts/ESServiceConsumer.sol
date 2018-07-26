@@ -6,6 +6,8 @@ import "./token/DSTokenInterface.sol";
 import "./compliance/DSWalletManagerInterface.sol";
 import "./compliance/DSLockManagerInterface.sol";
 import "./compliance/DSComplianceServiceInterface.sol";
+import "./compliance/DSIssuanceInformationManagerInterface.sol";
+import "./registry/DSRegistryServiceInterface.sol";
 
 contract ESServiceConsumer is DSServiceConsumerInterface, EternalStorageClient {
   constructor(address _address, string _namespace) public EternalStorageClient(_address, _namespace) {}
@@ -54,5 +56,13 @@ contract ESServiceConsumer is DSServiceConsumerInterface, EternalStorageClient {
 
   function getComplianceService() internal view returns (DSComplianceServiceInterface) {
     return DSComplianceServiceInterface(getDSService(COMPLIANCE_SERVICE));
+  }
+
+  function getRegistryService() internal view returns (DSRegistryServiceInterface) {
+    return DSRegistryServiceInterface(getDSService(REGISTRY_SERVICE));
+  }
+
+  function getIssuanceInformationManager() internal view returns (DSIssuanceInformationManagerInterface) {
+    return DSIssuanceInformationManagerInterface(getDSService(ISSUANCE_INFORMATION_MANAGER));
   }
 }

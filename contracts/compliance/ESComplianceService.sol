@@ -70,6 +70,15 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
     return checkTransfer(_from, _to, _value);
   }
 
+  function setCountryCompliance(string _country, uint _value) onlyIssuerOrAbove public returns (bool) {
+    setUint("countries", _country, _value);
+
+    return true;
+  }
+
+  function getCountryCompliance(string _country) public returns (uint) {
+    getUint("countries", _country);
+  }
 
 
   //These functions should be implemented by the concrete compliance manager
