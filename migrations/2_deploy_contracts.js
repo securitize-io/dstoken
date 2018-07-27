@@ -9,7 +9,7 @@ const ESRegistryService = artifacts.require('ESRegistryService');
 const ESWalletManager = artifacts.require('ESWalletManager');
 const ESLockManager = artifacts.require('ESLockManager');
 const DSToken = artifacts.require('DSToken');
-const Proxy = artifacts.require('proxy');
+const Proxy = artifacts.require('Proxy');
 const argv = require('minimist')(process.argv.slice(2));
 
 const TRUST_SERVICE = 1;
