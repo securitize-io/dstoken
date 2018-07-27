@@ -41,7 +41,8 @@ module.exports = function (deployer) {
     console.log('   --compliance - compliance service type (NOT_REGULATED,WHITELABEL,NORMAL) - if omitted, NORMAL is selected');
     console.log('   --help - outputs this help');
     console.log('\n');
-    process.exit(0);
+    return;
+    //process.exit(0);
   }
 
 
