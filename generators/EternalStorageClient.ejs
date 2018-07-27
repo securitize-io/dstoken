@@ -73,6 +73,10 @@ contract EternalStorageClient is Ownable {
     return get<%=names[i]%>Generic(abi.encodePacked(namespace, p1, p2, p3));
   }
 
+  function get<%=names[i]%>(string p1, string p2, uint p3) view internal returns (<%=types[i]%>) {
+    return get<%=names[i]%>Generic(abi.encodePacked(namespace, p1, p2, p3));
+  }
+
   function get<%=names[i]%>(string p1, string p2, uint p3, string p4) view internal returns (<%=types[i]%>) {
     return get<%=names[i]%>Generic(abi.encodePacked(namespace, p1, p2, p3, p4));
   }
@@ -125,6 +129,10 @@ contract EternalStorageClient is Ownable {
     set<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3), v);
   }
 
+  function set<%=names[i]%>(string p1, string p2, uint p3, <%=types[i]%> v) internal {
+    set<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3), v);
+  }
+
   function set<%=names[i]%>(string p1, string p2, uint p3, string p4, <%=types[i]%> v) internal {
     set<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3,p4), v);
   }
@@ -166,6 +174,10 @@ contract EternalStorageClient is Ownable {
   }
 
   function delete<%=names[i]%>(string p1,string p2,string p3) internal {
+    delete<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3));
+  }
+
+  function delete<%=names[i]%>(string p1,string p2,uint p3) internal {
     delete<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3));
   }
 

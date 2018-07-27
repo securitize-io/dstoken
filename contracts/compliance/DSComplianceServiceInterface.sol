@@ -30,5 +30,5 @@ contract DSComplianceServiceInterface is DSServiceConsumerInterface {
 
   function setCountryCompliance(string _country, uint _value) /*onlyIssuerOrAbove*/ public returns (bool);
 
-  function getCountryCompliance(string _country) public returns (uint);
+  function getCountryCompliance(string _country) view public returns (uint);
 }

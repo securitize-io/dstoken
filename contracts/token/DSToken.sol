@@ -32,7 +32,6 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
     decimals = _decimals;
     eternalStorage = DSEternalStorage(_storageAddress);
     namespace = _namespace;
-
   }
 
   /******************************

@@ -9,6 +9,9 @@ import "./ESComplianceService.sol";
 */
 
 contract ESComplianceServiceRegulated is ESComplianceService {
+    bool public fund = true;
+    bool public fullTransfer = true;
+    uint public minEuTokens = 0;
 
     constructor(address _address, string _namespace) public ESComplianceService(_address, _namespace) {}
 
@@ -19,7 +22,7 @@ contract ESComplianceServiceRegulated is ESComplianceService {
         uint countryCompliance = getCountryCompliance(country);
         if (countryCompliance == US) {
           setUint("usInvestorsCount", _increase ? getUint("usInvestorsCount").add(1) : getUint("usInvestorsCount").sub(1));
-        } else if (countryCompliance == EU) {//&& TODO: ADAM getRegistryService().isRetail(_wallet)) {
+        } else if (countryCompliance == EU && getRegistryService().getAttributeValue(getRegistryService().getInvestor(_wallet), getRegistryService().QUALIFIED()) != getRegistryService().APPROVED()) {
           setUint("euRetailInvestorsCount", country, _increase ? getUint("euRetailInvestorsCount", country).add(1) : getUint("euRetailInvestorsCount", country).sub(1));
         }
       }
@@ -54,6 +57,11 @@ contract ESComplianceServiceRegulated is ESComplianceService {
         return (15, "Not Enough Tokens");
       }
 
+      // if (keccak256(abi.encodePacked(getRegistryService().getInvestor(_from))) != keccak256("") &&
+      //     keccak256(abi.encodePacked(getRegistryService().getInvestor(_from))) == keccak256(abi.encodePacked(getRegistryService().getInvestor(_to)))) {
+      //   return checkTransfer(_from, _to, _value);
+      // }
+
       if (getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
         return (16, "Tokens Locked");
       }
@@ -69,10 +77,12 @@ contract ESComplianceServiceRegulated is ESComplianceService {
       return locationSpecificCheck(_from, _to, _value);
     }
 
-    function locationSpecificCheck(address _from, address _to, uint _value) returns (uint code, string reason) {
-      string memory fromCountry = getRegistryService().getCountry(getRegistryService().getInvestor(_from));
+    function locationSpecificCheck(address _from, address _to, uint _value) view internal returns (uint code, string reason) {
+      string memory fromInvestor = getRegistryService().getInvestor(_from);
+      string memory toInvestor = getRegistryService().getInvestor(_to);
+      string memory fromCountry = getRegistryService().getCountry(fromInvestor);
       uint fromRegion = getCountryCompliance(fromCountry);
-      string memory toCountry = getRegistryService().getCountry(getRegistryService().getInvestor(_to));
+      string memory toCountry = getRegistryService().getCountry(toInvestor);
       uint toRegion = getCountryCompliance(toCountry);
 
       if (fromRegion == US && toRegion == US) {
@@ -80,13 +90,13 @@ contract ESComplianceServiceRegulated is ESComplianceService {
           return (32, "Hold-up 1y");
         }
 
-        if (true) { // TODO: ADAM isFund
-          if (getToken().balanceOfInvestor(getRegistryService().getInvestor(_from)) > _value && getUint("usInvestorsCount") >= 99 &&
-              getToken().balanceOfInvestor(getRegistryService().getInvestor(_to)) == 0) {
+        if (fund) {
+          if (getToken().balanceOfInvestor(fromInvestor) > _value && getUint("usInvestorsCount") >= 99 &&
+              getToken().balanceOfInvestor(toInvestor) == 0) {
             return (41, "Only Full Transfer");
           }
 
-          if (false && getToken().balanceOf(_from) > _value) { // TODO: ADAM getComplianceInformation(FULLTRANSFER)
+          if (fullTransfer && getToken().balanceOfInvestor(fromInvestor) > _value) {
             return (50, "Only Full Transfer");
           }
         }
@@ -94,20 +104,20 @@ contract ESComplianceServiceRegulated is ESComplianceService {
         return (25, "Flowback");
       } else if (toRegion == FORBIDDEN) {
         return (26, "Destination restricted");
-      } else if (toRegion == EU) { // TODO: ADAM && getRegistryService().isRetail(_to)
-        if (getUint("euRetailInvestorsCount", toCountry) >= 150 && (keccak256(fromCountry) != keccak256(toCountry) || getToken().balanceOfInvestor(getRegistryService().getInvestor(_from)) > _value) &&
-          getToken().balanceOfInvestor(getRegistryService().getInvestor(_to)) == 0) {
+      } else if (toRegion == EU && getRegistryService().getAttributeValue(toInvestor, getRegistryService().QUALIFIED()) != getRegistryService().APPROVED()) {
+        if (getUint("euRetailInvestorsCount", toCountry) >= 150 && (keccak256(fromCountry) != keccak256(toCountry) || getToken().balanceOfInvestor(fromInvestor) > _value) &&
+          getToken().balanceOfInvestor(toInvestor) == 0) {
           return (40, "Max Investors in category");
         }
 
-        if (getToken().balanceOf(_to).add(_value) < 1000000) { //TODO: ADAM getComplianceInformation(MINEUTOKENS); // per wallet? per investor
+        if (getToken().balanceOfInvestor(toInvestor).add(_value) < minEuTokens) {
           return (51, "Amount of tokens under min");
         }
       }
 
-      if (false) { // TODO: ADAM !isFund
-        if (getToken().balanceOfInvestor(getRegistryService().getInvestor(_from)) > _value && getUint("totalInvestors") >= 1999 &&
-            getToken().balanceOfInvestor(getRegistryService().getInvestor(_to)) == 0) {
+      if (!fund) {
+        if (getToken().balanceOfInvestor(fromInvestor) > _value && getUint("totalInvestors") >= 1999 &&
+            getToken().balanceOfInvestor(toInvestor) == 0) {
           return (41, "Only Full Transfer");
         }
       }
@@ -115,8 +125,13 @@ contract ESComplianceServiceRegulated is ESComplianceService {
       return checkTransfer(_from, _to, _value);
     }
 
-    function recordTransfer(address, address, uint) internal returns (bool){
-        return true;
+    function recordTransfer(address _from, address _to, uint _value) internal returns (bool) {
+         if (_value > 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_from)) == _value) {
+            adjustInvestorCount(_from, false);
+         }
+         if (_value > 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_to)) == 0) {
+            adjustInvestorCount(_to, true);
+         }
     }
 
     function checkTransfer(address, address, uint) view internal returns (uint, string){
@@ -164,6 +179,6 @@ contract ESComplianceServiceRegulated is ESComplianceService {
       //there may be more locked tokens than actual tokens, so the minimum between the two
       uint transferable = SafeMath.sub(balanceOfHolder, Math.min256(totalLockedTokens, balanceOfHolder));
 
-      return balanceOfHolder;
+      return transferable;
     }
 }

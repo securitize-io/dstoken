@@ -73,6 +73,10 @@ contract EternalStorageClient is Ownable {
     return getBooleanGeneric(abi.encodePacked(namespace, p1, p2, p3));
   }
 
+  function getBoolean(string p1, string p2, uint p3) view internal returns (bool) {
+    return getBooleanGeneric(abi.encodePacked(namespace, p1, p2, p3));
+  }
+
   function getBoolean(string p1, string p2, uint p3, string p4) view internal returns (bool) {
     return getBooleanGeneric(abi.encodePacked(namespace, p1, p2, p3, p4));
   }
@@ -125,6 +129,10 @@ contract EternalStorageClient is Ownable {
     setBooleanGeneric(abi.encodePacked(namespace, p1,p2,p3), v);
   }
 
+  function setBoolean(string p1, string p2, uint p3, bool v) internal {
+    setBooleanGeneric(abi.encodePacked(namespace, p1,p2,p3), v);
+  }
+
   function setBoolean(string p1, string p2, uint p3, string p4, bool v) internal {
     setBooleanGeneric(abi.encodePacked(namespace, p1,p2,p3,p4), v);
   }
@@ -166,6 +174,10 @@ contract EternalStorageClient is Ownable {
   }
 
   function deleteBoolean(string p1,string p2,string p3) internal {
+    deleteBooleanGeneric(abi.encodePacked(namespace, p1,p2,p3));
+  }
+
+  function deleteBoolean(string p1,string p2,uint p3) internal {
     deleteBooleanGeneric(abi.encodePacked(namespace, p1,p2,p3));
   }
 
@@ -240,6 +252,10 @@ contract EternalStorageClient is Ownable {
     return getUintGeneric(abi.encodePacked(namespace, p1, p2, p3));
   }
 
+  function getUint(string p1, string p2, uint p3) view internal returns (uint256) {
+    return getUintGeneric(abi.encodePacked(namespace, p1, p2, p3));
+  }
+
   function getUint(string p1, string p2, uint p3, string p4) view internal returns (uint256) {
     return getUintGeneric(abi.encodePacked(namespace, p1, p2, p3, p4));
   }
@@ -292,6 +308,10 @@ contract EternalStorageClient is Ownable {
     setUintGeneric(abi.encodePacked(namespace, p1,p2,p3), v);
   }
 
+  function setUint(string p1, string p2, uint p3, uint256 v) internal {
+    setUintGeneric(abi.encodePacked(namespace, p1,p2,p3), v);
+  }
+
   function setUint(string p1, string p2, uint p3, string p4, uint256 v) internal {
     setUintGeneric(abi.encodePacked(namespace, p1,p2,p3,p4), v);
   }
@@ -333,6 +353,10 @@ contract EternalStorageClient is Ownable {
   }
 
   function deleteUint(string p1,string p2,string p3) internal {
+    deleteUintGeneric(abi.encodePacked(namespace, p1,p2,p3));
+  }
+
+  function deleteUint(string p1,string p2,uint p3) internal {
     deleteUintGeneric(abi.encodePacked(namespace, p1,p2,p3));
   }
 
@@ -407,6 +431,10 @@ contract EternalStorageClient is Ownable {
     return getIntGeneric(abi.encodePacked(namespace, p1, p2, p3));
   }
 
+  function getInt(string p1, string p2, uint p3) view internal returns (int) {
+    return getIntGeneric(abi.encodePacked(namespace, p1, p2, p3));
+  }
+
   function getInt(string p1, string p2, uint p3, string p4) view internal returns (int) {
     return getIntGeneric(abi.encodePacked(namespace, p1, p2, p3, p4));
   }
@@ -459,6 +487,10 @@ contract EternalStorageClient is Ownable {
     setIntGeneric(abi.encodePacked(namespace, p1,p2,p3), v);
   }
 
+  function setInt(string p1, string p2, uint p3, int v) internal {
+    setIntGeneric(abi.encodePacked(namespace, p1,p2,p3), v);
+  }
+
   function setInt(string p1, string p2, uint p3, string p4, int v) internal {
     setIntGeneric(abi.encodePacked(namespace, p1,p2,p3,p4), v);
   }
@@ -500,6 +532,10 @@ contract EternalStorageClient is Ownable {
   }
 
   function deleteInt(string p1,string p2,string p3) internal {
+    deleteIntGeneric(abi.encodePacked(namespace, p1,p2,p3));
+  }
+
+  function deleteInt(string p1,string p2,uint p3) internal {
     deleteIntGeneric(abi.encodePacked(namespace, p1,p2,p3));
   }
 
@@ -574,6 +610,10 @@ contract EternalStorageClient is Ownable {
     return getAddressGeneric(abi.encodePacked(namespace, p1, p2, p3));
   }
 
+  function getAddress(string p1, string p2, uint p3) view internal returns (address) {
+    return getAddressGeneric(abi.encodePacked(namespace, p1, p2, p3));
+  }
+
   function getAddress(string p1, string p2, uint p3, string p4) view internal returns (address) {
     return getAddressGeneric(abi.encodePacked(namespace, p1, p2, p3, p4));
   }
@@ -626,6 +666,10 @@ contract EternalStorageClient is Ownable {
     setAddressGeneric(abi.encodePacked(namespace, p1,p2,p3), v);
   }
 
+  function setAddress(string p1, string p2, uint p3, address v) internal {
+    setAddressGeneric(abi.encodePacked(namespace, p1,p2,p3), v);
+  }
+
   function setAddress(string p1, string p2, uint p3, string p4, address v) internal {
     setAddressGeneric(abi.encodePacked(namespace, p1,p2,p3,p4), v);
   }
@@ -667,6 +711,10 @@ contract EternalStorageClient is Ownable {
   }
 
   function deleteAddress(string p1,string p2,string p3) internal {
+    deleteAddressGeneric(abi.encodePacked(namespace, p1,p2,p3));
+  }
+
+  function deleteAddress(string p1,string p2,uint p3) internal {
     deleteAddressGeneric(abi.encodePacked(namespace, p1,p2,p3));
   }
 
@@ -741,6 +789,10 @@ contract EternalStorageClient is Ownable {
     return getStringGeneric(abi.encodePacked(namespace, p1, p2, p3));
   }
 
+  function getString(string p1, string p2, uint p3) view internal returns (string) {
+    return getStringGeneric(abi.encodePacked(namespace, p1, p2, p3));
+  }
+
   function getString(string p1, string p2, uint p3, string p4) view internal returns (string) {
     return getStringGeneric(abi.encodePacked(namespace, p1, p2, p3, p4));
   }
@@ -793,6 +845,10 @@ contract EternalStorageClient is Ownable {
     setStringGeneric(abi.encodePacked(namespace, p1,p2,p3), v);
   }
 
+  function setString(string p1, string p2, uint p3, string v) internal {
+    setStringGeneric(abi.encodePacked(namespace, p1,p2,p3), v);
+  }
+
   function setString(string p1, string p2, uint p3, string p4, string v) internal {
     setStringGeneric(abi.encodePacked(namespace, p1,p2,p3,p4), v);
   }
@@ -834,6 +890,10 @@ contract EternalStorageClient is Ownable {
   }
 
   function deleteString(string p1,string p2,string p3) internal {
+    deleteStringGeneric(abi.encodePacked(namespace, p1,p2,p3));
+  }
+
+  function deleteString(string p1,string p2,uint p3) internal {
     deleteStringGeneric(abi.encodePacked(namespace, p1,p2,p3));
   }
 
@@ -908,6 +968,10 @@ contract EternalStorageClient is Ownable {
     return getBytesGeneric(abi.encodePacked(namespace, p1, p2, p3));
   }
 
+  function getBytes(string p1, string p2, uint p3) view internal returns (bytes) {
+    return getBytesGeneric(abi.encodePacked(namespace, p1, p2, p3));
+  }
+
   function getBytes(string p1, string p2, uint p3, string p4) view internal returns (bytes) {
     return getBytesGeneric(abi.encodePacked(namespace, p1, p2, p3, p4));
   }
@@ -960,6 +1024,10 @@ contract EternalStorageClient is Ownable {
     setBytesGeneric(abi.encodePacked(namespace, p1,p2,p3), v);
   }
 
+  function setBytes(string p1, string p2, uint p3, bytes v) internal {
+    setBytesGeneric(abi.encodePacked(namespace, p1,p2,p3), v);
+  }
+
   function setBytes(string p1, string p2, uint p3, string p4, bytes v) internal {
     setBytesGeneric(abi.encodePacked(namespace, p1,p2,p3,p4), v);
   }
@@ -1001,6 +1069,10 @@ contract EternalStorageClient is Ownable {
   }
 
   function deleteBytes(string p1,string p2,string p3) internal {
+    deleteBytesGeneric(abi.encodePacked(namespace, p1,p2,p3));
+  }
+
+  function deleteBytes(string p1,string p2,uint p3) internal {
     deleteBytesGeneric(abi.encodePacked(namespace, p1,p2,p3));
   }
 

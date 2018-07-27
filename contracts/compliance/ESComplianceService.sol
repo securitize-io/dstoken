@@ -76,7 +76,7 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
     return true;
   }
 
-  function getCountryCompliance(string _country) public returns (uint) {
+  function getCountryCompliance(string _country) view public returns (uint) {
     getUint("countries", _country);
   }
 

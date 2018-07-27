@@ -15,6 +15,10 @@ contract DSRegistryServiceInterface is DSServiceConsumerInterface {
   uint8 public constant QUALIFIED = 4;
   uint8 public constant PROFESSIONAL = 8;
 
+  uint8 public constant PENDING = 0;
+  uint8 public constant APPROVED = 1;
+  uint8 public constant REJECTED = 2;
+
   function registerInvestor(string _id, string _collision_hash) public /*onlyExchangeOrAbove*/ returns (bool);
   function removeInvestor(string _id) public /*onlyExchangeOrAbove*/ returns (bool);
   function setCountry(string _id, string _country) public /*onlyExchangeOrAbove*/ returns (bool);
