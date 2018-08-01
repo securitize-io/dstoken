@@ -115,25 +115,10 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
     return true;
   }
 
-  // TODO: Remove the old function if the new one is cover all business logic.
- /* function removeWallet(address _address, string _id) public onlyExchangeOrAbove returns (bool) {
+  function removeWallet(address _address, string _id) public onlyExchangeOrAbove walletExists(_address) investorExists(_id) returns (bool) {
     DSTrustServiceInterface trustManager = DSTrustServiceInterface(getDSService(TRUST_SERVICE));
     require(trustManager.getRole(msg.sender) != trustManager.EXCHANGE() ||
-            getAddress("wallets", _address, "creator") == msg.sender);
-    require(keccak256(abi.encodePacked(getString("wallets", _address, "owner"))) != keccak256(""));
-
-    deleteString("wallets", _address, "owner");
-    deleteAddress("wallets", _address, "creator");
-    deleteAddress("wallets", _address, "last_updated_by");
-    setUint("investors", _id, "wallet_count", getUint("investors", _id, "wallet_count").sub(1));
-
-    emit DSRegistryServiceWalletRemoved(_address, _id, msg.sender);
-
-    return true;
-  }*/
-
-  function removeWallet(address _address, string _id) public onlyExchangeOrAbove walletExists(_address) investorExists(_id) returns (bool) {
-    require(getAddress("wallets", _address, "creator") == msg.sender);
+    getAddress("wallets", _address, "creator") == msg.sender);
 
     deleteString("wallets", _address, "owner");
     deleteAddress("wallets", _address, "creator");
