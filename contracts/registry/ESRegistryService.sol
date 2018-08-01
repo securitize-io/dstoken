@@ -84,7 +84,7 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
   }
 
   function getAttributeProofHash(string _id, uint8 _attributeId) public view returns (string) {
-    return getString("investors", _id, _attributeId, "proof_hash");
+    return getString8("investors", _id, _attributeId, "proof_hash");
   }
 
   function addWallet(address _address, string _id) public onlyExchangeOrAbove returns (bool) {
