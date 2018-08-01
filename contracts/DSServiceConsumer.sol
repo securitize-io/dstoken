@@ -3,7 +3,7 @@ pragma solidity ^0.4.23;
 import "./DSServiceConsumerInterface.sol";
 
 contract DSServiceConsumer is DSServiceConsumerInterface {
-  mapping (uint8 => address) services;
+  mapping (uint => address) services;
 
   modifier onlyMaster {
     DSTrustServiceInterface trustManager = DSTrustServiceInterface(services[TRUST_SERVICE]);
@@ -26,11 +26,11 @@ contract DSServiceConsumer is DSServiceConsumerInterface {
     _;
   }
 
-  function getDSService(uint8 _serviceId) public view returns (address) {
+  function getDSService(uint _serviceId) public view returns (address) {
     return services[_serviceId];
   }
 
-  function setDSService(uint8 _serviceId, address _address) public onlyMaster returns (bool) {
+  function setDSService(uint _serviceId, address _address) public onlyMaster returns (bool) {
     services[_serviceId] = _address;
     return true;
   }

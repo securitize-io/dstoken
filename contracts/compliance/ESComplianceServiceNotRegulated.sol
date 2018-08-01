@@ -8,7 +8,7 @@ import "./ESComplianceService.sol";
 *   it simply returns true for all checks.
 */
 
-contract ESComplianceServiceNotRegulated is ESComplianceService{
+contract ESComplianceServiceNotRegulated is ESComplianceService {
 
     constructor(address _address, string _namespace) public ESComplianceService(_address, _namespace) {}
 
@@ -20,8 +20,8 @@ contract ESComplianceServiceNotRegulated is ESComplianceService{
         return true;
     }
 
-    function checkTransfer(address, address, uint) view internal returns (bool){
-        return true;
+    function checkTransfer(address, address, uint) view internal returns (uint, string){
+        return (0, "Valid");
     }
 
     function recordBurn(address, uint) internal returns (bool){

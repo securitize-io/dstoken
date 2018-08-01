@@ -1,22 +1,29 @@
 pragma solidity ^0.4.23;
 
 import "../ESServiceConsumer.sol";
-import "./DSComplianceServiceInterface.sol";
+import "./DSLockManagerInterface.sol";
+import "../zeppelin/math/Math.sol";
 import "../zeppelin/math/SafeMath.sol";
 
 
 /**
- * @title DSLockManagerInterface
+ * @title ESLockManager
  * @dev An interface for controlling and getting information about locked funds in a compliance manager
  */
-contract ESLockManager is DSComplianceServiceInterface,ESServiceConsumer {
+contract ESLockManager is DSLockManagerInterface,ESServiceConsumer {
 
-//    constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
+   constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
 
     using SafeMath for uint256;
 
-
     uint256 constant MAX_LOCKS_PER_ADDRESS = 30;
+
+    function setLockInfoImpl(address _to, uint _lockCount, uint _valueLocked, uint _reasonCode, string _reasonString, uint _releaseTime) internal {
+      setUint("locks_value",_to,_lockCount,_valueLocked);
+      setUint("locks_reason",_to,_lockCount,_reasonCode);
+      setString("locks_reasonString",_to,_lockCount,_reasonString);
+      setUint("locks_releaseTime",_to,_lockCount,_releaseTime);
+    }
 
     function createLock(address _to, uint _valueLocked,uint _reasonCode, string _reasonString,uint _releaseTime) internal{
 
@@ -27,10 +34,7 @@ contract ESLockManager is DSComplianceServiceInterface,ESServiceConsumer {
         require(lockCount < MAX_LOCKS_PER_ADDRESS,"Too many locks for this address");
 
         //Add the lock
-        setUint("locks_value",_to,lockCount,_valueLocked);
-        setUint("locks_reason",_to,lockCount,_reasonCode);
-        setString("locks_reasonString",_to,lockCount,_reasonString);
-        setUint("locks_releaseTime",_to,lockCount,_releaseTime);
+        setLockInfoImpl(_to, lockCount, _valueLocked, _reasonCode, _reasonString, _releaseTime);
 
         //Increase the lock counter for the user
         setUint("lockCount",_to,lockCount.add(1));
@@ -66,11 +70,9 @@ contract ESLockManager is DSComplianceServiceInterface,ESServiceConsumer {
         emit Unlocked(_to,getUint("locks_value",_to,_lockIndex),getUint("locks_reason",_to,_lockIndex),getString("locks_reasonString",_to,_lockIndex),getUint("locks_releaseTime",_to,_lockIndex));
 
         //Move the  the lock
-        setUint("locks_value",_to,_lockIndex,getUint("locks_value",_to,lastLockNumber));
         uint reasonCode = getUint("locks_reason",_to,lastLockNumber);
-        setUint("locks_reason",_to,_lockIndex,reasonCode);
-        setString("locks_reasonString",_to,_lockIndex,getString("locks_reasonString",_to,lastLockNumber));
-        setUint("locks_releaseTime",_to,_lockIndex,getUint("locks_releaseTime",_to,lastLockNumber));
+
+        setLockInfoImpl(_to, _lockIndex, getUint("locks_value",_to,lastLockNumber), reasonCode, getString("locks_reasonString",_to,lastLockNumber), getUint("locks_releaseTime",_to,lastLockNumber));
 
         //delete the last _lock
         //Remove from reverse index
@@ -120,5 +122,33 @@ contract ESLockManager is DSComplianceServiceInterface,ESServiceConsumer {
         reasonString= getString("locks_reasonString",_who,_lockIndex);
         value = getUint("locks_value",_who,_lockIndex);
         autoReleaseTime = getUint("locks_releaseTime",_who,_lockIndex);
+    }
+
+    function getTransferableTokens(address _who, uint64 _time) public view returns (uint) {
+      require(_time > 0, "time must be greater than zero");
+
+      uint balanceOfHolder = getToken().balanceOf(_who);
+
+      uint holderLockCount = getUint("lockCount", _who);
+
+      //No locks, go to base class implementation
+      if (holderLockCount == 0) {
+        return balanceOfHolder;
+      }
+
+      uint totalLockedTokens = 0;
+      for (uint i = 0; i < holderLockCount; i ++) {
+
+        uint autoReleaseTime = getUint("locks_releaseTime", _who, i);
+
+        if (autoReleaseTime == 0 || autoReleaseTime > _time) {
+          totalLockedTokens = totalLockedTokens.add(getUint("locks_value", _who, i));
+        }
+      }
+
+      //there may be more locked tokens than actual tokens, so the minimum between the two
+      uint transferable = SafeMath.sub(balanceOfHolder, Math.min256(totalLockedTokens, balanceOfHolder));
+
+      return transferable;
     }
 }

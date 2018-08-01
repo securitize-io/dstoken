@@ -1,18 +1,18 @@
 pragma solidity ^0.4.23;
 
 import '../ESServiceConsumer.sol';
-import "./DSComplianceServiceInterface.sol";
+import "./DSWalletManagerInterface.sol";
 
 /**
  * @title ESWalletManager
  * @dev A wallet manager which allows marking special wallets in the system.
  * @dev Implements DSTrustServiceInterface and ESServiceConsumer.
  */
-contract ESWalletManager is DSComplianceServiceInterface, ESServiceConsumer {
+contract ESWalletManager is DSWalletManagerInterface, ESServiceConsumer {
   /**
    * @dev The constructor delegates the paramters to ESServiceConsumer.
    */
-  //constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
+  constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
 
   /**
    * @dev Sets a wallet to be an special wallet. (internal)
@@ -21,7 +21,7 @@ contract ESWalletManager is DSComplianceServiceInterface, ESServiceConsumer {
    * @return A boolean that indicates if the operation was successful.
    */
   function setSpecialWallet(address _wallet, uint8 _type) internal returns (bool) {
-    uint8 oldType = uint8(getUint("wallets", _wallet, "type"));
+    uint8 oldType = getWalletType(_wallet);
     require(oldType == NONE || _type == NONE);
 
     setUint("wallets", _wallet, "type", _type);
