@@ -71,8 +71,13 @@ contract('ESLockManager', function ([owner, wallet, issuerAccount, issuerWallet,
     });
 
     it('Trying to Add ManualLock Record with ISSUER permissions - should pass', async function () {
-      await this.lockManager.addManualLockRecord(wallet, 100, REASON_STRING, latestTime()+1000, {from: issuerAccount});
-      assert.equal(await this.lockManager.lockCount(wallet), 1);
+      await this.token.setCap(1000);
+      await this.token.issueTokens(owner, 100);
+      assert.equal(await this.token.balanceOf(owner), 100);
+      assert.equal(await this.lockManager.getTransferableTokens(owner, latestTime()), 100);
+      await this.lockManager.addManualLockRecord(owner, 100, REASON_STRING, latestTime()+1000, {from: issuerAccount});
+      assert.equal(await this.lockManager.lockCount(owner), 1);
+      assert.equal(await this.lockManager.getTransferableTokens(owner, latestTime()), 0);
     });
   });
 
@@ -102,8 +107,13 @@ contract('ESLockManager', function ([owner, wallet, issuerAccount, issuerWallet,
     });
 
     it('Trying to Remove ManualLock Record with ISSUER permissions - should pass', async function () {
-      await this.lockManager.addManualLockRecord(wallet, 100, REASON_STRING, latestTime()+1000, {from: issuerAccount});
-      assert.equal(await this.lockManager.lockCount(wallet), 1);
+      await this.token.setCap(1000);
+      await this.token.issueTokens(owner, 100);
+      assert.equal(await this.token.balanceOf(owner), 100);
+      assert.equal(await this.lockManager.getTransferableTokens(owner, latestTime()), 100);
+      await this.lockManager.addManualLockRecord(owner, 100, REASON_STRING, latestTime()+1000, {from: issuerAccount});
+      assert.equal(await this.lockManager.lockCount(owner), 1);
+      assert.equal(await this.lockManager.getTransferableTokens(owner, latestTime()), 0);
       //Why is not working ??? 
       /*await this.lockManager.removeLockRecord(wallet, LOCK_INDEX, {from: issuerAccount}); <- revert here
       assert.equal(await this.lockManager.lockCount(wallet), 1);*/
@@ -169,6 +179,18 @@ contract('ESLockManager', function ([owner, wallet, issuerAccount, issuerWallet,
       assert.equal(await this.token.balanceOf(owner), 100);
       await this.lockManager.addManualLockRecord(owner, 100, REASON_STRING, realeseTime);
       assert.equal(await this.lockManager.getTransferableTokens(owner, realeseTime+1000), 100);
+    });
+
+    it('Should return correct values when tokens will be locked with multiple locks', async function () {
+      let realeseTime = latestTime()+1000;
+      await this.token.setCap(1000);
+      await this.token.issueTokens(owner, 300);
+      assert.equal(await this.token.balanceOf(owner), 300);
+      await this.lockManager.addManualLockRecord(owner, 100, REASON_STRING, realeseTime+100);
+      await this.lockManager.addManualLockRecord(owner, 100, REASON_STRING, realeseTime+200);
+      assert.equal(await this.lockManager.getTransferableTokens(owner, latestTime()), 100);
+      assert.equal(await this.lockManager.getTransferableTokens(owner, realeseTime+101), 200);
+      assert.equal(await this.lockManager.getTransferableTokens(owner, realeseTime+201), 300);
     });
   });
 });
