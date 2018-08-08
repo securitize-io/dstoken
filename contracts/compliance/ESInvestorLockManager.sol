@@ -25,6 +25,10 @@ contract ESInvestorLockManager is ESLockManager {
 
         setLockInfoImpl(investor, lockCount, _valueLocked, _reasonCode, _reasonString, _releaseTime);
 
+        lockCount+=1;
+
+        setUint("lockCount",investor,lockCount);
+
         emit Locked(_to,_valueLocked,_reasonCode,_reasonString,_releaseTime);
     }
 
