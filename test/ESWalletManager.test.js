@@ -7,6 +7,9 @@ const NONE = 0;
 const MASTER = 1;
 const ISSUER = 2;
 const EXCHANGE = 4;
+const COUNTRY = "UA";
+const ACCREDITATION_STATUS = 1;
+const SLOTS = 3;
 
 
 const TRUST_SERVICE=1;
@@ -35,9 +38,7 @@ contract('ESWalletManager', function ([owner, wallet, issuerAccount, issuerWalle
       assert.equal(logs[0].args._wallet, wallet);
       assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletAdded');
 
-      // TODO: Understand why we can`t get the type of the wallet.
-      const { typeLogs } = await this.walletManager.getWalletType(wallet);
-      console.log(typeLogs)
+      assert.equal(await this.walletManager.getWalletType(wallet), 1);
     });
 
     it(`Trying to add the issuer wallet with ISSUER - ${ISSUER} permissions`, async function () {

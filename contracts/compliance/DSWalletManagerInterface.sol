@@ -73,5 +73,5 @@ contract DSWalletManagerInterface {
    * @param _accreditationStatus the investors' accrediation status.
    * @return The number of reserved slots.
    */
-  function getReservedSlots(address _wallet, string _country, uint8 _accreditationStatus) public returns (uint);
+  function getReservedSlots(address _wallet, string _country, uint8 _accreditationStatus) public view returns (uint);
 }
