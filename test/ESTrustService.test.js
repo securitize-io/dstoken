@@ -27,6 +27,10 @@ contract('ESTrustService', function ([owner, newOwner, issuerAccount, exchangeAc
   });
 
   describe('Set owner flow', function () {
+    it(`Trying to call not by master`, async function () {
+      await assertRevert(this.trustService.setOwner(issuerAccount, {from: newOwner}));
+    });
+
     it(`Should transfer ownership (MASTER role) of the contract to ${newOwner}`, async function () {
       const { logs } = await this.trustService.setOwner(newOwner);
 
@@ -52,6 +56,10 @@ contract('ESTrustService', function ([owner, newOwner, issuerAccount, exchangeAc
   });
 
   describe('Set Role flow', function () {
+    it(`Trying to call not by master or issuer`, async function () {
+      await assertRevert(this.trustService.setRole(issuerAccount, ISSUER, {from: account1}));
+    });
+
     it(`Trying to set MASTER role for this account - ${issuerAccount} - should be the error`, async function () {
       await assertRevert(this.trustService.setRole(issuerAccount, MASTER, {from: newOwner}));
     });
