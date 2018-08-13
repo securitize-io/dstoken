@@ -21,6 +21,7 @@ import "./ESIssuanceInformationManager.sol";
 */
 contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer {
 
+
   constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
   using SafeMath for uint256;
 
@@ -33,7 +34,7 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
     require(recordIssuance(_to, _value));
   }
 
-  function validate(address _from, address _to, uint _value) onlyToken public {
+  function validate(address _from, address _to, uint _value) public {
     uint code;
     string memory reason;
 
@@ -44,6 +45,8 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
 
   function validateBurn(address _who, uint _value) onlyToken public returns (bool){
     require(recordBurn(_who, _value));
+    
+    return true;
   }
 
   function validateSeize(address _from, address _to, uint _value) onlyToken public returns (bool){
@@ -52,6 +55,7 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
     require(getWalletManager().getWalletType(_to) == getWalletManager().ISSUER());
     require(recordSeize(_from, _to, _value));
 
+    return true;
   }
 
   function preTransferCheck(address _from, address _to, uint _value) view public returns (uint code, string reason) {

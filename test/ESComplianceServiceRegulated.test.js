@@ -8,6 +8,16 @@ const ESComplianceServiceRegulated = artifacts.require('ESComplianceServiceRegul
 const ESRegistryService = artifacts.require('ESRegistryService');
 
 let latestTime = require('./utils/latestTime');
+let increaseTimeTo = require('./helpers/increaseTime');
+
+const duration = {
+  seconds: function (val) { return val; },
+  minutes: function (val) { return val * this.seconds(60); },
+  hours: function (val) { return val * this.minutes(60); },
+  days: function (val) { return val * this.hours(24); },
+  weeks: function (val) { return val * this.days(7); },
+  years: function (val) { return val * this.days(365); },
+};
 
 const Proxy = artifacts.require('proxy');
 const TRUST_SERVICE=1;
@@ -45,6 +55,10 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, issuerAccount
     await this.storage.adminAddRole(this.token.address, 'write');
     await this.trustService.initialize();
     await this.registryService.setDSService(TRUST_SERVICE,this.trustService.address);
+    await this.registryService.setDSService(WALLET_MANAGER,this.walletManager.address);
+    await this.registryService.setDSService(COMPLIANCE_SERVICE,this.complianceService.address);
+    await this.registryService.setDSService(DS_TOKEN,this.token.address);
+    await this.registryService.setDSService(LOCK_MANAGER,this.lockManager.address);
     await this.complianceService.setDSService(TRUST_SERVICE,this.trustService.address);
     await this.complianceService.setDSService(WALLET_MANAGER,this.walletManager.address);
     await this.complianceService.setDSService(LOCK_MANAGER,this.lockManager.address);
@@ -56,7 +70,12 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, issuerAccount
     await this.complianceService.setDSService(REGISTRY_SERVICE,this.registryService.address);
     await this.complianceService.setDSService(DS_TOKEN,this.token.address);
     await this.walletManager.setDSService(TRUST_SERVICE,this.trustService.address);
+    await this.walletManager.setDSService(REGISTRY_SERVICE,this.registryService.address);
+    await this.walletManager.setDSService(COMPLIANCE_SERVICE,this.complianceService.address);
+    await this.walletManager.setDSService(DS_TOKEN,this.token.address);
     await this.lockManager.setDSService(TRUST_SERVICE,this.trustService.address);
+    await this.lockManager.setDSService(REGISTRY_SERVICE,this.registryService.address);
+    await this.lockManager.setDSService(COMPLIANCE_SERVICE,this.complianceService.address);
     await this.lockManager.setDSService(DS_TOKEN, this.token.address);
 
     await this.trustService.setRole(issuerAccount, ISSUER);
@@ -93,7 +112,7 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, issuerAccount
     it(`Pre transfer check with tokens locked`, async function () {
        await this.registryService.addWallet(wallet, walletID);
        await this.token.setCap(1000);
-       await this.token.issueTokens(wallet, 100);
+       await this.token.issueTokens(wallet, 100, {gas: 2e6});
        await this.lockManager.addManualLockRecord(wallet, 95, "Test", latestTime()+1000);
        await assertRevert(this.token.transfer(owner, 100, {from: wallet}));
     });
@@ -105,11 +124,11 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, issuerAccount
        await this.registryService.addWallet(noneAccount, walletID2);
        await this.token.setCap(1000);
        await this.token.issueTokens(wallet, 100, {gas: 2e6});
-       await this.token.issueTokens(noneAccount, 100);
+       await this.token.issueTokens(noneAccount, 100, {gas: 2e6});
        assert.equal(await this.registryService.getInvestor(wallet), walletID);
        assert.equal(await this.registryService.getInvestor(noneAccount), walletID2);
        assert.equal(await this.token.balanceOf(wallet), 100);
-       // await this.token.transfer(noneAccount, 100, {from: wallet});
+       //await this.token.transfer(noneAccount, 100, {from: wallet, gas: 2e6});
        // assert.equal(await this.token.balanceOf(wallet), 0);
 
        //to do: test that investor amount decrease
@@ -121,27 +140,94 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, issuerAccount
        await this.registryService.addWallet(wallet, walletID);
        await this.registryService.addWallet(noneAccount, walletID2);
        await this.token.setCap(1000);
-       await this.token.issueTokens(wallet, 100);
+       await this.token.issueTokens(wallet, 100, {gas: 2e6});
        assert.equal(await this.registryService.getInvestor(wallet), walletID);
        assert.equal(await this.registryService.getInvestor(noneAccount), walletID2);
        assert.equal(await this.token.balanceOf(wallet), 100);
-      // await this.token.transfer(noneAccount, 50, {from: wallet});
-      // assert.equal(await this.token.balanceOf(wallet), 50);
-      // assert.equal(await this.token.balanceOf(noneAccount), 50);
+       await this.token.transfer(noneAccount, 50, {from: wallet});
+       assert.equal(await this.token.balanceOf(wallet), 50);
+       assert.equal(await this.token.balanceOf(noneAccount), 50);
         
        // to do: test that investor amount increase
+    });
+
+    it(`Should not be able to transfer tokens because of 1 year lock for US investors`, async function () {
+       await this.registryService.registerInvestor(walletID, "wallet");
+       await this.registryService.registerInvestor(walletID2, "owner");
+       await this.registryService.setCountry(walletID, "US");
+       await this.registryService.setCountry(walletID2, "US");
+       await this.registryService.addWallet(wallet, walletID);
+       await this.registryService.addWallet(owner, walletID2);
+       await this.token.setCap(1000);
+       await this.token.issueTokens(wallet, 100);
+       await this.complianceService.setCountryCompliance("US", 1);
+       await this.complianceService.setCountryCompliance("EU", 2);
+       assert.equal(await this.token.balanceOf(wallet), 100);
+       await assertRevert(this.token.transfer(owner, 100, {from: wallet, gas: 5e6}));
+    });
+
+    it(`Should not be able to transfer tokens because of 1 year lock for US investors`, async function () {
+       await this.registryService.registerInvestor(walletID, "wallet");
+       await this.registryService.registerInvestor(walletID2, "owner");
+       await this.registryService.setCountry(walletID, "EU");
+       await this.registryService.setCountry(walletID2, "US");
+       await this.registryService.addWallet(wallet, walletID);
+       await this.registryService.addWallet(owner, walletID2);
+       await this.token.setCap(1000);
+       await this.token.issueTokens(wallet, 100);
+       await this.complianceService.setCountryCompliance("US", 1);
+       await this.complianceService.setCountryCompliance("EU", 2);
+       assert.equal(await this.token.balanceOf(wallet), 100);
+       await assertRevert(this.token.transfer(owner, 100, {from: wallet, gas: 5e6}));
+    });
+
+    it(`Should not be able to transfer tokens due to full transfer enabled`, async function () {
+       await this.registryService.registerInvestor(walletID, "wallet");
+       await this.registryService.registerInvestor(walletID2, "owner");
+       await this.registryService.setCountry(walletID, "US");
+       await this.registryService.setCountry(walletID2, "US");
+       await this.registryService.addWallet(wallet, walletID);
+       await this.registryService.addWallet(owner, walletID2);
+       await this.token.setCap(1000);
+       await this.token.issueTokens(wallet, 100);
+       await this.complianceService.setCountryCompliance("US", 1);
+       await this.complianceService.setCountryCompliance("EU", 2);
+       assert.equal(await this.token.balanceOf(wallet), 100);
+       await increaseTimeTo(duration.days(370));
+       await assertRevert(this.token.transfer(owner, 50, {from: wallet, gas: 5e6}));
+    });
+
+    it(`Should be able to transfer tokens before 1 year for platform account`, async function () {
+       await this.registryService.registerInvestor(walletID, "wallet");
+       await this.registryService.registerInvestor(walletID2, "owner");
+       await this.registryService.setCountry(walletID, "US");
+       await this.registryService.setCountry(walletID2, "US");
+       await this.registryService.addWallet(wallet, walletID);
+       await this.registryService.addWallet(owner, walletID2);
+       await this.walletManager.addPlatformWallet(platformWallet);
+       await this.token.setCap(1000);
+       await this.token.issueTokens(wallet, 100);
+       await this.complianceService.setCountryCompliance("US", 1);
+       await this.complianceService.setCountryCompliance("EU", 2);
+       assert.equal(await this.token.balanceOf(wallet), 100);
+       await this.token.transfer(platformWallet, 50, {from: wallet, gas: 5e6});
     });
 
     it(`Should transfer tokens`, async function () {
        await this.registryService.registerInvestor(walletID, "wallet");
        await this.registryService.registerInvestor(walletID2, "owner");
+       await this.registryService.setCountry(walletID, "US");
+       await this.registryService.setCountry(walletID2, "US");
        await this.registryService.addWallet(wallet, walletID);
        await this.registryService.addWallet(owner, walletID2);
        await this.token.setCap(1000);
        await this.token.issueTokens(wallet, 100);
+       await this.complianceService.setCountryCompliance("US", 1);
+       await this.complianceService.setCountryCompliance("EU", 2);
        assert.equal(await this.token.balanceOf(wallet), 100);
-       // await this.token.transfer(owner, 100, {from: wallet}); -> why transfer not working ???
-       // assert.equal(await this.token.balanceOf(wallet), 0);
+       await increaseTimeTo(duration.days(370));
+       await this.token.transfer(owner, 100, {from: wallet, gas: 5e6});
+       assert.equal(await this.token.balanceOf(wallet), 0);
     });
   });
 
@@ -194,7 +280,7 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, issuerAccount
        assert.equal(await this.token.balanceOf(owner), 100);
        const role =  await this.trustService.getRole(issuerAccount);
        assert.equal(role.c[0], ISSUER);
-       // await this.token.seize(owner, issuerAccount, 100, "Test"); -> why not working ???
+      // await this.token.seize(owner, issuerAccount, 100, "Test"); -> Why is not working?
     });
   });
 
@@ -245,6 +331,76 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, issuerAccount
        let [a, b] = await this.complianceService.preTransferCheck(wallet, owner, 10);
        assert.equal(16, a.toNumber());
        assert.equal("Tokens Locked", b);
+    });
+
+    it(`Pre transfer check with tokens locked for 1 year (For Us investors)`, async function () {
+       await this.registryService.registerInvestor(walletID, "wallet");
+       await this.registryService.registerInvestor(walletID2, "owner");
+       await this.registryService.setCountry(walletID, "US");
+       await this.registryService.setCountry(walletID2, "US");
+       await this.registryService.addWallet(wallet, walletID);
+       await this.registryService.addWallet(owner, walletID2);
+       await this.token.setCap(1000);
+       await this.token.issueTokens(wallet, 100);
+       await this.complianceService.setCountryCompliance("US", 1);
+       await this.complianceService.setCountryCompliance("EU", 2);
+       assert.equal(await this.token.balanceOf(wallet), 100);
+       let [a, b] = await this.complianceService.preTransferCheck(wallet, owner, 10);
+       assert.equal(a.toNumber(), 32);
+       assert.equal(b, "Hold-up 1y");
+    });
+
+    it(`Pre transfer check for full transfer - should return code 50`, async function () {
+       await this.registryService.registerInvestor(walletID, "wallet");
+       await this.registryService.registerInvestor(walletID2, "owner");
+       await this.registryService.setCountry(walletID, "US");
+       await this.registryService.setCountry(walletID2, "US");
+       await this.registryService.addWallet(wallet, walletID);
+       await this.registryService.addWallet(owner, walletID2);
+       await this.token.setCap(1000);
+       await this.token.issueTokens(wallet, 100);
+       await this.complianceService.setCountryCompliance("US", 1);
+       await this.complianceService.setCountryCompliance("EU", 2);
+       assert.equal(await this.token.balanceOf(wallet), 100);
+       await increaseTimeTo(duration.days(370));
+       let [a, b] = await this.complianceService.preTransferCheck(wallet, owner, 50);
+       assert.equal(a.toNumber(), 50);
+       assert.equal(b, "Only Full Transfer");
+    });
+
+    it(`Pre transfer check from nonUs investor to US - should return code 25`, async function () {
+       await this.registryService.registerInvestor(walletID, "wallet");
+       await this.registryService.registerInvestor(walletID2, "owner");
+       await this.registryService.setCountry(walletID, "EU");
+       await this.registryService.setCountry(walletID2, "US");
+       await this.registryService.addWallet(wallet, walletID);
+       await this.registryService.addWallet(owner, walletID2);
+       await this.token.setCap(1000);
+       await this.token.issueTokens(wallet, 100);
+       await this.complianceService.setCountryCompliance("US", 1);
+       await this.complianceService.setCountryCompliance("EU", 2);
+       assert.equal(await this.token.balanceOf(wallet), 100);
+       let [a, b] = await this.complianceService.preTransferCheck(wallet, owner, 10);
+       assert.equal(a.toNumber(), 25);
+       assert.equal(b, "Flowback");
+    });
+
+    it('Pre transfer check for platform account', async function () {
+       await this.registryService.registerInvestor(walletID, "wallet");
+       await this.registryService.registerInvestor(walletID2, "owner");
+       await this.registryService.setCountry(walletID, "US");
+       await this.registryService.setCountry(walletID2, "US");
+       await this.registryService.addWallet(wallet, walletID);
+       await this.registryService.addWallet(owner, walletID2);
+       await this.walletManager.addPlatformWallet(platformWallet);
+       await this.token.setCap(1000);
+       await this.token.issueTokens(wallet, 100);
+       await this.complianceService.setCountryCompliance("US", 1);
+       await this.complianceService.setCountryCompliance("EU", 2);
+       assert.equal(await this.token.balanceOf(wallet), 100);
+       let [a, b] = await this.complianceService.preTransferCheck(wallet, platformWallet, 10);
+       assert.equal(a.toNumber(), 0);
+       assert.equal(b, "Valid");
     });
 
     it(`Pre transfer check when transfer ok`, async function () {

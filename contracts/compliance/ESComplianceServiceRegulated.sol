@@ -13,17 +13,26 @@ contract ESComplianceServiceRegulated is ESComplianceService {
     bool public fullTransfer = true;
     uint public minEuTokens = 0;
 
+    event Debug(uint victim);
+    
+
     constructor(address _address, string _namespace) public ESComplianceService(_address, _namespace) {}
 
     function adjustInvestorCount(address _wallet, bool _increase) internal {
       if (getWalletManager().getWalletType(_wallet) == getWalletManager().NONE()) {
-        setUint("totalInvestors", _increase ? getUint("totalInvestors").add(1) : getUint("totalInvestors").sub(1));
+        if(getUint("totalInvestors") != 0){
+          setUint("totalInvestors", _increase ? getUint("totalInvestors").add(1) : getUint("totalInvestors").sub(1));
+        }
         string memory country = getRegistryService().getCountry(getRegistryService().getInvestor(_wallet));
         uint countryCompliance = getCountryCompliance(country);
         if (countryCompliance == US) {
-          setUint("usInvestorsCount", _increase ? getUint("usInvestorsCount").add(1) : getUint("usInvestorsCount").sub(1));
+          if(getUint("usInvestorsCount") != 0){
+            setUint("usInvestorsCount", _increase ? getUint("usInvestorsCount").add(1) : getUint("usInvestorsCount").sub(1));
+          }
         } else if (countryCompliance == EU && getRegistryService().getAttributeValue(getRegistryService().getInvestor(_wallet), getRegistryService().QUALIFIED()) != getRegistryService().APPROVED()) {
-          setUint("euRetailInvestorsCount", country, _increase ? getUint("euRetailInvestorsCount", country).add(1) : getUint("euRetailInvestorsCount", country).sub(1));
+          if(getUint("euRetailInvestorsCount") != 0){
+            setUint("euRetailInvestorsCount", country, _increase ? getUint("euRetailInvestorsCount", country).add(1) : getUint("euRetailInvestorsCount", country).sub(1));
+          }
         }
       }
     }
@@ -129,13 +138,23 @@ contract ESComplianceServiceRegulated is ESComplianceService {
          if (_value > 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_from)) == _value) {
             adjustInvestorCount(_from, false);
          }
+
          if (_value > 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_to)) == 0) {
             adjustInvestorCount(_to, true);
          }
+
+         return true;
     }
 
     function checkTransfer(address, address, uint) view internal returns (uint, string){
         return (0, "Valid");
+    }
+
+    function getUS(address _from) public view returns (uint){
+      string memory fromInvestor = getRegistryService().getInvestor(_from);
+      string memory fromCountry = getRegistryService().getCountry(fromInvestor);
+      uint fromRegion = getCountryCompliance(fromCountry);
+      return fromRegion;
     }
 
     function recordBurn(address _who, uint _value) internal returns (bool){
