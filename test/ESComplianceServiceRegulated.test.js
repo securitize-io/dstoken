@@ -79,6 +79,8 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issu
     await this.lockManager.setDSService(DS_TOKEN, this.token.address);
 
     await this.trustService.setRole(issuerAccount, ISSUER);
+    await this.complianceService.setCountryCompliance("US", 1);
+    await this.complianceService.setCountryCompliance("EU", 2);
   });
 
   describe('Validate issuance(recordIssuance):', function () {
@@ -160,8 +162,6 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issu
        await this.registryService.addWallet(owner, walletID2);
        await this.token.setCap(1000);
        await this.token.issueTokens(wallet, 100);
-       await this.complianceService.setCountryCompliance("US", 1);
-       await this.complianceService.setCountryCompliance("EU", 2);
        assert.equal(await this.token.balanceOf(wallet), 100);
        await assertRevert(this.token.transfer(owner, 100, {from: wallet, gas: 5e6}));
     });
@@ -175,8 +175,6 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issu
        await this.registryService.addWallet(owner, walletID2);
        await this.token.setCap(1000);
        await this.token.issueTokens(wallet, 100);
-       await this.complianceService.setCountryCompliance("US", 1);
-       await this.complianceService.setCountryCompliance("EU", 2);
        assert.equal(await this.token.balanceOf(wallet), 100);
        await assertRevert(this.token.transfer(owner, 100, {from: wallet, gas: 5e6}));
     });
@@ -190,8 +188,6 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issu
        await this.registryService.addWallet(owner, walletID2);
        await this.token.setCap(1000);
        await this.token.issueTokens(wallet, 100);
-       await this.complianceService.setCountryCompliance("US", 1);
-       await this.complianceService.setCountryCompliance("EU", 2);
        assert.equal(await this.token.balanceOf(wallet), 100);
        await increaseTimeTo(duration.days(370));
        await assertRevert(this.token.transfer(owner, 50, {from: wallet, gas: 5e6}));
@@ -207,13 +203,12 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issu
        await this.walletManager.addPlatformWallet(platformWallet);
        await this.token.setCap(1000);
        await this.token.issueTokens(wallet, 100);
-       await this.complianceService.setCountryCompliance("US", 1);
-       await this.complianceService.setCountryCompliance("EU", 2);
        assert.equal(await this.token.balanceOf(wallet), 100);
        await this.token.transfer(platformWallet, 50, {from: wallet, gas: 5e6});
     });
 
     it(`Should prevent chinese investors`, async function () {
+      await this.complianceService.setCountryCompliance("CH", 4);
        await this.registryService.registerInvestor(walletID, "wallet");
        await this.registryService.registerInvestor(walletID2, "wallet1");
        await this.registryService.setCountry(walletID, "US");
@@ -222,13 +217,13 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issu
        await this.registryService.addWallet(wallet1, walletID2);
        await this.token.setCap(1000);
        await this.token.issueTokens(wallet, 100);
-       await this.complianceService.setCountryCompliance("CH", 4);
-       await this.complianceService.setCountryCompliance("US", 2);
        assert.equal(await this.token.balanceOf(wallet), 100);
        await assertRevert(this.token.transfer(wallet1, 50, {from: wallet, gas: 5e6}));
     });
 
     it(`Should transfer tokens`, async function () {
+       await this.complianceService.setCountryCompliance("US", 1);
+       await this.complianceService.setCountryCompliance("EU", 2);
        await this.registryService.registerInvestor(walletID, "wallet");
        await this.registryService.registerInvestor(walletID2, "owner");
        await this.registryService.setCountry(walletID, "US");
@@ -237,8 +232,6 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issu
        await this.registryService.addWallet(owner, walletID2);
        await this.token.setCap(1000);
        await this.token.issueTokens(wallet, 100);
-       await this.complianceService.setCountryCompliance("US", 1);
-       await this.complianceService.setCountryCompliance("EU", 2);
        assert.equal(await this.token.balanceOf(wallet), 100);
        await increaseTimeTo(duration.days(370));
        await this.token.transfer(owner, 100, {from: wallet, gas: 5e6});
