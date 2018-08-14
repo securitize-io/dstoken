@@ -34,7 +34,7 @@ const EXCHANGE = 4;
 const walletID = "1";
 const walletID2 = "2";
 
-contract('ESComplianceServiceRegulated', function ([owner, wallet, issuerAccount, issuerWallet, exchangeAccount, exchangeWallet, noneAccount, noneWallet, platformWallet]) {
+contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issuerAccount, issuerWallet, exchangeAccount, exchangeWallet, noneAccount, noneWallet, platformWallet]) {
   beforeEach(async function () {
     this.storage = await EternalStorage.new();
     this.trustService = await ESTrustService.new(this.storage.address, 'DSTokenTestTrustManager');
@@ -211,6 +211,21 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, issuerAccount
        await this.complianceService.setCountryCompliance("EU", 2);
        assert.equal(await this.token.balanceOf(wallet), 100);
        await this.token.transfer(platformWallet, 50, {from: wallet, gas: 5e6});
+    });
+
+    it(`Should prevent chinese investors`, async function () {
+       await this.registryService.registerInvestor(walletID, "wallet");
+       await this.registryService.registerInvestor(walletID2, "wallet1");
+       await this.registryService.setCountry(walletID, "US");
+       await this.registryService.setCountry(walletID2, "CH");
+       await this.registryService.addWallet(wallet, walletID);
+       await this.registryService.addWallet(wallet1, walletID2);
+       await this.token.setCap(1000);
+       await this.token.issueTokens(wallet, 100);
+       await this.complianceService.setCountryCompliance("CH", 4);
+       await this.complianceService.setCountryCompliance("US", 2);
+       assert.equal(await this.token.balanceOf(wallet), 100);
+       await assertRevert(this.token.transfer(wallet1, 50, {from: wallet, gas: 5e6}));
     });
 
     it(`Should transfer tokens`, async function () {
