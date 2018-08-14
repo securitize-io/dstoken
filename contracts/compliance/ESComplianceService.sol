@@ -21,7 +21,6 @@ import "./ESIssuanceInformationManager.sol";
 */
 contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer {
 
-
   constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
   using SafeMath for uint256;
 
@@ -34,7 +33,7 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
     require(recordIssuance(_to, _value));
   }
 
-  function validate(address _from, address _to, uint _value) public {
+  function validate(address _from, address _to, uint _value) onlyToken public {
     uint code;
     string memory reason;
 
