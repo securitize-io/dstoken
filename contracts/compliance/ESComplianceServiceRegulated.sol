@@ -17,13 +17,13 @@ contract ESComplianceServiceRegulated is ESComplianceService {
 
     function adjustInvestorCount(address _wallet, bool _increase) internal {
       if (getWalletManager().getWalletType(_wallet) == getWalletManager().NONE()) {
-          setUint("totalInvestors", _increase ? getUint("totalInvestors").add(1) : getUint("totalInvestors").sub(1));
+        setUint("totalInvestors", _increase ? getUint("totalInvestors").add(1) : getUint("totalInvestors").sub(1));
         string memory country = getRegistryService().getCountry(getRegistryService().getInvestor(_wallet));
         uint countryCompliance = getCountryCompliance(country);
         if (countryCompliance == US) {
-            setUint("usInvestorsCount", _increase ? getUint("usInvestorsCount").add(1) : getUint("usInvestorsCount").sub(1));
+          setUint("usInvestorsCount", _increase ? getUint("usInvestorsCount").add(1) : getUint("usInvestorsCount").sub(1));
         } else if (countryCompliance == EU && getRegistryService().getAttributeValue(getRegistryService().getInvestor(_wallet), getRegistryService().QUALIFIED()) != getRegistryService().APPROVED()) {
-            setUint("euRetailInvestorsCount", country, _increase ? getUint("euRetailInvestorsCount", country).add(1) : getUint("euRetailInvestorsCount", country).sub(1));
+          setUint("euRetailInvestorsCount", country, _increase ? getUint("euRetailInvestorsCount", country).add(1) : getUint("euRetailInvestorsCount", country).sub(1));
         }
       }
     }

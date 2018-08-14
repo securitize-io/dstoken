@@ -265,7 +265,7 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
   function updateInvestorBalance(address _wallet, uint _value, bool _increase) internal returns (bool) {
     string memory investor = getRegistryService().getInvestor(_wallet);
     if (keccak256(abi.encodePacked(investor)) != keccak256("")) {
-      uint balance = getUint("investors", "balances", investor);
+      uint balance = balanceOfInvestor(investor);
       if (_increase) {
         balance = balance.add(_value);
       } else {
