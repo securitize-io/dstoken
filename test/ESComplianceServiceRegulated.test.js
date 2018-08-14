@@ -222,8 +222,6 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issu
     });
 
     it(`Should transfer tokens`, async function () {
-       await this.complianceService.setCountryCompliance("US", 1);
-       await this.complianceService.setCountryCompliance("EU", 2);
        await this.registryService.registerInvestor(walletID, "wallet");
        await this.registryService.registerInvestor(walletID2, "owner");
        await this.registryService.setCountry(walletID, "US");
