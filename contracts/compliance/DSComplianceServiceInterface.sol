@@ -9,11 +9,6 @@ contract DSComplianceServiceInterface is DSServiceConsumerInterface {
   uint public constant EU = 2;
   uint public constant FORBIDDEN = 4;
 
-  modifier onlyToken() {
-    assert(false);
-    _;
-  }
-
   //*****************************************
   // TOKEN ACTION VALIDATIONS
   //*****************************************
