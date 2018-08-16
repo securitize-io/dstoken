@@ -24,11 +24,6 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
   constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
   using SafeMath for uint256;
 
-  modifier onlyToken() {
-    require(msg.sender == getDSService(DS_TOKEN), "This function can only called by the associated token");
-    _;
-  }
-
   function validateIssuance(address _to, uint _value) onlyToken public {
     require(recordIssuance(_to, _value));
   }
@@ -44,6 +39,8 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
 
   function validateBurn(address _who, uint _value) onlyToken public returns (bool){
     require(recordBurn(_who, _value));
+    
+    return true;
   }
 
   function validateSeize(address _from, address _to, uint _value) onlyToken public returns (bool){
@@ -52,6 +49,7 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
     require(getWalletManager().getWalletType(_to) == getWalletManager().ISSUER());
     require(recordSeize(_from, _to, _value));
 
+    return true;
   }
 
   function preTransferCheck(address _from, address _to, uint _value) view public returns (uint code, string reason) {
@@ -77,7 +75,7 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
   }
 
   function getCountryCompliance(string _country) view public returns (uint) {
-    getUint("countries", _country);
+    return getUint("countries", _country);
   }
 
 

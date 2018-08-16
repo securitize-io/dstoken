@@ -41,7 +41,8 @@ contract ESLockManager is DSLockManagerInterface,ESServiceConsumer {
 
         emit Locked(_to,_valueLocked,_reasonCode,_reasonString,_releaseTime);
     }
-    function addManualLockRecord(address _to, uint _valueLocked, string _reason, uint _releaseTime) onlyIssuerOrAbove public{
+
+    function addManualLockRecord(address _to, uint _valueLocked, string _reason, uint _releaseTime) onlyIssuerOrAboveOrToken public{
         require(_to != address(0));
         require(_valueLocked > 0);
         require(_releaseTime == 0 || _releaseTime > uint(now),"Release time is in the past");

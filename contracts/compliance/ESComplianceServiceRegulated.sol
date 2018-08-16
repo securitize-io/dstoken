@@ -12,7 +12,7 @@ contract ESComplianceServiceRegulated is ESComplianceService {
     bool public fund = true;
     bool public fullTransfer = true;
     uint public minEuTokens = 0;
-
+    
     constructor(address _address, string _namespace) public ESComplianceService(_address, _namespace) {}
 
     function adjustInvestorCount(address _wallet, bool _increase) internal {
@@ -28,12 +28,12 @@ contract ESComplianceServiceRegulated is ESComplianceService {
       }
     }
 
-    function createIssuanceInformation(address _to, uint _value) internal returns (bool) {
-      uint issuancesCount = getUint("issuancesCount",_to);
+    function createIssuanceInformation(string _investor, uint _value) internal returns (bool) {
+      uint issuancesCount = getUint("issuancesCount",_investor);
 
-      setUint("issuanceValue",_to,issuancesCount,_value);
-      setUint("issuanceTimestamp",_to,issuancesCount,now);
-      setUint("issuancesCount",_to,issuancesCount.add(1));
+      setUint("issuanceValue",_investor,issuancesCount,_value);
+      setUint("issuanceTimestamp",_investor,issuancesCount,now);
+      setUint("issuancesCount",_investor,issuancesCount.add(1));
 
       return true;
     }
@@ -43,7 +43,7 @@ contract ESComplianceServiceRegulated is ESComplianceService {
             adjustInvestorCount(_to, true);
         }
 
-        require(createIssuanceInformation(_to, _value));
+        require(createIssuanceInformation(getRegistryService().getInvestor(_to), _value));
 
         return true;
     }
@@ -57,10 +57,10 @@ contract ESComplianceServiceRegulated is ESComplianceService {
         return (15, "Not Enough Tokens");
       }
 
-      // if (keccak256(abi.encodePacked(getRegistryService().getInvestor(_from))) != keccak256("") &&
-      //     keccak256(abi.encodePacked(getRegistryService().getInvestor(_from))) == keccak256(abi.encodePacked(getRegistryService().getInvestor(_to)))) {
-      //   return checkTransfer(_from, _to, _value);
-      // }
+      if (keccak256(abi.encodePacked(getRegistryService().getInvestor(_from))) != keccak256("") &&
+          keccak256(abi.encodePacked(getRegistryService().getInvestor(_from))) == keccak256(abi.encodePacked(getRegistryService().getInvestor(_to)))) {
+        return checkTransfer(_from, _to, _value);
+      }
 
       if (getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
         return (16, "Tokens Locked");
@@ -129,9 +129,12 @@ contract ESComplianceServiceRegulated is ESComplianceService {
          if (_value > 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_from)) == _value) {
             adjustInvestorCount(_from, false);
          }
+
          if (_value > 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_to)) == 0) {
             adjustInvestorCount(_to, true);
          }
+
+         return true;
     }
 
     function checkTransfer(address, address, uint) view internal returns (uint, string){
@@ -158,9 +161,11 @@ contract ESComplianceServiceRegulated is ESComplianceService {
     function getComplianceTransferableTokens(address _who, uint64 _time, uint64 _lockTime) public view returns (uint) {
       require(_time > 0, "time must be greater than zero");
 
+      string memory investor = getRegistryService().getInvestor(_who);
+
       uint balanceOfHolder = getLockManager().getTransferableTokens(_who, _time);
 
-      uint holderIssuancesCount = getUint("issuancesCount", _who);
+      uint holderIssuancesCount = getUint("issuancesCount", investor);
 
       //No locks, go to base class implementation
       if (holderIssuancesCount == 0) {
@@ -169,10 +174,10 @@ contract ESComplianceServiceRegulated is ESComplianceService {
 
       uint totalLockedTokens = 0;
       for (uint i = 0; i < holderIssuancesCount; i++) {
-        uint issuanceTimestamp = getUint("issuanceTimestamp",_who,i);
+        uint issuanceTimestamp = getUint("issuanceTimestamp",investor,i);
 
         if (_lockTime > _time || issuanceTimestamp > SafeMath.sub(_time, _lockTime)) {
-          totalLockedTokens = totalLockedTokens.add(getUint("issuanceValue", _who, i));
+          totalLockedTokens = totalLockedTokens.add(getUint("issuanceValue", investor, i));
         }
       }
 

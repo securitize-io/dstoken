@@ -27,6 +27,16 @@ contract DSServiceConsumerInterface {
     _;
   }
 
+  modifier onlyToken {
+    assert(false);
+    _;
+  }
+
+  modifier onlyIssuerOrAboveOrToken {
+    assert(false);
+    _;
+  }
+
   function getDSService(uint _serviceId) public view returns (address);
   function setDSService(uint _serviceId, address _address) public /*onlyMaster*/ returns (bool);
 }
