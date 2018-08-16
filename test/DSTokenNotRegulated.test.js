@@ -26,7 +26,7 @@ const EXCHANGE = 4;
 const walletID = "1";
 const walletID2 = "2";
 
-contract('DSToken', function ([_, owner, recipient, anotherAccount, wallet, wallet1]) {
+contract('DSToken (not regulated)', function ([_, owner, recipient, anotherAccount, wallet, wallet1]) {
     const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
     beforeEach(async function () {

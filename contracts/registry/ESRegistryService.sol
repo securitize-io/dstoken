@@ -9,9 +9,7 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
 
   constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
 
-  function registerInvestor(string _id, string _collision_hash) public onlyExchangeOrAbove returns (bool) {
-    require(keccak256(abi.encodePacked(getString("investors", _id, "id"))) == keccak256(""));
-
+  function registerInvestor(string _id, string _collision_hash) public onlyExchangeOrAbove newInvestor(_id) returns (bool) {
     setString("investors", _id, "id", _id);
     setString("investors", _id, "collision_hash", _collision_hash);
     setAddress("investors", _id, "creator", msg.sender);
@@ -22,8 +20,7 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
     return true;
   }
 
-  function removeInvestor(string _id) public onlyExchangeOrAbove returns (bool) {
-    require(keccak256(abi.encodePacked(getString("investors", _id, "id"))) != keccak256(""));
+  function removeInvestor(string _id) public onlyExchangeOrAbove investorExists(_id) returns (bool) {
     DSTrustServiceInterface trustManager = DSTrustServiceInterface(getDSService(TRUST_SERVICE));
     require(trustManager.getRole(msg.sender) != trustManager.EXCHANGE() ||
             getAddress("investors", _id, "creator") == msg.sender);
@@ -47,7 +44,7 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
     return true;
   }
 
-  function setCountry(string _id, string _country) public onlyExchangeOrAbove returns (bool) {
+  function setCountry(string _id, string _country) public onlyExchangeOrAbove investorExists(_id) returns (bool) {
     setString("investors", _id, "country", _country);
     setAddress("investors", _id, "last_updated_by", msg.sender);
 
@@ -56,15 +53,16 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
     return true;
   }
 
-  function getCountry(string _id) public view returns (string) {
+  // TODO: activate modifier
+  function getCountry(string _id) public /*investorExists(_id)*/ view returns (string) {
     return getString("investors", _id, "country");
   }
 
-  function getCollisionHash(string _id) public view returns (string) {
+  function getCollisionHash(string _id) public investorExists(_id) view returns (string) {
     return getString("investors", _id, "collision_hash");
   }
 
-  function setAttribute(string _id, uint8 _attributeId, uint256 _value, uint256 _expiry, string _proofHash) public onlyExchangeOrAbove returns (bool) {
+  function setAttribute(string _id, uint8 _attributeId, uint256 _value, uint256 _expiry, string _proofHash) public onlyExchangeOrAbove investorExists(_id) returns (bool) {
     setUint8("investors", _id, _attributeId, "value", _value);
     setUint8("investors", _id, _attributeId, "expiry", _expiry);
     setString8("investors", _id, _attributeId, "proof_hash", _proofHash);
@@ -75,21 +73,19 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
     return true;
   }
 
-  function getAttributeValue(string _id, uint8 _attributeId) public view returns (uint256) {
+  function getAttributeValue(string _id, uint8 _attributeId) public investorExists(_id) view returns (uint256) {
     return getUint8("investors", _id, _attributeId, "value");
   }
 
-  function getAttributeExpiry(string _id, uint8 _attributeId) public view returns (uint256) {
+  function getAttributeExpiry(string _id, uint8 _attributeId) public investorExists(_id) view returns (uint256) {
     return getUint8("investors", _id, _attributeId, "expiry");
   }
 
-  function getAttributeProofHash(string _id, uint8 _attributeId) public view returns (string) {
+  function getAttributeProofHash(string _id, uint8 _attributeId) public investorExists(_id) view returns (string) {
     return getString8("investors", _id, _attributeId, "proof_hash");
   }
 
-  function addWallet(address _address, string _id) public onlyExchangeOrAbove returns (bool) {
-    require(keccak256(abi.encodePacked(getString("wallets", _address, "owner"))) == keccak256(""));
-
+  function addWallet(address _address, string _id) public onlyExchangeOrAbove newWallet(_address) returns (bool) {
     setString("wallets", _address, "owner", _id);
     setAddress("wallets", _address, "creator", msg.sender);
     setAddress("wallets", _address, "last_updated_by", msg.sender);
@@ -100,11 +96,10 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
     return true;
   }
 
-  function removeWallet(address _address, string _id) public onlyExchangeOrAbove returns (bool) {
+  function removeWallet(address _address, string _id) public onlyExchangeOrAbove walletExists(_address) walletBelongsToInvestor(_address, _id) returns (bool) {
     DSTrustServiceInterface trustManager = DSTrustServiceInterface(getDSService(TRUST_SERVICE));
     require(trustManager.getRole(msg.sender) != trustManager.EXCHANGE() ||
-            getAddress("wallets", _address, "creator") == msg.sender);
-    require(keccak256(abi.encodePacked(getString("wallets", _address, "owner"))) != keccak256(""));
+    getAddress("wallets", _address, "creator") == msg.sender);
 
     deleteString("wallets", _address, "owner");
     deleteAddress("wallets", _address, "creator");
@@ -120,8 +115,16 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
     return getString("wallets", _address, "owner");
   }
 
-  function getInvestorDetails(address _address) public view returns (string, string) {
+  function getInvestorDetails(address _address) public walletExists(_address) view returns (string, string) {
     // TODO: make code cleaner
     return (getString("wallets", _address, "owner"), getCountry(getString("wallets", _address, "owner")));
+  }
+
+  function isInvestor(string _id) public view returns (bool) {
+    return keccak256(abi.encodePacked(getString("investors", _id, "id"))) != keccak256("");
+  }
+
+  function isWallet(address _address) public view returns (bool) {
+    return keccak256(getInvestor(_address)) != keccak256("");
   }
 }
