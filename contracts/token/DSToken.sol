@@ -273,5 +273,7 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
       }
       setUint("investors", "balances", investor, balance);
     }
+
+    return true;
   }
 }

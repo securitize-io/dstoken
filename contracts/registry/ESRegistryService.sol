@@ -9,26 +9,6 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
 
   constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
 
-  modifier investorExists(string _id) {
-    require(isInvestor(_id));
-    _;
-  }
-
-  modifier newInvestor(string _id) {
-    require(!isInvestor(_id));
-    _;
-  }
-
-  modifier walletExists(address _address) {
-    require(isWallet(_address));
-    _;
-  }
-
-  modifier newWallet(address _address) {
-    require(!isWallet(_address));
-    _;
-  }
-
   function registerInvestor(string _id, string _collision_hash) public onlyExchangeOrAbove newInvestor(_id) returns (bool) {
     setString("investors", _id, "id", _id);
     setString("investors", _id, "collision_hash", _collision_hash);
@@ -73,7 +53,8 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
     return true;
   }
 
-  function getCountry(string _id) public investorExists(_id) view returns (string) {
+  // TODO: activate modifier
+  function getCountry(string _id) public /*investorExists(_id)*/ view returns (string) {
     return getString("investors", _id, "country");
   }
 
@@ -96,11 +77,11 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
     return getUint8("investors", _id, _attributeId, "value");
   }
 
-  function getAttributeExpiry(string _id, uint8 _attributeId) public view returns (uint256) {
+  function getAttributeExpiry(string _id, uint8 _attributeId) public investorExists(_id) view returns (uint256) {
     return getUint8("investors", _id, _attributeId, "expiry");
   }
 
-  function getAttributeProofHash(string _id, uint8 _attributeId) public view returns (string) {
+  function getAttributeProofHash(string _id, uint8 _attributeId) public investorExists(_id) view returns (string) {
     return getString8("investors", _id, _attributeId, "proof_hash");
   }
 
@@ -115,7 +96,7 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
     return true;
   }
 
-  function removeWallet(address _address, string _id) public onlyExchangeOrAbove walletExists(_address) investorExists(_id) returns (bool) {
+  function removeWallet(address _address, string _id) public onlyExchangeOrAbove walletExists(_address) walletBelongsToInvestor(_address, _id) returns (bool) {
     DSTrustServiceInterface trustManager = DSTrustServiceInterface(getDSService(TRUST_SERVICE));
     require(trustManager.getRole(msg.sender) != trustManager.EXCHANGE() ||
     getAddress("wallets", _address, "creator") == msg.sender);
@@ -130,7 +111,7 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
     return true;
   }
 
-  function getInvestor(address _address) public walletExists(_address) view returns (string) {
+  function getInvestor(address _address) public view returns (string) {
     return getString("wallets", _address, "owner");
   }
 
@@ -144,6 +125,6 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
   }
 
   function isWallet(address _address) public view returns (bool) {
-    return keccak256(abi.encodePacked(getString("wallets", _address, "owner"))) != keccak256("");
+    return keccak256(getInvestor(_address)) != keccak256("");
   }
 }
