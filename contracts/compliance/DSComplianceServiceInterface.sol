@@ -26,6 +26,8 @@ contract DSComplianceServiceInterface is DSServiceConsumerInterface {
 
   function validate(address _from, address _to, uint _value) /*onlyToken*/ public;
 
+  function preIssuanceCheck(address _to) view public returns (uint code, string reason);
+
   function preTransferCheck(address _from, address _to, uint _value) view public returns (uint code, string reason);
 
   function setCountryCompliance(string _country, uint _value) /*onlyIssuerOrAbove*/ public returns (bool);

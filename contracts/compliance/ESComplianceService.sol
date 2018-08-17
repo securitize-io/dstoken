@@ -30,6 +30,11 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
   }
 
   function validateIssuance(address _to, uint _value) onlyToken public {
+    uint code;
+    string memory reason;
+    
+    (code, reason) = preIssuanceCheck(_to);
+    require(code == 0, reason);
     require(recordIssuance(_to, _value));
   }
 

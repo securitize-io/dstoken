@@ -77,6 +77,22 @@ contract ESComplianceServiceRegulated is ESComplianceService {
       return locationSpecificCheck(_from, _to, _value);
     }
 
+    function preIssuanceCheck(address _to) view public returns (uint code, string reason) {
+      return locationSpecificCheckForIssuance(_to);
+    }
+
+    function locationSpecificCheckForIssuance(address _to) view internal returns (uint code, string reason) {
+      string memory toInvestor = getRegistryService().getInvestor(_to);
+      string memory toCountry = getRegistryService().getCountry(toInvestor);
+      uint toRegion = getCountryCompliance(toCountry);
+
+      if (toRegion == FORBIDDEN) {
+        return (26, "Destination restricted");
+      }
+
+      return (0, "Valid");
+    }
+
     function locationSpecificCheck(address _from, address _to, uint _value) view internal returns (uint code, string reason) {
       string memory fromInvestor = getRegistryService().getInvestor(_from);
       string memory toInvestor = getRegistryService().getInvestor(_to);
