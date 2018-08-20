@@ -32,8 +32,8 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
   function validateIssuance(address _to, uint _value) onlyToken public {
     uint code;
     string memory reason;
-    
-    (code, reason) = preIssuanceCheck(_to);
+
+    (code, reason) = preIssuanceCheck(_to, _value);
     require(code == 0, reason);
     require(recordIssuance(_to, _value));
   }
@@ -96,4 +96,5 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
   function recordTransfer(address _from, address _to, uint _value) internal returns (bool);
   function recordBurn(address _who, uint _value) internal returns (bool);
   function recordSeize(address _from, address _to, uint _value) internal returns (bool);
+  function preIssuanceCheck(address _to, uint _value) view public returns (uint code, string reason);
 }

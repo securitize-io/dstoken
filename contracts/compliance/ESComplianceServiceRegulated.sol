@@ -77,7 +77,7 @@ contract ESComplianceServiceRegulated is ESComplianceService {
       return locationSpecificCheck(_from, _to, _value);
     }
 
-    function preIssuanceCheck(address _to) view public returns (uint code, string reason) {
+    function preIssuanceCheck(address _to, uint _value) view public returns (uint code, string reason) {
       return locationSpecificCheckForIssuance(_to);
     }
 
