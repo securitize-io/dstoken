@@ -64,28 +64,28 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
 
   function preTransferCheck(address _from, address _to, uint _value) view public returns (uint code, string reason) {
     if (getToken().isPaused()) {
-      return (10, "Token Paused");
+      return (10, TOKEN_PAUSED);
     }
 
     if (getToken().balanceOf(_from) < _value) {
-      return (15, "Not Enough Tokens");
+      return (15, NOT_ENOUGH_TOKENS);
     }
 
     if (getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
-      return (16, "Tokens Locked");
+      return (16, TOKENS_LOCKED);
     }
 
     return checkTransfer(_from, _to, _value);
   }
 
   function setCountryCompliance(string _country, uint _value) onlyIssuerOrAbove public returns (bool) {
-    setUint("countries", _country, _value);
+    setUint(COUNTRIES, _country, _value);
 
     return true;
   }
 
   function getCountryCompliance(string _country) view public returns (uint) {
-    return getUint("countries", _country);
+    return getUint(COUNTRIES, _country);
   }
 
 

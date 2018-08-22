@@ -24,7 +24,7 @@ contract ESWalletManager is DSWalletManagerInterface, ESServiceConsumer {
     uint8 oldType = getWalletType(_wallet);
     require(oldType == NONE || _type == NONE);
 
-    setUint("wallets", _wallet, "type", _type);
+    setUint(WALLETS, _wallet, TYPE, _type);
 
     if (oldType == NONE) {
       emit DSWalletManagerSpecialWalletAdded(_wallet, _type, msg.sender);
@@ -66,7 +66,7 @@ contract ESWalletManager is DSWalletManagerInterface, ESServiceConsumer {
   }
 
   function getWalletType(address _wallet) public view returns (uint8){
-    return uint8(getUint("wallets", _wallet, "type"));
+    return uint8(getUint(WALLETS, _wallet, TYPE));
   }
 
   /**
@@ -89,7 +89,7 @@ contract ESWalletManager is DSWalletManagerInterface, ESServiceConsumer {
    */
   function setReservedSlots(address _wallet, string _country, uint8 _accreditationStatus, uint _slots) public onlyIssuerOrAbove returns (bool) {
     // TODO: validate added slots
-    setUint8("wallets", _wallet, "slots", _country, _accreditationStatus, _slots);
+    setUint8(WALLETS, _wallet, SLOTS, _country, _accreditationStatus, _slots);
 
     emit DSWalletManagerReservedSlotsSet(_wallet, _country, _accreditationStatus, _slots, msg.sender);
 
@@ -104,6 +104,6 @@ contract ESWalletManager is DSWalletManagerInterface, ESServiceConsumer {
    * @return The number of reserved slots.
    */
   function getReservedSlots(address _wallet, string _country, uint8 _accreditationStatus) public view returns (uint) {
-    return getUint8("wallets", _wallet, "slots", _country, _accreditationStatus);
+    return getUint8(WALLETS, _wallet, SLOTS, _country, _accreditationStatus);
   }
 }

@@ -3,6 +3,13 @@ pragma solidity ^0.4.23;
 import '../DSServiceConsumerInterface.sol';
 
 contract DSRegistryServiceInterface is DSServiceConsumerInterface {
+  string public constant INVESTORS = "investors";
+  string public constant WALLETS = "wallets";
+  string public constant ID = "id";
+  string public constant COLLISION_HASH = "collision_hash";
+  string public constant CREATOR = "creator";
+  string public constant LAST_UPDATED_BY = "last_updated_by";
+
   event DSRegistryServiceInvestorAdded(string _investorId, address _sender);
   event DSRegistryServiceInvestorRemoved(string _investorId, address _sender);
   event DSRegistryServiceInvestorChanged(string _investorId, address _sender);

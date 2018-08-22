@@ -21,12 +21,12 @@ contract ESComplianceServiceNotRegulated is ESComplianceService {
     }
 
     function checkTransfer(address, address, uint) view internal returns (uint, string){
-        return (0, "Valid");
+        return (0, VALID);
     }
 
     function preIssuanceCheck(address _to, uint _value) view public returns (uint code, string reason){
         code = 0;
-        reason = "Valid";
+        reason = VALID;
     }
 
     function recordBurn(address, uint) internal returns (bool){
