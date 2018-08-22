@@ -3,6 +3,15 @@ pragma solidity ^0.4.23;
 import "../zeppelin/token/ERC20/ERC20.sol";
 
 contract DSTokenInterface is ERC20 {
+  string public constant CAP = "cap";
+  string public constant TOTAL_ISSUED = "totalIssued";
+  string public constant TOTAL_SUPPLY = "totalSupply";
+  string public constant BALANCES = "balances";
+  string public constant INVESTORS = "investors";
+  string public constant WALLET_LIST = "walletList";
+  string public constant WALLET_COUNT = "walletCount";
+  string public constant WALLET_TO_INDEX = "walletToIndex";
+  string public constant PAUSED = "paused";
 
   event Issue(address indexed to, uint256 value, uint256 valueLocked);
   event Burn(address indexed burner, uint256 value, string reason);

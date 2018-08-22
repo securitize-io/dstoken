@@ -4,30 +4,32 @@ import "../storage/EternalStorageClient.sol";
 
 contract ESPausable is EternalStorageClient {
 
+  string public constant PAUSED = PAUSED;
+
   event Pause();
   event Unpause();
 
   modifier whenNotPaused() {
-    require(!getBoolean("paused"),"Contract is paused");
+    require(!getBoolean(PAUSED),"Contract is paused");
     _;
   }
 
   modifier whenPaused() {
-    require(getBoolean("paused"),"Contract is not paused");
+    require(getBoolean(PAUSED),"Contract is not paused");
     _;
   }
 
   function pause() onlyOwner whenNotPaused public {
-    setBoolean("paused", true);
+    setBoolean(PAUSED, true);
     emit Pause();
   }
 
   function unpause() onlyOwner whenPaused public {
-    setBoolean("paused", false);
+    setBoolean(PAUSED, false);
     emit Unpause();
   }
 
   function paused() view public returns (bool) {
-    return getBoolean("paused");
+    return getBoolean(PAUSED);
   }
 }
