@@ -6,7 +6,7 @@ import "../zeppelin/token/ERC20/ERC20.sol";
 contract ESStandardToken is ERC20, ESBasicToken {
 
   string public constant BALANCES = "balances";
-  string public constant ALLOWED = ALLOWED;
+  string public constant ALLOWED = "allowed";
 
   function transferFrom(
     address _from,

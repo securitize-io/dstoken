@@ -12,7 +12,10 @@ import "../storage/EternalStorageClient.sol";
  */
 contract ESBasicToken is ERC20Basic, EternalStorageClient {
 
-    using SafeMath for uint256;
+  using SafeMath for uint256;
+
+  string public constant TOTAL_SUPPLY = "totalSupply";
+  string public constant BALANCES = "balances";
 
   /**
   * @dev total number of tokens in existence
