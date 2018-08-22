@@ -8,7 +8,13 @@ contract DSRegistryServiceInterface is DSServiceConsumerInterface {
   string public constant ID = "id";
   string public constant COLLISION_HASH = "collision_hash";
   string public constant CREATOR = "creator";
+  string public constant COUNTRY = "country";
+  string public constant VALUE = "value";
+  string public constant EXPIRY = "expiry";
+  string public constant PROOF_HASH = "proof_hash";
+  string public constant OWNER = "owner";
   string public constant LAST_UPDATED_BY = "last_updated_by";
+  string public constant WALLET_COUNT = "wallet_count";
 
   event DSRegistryServiceInvestorAdded(string _investorId, address _sender);
   event DSRegistryServiceInvestorRemoved(string _investorId, address _sender);
