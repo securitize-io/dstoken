@@ -78,8 +78,8 @@ More detailed information about the types of data stored in the registry can be 
 The compliance service contracts enforce the actual compliance rules, and can be used by the token (and others) to make sure trades are done in a regulatory-compliant manner.
 The following compliance service types are implemented:
 
-- **Full/Normal** (ESComplianceServiceRegulated) - A full Compliance Service implementing specific rules restricting number of investors in different categories, trasnfers between certain categories and allows restricting transfers to investors in certain countries or lacking certain attributes (e.g. retail investors).
-- **WhiteList** (ESComplianceServiceWhitelisted.sol) - A simple Compliance Service restricting trasnfers only based on basic white-listing of investors. 
+- **Full/Normal** (ESComplianceServiceRegulated) - A full Compliance Service implementing transfer rules common to regulations wordwide, such as: restricting or limiting the number of retail investors, restricting investors from certain countries, requiring accredited investor status or preventing flowback of off-shore tokens.
+- **WhiteList** (ESComplianceServiceWhitelisted.sol) - A simple Compliance Service restricting transfers only based on basic white-listing of investors. 
 - **NotRegulated** (ESComplianceServiceNotRegulated.sol) - A simple Compliance Service for tokens allowing all trading by default, with a manual locking option.   
 
 More detailed information about the Compliance Service can be found in the tutorials above and in the posts linked above.
@@ -130,8 +130,9 @@ The following items are currently being worked on as part of the reference imple
 - **Off-chain Integration (RFE Protocol)** - We aim to provide a reference implementation of some aspects of the protocol dealing with off-chain transactions (for example, allow issuers to receive new investor data).
 - **Registry Service Federation** - We aim to provide a Registry Service implementation that supports federation, so that certain entities can keep global investor registries that can be shared accross token issuances.
 - **Token Issuance** - We aim to add a DSApp for easy token issuance.
-- **Self Service Factories** - we aim to add fully managed factory contracts on the blockchain, allowing web-based creation of a full DSProtocol environment.
-- **Dividend issuance and voting** - we plan to write standard DSApps for reference implementation of dividend distribution and voting capabilities.  
+- **Command-line utilities** - We aim to provide comand-line tools and libraries to facilitate the interaction with the DS Protocol, like tools to add investors to investor registry or to simplify the off-chain generation of investor IDs from investor information.
+- **Self Service Factories** - We aim to add fully managed factory contracts on the blockchain, allowing web-based creation of a full DSProtocol environment.
+- **Dividend issuance and voting** - We plan to write standard DSApps for reference implementation of dividend distribution and voting capabilities.  
 
 
 ### Security  audit
