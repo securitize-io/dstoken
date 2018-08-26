@@ -46,14 +46,14 @@ contract EternalStorageClient is Ownable {
       const hasEightBit = functionArguments[j].includes('uint8') ? '8' : ''; %>
 
   function get<%=`${names[i]}${hasEightBit}`%>(<%= arguments %>) view internal returns (<%=types[i]%>) {
-    return get<%=names[i]%>Generic(abi.encodePacked("<%= argumentTypes %>:",namespace,<%= argumentsNoType %>));
+    return get<%=names[i]%>Generic(abi.encodePacked(namespace,<%= argumentsNoType %>));
   }
 
   function set<%=`${names[i]}${hasEightBit}`%>(<%= arguments %>, <%=types[i]%> v) internal {
-    set<%=names[i]%>Generic(abi.encodePacked("<%= argumentTypes %>:",namespace,<%= argumentsNoType %>), v);
+    set<%=names[i]%>Generic(abi.encodePacked(namespace,<%= argumentsNoType %>), v);
   }
 
   function delete<%=`${names[i]}${hasEightBit}`%>(<%= arguments %>) internal {
-    delete<%=names[i]%>Generic(abi.encodePacked("<%= argumentTypes %>:",namespace,<%= argumentsNoType %>));
+    delete<%=names[i]%>Generic(abi.encodePacked(namespace,<%= argumentsNoType %>));
   }<% } %><% } %>
 }
