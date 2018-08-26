@@ -38,7 +38,7 @@ module.exports = function (deployer) {
       ' --symbol <token symbol> --decimals <token decimals>');
     console.log('   --reset - re-deploys the contracts');
     console.log('   --no_registry - skip registry service');
-    console.log('   --compliance - compliance service type (NOT_REGULATED,WHITELABEL,NORMAL) - if omitted, NORMAL is selected');
+    console.log('   --compliance - compliance service type (NOT_REGULATED,WHITELIST,NORMAL) - if omitted, NORMAL is selected');
     console.log('   --help - outputs this help');
     console.log('\n');
     return;
@@ -80,8 +80,8 @@ module.exports = function (deployer) {
       console.log('deploying NOT REGULATED compliance service');
       return deployer.deploy(ESComplianceServiceNotRegulated, storage.address, `${name}ComplianceManager`);
       break;
-    case 'WHITELABEL':
-      console.log('deploying WHITELABEL compliance service');
+    case 'WHITELIST':
+      console.log('deploying WHITELIST compliance service');
       return deployer.deploy(ESComplianceServiceWhitelisted, storage.address, `${name}ComplianceManager`);
       break;
     case 'NORMAL':
