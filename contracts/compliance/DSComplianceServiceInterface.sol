@@ -27,11 +27,6 @@ contract DSComplianceServiceInterface is DSServiceConsumerInterface {
   string public constant MAX_INVESTORS_IN_CATEGORY = "Max Investors in category";
   string public constant AMOUNT_OF_TOKENS_UNDER_MIN = "Amount of tokens under min";
 
-  modifier onlyToken() {
-    assert(false);
-    _;
-  }
-
   //*****************************************
   // TOKEN ACTION VALIDATIONS
   //*****************************************

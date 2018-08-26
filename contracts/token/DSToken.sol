@@ -231,7 +231,6 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
   }
 
   function removeWalletFromList(address _address) private {
-
     //Make sure it's there
     uint existingIndex = getUint(WALLET_TO_INDEX, _address);
     if (existingIndex != 0) {
@@ -243,10 +242,8 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
       //Decrease the total count
       setUint(WALLET_COUNT, lastIndex.sub(1));
       //Remove from reverse index
-      deleteAddress(WALLET_TO_INDEX, _address);
-
+      deleteUint(WALLET_TO_INDEX, _address);
     }
-
   }
 
 
@@ -273,5 +270,7 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
       }
       setUint(INVESTORS, BALANCES, investor, balance);
     }
+
+    return true;
   }
 }

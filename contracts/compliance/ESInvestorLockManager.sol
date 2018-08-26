@@ -14,7 +14,7 @@ contract ESInvestorLockManager is ESLockManager {
       setUint(LOCKS_RELEASE_TIME,_investor,_lockIndex,_releaseTime);
     }
 
-    function createLock(address _to, uint _valueLocked,uint _reasonCode, string _reasonString,uint _releaseTime) internal{
+    function createLock(address _to, uint _valueLocked,uint _reasonCode, string _reasonString,uint _releaseTime) internal {
         string memory investor = getRegistryService().getInvestor(_to);
 
         //Get total count
@@ -32,7 +32,7 @@ contract ESInvestorLockManager is ESLockManager {
         emit Locked(_to,_valueLocked,_reasonCode,_reasonString,_releaseTime);
     }
 
-    function addManualLockRecord(address _to, uint _valueLocked, string _reason, uint _releaseTime) onlyIssuerOrAbove public{
+    function addManualLockRecord(address _to, uint _valueLocked, string _reason, uint _releaseTime) onlyIssuerOrAboveOrToken public {
         require(_to != address(0));
         require(_valueLocked > 0);
         require(_releaseTime == 0 || _releaseTime > uint(now),"Release time is in the past");

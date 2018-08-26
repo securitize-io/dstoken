@@ -33,6 +33,20 @@ contract ESServiceConsumer is DSServiceConsumerInterface, EternalStorageClient {
     _;
   }
 
+  modifier onlyToken {
+    require(msg.sender == getDSService(DS_TOKEN), "This function can only called by the associated token");
+    _;
+  }
+
+  modifier onlyIssuerOrAboveOrToken {
+    if (msg.sender != getDSService(DS_TOKEN)) {
+      DSTrustServiceInterface trustManager = DSTrustServiceInterface(getDSService(TRUST_SERVICE));
+      require(trustManager.getRole(msg.sender) == trustManager.ISSUER()
+      || trustManager.getRole(msg.sender) == trustManager.MASTER(),"Insufficient trust level");
+    }
+    _;
+  }
+
   function getDSService(uint _serviceId) public view returns (address) {
     return getAddress("services", _serviceId);
   }

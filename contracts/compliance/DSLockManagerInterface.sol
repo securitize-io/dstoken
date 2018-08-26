@@ -20,7 +20,7 @@ contract DSLockManagerInterface {
   * Note: The user MAY have at a certain time more locked tokens than actual tokens
   */
 
-  function addManualLockRecord(address _to, uint _valueLocked, string _reason, uint _releaseTime) /*issuerOrAbove*/ public;
+  function addManualLockRecord(address _to, uint _valueLocked, string _reason, uint _releaseTime) /*issuerOrAboveOrToken*/ public;
 
   /**
    * @dev Releases a specific lock record

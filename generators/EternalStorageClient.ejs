@@ -23,11 +23,9 @@ contract EternalStorageClient is Ownable {
 
   function setStorage(address _address) onlyOwner internal {
     eternalStorage = DSEternalStorage(_address);
-  }
+  }<% for (let i = 0 ; i < names.length ; i++) { %>
 
-<% for (let i = 0 ; i < names.length ; i++) { %>
-
-/* <%=names[i]%> functions */
+  /* <%=names[i]%> functions */
 
   function get<%=names[i]%>Generic(bytes encoded) view internal returns (<%=types[i]%>) {
     return eternalStorage.get<%=names[i]%>(keccak256(encoded));
@@ -39,172 +37,23 @@ contract EternalStorageClient is Ownable {
 
   function delete<%=names[i]%>Generic(bytes encoded) internal {
     eternalStorage.delete<%=names[i]%>(keccak256(encoded));
+  }<% const functionArguments = functionArgumentsByType[types[i]] || [];
+      for (let j = 0 ; j < functionArguments.length ; j++) {
+      functionArguments[j] = functionArguments[j].split(",");
+      const arguments = functionArguments[j].map((arg, k) => `${arg} p${k+1}`).join(",");
+      const argumentTypes = functionArguments[j].map((arg) => abbrs[arg]).join("");
+      const argumentsNoType = functionArguments[j].map((arg, k) => `p${k+1}`).join(",");
+      const hasEightBit = functionArguments[j].includes('uint8') ? '8' : ''; %>
+
+  function get<%=`${names[i]}${hasEightBit}`%>(<%= arguments %>) view internal returns (<%=types[i]%>) {
+    return get<%=names[i]%>Generic(abi.encodePacked("<%= argumentTypes %>:",namespace,<%= argumentsNoType %>));
   }
 
-  function get<%=names[i]%>(string p1) view internal returns (<%=types[i]%>) {
-    return get<%=names[i]%>Generic(abi.encodePacked(namespace, p1));
+  function set<%=`${names[i]}${hasEightBit}`%>(<%= arguments %>, <%=types[i]%> v) internal {
+    set<%=names[i]%>Generic(abi.encodePacked("<%= argumentTypes %>:",namespace,<%= argumentsNoType %>), v);
   }
 
-  function get<%=names[i]%>(string p1, string p2) view internal returns (<%=types[i]%>) {
-    return get<%=names[i]%>Generic(abi.encodePacked(namespace, p1, p2));
-  }
-
-  function get<%=names[i]%>(string p1,address p2) view internal returns (<%=types[i]%>) {
-    return get<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2));
-  }
-
-  function get<%=names[i]%>(string p1,uint256 p2) view internal returns (<%=types[i]%>) {
-    return get<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2));
-  }
-
-  function get<%=names[i]%>(string p1,address p2,address p3) view internal returns (<%=types[i]%>) {
-    return get<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3));
-  }
-
-  function get<%=names[i]%>(string p1, address p2, string p3) view internal returns (<%=types[i]%>) {
-    return get<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3));
-  }
-
-  function get<%=names[i]%>(string p1, address p2, uint p3) view internal returns (<%=types[i]%>) {
-    return get<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3));
-  }
-
-  function get<%=names[i]%>(string p1, string p2, string p3) view internal returns (<%=types[i]%>) {
-    return get<%=names[i]%>Generic(abi.encodePacked(namespace, p1, p2, p3));
-  }
-
-  function get<%=names[i]%>(string p1, string p2, uint p3) view internal returns (<%=types[i]%>) {
-    return get<%=names[i]%>Generic(abi.encodePacked(namespace, p1, p2, p3));
-  }
-
-  function get<%=names[i]%>(string p1, string p2, uint p3, string p4) view internal returns (<%=types[i]%>) {
-    return get<%=names[i]%>Generic(abi.encodePacked(namespace, p1, p2, p3, p4));
-  }
-
-  function get<%=names[i]%>8(string p1,uint8 p2) view internal returns (<%=types[i]%>) {
-    return get<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2));
-  }
-
-  function get<%=names[i]%>8(string p1, string p2, string p3, uint8 p4) view internal returns (<%=types[i]%>) {
-    return get<%=names[i]%>Generic(abi.encodePacked(namespace, p1, p2, p3, p4));
-  }
-
-  function get<%=names[i]%>8(string p1, string p2, uint8 p3, string p4) view internal returns (<%=types[i]%>) {
-    return get<%=names[i]%>Generic(abi.encodePacked(namespace, p1, p2, p3, p4));
-  }
-
-  function get<%=names[i]%>8(string p1, address p2, string p3, string p4, uint8 p5) view internal returns (<%=types[i]%>) {
-    return get<%=names[i]%>Generic(abi.encodePacked(namespace, p1, p2, p3, p4, p5));
-  }
-
-  function set<%=names[i]%>(string p1, <%=types[i]%> v) internal {
-    set<%=names[i]%>Generic(abi.encodePacked(namespace, p1), v);
-  }
-
-  function set<%=names[i]%>(string p1, string p2, <%=types[i]%> v) internal {
-    set<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2), v);
-  }
-
-  function set<%=names[i]%>(string p1,address p2, <%=types[i]%> v) internal {
-    set<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2), v);
-  }
-
-  function set<%=names[i]%>(string p1,uint256 p2, <%=types[i]%> v) internal {
-    set<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2), v);
-  }
-
-  function set<%=names[i]%>(string p1,address p2,address p3, <%=types[i]%> v) internal {
-    set<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3), v);
-  }
-
-  function set<%=names[i]%>(string p1,address p2,string p3, <%=types[i]%> v) internal {
-    set<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3), v);
-  }
-
-  function set<%=names[i]%>(string p1,address p2,uint p3, <%=types[i]%> v) internal {
-    set<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3), v);
-  }
-
-  function set<%=names[i]%>(string p1, string p2, string p3, <%=types[i]%> v) internal {
-    set<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3), v);
-  }
-
-  function set<%=names[i]%>(string p1, string p2, uint p3, <%=types[i]%> v) internal {
-    set<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3), v);
-  }
-
-  function set<%=names[i]%>(string p1, string p2, uint p3, string p4, <%=types[i]%> v) internal {
-    set<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3,p4), v);
-  }
-
-  function set<%=names[i]%>8(string p1,uint8 p2, <%=types[i]%> v) internal {
-    set<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2), v);
-  }
-
-  function set<%=names[i]%>8(string p1, string p2, string p3, uint8 p4, <%=types[i]%> v) internal {
-    set<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3,p4), v);
-  }
-
-  function set<%=names[i]%>8(string p1, string p2, uint8 p3, string p4, <%=types[i]%> v) internal {
-    set<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3,p4), v);
-  }
-
-  function set<%=names[i]%>8(string p1, address p2, string p3, string p4, uint8 p5, <%=types[i]%> v) internal {
-    set<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3,p4,p5), v);
-  }
-
-  function delete<%=names[i]%>(string p1) internal {
-    delete<%=names[i]%>Generic(abi.encodePacked(namespace, p1));
-  }
-
-  function delete<%=names[i]%>(string p1,string p2) internal {
-    delete<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2));
-  }
-
-  function delete<%=names[i]%>(string p1,address p2) internal {
-    delete<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2));
-  }
-
-  function delete<%=names[i]%>(string p1,address p2,address p3) internal {
-    delete<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3));
-  }
-
-  function delete<%=names[i]%>(string p1,address p2,string p3) internal {
-    delete<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3));
-  }
-
-  function delete<%=names[i]%>(string p1,string p2,string p3) internal {
-    delete<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3));
-  }
-
-  function delete<%=names[i]%>(string p1,string p2,uint p3) internal {
-    delete<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3));
-  }
-
-  function delete<%=names[i]%>(string p1, string p2, uint p3, string p4) internal {
-    delete<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3,p4));
-  }
-
-  function delete<%=names[i]%>(string p1, address p2, uint p3) internal {
-    delete<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3));
-  }
-
-  function delete<%=names[i]%>8(string p1,uint8 p2) internal {
-    delete<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2));
-  }
-
-  function delete<%=names[i]%>8(string p1, string p2, string p3, uint8 p4) internal {
-    delete<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3,p4));
-  }
-
-  function delete<%=names[i]%>8(string p1, string p2, uint8 p3, string p4) internal {
-    delete<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3,p4));
-  }
-
-  function delete<%=names[i]%>8(string p1, address p2, string p3, string p4, uint8 p5) internal {
-    delete<%=names[i]%>Generic(abi.encodePacked(namespace, p1,p2,p3,p4,p5));
-  }
-<% } %>
-
+  function delete<%=`${names[i]}${hasEightBit}`%>(<%= arguments %>) internal {
+    delete<%=names[i]%>Generic(abi.encodePacked("<%= argumentTypes %>:",namespace,<%= argumentsNoType %>));
+  }<% } %><% } %>
 }
-

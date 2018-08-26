@@ -114,7 +114,7 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issu
     it(`Pre transfer check with tokens locked`, async function () {
        await this.registryService.addWallet(wallet, walletID);
        await this.token.setCap(1000);
-       await this.token.issueTokens(wallet, 100, {gas: 2e6});
+       await this.token.issueTokens(wallet, 100);
        await this.lockManager.addManualLockRecord(wallet, 95, "Test", latestTime()+1000);
        await assertRevert(this.token.transfer(owner, 100, {from: wallet}));
     });

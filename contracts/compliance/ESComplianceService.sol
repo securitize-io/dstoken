@@ -24,11 +24,6 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
   constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
   using SafeMath for uint256;
 
-  modifier onlyToken() {
-    require(msg.sender == getDSService(DS_TOKEN), "This function can only called by the associated token");
-    _;
-  }
-
   function validateIssuance(address _to, uint _value) onlyToken public {
     uint code;
     string memory reason;
