@@ -53,7 +53,6 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
     return true;
   }
 
-<<<<<<< HEAD
   function getCountry(string _id) public view returns (string) {
     return getString(INVESTORS, _id, COUNTRY);
   }
