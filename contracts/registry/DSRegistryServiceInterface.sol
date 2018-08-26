@@ -60,12 +60,12 @@ contract DSRegistryServiceInterface is DSServiceConsumerInterface {
   function registerInvestor(string _id, string _collision_hash) public /*onlyExchangeOrAbove newInvestor(_id)*/ returns (bool);
   function removeInvestor(string _id) public /*onlyExchangeOrAbove investorExists(_id)*/ returns (bool);
   function setCountry(string _id, string _country) public /*onlyExchangeOrAbove investorExists(_id)*/ returns (bool);
-  function getCountry(string _id) public /*investorExists(_id)*/ view returns (string);
-  function getCollisionHash(string _id) public /*investorExists(_id)*/ view returns (string);
+  function getCountry(string _id) public view returns (string);
+  function getCollisionHash(string _id) public view returns (string);
   function setAttribute(string _id, uint8 _attributeId, uint256 _value, uint256 _expiry, string _proofHash) public /*onlyExchangeOrAbove investorExists(_id)*/ returns (bool);
-  function getAttributeValue(string _id, uint8 _attributeId) public /*investorExists(_id)*/ view returns (uint256);
-  function getAttributeExpiry(string _id, uint8 _attributeId) public /*investorExists(_id)*/ view returns (uint256);
-  function getAttributeProofHash(string _id, uint8 _attributeId) public /*investorExists(_id)*/ view returns (string);
+  function getAttributeValue(string _id, uint8 _attributeId) public view returns (uint256);
+  function getAttributeExpiry(string _id, uint8 _attributeId) public view returns (uint256);
+  function getAttributeProofHash(string _id, uint8 _attributeId) public view returns (string);
   function addWallet(address _address, string _id) public /*onlyExchangeOrAbove newWallet(_address)*/ returns (bool);
   function removeWallet(address _address, string _id) public /*onlyExchangeOrAbove walletExists walletBelongsToInvestor(_address, _id)*/ returns (bool);
   function getInvestor(address _address) public view returns (string);

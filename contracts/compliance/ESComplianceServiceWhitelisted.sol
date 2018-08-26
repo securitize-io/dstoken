@@ -33,7 +33,7 @@ contract ESComplianceServiceWhitelisted is ESComplianceService{
       return (0, VALID);
     }
 
-    function preIssuanceCheck(address _to, uint _value) view public returns (uint code, string reason){
+    function preIssuanceCheck(address, uint) view public returns (uint code, string reason){
         code = 0;
         reason = VALID;
     }
