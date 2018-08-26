@@ -22,7 +22,7 @@ contract ESIssuanceInformationManager is DSIssuanceInformationManagerInterface, 
    * @return A boolean that indicates if the operation was successful.
    */
   function setInvestorInformation(string _id, uint8 _informationId, string _hash) public onlyExchangeOrAbove returns (bool) {
-    setString8("investors", _id, "compliance", _informationId, _hash);
+    setString8(INVESTORS, _id, COMPLIANCE, _informationId, _hash);
 
     emit DSIssuanceInformationManagerInvestorInformationSet(_id, _informationId, _hash, msg.sender);
 
@@ -36,7 +36,7 @@ contract ESIssuanceInformationManager is DSIssuanceInformationManagerInterface, 
    * @return The value.
    */
   function getInvestorInformation(string _id, uint8 _informationId) public returns (string) {
-    return getString8("investors", _id, "compliance", _informationId);
+    return getString8(INVESTORS, _id, COMPLIANCE, _informationId);
   }
 
   /**
@@ -46,7 +46,7 @@ contract ESIssuanceInformationManager is DSIssuanceInformationManagerInterface, 
    * @return A boolean that indicates if the operation was successful.
    */
   function setComplianceInformation(uint8 _informationId, string _value) public onlyIssuerOrAbove returns (bool) {
-    setString8("compliance", _informationId, _value);
+    setString8(COMPLIANCE, _informationId, _value);
 
     emit DSIssuanceInformationManagerComplianceInformationSet(_informationId, _value, msg.sender);
 
@@ -59,6 +59,6 @@ contract ESIssuanceInformationManager is DSIssuanceInformationManagerInterface, 
    * @return The value.
    */
   function getComplianceInformation(uint8 _informationId) public returns (string) {
-    return getString8("compliance", _informationId);
+    return getString8(COMPLIANCE, _informationId);
   }
 }

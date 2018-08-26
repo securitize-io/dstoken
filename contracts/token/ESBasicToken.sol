@@ -12,13 +12,16 @@ import "../storage/EternalStorageClient.sol";
  */
 contract ESBasicToken is ERC20Basic, EternalStorageClient {
 
-    using SafeMath for uint256;
+  using SafeMath for uint256;
+
+  string public constant TOTAL_SUPPLY = "totalSupply";
+  string public constant BALANCES = "balances";
 
   /**
   * @dev total number of tokens in existence
   */
   function totalSupply() public view returns (uint256) {
-    return getUint("totalSupply");
+    return getUint(TOTAL_SUPPLY);
   }
 
   /**
@@ -28,10 +31,10 @@ contract ESBasicToken is ERC20Basic, EternalStorageClient {
   */
   function transfer(address _to, uint256 _value) public returns (bool) {
     require(_to != address(0));
-    require(_value <= getUint("balances", msg.sender));
+    require(_value <= getUint(BALANCES, msg.sender));
 
-    setUint("balances", msg.sender, getUint("balances", msg.sender).sub(_value));
-    setUint("balances", _to, getUint("balances", _to).add(_value));
+    setUint(BALANCES, msg.sender, getUint(BALANCES, msg.sender).sub(_value));
+    setUint(BALANCES, _to, getUint(BALANCES, _to).add(_value));
     emit Transfer(msg.sender, _to, _value);
     return true;
   }
@@ -42,6 +45,6 @@ contract ESBasicToken is ERC20Basic, EternalStorageClient {
   * @return An uint256 representing the amount owned by the passed address.
   */
   function balanceOf(address _owner) public view returns (uint256) {
-    return getUint("balances", _owner);
+    return getUint(BALANCES, _owner);
   }
 }

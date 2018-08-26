@@ -23,8 +23,8 @@ contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {
    */
   function initialize() public onlyOwner {
     require(!initialized,"must not be initialized");
-    setAddress("owner", msg.sender);
-    setUint("roles", msg.sender, MASTER);
+    setAddress(OWNER, msg.sender);
+    setUint(ROLES, msg.sender, MASTER);
     initialized = true;
   }
 
@@ -32,7 +32,7 @@ contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {
    * @dev Allow invoking of functions only by the user who has the MASTER role.
    */
   modifier onlyMaster() {
-    require(getUint("roles", msg.sender) == MASTER);
+    require(getUint(ROLES, msg.sender) == MASTER);
     _;
   }
 
@@ -40,7 +40,7 @@ contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {
    * @dev Allow invoking of functions only by the users who have the MASTER role or the ISSUER role.
    */
   modifier onlyMasterOrIssuer() {
-    require(getUint("roles", msg.sender) == MASTER || getUint("roles", msg.sender) == ISSUER);
+    require(getUint(ROLES, msg.sender) == MASTER || getUint(ROLES, msg.sender) == ISSUER);
     _;
   }
 
@@ -51,11 +51,11 @@ contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {
    * @return A boolean that indicates if the operation was successful.
    */
   function setRoleImpl(address _address, uint8 _role) internal returns (bool) {
-    uint8 old_role = uint8(getUint("roles", _address));
+    uint8 old_role = uint8(getUint(ROLES, _address));
 
     require(old_role == NONE || _role == NONE,"No direct role-to-role change");
 
-    setUint("roles", _address, _role);
+    setUint(ROLES, _address, _role);
 
     if (old_role == NONE) {
       emit DSTrustServiceRoleAdded(_address, _role, msg.sender);
@@ -73,7 +73,7 @@ contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {
    */
   function setOwner(address _address) public onlyMaster returns (bool) {
     require(setRoleImpl(owner, NONE));
-    setAddress("owner", _address);
+    setAddress(OWNER, _address);
     require(setRoleImpl(_address, MASTER));
     return true;
   }
@@ -98,7 +98,7 @@ contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {
    * @return A boolean that indicates if the operation was successful.
    */
   function removeRole(address _address) public onlyMasterOrIssuer returns (bool) {
-    uint8 role = uint8(getUint("roles", _address));
+    uint8 role = uint8(getUint(ROLES, _address));
 
     require(role == ISSUER || role == EXCHANGE);
 
@@ -111,6 +111,6 @@ contract ESTrustService is DSTrustServiceInterface, EternalStorageClient {
    * @return A boolean that indicates if the operation was successful.
    */
   function getRole(address _address) public view returns (uint8) {
-    return uint8(getUint("roles", _address));
+    return uint8(getUint(ROLES, _address));
   }
 }
