@@ -33,7 +33,7 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
     deleteString(INVESTORS, _id, COUNTRY);
     deleteString(INVESTORS, _id, COLLISION_HASH);
 
-    for (uint index = 0; index < 8; ++index) {
+    for (uint index = 0; index < 16; ++index) {
       deleteUint(INVESTORS, _id, index, VALUE);
       deleteUint(INVESTORS, _id, index, EXPIRY);
       deleteString(INVESTORS, _id, index, PROOF_HASH);
@@ -62,7 +62,7 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
   }
 
   function setAttribute(string _id, uint8 _attributeId, uint256 _value, uint256 _expiry, string _proofHash) public onlyExchangeOrAbove investorExists(_id) returns (bool) {
-    require(_attributeId < 8);
+    require(_attributeId < 16);
 
     setUint8(INVESTORS, _id, _attributeId, VALUE, _value);
     setUint8(INVESTORS, _id, _attributeId, EXPIRY, _expiry);

@@ -110,10 +110,11 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, exch
         });
 
         // TODO: activate test
-        it.skip('Trying to get the country for the investor with wrong ID - should be the error', async function () {
+        it('Trying to get the country for the investor with wrong ID - should be empty', async function () {
           const newInvestorId = generateRandomInvestorId();
 
-          await assertRevert(this.registryService.getCountry(newInvestorId));
+          const country = await this.registryService.getCountry(newInvestorId);
+          assert.equal(country, '');
         });
       });
     });
@@ -126,10 +127,12 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, exch
       });
 
       describe('Collision hash: negative tests', function () {
-        it('Trying to get the collision hash for the investor with wrong ID - should be the error', async function () {
+        it('Trying to get the collision hash for the investor with wrong ID - should be empty', async function () {
           const newInvestorId = generateRandomInvestorId();
 
-          await assertRevert(this.registryService.getCollisionHash(newInvestorId));
+          const collisionHash = await this.registryService.getCollisionHash(newInvestorId);
+
+          assert.equal(collisionHash, '');
         });
       });
     });
@@ -178,10 +181,12 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, exch
           await assertRevert(this.registryService.setAttribute(newInvestorId, KYC_APPROVED, PENDING, expiry, proofHash));
         });
 
-        it('Trying to get the attribute for the investor with wrong ID - should be the error', async function () {
+        it('Trying to get the attribute for the investor with wrong ID - should be empty', async function () {
           const newInvestorId = generateRandomInvestorId();
 
-          await assertRevert(this.registryService.getAttributeValue(newInvestorId, KYC_APPROVED));
+          const value = await this.registryService.getAttributeValue(newInvestorId, KYC_APPROVED);
+
+          assert.equal(value, NONE);
         });
 
         // TODO: clarify should we prevent this error or no?
@@ -314,8 +319,10 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, exch
       });
       describe('Get the investor: negative tests', function () {
         // TODO: activate test
-        it.skip('Trying to get the investor using the wrong Wallet - should be the error', async function () {
-          await assertRevert(this.registryService.getInvestor(additionalWallet));
+        it('Trying to get the investor using the wrong Wallet - should be empty', async function () {
+          const investor = await this.registryService.getInvestor(additionalWallet);
+
+          assert.equal(investor, '');
         });
 
         it('Trying to get the investor details using the wrong Wallet - should be the error', async function () {

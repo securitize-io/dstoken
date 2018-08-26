@@ -178,10 +178,8 @@ contract('DSToken (regulated)', function ([_, issuerWallet, usInvestor, usInvest
       assert.equal(balance, 100);
     });
 
-    it('should issue tokens to a forbidden wallet', async function () {
-      await this.token.issueTokens(chinaInvestor, 100);
-      const balance = await this.token.balanceOf(chinaInvestor);
-      assert.equal(balance, 100);
+    it('should not issue tokens to a forbidden wallet', async function () {
+      await assertRevert(this.token.issueTokens(chinaInvestor, 100));
     });
 
     it('should issue tokens to a none wallet', async function () {
