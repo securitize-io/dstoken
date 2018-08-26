@@ -66,6 +66,8 @@ contract('ESInvestorLockManager', function ([owner, wallet, issuerAccount, issue
     await this.lockManager.setDSService(DS_TOKEN, this.token.address);
     await this.lockManager.setDSService(WALLET_MANAGER,this.walletManager.address);
     await this.lockManager.setDSService(COMPLIANCE_SERVICE,this.complianceService.address);
+    await this.registryService.setDSService(WALLET_MANAGER,this.walletManager.address);
+    await this.walletManager.setDSService(REGISTRY_SERVICE,this.registryService.address);
 
     await this.trustService.setRole(issuerAccount, ISSUER);
     await this.trustService.setRole(exchangeAccount, EXCHANGE);

@@ -84,9 +84,6 @@ contract ESLockManager is DSLockManagerInterface,ESServiceConsumer {
 
         //decrease the lock counter for the user
         setUint(LOCK_COUNT,_to,lastLockNumber);
-
-
-
     }
 
     /**

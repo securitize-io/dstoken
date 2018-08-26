@@ -87,6 +87,8 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
   }
 
   function addWallet(address _address, string _id) public onlyExchangeOrAbove newWallet(_address) returns (bool) {
+    require(!isSpecialWallet(_address));
+
     setString(WALLETS, _address, OWNER, _id);
     setAddress(WALLETS, _address, CREATOR, msg.sender);
     setAddress(WALLETS, _address, LAST_UPDATED_BY, msg.sender);
@@ -116,7 +118,7 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
     return getString(WALLETS, _address, OWNER);
   }
 
-  function getInvestorDetails(address _address) public walletExists(_address) view returns (string, string) {
+  function getInvestorDetails(address _address) public view returns (string, string) {
     // TODO: make code cleaner
     return (getString(WALLETS, _address, OWNER), getCountry(getString(WALLETS, _address, OWNER)));
   }
@@ -127,5 +129,9 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
 
   function isWallet(address _address) public view returns (bool) {
     return keccak256(getInvestor(_address)) != keccak256("");
+  }
+
+  function isSpecialWallet(address _address) internal view returns (bool) {
+    return getWalletManager().getWalletType(_address) != getWalletManager().NONE();
   }
 }

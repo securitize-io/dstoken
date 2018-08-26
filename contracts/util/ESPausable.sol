@@ -4,7 +4,7 @@ import "../storage/EternalStorageClient.sol";
 
 contract ESPausable is EternalStorageClient {
 
-  string public constant PAUSED = "paused";
+  string internal constant PAUSED = "paused";
 
   event Pause();
   event Unpause();

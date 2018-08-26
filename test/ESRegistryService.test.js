@@ -3,8 +3,16 @@ const EternalStorage = artifacts.require('DSEternalStorage');
 const crypto = require('crypto');
 const ESTrustService = artifacts.require('ESTrustService');
 const ESRegistryService = artifacts.require('ESRegistryService');
+const ESWalletManager = artifacts.require('ESWalletManager');
 
-const TRUST_SERVICE = 1;
+const TRUST_SERVICE=1;
+const DS_TOKEN=2;
+const REGISTRY_SERVICE=4;
+const COMPLIANCE_SERVICE=8;
+const COMMS_SERVICE=16;
+const WALLET_MANAGER=32;
+const LOCK_MANAGER=64;
+const ISSUANCE_INFORMATION_MANAGER=128;
 
 const NONE = 0;
 const MASTER = 1;
@@ -39,11 +47,16 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, exch
     this.storage = await EternalStorage.new();
     this.trustService = await ESTrustService.new(this.storage.address, 'DSTokenTestTrustManager');
     this.registryService = await ESRegistryService.new(this.storage.address, 'DSTokenTestESRegistryService');
+    this.walletManager = await ESWalletManager.new(this.storage.address, 'DSTokenTestWalletManager');
 
     await this.storage.adminAddRole(this.trustService.address, 'write');
     await this.storage.adminAddRole(this.registryService.address, 'write');
+    await this.storage.adminAddRole(this.walletManager.address, 'write');
     await this.trustService.initialize();
     await this.registryService.setDSService(TRUST_SERVICE, this.trustService.address);
+    await this.registryService.setDSService(WALLET_MANAGER,this.walletManager.address);
+    await this.walletManager.setDSService(REGISTRY_SERVICE,this.registryService.address);
+    await this.walletManager.setDSService(TRUST_SERVICE,this.trustService.address);
   });
 
   describe('Register the new investor flow', function () {
@@ -64,7 +77,7 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, exch
       });
 
       describe('Register investor: negative tests ', function () {
-        it(`Trying to register the same account twice - should be the error`, async function () {
+        it(`Trying to register the same account twice - should be an error`, async function () {
           await assertRevert(this.registryService.registerInvestor(investorId, investorCollisionHash));
         });
 
@@ -325,8 +338,10 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, exch
           assert.equal(investor, '');
         });
 
-        it('Trying to get the investor details using the wrong Wallet - should be the error', async function () {
-          await assertRevert(this.registryService.getInvestorDetails(additionalWallet));
+        it('Trying to get the investor details using the wrong Wallet - should be empty', async function () {
+          const investorDetails = await this.registryService.getInvestorDetails(additionalWallet);
+
+          assert.deepEqual(investorDetails, ['','']);
         });
       });
     });

@@ -14,8 +14,8 @@ contract ESBasicToken is ERC20Basic, EternalStorageClient {
 
   using SafeMath for uint256;
 
-  string public constant TOTAL_SUPPLY = "totalSupply";
-  string public constant BALANCES = "balances";
+  string internal constant TOTAL_SUPPLY = "totalSupply";
+  string internal constant BALANCES = "balances";
 
   /**
   * @dev total number of tokens in existence

@@ -4,28 +4,28 @@ import "../DSServiceConsumerInterface.sol";
 import "../zeppelin/token/ERC20/ERC20.sol";
 
 contract DSComplianceServiceInterface is DSServiceConsumerInterface {
-  uint public constant NONE = 0;
-  uint public constant US = 1;
-  uint public constant EU = 2;
-  uint public constant FORBIDDEN = 4;
-  string public constant TOKEN_PAUSED = "Token Paused";
-  string public constant NOT_ENOUGH_TOKENS = "Not Enough Tokens";
-  string public constant TOKENS_LOCKED = "Tokens Locked";
-  string public constant WALLET_NOT_IN_TEGISTRY_SERVICE = "Wallet not in registry Service";
-  string public constant DESTINATION_RESTRICTED = "Destination restricted";
-  string public constant COUNTRIES = "countries";
-  string public constant VALID = "Valid";
-  string public constant TOTAL_INVESTORS = "totalInvestors";
-  string public constant US_INVESTORS_COUNT = "usInvestorsCount";
-  string public constant EU_RETAIL_INVESTORS_COUNT = "euRetailInvestorsCount";
-  string public constant ISSUANCES_COUNT = "issuancesCount";
-  string public constant ISSUANCE_VALUE = "issuanceValue";
-  string public constant ISSUANCE_TIMESTAMP = "issuanceTimestamp";
-  string public constant HOLD_UP_1Y = "Hold-up 1y";
-  string public constant ONLY_FULL_TRANSFER = "Only Full Transfer";
-  string public constant FLOWBACK = "Flowback";
-  string public constant MAX_INVESTORS_IN_CATEGORY = "Max Investors in category";
-  string public constant AMOUNT_OF_TOKENS_UNDER_MIN = "Amount of tokens under min";
+  uint internal constant NONE = 0;
+  uint internal constant US = 1;
+  uint internal constant EU = 2;
+  uint internal constant FORBIDDEN = 4;
+  string internal constant TOKEN_PAUSED = "Token Paused";
+  string internal constant NOT_ENOUGH_TOKENS = "Not Enough Tokens";
+  string internal constant TOKENS_LOCKED = "Tokens Locked";
+  string internal constant WALLET_NOT_IN_TEGISTRY_SERVICE = "Wallet not in registry Service";
+  string internal constant DESTINATION_RESTRICTED = "Destination restricted";
+  string internal constant COUNTRIES = "countries";
+  string internal constant VALID = "Valid";
+  string internal constant TOTAL_INVESTORS = "totalInvestors";
+  string internal constant US_INVESTORS_COUNT = "usInvestorsCount";
+  string internal constant EU_RETAIL_INVESTORS_COUNT = "euRetailInvestorsCount";
+  string internal constant ISSUANCES_COUNT = "issuancesCount";
+  string internal constant ISSUANCE_VALUE = "issuanceValue";
+  string internal constant ISSUANCE_TIMESTAMP = "issuanceTimestamp";
+  string internal constant HOLD_UP_1Y = "Hold-up 1y";
+  string internal constant ONLY_FULL_TRANSFER = "Only Full Transfer";
+  string internal constant FLOWBACK = "Flowback";
+  string internal constant MAX_INVESTORS_IN_CATEGORY = "Max Investors in category";
+  string internal constant AMOUNT_OF_TOKENS_UNDER_MIN = "Amount of tokens under min";
 
   //*****************************************
   // TOKEN ACTION VALIDATIONS

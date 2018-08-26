@@ -1,11 +1,11 @@
 pragma solidity ^0.4.23;
 
 contract DSLockManagerInterface {
-  string public constant LOCKS_VALUE = "locks_value";
-  string public constant LOCKS_REASON = "locks_reason";
-  string public constant LOCKS_REASON_STRING = "locks_reasonString";
-  string public constant LOCKS_RELEASE_TIME = "locks_releaseTime";
-  string public constant LOCK_COUNT = "lockCount";
+  string internal constant LOCKS_VALUE = "locks_value";
+  string internal constant LOCKS_REASON = "locks_reason";
+  string internal constant LOCKS_REASON_STRING = "locks_reasonString";
+  string internal constant LOCKS_RELEASE_TIME = "locks_releaseTime";
+  string internal constant LOCK_COUNT = "lockCount";
 
   event Locked(address indexed who, uint256 value, uint indexed reason, string reasonString, uint releaseTime);
   event Unlocked(address indexed who, uint256 value, uint indexed reason, string reasonString, uint releaseTime);

@@ -13,20 +13,20 @@ contract ESServiceConsumer is DSServiceConsumerInterface, EternalStorageClient {
   constructor(address _address, string _namespace) public EternalStorageClient(_address, _namespace) {}
 
   modifier onlyMaster {
-    DSTrustServiceInterface trustManager = DSTrustServiceInterface(getDSService(TRUST_SERVICE));
+    DSTrustServiceInterface trustManager = getTrustService();
     require(this.owner() == msg.sender || trustManager.getRole(msg.sender) == trustManager.MASTER(),"Insufficient trust level");
     _;
   }
 
   modifier onlyIssuerOrAbove {
-    DSTrustServiceInterface trustManager = DSTrustServiceInterface(getDSService(TRUST_SERVICE));
+    DSTrustServiceInterface trustManager = getTrustService();
     require(trustManager.getRole(msg.sender) == trustManager.ISSUER()
     || trustManager.getRole(msg.sender) == trustManager.MASTER(),"Insufficient trust level");
     _;
   }
 
   modifier onlyExchangeOrAbove {
-    DSTrustServiceInterface trustManager = DSTrustServiceInterface(getDSService(TRUST_SERVICE));
+    DSTrustServiceInterface trustManager = getTrustService();
     require(trustManager.getRole(msg.sender) == trustManager.EXCHANGE()
     || trustManager.getRole(msg.sender) == trustManager.ISSUER()
     || trustManager.getRole(msg.sender) == trustManager.MASTER(),"Insufficient trust level");
@@ -58,6 +58,10 @@ contract ESServiceConsumer is DSServiceConsumerInterface, EternalStorageClient {
 
   function getToken() internal view returns (DSTokenInterface){
     return DSTokenInterface(getDSService(DS_TOKEN));
+  }
+
+  function getTrustService() internal view returns (DSTrustServiceInterface) {
+    return DSTrustServiceInterface(getDSService(TRUST_SERVICE));
   }
 
   function getWalletManager() internal view returns (DSWalletManagerInterface) {

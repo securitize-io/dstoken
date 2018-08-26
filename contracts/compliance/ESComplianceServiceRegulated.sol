@@ -202,4 +202,22 @@ contract ESComplianceServiceRegulated is ESComplianceService {
 
       return transferable;
     }
+
+    function setTotalInvestors(uint256 _amount) public onlyMaster returns (bool) {
+      setUint(TOTAL_INVESTORS, _amount);
+
+      return true;
+    }
+
+    function setUsInvestorsCount(uint256 _amount) public onlyMaster returns (bool) {
+      setUint(US_INVESTORS_COUNT, _amount);
+
+      return true;
+    }
+
+    function setEuRetailInvestorsCount(string _country, uint256 _amount) public onlyMaster returns (bool) {
+      setUint(EU_RETAIL_INVESTORS_COUNT, _country, _amount);
+
+      return true;
+    }
 }

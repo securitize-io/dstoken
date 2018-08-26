@@ -3,7 +3,7 @@ pragma solidity ^0.4.21;
 import "../zeppelin/storage/EternalStorage.sol";
 
 contract DSEternalStorage is EternalStorage {
-  string public constant WRITE = "write";
+  string internal constant WRITE = "write";
 
   function deleteBoolean(bytes32 h) public onlyRole(WRITE) {
     delete(s._bool[h]);

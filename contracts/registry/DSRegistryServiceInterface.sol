@@ -3,18 +3,18 @@ pragma solidity ^0.4.23;
 import '../DSServiceConsumerInterface.sol';
 
 contract DSRegistryServiceInterface is DSServiceConsumerInterface {
-  string public constant INVESTORS = "investors";
-  string public constant WALLETS = "wallets";
-  string public constant ID = "id";
-  string public constant COLLISION_HASH = "collision_hash";
-  string public constant CREATOR = "creator";
-  string public constant COUNTRY = "country";
-  string public constant VALUE = "value";
-  string public constant EXPIRY = "expiry";
-  string public constant PROOF_HASH = "proof_hash";
-  string public constant OWNER = "owner";
-  string public constant LAST_UPDATED_BY = "last_updated_by";
-  string public constant WALLET_COUNT = "wallet_count";
+  string internal constant INVESTORS = "investors";
+  string internal constant WALLETS = "wallets";
+  string internal constant ID = "id";
+  string internal constant COLLISION_HASH = "collision_hash";
+  string internal constant CREATOR = "creator";
+  string internal constant COUNTRY = "country";
+  string internal constant VALUE = "value";
+  string internal constant EXPIRY = "expiry";
+  string internal constant PROOF_HASH = "proof_hash";
+  string internal constant OWNER = "owner";
+  string internal constant LAST_UPDATED_BY = "last_updated_by";
+  string internal constant WALLET_COUNT = "wallet_count";
 
   event DSRegistryServiceInvestorAdded(string _investorId, address _sender);
   event DSRegistryServiceInvestorRemoved(string _investorId, address _sender);
@@ -69,7 +69,7 @@ contract DSRegistryServiceInterface is DSServiceConsumerInterface {
   function addWallet(address _address, string _id) public /*onlyExchangeOrAbove newWallet(_address)*/ returns (bool);
   function removeWallet(address _address, string _id) public /*onlyExchangeOrAbove walletExists walletBelongsToInvestor(_address, _id)*/ returns (bool);
   function getInvestor(address _address) public view returns (string);
-  function getInvestorDetails(address _address) public /*walletExists(_address)*/ view returns (string, string);
+  function getInvestorDetails(address _address) public view returns (string, string);
   function isInvestor(string _id) public view returns (bool);
   function isWallet(address _address) public view returns (bool);
 }

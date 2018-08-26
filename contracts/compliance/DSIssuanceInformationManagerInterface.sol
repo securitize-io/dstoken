@@ -1,8 +1,8 @@
 pragma solidity ^0.4.23;
 
 contract DSIssuanceInformationManagerInterface {
-  string public constant INVESTORS = "investors";
-  string public constant COMPLIANCE = "compliance";
+  string internal constant INVESTORS = "investors";
+  string internal constant COMPLIANCE = "compliance";
   /**
   * @dev should be emitted when investor information is set.
   */

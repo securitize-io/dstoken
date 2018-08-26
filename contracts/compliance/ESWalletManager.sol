@@ -21,6 +21,7 @@ contract ESWalletManager is DSWalletManagerInterface, ESServiceConsumer {
    * @return A boolean that indicates if the operation was successful.
    */
   function setSpecialWallet(address _wallet, uint8 _type) internal returns (bool) {
+    require(keccak256(abi.encodePacked(getRegistryService().getInvestor(_wallet))) == keccak256(""));
     uint8 oldType = getWalletType(_wallet);
     require(oldType == NONE || _type == NONE);
 
@@ -60,7 +61,7 @@ contract ESWalletManager is DSWalletManagerInterface, ESServiceConsumer {
    * @return A boolean that indicates if the operation was successful.
    */
   function addExchangeWallet(address _wallet, address _owner) public onlyIssuerOrAbove returns (bool) {
-    DSTrustServiceInterface trustManager = DSTrustServiceInterface(getDSService(TRUST_SERVICE));
+    DSTrustServiceInterface trustManager = getTrustService();
     require(trustManager.getRole(_owner) == trustManager.EXCHANGE());
     return setSpecialWallet(_wallet, EXCHANGE);
   }

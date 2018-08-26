@@ -13,7 +13,7 @@ contract RBACWithAdmin is RBAC {
   /**
    * A constant role name for indicating admins.
    */
-  string public constant ROLE_ADMIN = "admin";
+  string internal constant ROLE_ADMIN = "admin";
 
   /**
    * @dev modifier to scope access to admins
