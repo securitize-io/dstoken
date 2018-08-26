@@ -243,7 +243,7 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
       //Decrease the total count
       setUint("walletCount", lastIndex.sub(1));
       //Remove from reverse index
-      deleteAddress("walletToIndex", _address);
+      deleteUint("walletToIndex", _address);
 
     }
 

@@ -63,6 +63,8 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
   }
 
   function setAttribute(string _id, uint8 _attributeId, uint256 _value, uint256 _expiry, string _proofHash) public onlyExchangeOrAbove investorExists(_id) returns (bool) {
+    require(_attributeId < 8);
+
     setUint8("investors", _id, _attributeId, "value", _value);
     setUint8("investors", _id, _attributeId, "expiry", _expiry);
     setString8("investors", _id, _attributeId, "proof_hash", _proofHash);
