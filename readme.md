@@ -1,4 +1,4 @@
-<img src="https://s3.us-east-2.amazonaws.com/securitize-public-files/securitize_logo+medium.png" alt="Securitize" width="200"/>
+<img src="https://s3.us-east-2.amazonaws.com/securitize-public-files/securitize_logo+medium.png" alt="Securitize" width="200px"/>
 # Digital Securities (DS) Protocol Token
 
 The DS Token is a reference implementation of Securitize's Digital Securities Protocol.
