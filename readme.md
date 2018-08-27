@@ -1,4 +1,4 @@
-<img src="https://s3.us-east-2.amazonaws.com/securitize-public-files/securitize_logo+medium.png" alt="Securitize" width="200"/>
+<img src="https://s3.us-east-2.amazonaws.com/securitize-public-files/securitize_logo+medium.png" alt="Securitize" width="200px"/>
 # Digital Securities (DS) Protocol Token
 
 The DS Token is a reference implementation of Securitize's Digital Securities Protocol.
@@ -35,11 +35,15 @@ npm install
 # or if using yarn: yarn install
 
 truffle migrate [OPTIONS] --name <token name> --symbol <token symbol> --decimals <token decimals>
-
-Options:
 --reset - re-deploys the contracts
 --no_registry - skip registry service
---compliance - compliance type (NOT_REGULATED,WHITELIST,NORMAL) - if omitted, NORMAL is selected
+--compliance TYPE - compliance service type (NOT_REGULATED,WHITELIST,NORMAL) - if omitted, NORMAL is selected
+--lock_manager TYPE - lock manager type (WALLET,INVESTOR) - if omitted, INVESTOR is selected
+```
+For example, to install a standard DSToken (with default compliance manager and lock manager), run:
+
+```
+truffle migrate --network ganache --name ExampleToken --symbol EXM --decimals 18
 
 ```
 
@@ -148,7 +152,7 @@ We would like to extend our thanks to all the wonderful people and projects whos
 
 The token code is heavily based on the wonderful base contracts done by the [Open Zeppelin](https://openzeppelin.org/) team (Thank you for that!).
 
-The final leg of our development process has been supported by the [Open Finance Network](https://www.openfinance.io) team, to ensure the validity of the DS Protocol in the context of trading operations vian an exchange environment.
+The final leg of our development process has been supported by the [Open Finance Network](https://www.openfinance.io) team, to ensure the validity of the DS Protocol in the context of trading operations via an exchange environment.
 
 Code and tests were done using the [Truffle](http://truffleframework.com/) framework. 
 
