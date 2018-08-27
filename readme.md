@@ -152,7 +152,7 @@ We would like to extend our thanks to all the wonderful people and projects whos
 
 The token code is heavily based on the wonderful base contracts done by the [Open Zeppelin](https://openzeppelin.org/) team (Thank you for that!).
 
-The final leg of our development process has been supported by the [Open Finance Network](https://www.openfinance.io) team, to ensure the validity of the DS Protocol in the context of trading operations vian an exchange environment.
+The final leg of our development process has been supported by the [Open Finance Network](https://www.openfinance.io) team, to ensure the validity of the DS Protocol in the context of trading operations via an exchange environment.
 
 Code and tests were done using the [Truffle](http://truffleframework.com/) framework. 
 
