@@ -27,7 +27,7 @@ contract ESComplianceServiceWhitelisted is ESComplianceService{
 
     function checkTransfer(address, address _to, uint) view internal returns (uint, string){
       if (!checkWhitelisted(_to)) {
-        return (20, WALLET_NOT_IN_TEGISTRY_SERVICE);
+        return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
       }
 
       return (0, VALID);

@@ -11,7 +11,7 @@ contract DSComplianceServiceInterface is DSServiceConsumerInterface {
   string internal constant TOKEN_PAUSED = "Token Paused";
   string internal constant NOT_ENOUGH_TOKENS = "Not Enough Tokens";
   string internal constant TOKENS_LOCKED = "Tokens Locked";
-  string internal constant WALLET_NOT_IN_TEGISTRY_SERVICE = "Wallet not in registry Service";
+  string internal constant WALLET_NOT_IN_REGISTRY_SERVICE = "Wallet not in registry Service";
   string internal constant DESTINATION_RESTRICTED = "Destination restricted";
   string internal constant COUNTRIES = "countries";
   string internal constant VALID = "Valid";

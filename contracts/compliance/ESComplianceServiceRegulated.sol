@@ -71,7 +71,7 @@ contract ESComplianceServiceRegulated is ESComplianceService {
       }
 
       if (getWalletManager().getWalletType(_to) == getWalletManager().NONE() && keccak256(abi.encodePacked(getRegistryService().getInvestor(_to))) == keccak256("")) {
-        return (20, WALLET_NOT_IN_TEGISTRY_SERVICE);
+        return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
       }
 
       return locationSpecificCheck(_from, _to, _value);
