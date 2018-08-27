@@ -45,6 +45,8 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
   }
 
   function setCountry(string _id, string _country) public onlyExchangeOrAbove investorExists(_id) returns (bool) {
+    require(getToken().balanceOfInvestor(_id) == 0);
+
     setString(INVESTORS, _id, COUNTRY, _country);
     setAddress(INVESTORS, _id, LAST_UPDATED_BY, msg.sender);
 

@@ -4,6 +4,8 @@ const crypto = require('crypto');
 const ESTrustService = artifacts.require('ESTrustService');
 const ESRegistryService = artifacts.require('ESRegistryService');
 const ESWalletManager = artifacts.require('ESWalletManager');
+const DSToken = artifacts.require('DSToken');
+const Proxy = artifacts.require('proxy');
 
 const TRUST_SERVICE=1;
 const DS_TOKEN=2;
@@ -48,15 +50,23 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, exch
     this.trustService = await ESTrustService.new(this.storage.address, 'DSTokenTestTrustManager');
     this.registryService = await ESRegistryService.new(this.storage.address, 'DSTokenTestESRegistryService');
     this.walletManager = await ESWalletManager.new(this.storage.address, 'DSTokenTestWalletManager');
+    this.tokenImpl = await DSToken.new();
+    this.proxy = await Proxy.new();
+    await this.proxy.setTarget(this.tokenImpl.address);
+    this.token = DSToken.at(this.proxy.address);
+    await this.token.initialize('DSTokenMock', 'DST', 18, this.storage.address, 'DSTokenMock');
 
     await this.storage.adminAddRole(this.trustService.address, 'write');
     await this.storage.adminAddRole(this.registryService.address, 'write');
     await this.storage.adminAddRole(this.walletManager.address, 'write');
+    await this.storage.adminAddRole(this.token.address, 'write');
     await this.trustService.initialize();
     await this.registryService.setDSService(TRUST_SERVICE, this.trustService.address);
     await this.registryService.setDSService(WALLET_MANAGER,this.walletManager.address);
+    await this.registryService.setDSService(DS_TOKEN,this.token.address);
     await this.walletManager.setDSService(REGISTRY_SERVICE,this.registryService.address);
     await this.walletManager.setDSService(TRUST_SERVICE,this.trustService.address);
+    await this.token.setDSService(REGISTRY_SERVICE,this.registryService.address);
   });
 
   describe('Register the new investor flow', function () {
