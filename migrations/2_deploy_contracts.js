@@ -1,13 +1,14 @@
 /* eslint-disable no-multiple-empty-lines */
-var EternalStorage = artifacts.require('./EternalStorage');
+var DSEternalStorage = artifacts.require('DSEternalStorage');
 const ESTrustService = artifacts.require('ESTrustService');
 const ESComplianceServiceNotRegulated = artifacts.require('ESComplianceServiceNotRegulated');
 const ESComplianceServiceWhitelisted = artifacts.require('ESComplianceServiceWhitelisted');
-const ESComplianceServiceNormal = artifacts.require('ESComplianceServiceWhitelisted'); // TODO: change this!
+const ESComplianceServiceRegulated = artifacts.require('ESComplianceServiceRegulated');
 
 const ESRegistryService = artifacts.require('ESRegistryService');
 const ESWalletManager = artifacts.require('ESWalletManager');
 const ESLockManager = artifacts.require('ESLockManager');
+const ESInvestorLockManager = artifacts.require('ESInvestorLockManager');
 const DSToken = artifacts.require('DSToken');
 const Proxy = artifacts.require('Proxy');
 const argv = require('minimist')(process.argv.slice(2));
@@ -32,20 +33,20 @@ module.exports = function (deployer) {
   const symbol = argv.symbol;
   const decimals = parseInt(argv.decimals);
   const complianceManagerType = argv.compliance || 'NORMAL';
+  const lockManagerType = argv.lock_manager || 'INVESTOR';
   if (argv.help || !name || !symbol || !decimals || isNaN(decimals)) {
     console.log('Token Deployer');
     console.log('Usage: truffle migrate [OPTIONS] --name <token name>' +
       ' --symbol <token symbol> --decimals <token decimals>');
     console.log('   --reset - re-deploys the contracts');
     console.log('   --no_registry - skip registry service');
-    console.log('   --compliance - compliance service type (NOT_REGULATED,WHITELIST,NORMAL) - if omitted, NORMAL is selected');
+    console.log('   --compliance TYPE - compliance service type (NOT_REGULATED,WHITELIST,NORMAL) - if omitted, NORMAL is selected');
+    console.log('   --lock_manager TYPE - lock manager type (WALLET,INVESTOR) - if omitted, INVESTOR is selected');
     console.log('   --help - outputs this help');
     console.log('\n');
     return;
     //process.exit(0);
   }
-
-
 
   // Deploy eternal storage
   let storage = null;
@@ -60,7 +61,7 @@ module.exports = function (deployer) {
   let issuanceInformationManager = null;
 
   // Deploy eternal storage
-  deployer.deploy(EternalStorage).then(s => {
+  deployer.deploy(DSEternalStorage).then(s => {
     // Deploy trust manager
     storage = s;
     return deployer.deploy(ESTrustService, storage.address, `${name}TrustManager`);
@@ -86,7 +87,7 @@ module.exports = function (deployer) {
       break;
     case 'NORMAL':
       console.log('deploying NORMAL compliance service');
-      return deployer.deploy(ESComplianceServiceNormal, storage.address, `${name}ComplianceManager`);
+      return deployer.deploy(ESComplianceServiceRegulated, storage.address, `${name}ComplianceManager`);
     default:
       break;
     }
@@ -96,7 +97,19 @@ module.exports = function (deployer) {
     return deployer.deploy(ESWalletManager, storage.address, `${name}WalletManager`);
   }).then(s => {
     walletManager = s;
-    return deployer.deploy(ESLockManager, storage.address, `${name}LockManager`);
+
+    switch (lockManagerType) {
+      case 'WALLET':
+        console.log('deploying WALLET lock manager');
+        return deployer.deploy(ESLockManager, storage.address, `${name}LockManager`);
+        break;
+      case 'INVESTOR':
+        console.log('deploying INVESTOR lock manager');
+        return deployer.deploy(ESInvestorLockManager, storage.address, `${name}LockManager`);
+        break;
+      default:
+        break;
+    }
   }).then(s => {
     lockManager = s;
     return deployer.deploy(DSToken);
@@ -156,6 +169,16 @@ module.exports = function (deployer) {
       return registry.setDSService(TRUST_SERVICE, trustService.address);
     }
   }).then(() => {
+    if (registry) {
+      console.log('Connecting registry to wallet manager');
+      return registry.setDSService(WALLET_MANAGER, walletManager.address);
+    }
+  }).then(() => {
+    if (registry) {
+      console.log('Connecting registry to token');
+      return registry.setDSService(DS_TOKEN, token.address);
+    }
+  }).then(() => {
     console.log('Connecting token to trust service');
     return token.setDSService(TRUST_SERVICE, trustService.address);
   }).then(() => {
@@ -168,14 +191,28 @@ module.exports = function (deployer) {
     console.log('Connecting token to lock manager');
     return token.setDSService(LOCK_MANAGER, lockManager.address);
   }).then(() => {
+    console.log('Connecting token to registry');
+    return token.setDSService(REGISTRY_SERVICE, registry.address);
+  }).then(() => {
     console.log('Connecting compliance service to token');
     return complianceService.setDSService(DS_TOKEN, token.address);
   }).then(() => {
     console.log('Connecting wallet manager to trust service');
     return walletManager.setDSService(TRUST_SERVICE, trustService.address);
   }).then(() => {
+    if (registry) {
+      console.log('Connecting wallet manager to registry');
+      return walletManager.setDSService(REGISTRY_SERVICE, registry.address);
+    }
+  }).then(() => {
     console.log('Connecting lock manager to trust service');
     return lockManager.setDSService(TRUST_SERVICE, trustService.address);
+  }).then(() => {
+    console.log('Connecting lock manager to registry');
+    return lockManager.setDSService(REGISTRY_SERVICE, registry.address);
+  }).then(() => {
+    console.log('Connecting lock manager to compliance service');
+    return lockManager.setDSService(COMPLIANCE_SERVICE, complianceService.address);
   }).then(() => {
     console.log('Connecting lock manager to token');
     return lockManager.setDSService(DS_TOKEN, token.address);
@@ -186,7 +223,7 @@ module.exports = function (deployer) {
     console.log(`Token implementation is at address: ${tokenImpl.address}`);
     console.log(`Compliance service is at address: ${complianceService.address}, and is of type ${complianceManagerType}.`);
     console.log(`Wallet manager is at address: ${walletManager.address}`);
-    console.log(`Lock manager is at address: ${lockManager.address}`);
+    console.log(`Lock manager is at address: ${lockManager.address}, and is of type ${lockManagerType}.`);
     console.log(`Trust service is at address: ${trustService.address}`);
     console.log(`Eternal storage is at address: ${storage.address}`);
     if (registry) {
