@@ -6,6 +6,9 @@ contract DSWalletManagerInterface {
   uint8 public constant ISSUER = 1;
   uint8 public constant PLATFORM = 2;
   uint8 public constant EXCHANGE = 4;
+  string internal constant WALLETS = "wallets";
+  string internal constant SLOTS = "slots";
+  string internal constant TYPE = "type";
 
   /**
    * @dev should be emitted when a special wallet is added.

@@ -5,6 +5,9 @@ import "../zeppelin/token/ERC20/ERC20.sol";
 
 contract ESStandardToken is ERC20, ESBasicToken {
 
+  string internal constant BALANCES = "balances";
+  string internal constant ALLOWED = "allowed";
+
   function transferFrom(
     address _from,
     address _to,
@@ -14,18 +17,18 @@ contract ESStandardToken is ERC20, ESBasicToken {
     returns (bool)
   {
     require(_to != address(0));
-    require(_value <= getUint("balances", _from));
-    require(_value <= getUint("allowed", _from, msg.sender));
+    require(_value <= getUint(BALANCES, _from));
+    require(_value <= getUint(ALLOWED, _from, msg.sender));
 
-    setUint("balances", _from, getUint("balances", _from).sub(_value));
-    setUint("balances", _to, getUint("balances", _to).add(_value));
-    setUint("allowed", _from, msg.sender, getUint("allowed", _from, msg.sender).sub(_value));
+    setUint(BALANCES, _from, getUint(BALANCES, _from).sub(_value));
+    setUint(BALANCES, _to, getUint(BALANCES, _to).add(_value));
+    setUint(ALLOWED, _from, msg.sender, getUint(ALLOWED, _from, msg.sender).sub(_value));
     emit Transfer(_from, _to, _value);
     return true;
   }
 
   function approve(address _spender, uint256 _value) public returns (bool) {
-    setUint("allowed", msg.sender, _spender, _value);
+    setUint(ALLOWED, msg.sender, _spender, _value);
     emit Approval(msg.sender, _spender, _value);
     return true;
   }
@@ -38,7 +41,7 @@ contract ESStandardToken is ERC20, ESBasicToken {
     view
     returns (uint256)
   {
-    return getUint("allowed", _owner, _spender);
+    return getUint(ALLOWED, _owner, _spender);
   }
 
   function increaseApproval(
@@ -48,8 +51,8 @@ contract ESStandardToken is ERC20, ESBasicToken {
     public
     returns (bool)
   {
-    setUint("allowed", msg.sender, _spender, getUint("allowed", msg.sender, _spender).add(_addedValue));
-    emit Approval(msg.sender, _spender, getUint("allowed", msg.sender, _spender));
+    setUint(ALLOWED, msg.sender, _spender, getUint(ALLOWED, msg.sender, _spender).add(_addedValue));
+    emit Approval(msg.sender, _spender, getUint(ALLOWED, msg.sender, _spender));
     return true;
   }
 
@@ -60,13 +63,13 @@ contract ESStandardToken is ERC20, ESBasicToken {
     public
     returns (bool)
   {
-    uint oldValue = getUint("allowed", msg.sender, _spender);
+    uint oldValue = getUint(ALLOWED, msg.sender, _spender);
     if (_subtractedValue > oldValue) {
-      setUint("allowed", msg.sender, _spender, 0);
+      setUint(ALLOWED, msg.sender, _spender, 0);
     } else {
-      setUint("allowed", msg.sender, _spender, oldValue.sub(_subtractedValue));
+      setUint(ALLOWED, msg.sender, _spender, oldValue.sub(_subtractedValue));
     }
-    emit Approval(msg.sender, _spender, getUint("allowed", msg.sender, _spender));
+    emit Approval(msg.sender, _spender, getUint(ALLOWED, msg.sender, _spender));
     return true;
   }
 }

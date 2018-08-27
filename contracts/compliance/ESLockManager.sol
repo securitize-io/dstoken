@@ -19,16 +19,16 @@ contract ESLockManager is DSLockManagerInterface,ESServiceConsumer {
     uint256 constant MAX_LOCKS_PER_ADDRESS = 30;
 
     function setLockInfoImpl(address _to, uint _lockCount, uint _valueLocked, uint _reasonCode, string _reasonString, uint _releaseTime) internal {
-      setUint("locks_value",_to,_lockCount,_valueLocked);
-      setUint("locks_reason",_to,_lockCount,_reasonCode);
-      setString("locks_reasonString",_to,_lockCount,_reasonString);
-      setUint("locks_releaseTime",_to,_lockCount,_releaseTime);
+      setUint(LOCKS_VALUE,_to,_lockCount,_valueLocked);
+      setUint(LOCKS_REASON,_to,_lockCount,_reasonCode);
+      setString(LOCKS_REASON_STRING,_to,_lockCount,_reasonString);
+      setUint(LOCKS_RELEASE_TIME,_to,_lockCount,_releaseTime);
     }
 
     function createLock(address _to, uint _valueLocked,uint _reasonCode, string _reasonString,uint _releaseTime) internal{
 
         //Get total count
-        uint lockCount = getUint("lockCount",_to);
+        uint lockCount = getUint(LOCK_COUNT,_to);
 
         //Only allow MAX_LOCKS_PER_ADDRESS locks per address, to prevent out-of-gas at transfer scenarios
         require(lockCount < MAX_LOCKS_PER_ADDRESS,"Too many locks for this address");
@@ -37,7 +37,7 @@ contract ESLockManager is DSLockManagerInterface,ESServiceConsumer {
         setLockInfoImpl(_to, lockCount, _valueLocked, _reasonCode, _reasonString, _releaseTime);
 
         //Increase the lock counter for the user
-        setUint("lockCount",_to,lockCount.add(1));
+        setUint(LOCK_COUNT,_to,lockCount.add(1));
 
         emit Locked(_to,_valueLocked,_reasonCode,_reasonString,_releaseTime);
     }
@@ -61,32 +61,29 @@ contract ESLockManager is DSLockManagerInterface,ESServiceConsumer {
 
         require (_to != address(0));
         //Put the last lock instead of the lock to remove (this will work even with 1 lock in the list)
-        uint lastLockNumber = getUint("lockCount",_to);
+        uint lastLockNumber = getUint(LOCK_COUNT,_to);
 
         require(_lockIndex > 0 && _lockIndex < lastLockNumber,"Index is greater than the number of locks");
 
         lastLockNumber -= 1;
 
         //Emit must be done on start ,because we're going to overwrite this value
-        emit Unlocked(_to,getUint("locks_value",_to,_lockIndex),getUint("locks_reason",_to,_lockIndex),getString("locks_reasonString",_to,_lockIndex),getUint("locks_releaseTime",_to,_lockIndex));
+        emit Unlocked(_to,getUint(LOCKS_VALUE,_to,_lockIndex),getUint(LOCKS_REASON,_to,_lockIndex),getString(LOCKS_REASON_STRING,_to,_lockIndex),getUint(LOCKS_RELEASE_TIME,_to,_lockIndex));
 
         //Move the  the lock
-        uint reasonCode = getUint("locks_reason",_to,lastLockNumber);
+        uint reasonCode = getUint(LOCKS_REASON,_to,lastLockNumber);
 
-        setLockInfoImpl(_to, _lockIndex, getUint("locks_value",_to,lastLockNumber), reasonCode, getString("locks_reasonString",_to,lastLockNumber), getUint("locks_releaseTime",_to,lastLockNumber));
+        setLockInfoImpl(_to, _lockIndex, getUint(LOCKS_VALUE,_to,lastLockNumber), reasonCode, getString(LOCKS_REASON_STRING,_to,lastLockNumber), getUint(LOCKS_RELEASE_TIME,_to,lastLockNumber));
 
         //delete the last _lock
         //Remove from reverse index
-        deleteUint("locks_value",_to,lastLockNumber);
-        deleteUint("locks_reason",_to,lastLockNumber);
-        deleteString("locks_reasonString",_to,lastLockNumber);
-        deleteUint("locks_releaseTime",_to,lastLockNumber);
+        deleteUint(LOCKS_VALUE,_to,lastLockNumber);
+        deleteUint(LOCKS_REASON,_to,lastLockNumber);
+        deleteString(LOCKS_REASON_STRING,_to,lastLockNumber);
+        deleteUint(LOCKS_RELEASE_TIME,_to,lastLockNumber);
 
         //decrease the lock counter for the user
-        setUint("lockCount",_to,lastLockNumber);
-
-
-
+        setUint(LOCK_COUNT,_to,lastLockNumber);
     }
 
     /**
@@ -99,7 +96,7 @@ contract ESLockManager is DSLockManagerInterface,ESServiceConsumer {
    */
     function lockCount(address _who) public view returns (uint){
         require (_who != address(0));
-        return getUint("lockCount",_who);
+        return getUint(LOCK_COUNT,_who);
     }
 
     /**
@@ -117,12 +114,12 @@ contract ESLockManager is DSLockManagerInterface,ESServiceConsumer {
     */
     function lockInfo(address _who, uint _lockIndex) public view returns (uint reasonCode, string reasonString, uint value, uint autoReleaseTime){
         require (_who != address(0));
-        uint lastLockNumber = getUint("lockCount",_who);
+        uint lastLockNumber = getUint(LOCK_COUNT,_who);
         require(_lockIndex > 0 && _lockIndex < lastLockNumber,"Index is greater than the number of locks");
-        reasonCode = getUint("locks_reason",_who,_lockIndex);
-        reasonString= getString("locks_reasonString",_who,_lockIndex);
-        value = getUint("locks_value",_who,_lockIndex);
-        autoReleaseTime = getUint("locks_releaseTime",_who,_lockIndex);
+        reasonCode = getUint(LOCKS_REASON,_who,_lockIndex);
+        reasonString= getString(LOCKS_REASON_STRING,_who,_lockIndex);
+        value = getUint(LOCKS_VALUE,_who,_lockIndex);
+        autoReleaseTime = getUint(LOCKS_RELEASE_TIME,_who,_lockIndex);
     }
 
     function getTransferableTokens(address _who, uint64 _time) public view returns (uint) {
@@ -130,7 +127,7 @@ contract ESLockManager is DSLockManagerInterface,ESServiceConsumer {
 
       uint balanceOfHolder = getToken().balanceOf(_who);
 
-      uint holderLockCount = getUint("lockCount", _who);
+      uint holderLockCount = getUint(LOCK_COUNT, _who);
 
       //No locks, go to base class implementation
       if (holderLockCount == 0) {
@@ -140,10 +137,10 @@ contract ESLockManager is DSLockManagerInterface,ESServiceConsumer {
       uint totalLockedTokens = 0;
       for (uint i = 0; i < holderLockCount; i ++) {
 
-        uint autoReleaseTime = getUint("locks_releaseTime", _who, i);
+        uint autoReleaseTime = getUint(LOCKS_RELEASE_TIME, _who, i);
 
         if (autoReleaseTime == 0 || autoReleaseTime > _time) {
-          totalLockedTokens = totalLockedTokens.add(getUint("locks_value", _who, i));
+          totalLockedTokens = totalLockedTokens.add(getUint(LOCKS_VALUE, _who, i));
         }
       }
 

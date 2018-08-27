@@ -93,6 +93,9 @@ contract('DSToken (regulated)', function ([_, issuerWallet, usInvestor, usInvest
     await this.lockManager.setDSService(REGISTRY_SERVICE,this.registryService.address);
     await this.lockManager.setDSService(COMPLIANCE_SERVICE,this.complianceService.address);
     await this.lockManager.setDSService(DS_TOKEN, this.token.address);
+    await this.registryService.setDSService(WALLET_MANAGER,this.walletManager.address);
+    await this.registryService.setDSService(DS_TOKEN,this.token.address);
+    await this.walletManager.setDSService(REGISTRY_SERVICE,this.registryService.address);
 
     // Basic seed
     await this.complianceService.setCountryCompliance("USA", US);
@@ -178,10 +181,8 @@ contract('DSToken (regulated)', function ([_, issuerWallet, usInvestor, usInvest
       assert.equal(balance, 100);
     });
 
-    it('should issue tokens to a forbidden wallet', async function () {
-      await this.token.issueTokens(chinaInvestor, 100);
-      const balance = await this.token.balanceOf(chinaInvestor);
-      assert.equal(balance, 100);
+    it('should not issue tokens to a forbidden wallet', async function () {
+      await assertRevert(this.token.issueTokens(chinaInvestor, 100));
     });
 
     it('should issue tokens to a none wallet', async function () {

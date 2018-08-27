@@ -13,7 +13,7 @@ contract RBACMintableToken is MintableToken, RBAC {
   /**
    * A constant role name for indicating minters.
    */
-  string public constant ROLE_MINTER = "minter";
+  string internal constant ROLE_MINTER = "minter";
 
   /**
    * @dev override the Mintable token modifier to add role based logic

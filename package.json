@@ -57,6 +57,8 @@
   },
   "dependencies": {
     "ethereumjs-wallet": "^0.6.0",
+    "js-yaml": "^3.12.0",
+    "node-yaml": "^3.1.1",
     "truffle-wallet-provider": "0.0.5"
   }
 }

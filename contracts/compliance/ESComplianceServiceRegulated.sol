@@ -17,23 +17,23 @@ contract ESComplianceServiceRegulated is ESComplianceService {
 
     function adjustInvestorCount(address _wallet, bool _increase) internal {
       if (getWalletManager().getWalletType(_wallet) == getWalletManager().NONE()) {
-        setUint("totalInvestors", _increase ? getUint("totalInvestors").add(1) : getUint("totalInvestors").sub(1));
+        setUint(TOTAL_INVESTORS, _increase ? getUint(TOTAL_INVESTORS).add(1) : getUint(TOTAL_INVESTORS).sub(1));
         string memory country = getRegistryService().getCountry(getRegistryService().getInvestor(_wallet));
         uint countryCompliance = getCountryCompliance(country);
         if (countryCompliance == US) {
-          setUint("usInvestorsCount", _increase ? getUint("usInvestorsCount").add(1) : getUint("usInvestorsCount").sub(1));
+          setUint(US_INVESTORS_COUNT, _increase ? getUint(US_INVESTORS_COUNT).add(1) : getUint(US_INVESTORS_COUNT).sub(1));
         } else if (countryCompliance == EU && getRegistryService().getAttributeValue(getRegistryService().getInvestor(_wallet), getRegistryService().QUALIFIED()) != getRegistryService().APPROVED()) {
-          setUint("euRetailInvestorsCount", country, _increase ? getUint("euRetailInvestorsCount", country).add(1) : getUint("euRetailInvestorsCount", country).sub(1));
+          setUint(EU_RETAIL_INVESTORS_COUNT, country, _increase ? getUint(EU_RETAIL_INVESTORS_COUNT, country).add(1) : getUint(EU_RETAIL_INVESTORS_COUNT, country).sub(1));
         }
       }
     }
 
     function createIssuanceInformation(string _investor, uint _value) internal returns (bool) {
-      uint issuancesCount = getUint("issuancesCount",_investor);
+      uint issuancesCount = getUint(ISSUANCES_COUNT,_investor);
 
-      setUint("issuanceValue",_investor,issuancesCount,_value);
-      setUint("issuanceTimestamp",_investor,issuancesCount,now);
-      setUint("issuancesCount",_investor,issuancesCount.add(1));
+      setUint(ISSUANCE_VALUE,_investor,issuancesCount,_value);
+      setUint(ISSUANCE_TIMESTAMP,_investor,issuancesCount,now);
+      setUint(ISSUANCES_COUNT,_investor,issuancesCount.add(1));
 
       return true;
     }
@@ -50,11 +50,11 @@ contract ESComplianceServiceRegulated is ESComplianceService {
 
     function preTransferCheck(address _from, address _to, uint _value) view public returns (uint code, string reason) {
       if (getToken().isPaused()) {
-        return (10, "Token Paused");
+        return (10, TOKEN_PAUSED);
       }
 
       if (getToken().balanceOf(_from) < _value) {
-        return (15, "Not Enough Tokens");
+        return (15, NOT_ENOUGH_TOKENS);
       }
 
       if (keccak256(abi.encodePacked(getRegistryService().getInvestor(_from))) != keccak256("") &&
@@ -63,7 +63,7 @@ contract ESComplianceServiceRegulated is ESComplianceService {
       }
 
       if (getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
-        return (16, "Tokens Locked");
+        return (16, TOKENS_LOCKED);
       }
 
       if (getWalletManager().getWalletType(_to) == getWalletManager().PLATFORM()) {
@@ -71,10 +71,26 @@ contract ESComplianceServiceRegulated is ESComplianceService {
       }
 
       if (getWalletManager().getWalletType(_to) == getWalletManager().NONE() && keccak256(abi.encodePacked(getRegistryService().getInvestor(_to))) == keccak256("")) {
-        return (20, "Wallet not in registry Service");
+        return (20, WALLET_NOT_IN_TEGISTRY_SERVICE);
       }
 
       return locationSpecificCheck(_from, _to, _value);
+    }
+
+    function preIssuanceCheck(address _to, uint) view public returns (uint code, string reason) {
+      return locationSpecificCheckForIssuance(_to);
+    }
+
+    function locationSpecificCheckForIssuance(address _to) view internal returns (uint code, string reason) {
+      string memory toInvestor = getRegistryService().getInvestor(_to);
+      string memory toCountry = getRegistryService().getCountry(toInvestor);
+      uint toRegion = getCountryCompliance(toCountry);
+
+      if (toRegion == FORBIDDEN) {
+        return (26, DESTINATION_RESTRICTED);
+      }
+
+      return (0, VALID);
     }
 
     function locationSpecificCheck(address _from, address _to, uint _value) view internal returns (uint code, string reason) {
@@ -87,38 +103,38 @@ contract ESComplianceServiceRegulated is ESComplianceService {
 
       if (fromRegion == US && toRegion == US) {
         if (getComplianceTransferableTokens(_from, uint64(now), uint64(1 years)) < _value) {
-          return (32, "Hold-up 1y");
+          return (32, HOLD_UP_1Y);
         }
 
         if (fund) {
           if (getToken().balanceOfInvestor(fromInvestor) > _value && getUint("usInvestorsCount") >= 99 &&
               getToken().balanceOfInvestor(toInvestor) == 0) {
-            return (41, "Only Full Transfer");
+            return (41, ONLY_FULL_TRANSFER);
           }
 
           if (fullTransfer && getToken().balanceOfInvestor(fromInvestor) > _value) {
-            return (50, "Only Full Transfer");
+            return (50, ONLY_FULL_TRANSFER);
           }
         }
       } else if (fromRegion != US && toRegion == US) {
-        return (25, "Flowback");
+        return (25, FLOWBACK);
       } else if (toRegion == FORBIDDEN) {
-        return (26, "Destination restricted");
+        return (26, DESTINATION_RESTRICTED);
       } else if (toRegion == EU && getRegistryService().getAttributeValue(toInvestor, getRegistryService().QUALIFIED()) != getRegistryService().APPROVED()) {
-        if (getUint("euRetailInvestorsCount", toCountry) >= 150 && (keccak256(fromCountry) != keccak256(toCountry) || getToken().balanceOfInvestor(fromInvestor) > _value) &&
+        if (getUint(EU_RETAIL_INVESTORS_COUNT, toCountry) >= 150 && (keccak256(fromCountry) != keccak256(toCountry) || getToken().balanceOfInvestor(fromInvestor) > _value) &&
           getToken().balanceOfInvestor(toInvestor) == 0) {
-          return (40, "Max Investors in category");
+          return (40, MAX_INVESTORS_IN_CATEGORY);
         }
 
         if (getToken().balanceOfInvestor(toInvestor).add(_value) < minEuTokens) {
-          return (51, "Amount of tokens under min");
+          return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
       }
 
       if (!fund) {
-        if (getToken().balanceOfInvestor(fromInvestor) > _value && getUint("totalInvestors") >= 1999 &&
+        if (getToken().balanceOfInvestor(fromInvestor) > _value && getUint(TOTAL_INVESTORS) >= 1999 &&
             getToken().balanceOfInvestor(toInvestor) == 0) {
-          return (41, "Only Full Transfer");
+          return (41, ONLY_FULL_TRANSFER);
         }
       }
 
@@ -138,7 +154,7 @@ contract ESComplianceServiceRegulated is ESComplianceService {
     }
 
     function checkTransfer(address, address, uint) view internal returns (uint, string){
-        return (0, "Valid");
+        return (0, VALID);
     }
 
     function recordBurn(address _who, uint _value) internal returns (bool){
@@ -165,7 +181,7 @@ contract ESComplianceServiceRegulated is ESComplianceService {
 
       uint balanceOfHolder = getLockManager().getTransferableTokens(_who, _time);
 
-      uint holderIssuancesCount = getUint("issuancesCount", investor);
+      uint holderIssuancesCount = getUint(ISSUANCES_COUNT, investor);
 
       //No locks, go to base class implementation
       if (holderIssuancesCount == 0) {
@@ -174,10 +190,10 @@ contract ESComplianceServiceRegulated is ESComplianceService {
 
       uint totalLockedTokens = 0;
       for (uint i = 0; i < holderIssuancesCount; i++) {
-        uint issuanceTimestamp = getUint("issuanceTimestamp",investor,i);
+        uint issuanceTimestamp = getUint(ISSUANCE_TIMESTAMP,investor,i);
 
         if (_lockTime > _time || issuanceTimestamp > SafeMath.sub(_time, _lockTime)) {
-          totalLockedTokens = totalLockedTokens.add(getUint("issuanceValue", investor, i));
+          totalLockedTokens = totalLockedTokens.add(getUint(ISSUANCE_VALUE, investor, i));
         }
       }
 
@@ -185,5 +201,23 @@ contract ESComplianceServiceRegulated is ESComplianceService {
       uint transferable = SafeMath.sub(balanceOfHolder, Math.min256(totalLockedTokens, balanceOfHolder));
 
       return transferable;
+    }
+
+    function setTotalInvestors(uint256 _amount) public onlyMaster returns (bool) {
+      setUint(TOTAL_INVESTORS, _amount);
+
+      return true;
+    }
+
+    function setUsInvestorsCount(uint256 _amount) public onlyMaster returns (bool) {
+      setUint(US_INVESTORS_COUNT, _amount);
+
+      return true;
+    }
+
+    function setEuRetailInvestorsCount(string _country, uint256 _amount) public onlyMaster returns (bool) {
+      setUint(EU_RETAIL_INVESTORS_COUNT, _country, _amount);
+
+      return true;
     }
 }

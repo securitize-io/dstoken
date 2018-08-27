@@ -39,14 +39,14 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
    *******************************/
 
   function setCap(uint256 _cap) public onlyMaster {
-    uint cap = getUint("cap");
+    uint cap = getUint(CAP);
     require(cap == 0, "Token cap already set");
     require(_cap > 0);
-    setUint("cap", _cap);
+    setUint(CAP, _cap);
   }
 
   function cap() view public returns (uint256) {
-    return getUint("cap");
+    return getUint(CAP);
   }
 
 
@@ -81,15 +81,15 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
     uint localCap = cap();
 
     //Make sure we are not hitting the cap
-    require(localCap == 0 || (getUint("totalIssued").add(_value)) <= localCap, "Token Cap Hit");
+    require(localCap == 0 || (getUint(TOTAL_ISSUED).add(_value)) <= localCap, "Token Cap Hit");
 
     //Check issuance is allowed (and inform the compliance manager, possibly adding locks)
     getComplianceService().validateIssuance(_to,_value);
 
     //Adding and subtracting is done through safemath
-    setUint("totalSupply", getUint("totalSupply").add(_value));
-    setUint("totalIssued", getUint("totalIssued").add(_value));
-    setUint("balances", _to, getUint("balances", _to).add(_value));
+    setUint(TOTAL_SUPPLY, getUint(TOTAL_SUPPLY).add(_value));
+    setUint(TOTAL_ISSUED, getUint(TOTAL_ISSUED).add(_value));
+    setUint(BALANCES, _to, getUint(BALANCES, _to).add(_value));
     updateInvestorBalance(_to, _value, true);
 
     emit Issue(_to, _value, _valueLocked);
@@ -101,7 +101,7 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
   }
 
   function totalIssued() public view returns (uint){
-    return getUint("totalIssued");
+    return getUint(TOTAL_ISSUED);
   }
 
   //*********************
@@ -109,15 +109,15 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
   //*********************
 
   function burn(address _who, uint256 _value, string _reason) onlyIssuerOrAbove public {
-    require(_value <= getUint("balances", _who));
+    require(_value <= getUint(BALANCES, _who));
     // no need to require value <= totalSupply, since that would imply the
     // sender's balance is greater than the totalSupply, which *should* be an assertion failure
 
     getComplianceService().validateBurn(_who,_value);
 
-    setUint("balances", _who, getUint("balances", _who).sub(_value));
+    setUint(BALANCES, _who, getUint(BALANCES, _who).sub(_value));
     updateInvestorBalance(_who, _value, false);
-    setUint("totalSupply", getUint("totalSupply").sub(_value));
+    setUint(TOTAL_SUPPLY, getUint(TOTAL_SUPPLY).sub(_value));
     emit Burn(_who, _value, _reason);
     emit Transfer(_who, address(0), _value);
   }
@@ -129,11 +129,11 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
   function seize(address _from, address _to, uint256 _value, string _reason) onlyIssuerOrAbove public {
     require(_from != address(0));
     require(_to != address(0));
-    require(_value <= getUint("balances", _from));
+    require(_value <= getUint(BALANCES, _from));
 
     getComplianceService().validateSeize(_from,_to,_value);
-    setUint("balances", _from, getUint("balances", _from).sub(_value));
-    setUint("balances", _to, getUint("balances", _to).add(_value));
+    setUint(BALANCES, _from, getUint(BALANCES, _from).sub(_value));
+    setUint(BALANCES, _to, getUint(BALANCES, _to).add(_value));
     updateInvestorBalance(_from, _value, false);
     updateInvestorBalance(_to, _value, true);
     emit Seize(_from, _to, _value, _reason);
@@ -200,12 +200,12 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
   //TODO: make everything one based instead of zero based
 
   function getWalletAt(uint256 _index) public view returns (address){
-    require(_index > 0 && _index <= getUint("walletCount"));
-    return getAddress("walletList", _index);
+    require(_index > 0 && _index <= getUint(WALLET_COUNT));
+    return getAddress(WALLET_LIST, _index);
   }
 
   function walletCount() public view returns (uint256){
-    return getUint("walletCount");
+    return getUint(WALLET_COUNT);
   }
 
   function checkWalletsForList(address _from, address _to) private {
@@ -220,33 +220,30 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
   function addWalletToList(address _address) private {
 
     //Check if it's already there
-    uint existingIndex = getUint("walletToIndex", _address);
+    uint existingIndex = getUint(WALLET_TO_INDEX, _address);
     if (existingIndex == 0) {
       //If not - add it
-      uint256 index = getUint("walletCount").add(1);
-      setAddress("walletList", index, _address);
-      setUint("walletToIndex", _address, index);
-      setUint("walletCount", index);
+      uint256 index = getUint(WALLET_COUNT).add(1);
+      setAddress(WALLET_LIST, index, _address);
+      setUint(WALLET_TO_INDEX, _address, index);
+      setUint(WALLET_COUNT, index);
     }
   }
 
   function removeWalletFromList(address _address) private {
-
     //Make sure it's there
-    uint existingIndex = getUint("walletToIndex", _address);
+    uint existingIndex = getUint(WALLET_TO_INDEX, _address);
     if (existingIndex != 0) {
 
       //Put the last wallet instead of it (this will work even with 1 wallet in the list)
-      uint lastIndex = getUint("walletCount");
-      address lastWalletAddress = getAddress("walletList", lastIndex);
-      setAddress("walletList", existingIndex, lastWalletAddress);
+      uint lastIndex = getUint(WALLET_COUNT);
+      address lastWalletAddress = getAddress(WALLET_LIST, lastIndex);
+      setAddress(WALLET_LIST, existingIndex, lastWalletAddress);
       //Decrease the total count
-      setUint("walletCount", lastIndex.sub(1));
+      setUint(WALLET_COUNT, lastIndex.sub(1));
       //Remove from reverse index
-      deleteAddress("walletToIndex", _address);
-
+      deleteUint(WALLET_TO_INDEX, _address);
     }
-
   }
 
 
@@ -255,11 +252,11 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
   //**************************************
 
   function isPaused() view public returns (bool){
-    return (getBoolean("paused"));
+    return (getBoolean(PAUSED));
   }
 
   function balanceOfInvestor(string _id) view public returns (uint256) {
-    return getUint("investors", "balances", _id);
+    return getUint(INVESTORS, BALANCES, _id);
   }
 
   function updateInvestorBalance(address _wallet, uint _value, bool _increase) internal returns (bool) {
@@ -271,7 +268,7 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
       } else {
         balance = balance.sub(_value);
       }
-      setUint("investors", "balances", investor, balance);
+      setUint(INVESTORS, BALANCES, investor, balance);
     }
 
     return true;

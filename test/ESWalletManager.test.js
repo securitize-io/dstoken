@@ -1,6 +1,7 @@
 import assertRevert from './helpers/assertRevert';
 const EternalStorage = artifacts.require('EternalStorage');
 const ESWalletManager = artifacts.require('ESWalletManager');
+const ESRegistryService = artifacts.require('ESRegistryService');
 const ESTrustService = artifacts.require('ESTrustService');
 
 const NONE = 0;
@@ -13,16 +14,28 @@ const SLOTS = 3;
 
 
 const TRUST_SERVICE=1;
+const DS_TOKEN=2;
+const REGISTRY_SERVICE=4;
+const COMPLIANCE_SERVICE=8;
+const COMMS_SERVICE=16;
+const WALLET_MANAGER=32;
+const LOCK_MANAGER=64;
+const ISSUANCE_INFORMATION_MANAGER=128;
 
 contract('ESWalletManager', function ([owner, wallet, issuerAccount, issuerWallet, exchangeAccount, exchangeWallet, noneAccount, noneWallet, platformWallet]) {
   beforeEach(async function () {
     this.storage = await EternalStorage.new();
     this.trustService = await ESTrustService.new(this.storage.address, 'DSTokenTestTrustManager');
     this.walletManager = await ESWalletManager.new(this.storage.address, 'DSTokenTestWalletManager');
+    this.registryService = await ESRegistryService.new(this.storage.address, 'DSTokenTestESRegistryService');
     await this.storage.adminAddRole(this.trustService.address, 'write');
     await this.storage.adminAddRole(this.walletManager.address, 'write');
+    await this.storage.adminAddRole(this.registryService.address, 'write');
     await this.trustService.initialize();
     await this.walletManager.setDSService(TRUST_SERVICE,this.trustService.address);
+    await this.walletManager.setDSService(REGISTRY_SERVICE,this.registryService.address);
+    await this.registryService.setDSService(TRUST_SERVICE, this.trustService.address);
+    await this.registryService.setDSService(WALLET_MANAGER,this.walletManager.address);
 
     await this.trustService.setRole(issuerAccount, ISSUER);
     await this.trustService.setRole(exchangeAccount, EXCHANGE);

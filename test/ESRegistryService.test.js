@@ -3,8 +3,18 @@ const EternalStorage = artifacts.require('DSEternalStorage');
 const crypto = require('crypto');
 const ESTrustService = artifacts.require('ESTrustService');
 const ESRegistryService = artifacts.require('ESRegistryService');
+const ESWalletManager = artifacts.require('ESWalletManager');
+const DSToken = artifacts.require('DSToken');
+const Proxy = artifacts.require('proxy');
 
-const TRUST_SERVICE = 1;
+const TRUST_SERVICE=1;
+const DS_TOKEN=2;
+const REGISTRY_SERVICE=4;
+const COMPLIANCE_SERVICE=8;
+const COMMS_SERVICE=16;
+const WALLET_MANAGER=32;
+const LOCK_MANAGER=64;
+const ISSUANCE_INFORMATION_MANAGER=128;
 
 const NONE = 0;
 const MASTER = 1;
@@ -39,11 +49,24 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, exch
     this.storage = await EternalStorage.new();
     this.trustService = await ESTrustService.new(this.storage.address, 'DSTokenTestTrustManager');
     this.registryService = await ESRegistryService.new(this.storage.address, 'DSTokenTestESRegistryService');
+    this.walletManager = await ESWalletManager.new(this.storage.address, 'DSTokenTestWalletManager');
+    this.tokenImpl = await DSToken.new();
+    this.proxy = await Proxy.new();
+    await this.proxy.setTarget(this.tokenImpl.address);
+    this.token = DSToken.at(this.proxy.address);
+    await this.token.initialize('DSTokenMock', 'DST', 18, this.storage.address, 'DSTokenMock');
 
     await this.storage.adminAddRole(this.trustService.address, 'write');
     await this.storage.adminAddRole(this.registryService.address, 'write');
+    await this.storage.adminAddRole(this.walletManager.address, 'write');
+    await this.storage.adminAddRole(this.token.address, 'write');
     await this.trustService.initialize();
     await this.registryService.setDSService(TRUST_SERVICE, this.trustService.address);
+    await this.registryService.setDSService(WALLET_MANAGER,this.walletManager.address);
+    await this.registryService.setDSService(DS_TOKEN,this.token.address);
+    await this.walletManager.setDSService(REGISTRY_SERVICE,this.registryService.address);
+    await this.walletManager.setDSService(TRUST_SERVICE,this.trustService.address);
+    await this.token.setDSService(REGISTRY_SERVICE,this.registryService.address);
   });
 
   describe('Register the new investor flow', function () {
@@ -64,7 +87,7 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, exch
       });
 
       describe('Register investor: negative tests ', function () {
-        it(`Trying to register the same account twice - should be the error`, async function () {
+        it(`Trying to register the same account twice - should be an error`, async function () {
           await assertRevert(this.registryService.registerInvestor(investorId, investorCollisionHash));
         });
 
@@ -110,10 +133,11 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, exch
         });
 
         // TODO: activate test
-        it.skip('Trying to get the country for the investor with wrong ID - should be the error', async function () {
+        it('Trying to get the country for the investor with wrong ID - should be empty', async function () {
           const newInvestorId = generateRandomInvestorId();
 
-          await assertRevert(this.registryService.getCountry(newInvestorId));
+          const country = await this.registryService.getCountry(newInvestorId);
+          assert.equal(country, '');
         });
       });
     });
@@ -126,10 +150,12 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, exch
       });
 
       describe('Collision hash: negative tests', function () {
-        it('Trying to get the collision hash for the investor with wrong ID - should be the error', async function () {
+        it('Trying to get the collision hash for the investor with wrong ID - should be empty', async function () {
           const newInvestorId = generateRandomInvestorId();
 
-          await assertRevert(this.registryService.getCollisionHash(newInvestorId));
+          const collisionHash = await this.registryService.getCollisionHash(newInvestorId);
+
+          assert.equal(collisionHash, '');
         });
       });
     });
@@ -178,10 +204,12 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, exch
           await assertRevert(this.registryService.setAttribute(newInvestorId, KYC_APPROVED, PENDING, expiry, proofHash));
         });
 
-        it('Trying to get the attribute for the investor with wrong ID - should be the error', async function () {
+        it('Trying to get the attribute for the investor with wrong ID - should be empty', async function () {
           const newInvestorId = generateRandomInvestorId();
 
-          await assertRevert(this.registryService.getAttributeValue(newInvestorId, KYC_APPROVED));
+          const value = await this.registryService.getAttributeValue(newInvestorId, KYC_APPROVED);
+
+          assert.equal(value, NONE);
         });
 
         // TODO: clarify should we prevent this error or no?
@@ -314,12 +342,16 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, exch
       });
       describe('Get the investor: negative tests', function () {
         // TODO: activate test
-        it.skip('Trying to get the investor using the wrong Wallet - should be the error', async function () {
-          await assertRevert(this.registryService.getInvestor(additionalWallet));
+        it('Trying to get the investor using the wrong Wallet - should be empty', async function () {
+          const investor = await this.registryService.getInvestor(additionalWallet);
+
+          assert.equal(investor, '');
         });
 
-        it('Trying to get the investor details using the wrong Wallet - should be the error', async function () {
-          await assertRevert(this.registryService.getInvestorDetails(additionalWallet));
+        it('Trying to get the investor details using the wrong Wallet - should be empty', async function () {
+          const investorDetails = await this.registryService.getInvestorDetails(additionalWallet);
+
+          assert.deepEqual(investorDetails, ['','']);
         });
       });
     });

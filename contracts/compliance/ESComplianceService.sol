@@ -25,6 +25,11 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
   using SafeMath for uint256;
 
   function validateIssuance(address _to, uint _value) onlyToken public {
+    uint code;
+    string memory reason;
+
+    (code, reason) = preIssuanceCheck(_to, _value);
+    require(code == 0, reason);
     require(recordIssuance(_to, _value));
   }
 
@@ -54,28 +59,28 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
 
   function preTransferCheck(address _from, address _to, uint _value) view public returns (uint code, string reason) {
     if (getToken().isPaused()) {
-      return (10, "Token Paused");
+      return (10, TOKEN_PAUSED);
     }
 
     if (getToken().balanceOf(_from) < _value) {
-      return (15, "Not Enough Tokens");
+      return (15, NOT_ENOUGH_TOKENS);
     }
 
     if (getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
-      return (16, "Tokens Locked");
+      return (16, TOKENS_LOCKED);
     }
 
     return checkTransfer(_from, _to, _value);
   }
 
   function setCountryCompliance(string _country, uint _value) onlyIssuerOrAbove public returns (bool) {
-    setUint("countries", _country, _value);
+    setUint(COUNTRIES, _country, _value);
 
     return true;
   }
 
   function getCountryCompliance(string _country) view public returns (uint) {
-    return getUint("countries", _country);
+    return getUint(COUNTRIES, _country);
   }
 
 
@@ -86,4 +91,5 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
   function recordTransfer(address _from, address _to, uint _value) internal returns (bool);
   function recordBurn(address _who, uint _value) internal returns (bool);
   function recordSeize(address _from, address _to, uint _value) internal returns (bool);
+  function preIssuanceCheck(address _to, uint _value) view public returns (uint code, string reason);
 }

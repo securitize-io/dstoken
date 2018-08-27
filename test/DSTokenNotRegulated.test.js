@@ -49,6 +49,7 @@ contract('DSToken (not regulated)', function ([_, owner, recipient, anotherAccou
         await this.storage.adminAddRole(this.token.address, 'write');
         await this.trustService.initialize();
         await this.registryService.setDSService(TRUST_SERVICE,this.trustService.address);
+        await this.registryService.setDSService(WALLET_MANAGER,this.walletManager.address);
         await this.complianceService.setDSService(TRUST_SERVICE,this.trustService.address);
         await this.complianceService.setDSService(WALLET_MANAGER,this.walletManager.address);
         await this.complianceService.setDSService(LOCK_MANAGER,this.lockManager.address);
@@ -59,6 +60,7 @@ contract('DSToken (not regulated)', function ([_, owner, recipient, anotherAccou
         await this.token.setDSService(REGISTRY_SERVICE,this.registryService.address);
         await this.complianceService.setDSService(DS_TOKEN,this.token.address);
         await this.walletManager.setDSService(TRUST_SERVICE,this.trustService.address);
+        await this.walletManager.setDSService(REGISTRY_SERVICE,this.registryService.address);
         await this.lockManager.setDSService(TRUST_SERVICE,this.trustService.address);
         await this.lockManager.setDSService(DS_TOKEN, this.token.address);
     });
@@ -139,7 +141,9 @@ contract('DSToken (not regulated)', function ([_, owner, recipient, anotherAccou
             await this.lockManager.setDSService(TRUST_SERVICE,this.trustService.address);
             await this.lockManager.setDSService(DS_TOKEN, this.token.address);
             await this.walletManager.setDSService(TRUST_SERVICE,this.trustService.address);
+            await this.walletManager.setDSService(REGISTRY_SERVICE,this.registryService.address);
             await this.registryService.setDSService(TRUST_SERVICE,this.trustService.address);
+            await this.registryService.setDSService(WALLET_MANAGER,this.walletManager.address);
         });
 
         it('Create several investors into the Registry service and assign them wallets', async function () {
