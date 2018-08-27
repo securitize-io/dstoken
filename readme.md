@@ -1,4 +1,4 @@
-<img src="https://s3.us-east-2.amazonaws.com/securitize-public-files/securitize_logo+medium.png" alt="Securitize" width="200"/>
+![adam](https://s3.us-east-2.amazonaws.com/securitize-public-files/securitize_logo+medium.png)
 # Digital Securities (DS) Protocol Token
 
 The DS Token is a reference implementation of Securitize's Digital Securities Protocol.
@@ -35,11 +35,13 @@ npm install
 # or if using yarn: yarn install
 
 truffle migrate [OPTIONS] --name <token name> --symbol <token symbol> --decimals <token decimals>
-
-Options:
 --reset - re-deploys the contracts
 --no_registry - skip registry service
---compliance - compliance type (NOT_REGULATED,WHITELIST,NORMAL) - if omitted, NORMAL is selected
+--compliance TYPE - compliance service type (NOT_REGULATED,WHITELIST,NORMAL) - if omitted, NORMAL is selected
+--lock_manager TYPE - lock manager type (WALLET,INVESTOR) - if omitted, INVESTOR is selected
+
+For example, to install a standard DSToken (with default compliance manager and lock manager), run:
+truffle migrate --network ganache --name ExampleToken --symbol EXM --decimals 18
 
 ```
 
