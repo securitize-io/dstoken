@@ -1,6 +1,8 @@
 pragma solidity ^0.4.23;
 
-contract DSWalletManagerInterface {
+import "../DSServiceConsumerInterface.sol";
+
+contract DSWalletManagerInterface is DSServiceConsumerInterface {
   // Special wallets constants
   uint8 public constant NONE = 0;
   uint8 public constant ISSUER = 1;
