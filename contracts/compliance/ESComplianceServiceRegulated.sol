@@ -70,7 +70,8 @@ contract ESComplianceServiceRegulated is ESComplianceService {
         return checkTransfer(_from, _to, _value);
       }
 
-      if (getWalletManager().getWalletType(_to) == getWalletManager().NONE() && keccak256(abi.encodePacked(getRegistryService().getInvestor(_to))) == keccak256("")) {
+
+      if (!checkWhitelisted(_to)) {
         return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
       }
 
@@ -78,6 +79,10 @@ contract ESComplianceServiceRegulated is ESComplianceService {
     }
 
     function preIssuanceCheck(address _to, uint) view public returns (uint code, string reason) {
+      if (!checkWhitelisted(_to)) {
+        return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
+      }
+
       return locationSpecificCheckForIssuance(_to);
     }
 

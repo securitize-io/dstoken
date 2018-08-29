@@ -88,7 +88,7 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
     return getString8(INVESTORS, _id, _attributeId, PROOF_HASH);
   }
 
-  function addWallet(address _address, string _id) public onlyExchangeOrAbove newWallet(_address) returns (bool) {
+  function addWallet(address _address, string _id) public onlyExchangeOrAbove investorExists(_id) newWallet(_address) returns (bool) {
     require(!isSpecialWallet(_address));
 
     setString(WALLETS, _address, OWNER, _id);

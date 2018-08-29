@@ -24,6 +24,10 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
   constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
   using SafeMath for uint256;
 
+  function checkWhitelisted(address _who) view internal returns (bool) {
+    return getWalletManager().getWalletType(_who) != getWalletManager().NONE() || keccak256(abi.encodePacked(getRegistryService().getInvestor(_who))) != keccak256("");
+  }
+
   function validateIssuance(address _to, uint _value) onlyToken public {
     uint code;
     string memory reason;

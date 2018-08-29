@@ -12,13 +12,8 @@ contract ESComplianceServiceWhitelisted is ESComplianceService{
 
     constructor(address _address, string _namespace) public ESComplianceService(_address, _namespace) {}
 
-    function checkWhitelisted(address _who) view internal returns (bool) {
-      DSRegistryServiceInterface registry = DSRegistryServiceInterface(getDSService(REGISTRY_SERVICE));
-      return getWalletManager().getWalletType(_who) != getWalletManager().NONE() || keccak256(abi.encodePacked(registry.getInvestor(_who))) != keccak256("");
-    }
-
-    function recordIssuance(address _to, uint) internal returns (bool){
-      return checkWhitelisted(_to);
+    function recordIssuance(address, uint) internal returns (bool){
+      return true;
     }
 
     function recordTransfer(address, address, uint) internal returns (bool){
@@ -33,9 +28,12 @@ contract ESComplianceServiceWhitelisted is ESComplianceService{
       return (0, VALID);
     }
 
-    function preIssuanceCheck(address, uint) view public returns (uint code, string reason){
-        code = 0;
-        reason = VALID;
+    function preIssuanceCheck(address _to, uint) view public returns (uint, string){
+      if (!checkWhitelisted(_to)) {
+        return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
+      }
+
+      return (0, VALID);
     }
 
     function recordBurn(address, uint) internal returns (bool){
