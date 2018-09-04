@@ -28,13 +28,13 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
     return getWalletManager().getWalletType(_who) != getWalletManager().NONE() || keccak256(abi.encodePacked(getRegistryService().getInvestor(_who))) != keccak256("");
   }
 
-  function validateIssuance(address _to, uint _value) onlyToken public {
+  function validateIssuance(address _to, uint _value, uint _issuanceTime) onlyToken public {
     uint code;
     string memory reason;
 
     (code, reason) = preIssuanceCheck(_to, _value);
     require(code == 0, reason);
-    require(recordIssuance(_to, _value));
+    require(recordIssuance(_to, _value, _issuanceTime));
   }
 
   function validate(address _from, address _to, uint _value) onlyToken public {
@@ -90,7 +90,7 @@ contract ESComplianceService is DSComplianceServiceInterface, ESServiceConsumer 
 
   //These functions should be implemented by the concrete compliance manager
 
-  function recordIssuance(address _to, uint _value) internal returns (bool);
+  function recordIssuance(address _to, uint _value, uint _issuanceTime) internal returns (bool);
   function checkTransfer(address _from, address _to, uint _value) view internal returns (uint, string);
   function recordTransfer(address _from, address _to, uint _value) internal returns (bool);
   function recordBurn(address _who, uint _value) internal returns (bool);

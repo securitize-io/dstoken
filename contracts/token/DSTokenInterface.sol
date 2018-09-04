@@ -54,7 +54,7 @@ contract DSTokenInterface is ERC20 {
   * @param _releaseTime timestamp to release the lock (or 0 for locks which can only released by an unlockTokens call)
   * @return true if successful
   */
-  function issueTokensWithLocking(address _to, uint256 _value, uint256 _valueLocked, string _reason, uint64 _releaseTime) /*onlyIssuerOrAbove*/ public returns (bool);
+  function issueTokensCustom(address _to, uint256 _value, uint256 _issuanceTime, uint256 _valueLocked, string _reason, uint64 _releaseTime) /*onlyIssuerOrAbove*/ public returns (bool);
 
   function totalIssued() public view returns (uint);
 

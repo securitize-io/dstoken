@@ -40,6 +40,7 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issu
     this.storage = await EternalStorage.new();
     this.trustService = await ESTrustService.new(this.storage.address, 'DSTokenTestTrustManager');
     this.complianceService = await ESComplianceServiceRegulated.new(this.storage.address, 'DSTokenTestComplianceManager');
+    await this.complianceService.initialize(true, true, 0, 0);
     this.walletManager = await ESWalletManager.new(this.storage.address, 'DSTokenTestWalletManager');
     this.lockManager = await ESLockManager.new(this.storage.address, 'DSTokenTestLockManager');
     this.tokenImpl = await DSToken.new();
@@ -88,7 +89,7 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issu
 
     it(`Should revert due to not token call`, async function () {
        await this.token.setCap(1000);
-       await assertRevert(this.complianceService.validateIssuance(wallet, 100));
+       await assertRevert(this.complianceService.validateIssuance(wallet, 100, latestTime()));
     });
 
     it(`Should issue tokens`, async function () {

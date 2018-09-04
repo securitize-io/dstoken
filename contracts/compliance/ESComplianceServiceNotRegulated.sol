@@ -12,7 +12,7 @@ contract ESComplianceServiceNotRegulated is ESComplianceService {
 
     constructor(address _address, string _namespace) public ESComplianceService(_address, _namespace) {}
 
-    function recordIssuance(address, uint) internal returns (bool){
+    function recordIssuance(address, uint, uint) internal returns (bool){
         return true;
     }
 

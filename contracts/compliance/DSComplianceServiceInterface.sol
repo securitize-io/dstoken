@@ -31,7 +31,7 @@ contract DSComplianceServiceInterface is DSServiceConsumerInterface {
   // TOKEN ACTION VALIDATIONS
   //*****************************************
 
-  function validateIssuance(address _to, uint _value) /*onlyToken*/ public;
+  function validateIssuance(address _to, uint _value, uint _issuanceTime) /*onlyToken*/ public;
 
   function validateBurn(address _who, uint _value) /*onlyToken*/ public returns (bool);
 

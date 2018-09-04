@@ -62,6 +62,7 @@ contract('DSToken (regulated)', function ([_, issuerWallet, usInvestor, usInvest
     this.storage = await DSEternalStorage.new();
     this.trustService = await ESTrustService.new(this.storage.address, 'DSTokenTestTrustManager');
     this.complianceService = await ESComplianceServiceRegulated.new(this.storage.address, 'DSTokenTestComplianceManager');
+    await this.complianceService.initialize(true, true, 0, 0);
     this.walletManager = await ESWalletManager.new(this.storage.address, 'DSTokenTestWalletManager');
     this.lockManager = await ESInvestorLockManager.new(this.storage.address, 'DSTokenTestLockManager');
     this.tokenImpl = await DSToken.new();
@@ -207,12 +208,12 @@ contract('DSToken (regulated)', function ([_, issuerWallet, usInvestor, usInvest
 
   describe('locking', function() {
     it('should not allow transferring any tokens when all locked', async function() {
-      await this.token.issueTokensWithLocking(israelInvestor, 100, 100, 'TEST', latestTime() + 1 * WEEKS);
+      await this.token.issueTokensCustom(israelInvestor, 100, latestTime(), 100, 'TEST', latestTime() + 1 * WEEKS);
       await assertRevert(this.token.transfer(germanyInvestor, 1, { from: israelInvestor }));
     });
 
     it('should allow transferring tokens when other are locked', async function() {
-      await this.token.issueTokensWithLocking(israelInvestor, 100, 50, 'TEST', latestTime() + 1 * WEEKS);
+      await this.token.issueTokensCustom(israelInvestor, 100, latestTime(), 50, 'TEST', latestTime() + 1 * WEEKS);
       await this.token.transfer(germanyInvestor, 50, { from: israelInvestor });
       const israelBalance = await this.token.balanceOf(israelInvestor);
       assert.equal(israelBalance, 50);
@@ -221,7 +222,7 @@ contract('DSToken (regulated)', function ([_, issuerWallet, usInvestor, usInvest
     });
 
     it('should allow investors to move locked tokens between their own wallets', async function() {
-      await this.token.issueTokensWithLocking(usInvestor, 100, 100, 'TEST', latestTime() + 1 * WEEKS);
+      await this.token.issueTokensCustom(usInvestor, 100, latestTime(), 100, 'TEST', latestTime() + 1 * WEEKS);
       await this.token.transfer(usInvestorSecondaryWallet, 50, { from: usInvestor });
       const usInvestorBalance = await this.token.balanceOf(usInvestor);
       assert.equal(usInvestorBalance.valueOf(), 50);

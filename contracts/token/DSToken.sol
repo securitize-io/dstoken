@@ -62,7 +62,7 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
   */
 
   function issueTokens(address _to, uint256 _value) onlyIssuerOrAbove public returns (bool){
-    issueTokensWithLocking(_to, _value, 0, "", 0);
+    issueTokensCustom(_to, _value, now, 0, "", 0);
   }
   /**
   * @dev Issuing tokens from the fund
@@ -73,7 +73,7 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
   * @param _releaseTime timestamp to release the lock (or 0 for locks which can only released by an unlockTokens call)
   * @return true if successful
   */
-  function issueTokensWithLocking(address _to, uint256 _value, uint256 _valueLocked, string _reason, uint64 _releaseTime) onlyIssuerOrAbove public returns (bool){
+  function issueTokensCustom(address _to, uint256 _value, uint256 _issuanceTime, uint256 _valueLocked, string _reason, uint64 _releaseTime) onlyIssuerOrAbove public returns (bool){
     //Check input values
     require(_to != address(0));
     require(_value > 0);
@@ -84,7 +84,7 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
     require(localCap == 0 || (getUint(TOTAL_ISSUED).add(_value)) <= localCap, "Token Cap Hit");
 
     //Check issuance is allowed (and inform the compliance manager, possibly adding locks)
-    getComplianceService().validateIssuance(_to,_value);
+    getComplianceService().validateIssuance(_to,_value,_issuanceTime);
 
     //Adding and subtracting is done through safemath
     setUint(TOTAL_SUPPLY, getUint(TOTAL_SUPPLY).add(_value));

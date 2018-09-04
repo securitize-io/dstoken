@@ -9,11 +9,27 @@ import "./ESComplianceService.sol";
 */
 
 contract ESComplianceServiceRegulated is ESComplianceService {
-    bool public fund = true;
-    bool public fullTransfer = true;
-    uint public minEuTokens = 0;
-    
+    bool public isFund;
+    bool public forceFullTransfer;
+    uint public minUsTokens;
+    uint public minEuTokens;
+
+    bool public initialized = false;
+
     constructor(address _address, string _namespace) public ESComplianceService(_address, _namespace) {}
+
+    function initialize(bool _isFund, bool _forceFullTransfer, uint _minUsTokens, uint _minEuTokens) public returns (bool) {
+      require(!initialized, "already initialized");
+
+      initialized = true;
+
+      isFund = _isFund;
+      forceFullTransfer = _forceFullTransfer;
+      minUsTokens = _minUsTokens;
+      minEuTokens = _minEuTokens;
+
+      return true;
+    }
 
     function adjustInvestorCount(address _wallet, bool _increase) internal {
       if (getWalletManager().getWalletType(_wallet) == getWalletManager().NONE()) {
@@ -28,22 +44,22 @@ contract ESComplianceServiceRegulated is ESComplianceService {
       }
     }
 
-    function createIssuanceInformation(string _investor, uint _value) internal returns (bool) {
+    function createIssuanceInformation(string _investor, uint _value, uint _issuanceTime) internal returns (bool) {
       uint issuancesCount = getUint(ISSUANCES_COUNT,_investor);
 
       setUint(ISSUANCE_VALUE,_investor,issuancesCount,_value);
-      setUint(ISSUANCE_TIMESTAMP,_investor,issuancesCount,now);
+      setUint(ISSUANCE_TIMESTAMP,_investor,issuancesCount,_issuanceTime);
       setUint(ISSUANCES_COUNT,_investor,issuancesCount.add(1));
 
       return true;
     }
 
-    function recordIssuance(address _to, uint _value) internal returns (bool){
+    function recordIssuance(address _to, uint _value, uint _issuanceTime) internal returns (bool){
         if (_value > 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_to)) == 0) {
             adjustInvestorCount(_to, true);
         }
 
-        require(createIssuanceInformation(getRegistryService().getInvestor(_to), _value));
+        require(createIssuanceInformation(getRegistryService().getInvestor(_to), _value, _issuanceTime));
 
         return true;
     }
@@ -111,15 +127,17 @@ contract ESComplianceServiceRegulated is ESComplianceService {
           return (32, HOLD_UP_1Y);
         }
 
-        if (fund) {
-          if (getToken().balanceOfInvestor(fromInvestor) > _value && getUint("usInvestorsCount") >= 99 &&
-              getToken().balanceOfInvestor(toInvestor) == 0) {
-            return (41, ONLY_FULL_TRANSFER);
-          }
+        if (isFund && getToken().balanceOfInvestor(fromInvestor) > _value && getUint("usInvestorsCount") >= 99 &&
+            getToken().balanceOfInvestor(toInvestor) == 0) {
+          return (41, ONLY_FULL_TRANSFER);
+        }
 
-          if (fullTransfer && getToken().balanceOfInvestor(fromInvestor) > _value) {
-            return (50, ONLY_FULL_TRANSFER);
-          }
+        if (forceFullTransfer && getToken().balanceOfInvestor(fromInvestor) > _value) {
+          return (50, ONLY_FULL_TRANSFER);
+        }
+
+        if (getToken().balanceOfInvestor(toInvestor).add(_value) < minUsTokens) {
+          return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
       } else if (fromRegion != US && toRegion == US) {
         return (25, FLOWBACK);
@@ -136,7 +154,7 @@ contract ESComplianceServiceRegulated is ESComplianceService {
         }
       }
 
-      if (!fund) {
+      if (!isFund) {
         if (getToken().balanceOfInvestor(fromInvestor) > _value && getUint(TOTAL_INVESTORS) >= 1999 &&
             getToken().balanceOfInvestor(toInvestor) == 0) {
           return (41, ONLY_FULL_TRANSFER);
@@ -147,19 +165,19 @@ contract ESComplianceServiceRegulated is ESComplianceService {
     }
 
     function recordTransfer(address _from, address _to, uint _value) internal returns (bool) {
-         if (_value > 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_from)) == _value) {
-            adjustInvestorCount(_from, false);
-         }
+      if (_value > 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_from)) == _value) {
+        adjustInvestorCount(_from, false);
+      }
 
-         if (_value > 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_to)) == 0) {
-            adjustInvestorCount(_to, true);
-         }
+      if (_value > 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_to)) == 0) {
+        adjustInvestorCount(_to, true);
+      }
 
-         return true;
+      return true;
     }
 
     function checkTransfer(address, address, uint) view internal returns (uint, string){
-        return (0, VALID);
+      return (0, VALID);
     }
 
     function recordBurn(address _who, uint _value) internal returns (bool){

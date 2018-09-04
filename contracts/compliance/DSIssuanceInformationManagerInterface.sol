@@ -3,6 +3,7 @@ pragma solidity ^0.4.23;
 contract DSIssuanceInformationManagerInterface {
   string internal constant INVESTORS = "investors";
   string internal constant COMPLIANCE = "compliance";
+
   /**
   * @dev should be emitted when investor information is set.
   */
@@ -10,7 +11,7 @@ contract DSIssuanceInformationManagerInterface {
   /**
    * @dev should be emitted when compliance information is set.
    */
-  event DSIssuanceInformationManagerComplianceInformationSet(uint8 _informationId, string _value, address _sender);
+  event DSIssuanceInformationManagerComplianceInformationSet(uint8 _informationId, uint _value, address _sender);
 
   /**
    * @dev Sets information about an investor.
@@ -33,11 +34,11 @@ contract DSIssuanceInformationManagerInterface {
    * @param _value The value to be set.
    * @return A boolean that indicates if the operation was successful.
    */
-  function setComplianceInformation(uint8 _informationId, string _value) public /*onlyIssuerOrAbove*/ returns (bool);
+  function setComplianceInformation(uint8 _informationId, uint _value) public /*onlyIssuerOrAbove*/ returns (bool);
   /**
    * @dev Gets compliance information.
    * @param _informationId The type of information needed to be fetched.
    * @return The value.
    */
-  function getComplianceInformation(uint8 _informationId) public returns (string);
+  function getComplianceInformation(uint8 _informationId) public returns (uint);
 }
