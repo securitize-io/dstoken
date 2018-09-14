@@ -273,4 +273,8 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
 
     return true;
   }
+
+  function preTransferCheck(address _from, address _to, uint _value) view public returns (uint code, string reason) {
+    return getComplianceService().preTransferCheck(_from, _to, _value);
+  }
 }
