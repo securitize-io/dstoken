@@ -127,7 +127,7 @@ contract ESComplianceServiceRegulated is ESComplianceService {
           return (32, HOLD_UP_1Y);
         }
 
-        if (isFund && getToken().balanceOfInvestor(fromInvestor) > _value && getUint("usInvestorsCount") >= 99 &&
+        if (isFund && getToken().balanceOfInvestor(fromInvestor) > _value && getUint(US_INVESTORS_COUNT) >= 99 &&
             getToken().balanceOfInvestor(toInvestor) == 0) {
           return (41, ONLY_FULL_TRANSFER);
         }
