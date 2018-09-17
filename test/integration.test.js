@@ -8,7 +8,7 @@ const ESInvestorLockManager = artifacts.require('ESInvestorLockManager');
 const ESTrustService = artifacts.require('ESTrustService');
 const ESRegistryService = artifacts.require('ESRegistryService');
 const ESTokenIssuer = artifacts.require('ESTokenIssuer');
-
+const ESInformationManager = artifacts.require('ESIssuanceInformationManager');
 const Proxy = artifacts.require('proxy');
 const TRUST_SERVICE = 1;
 const DS_TOKEN = 2;
@@ -75,6 +75,7 @@ let proxy;
 let registryService;
 let token;
 let issuer;
+let informationManager;
 
 contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecondaryWallet, usInvestor2, spainInvestor, germanyInvestor, chinaInvestor, israelInvestor,usInvestor3Wallet,germanyInvestor2Wallet,spainInvestor2Wallet]) {
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -89,6 +90,7 @@ contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecond
       lockManager = await ESInvestorLockManager.new(storage.address, 'DSTokenTestLockManager');
       tokenImpl = await DSToken.new();
       proxy = await Proxy.new();
+      informationManager = await ESInformationManager.new(storage.address, 'ESInformationManager');
       registryService = await ESRegistryService.new(storage.address, 'DSTokenTestRegistryService');
       issuer = await ESTokenIssuer.new(storage.address,'DSTokenTestIssuer');
     });
@@ -103,6 +105,8 @@ contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecond
       await storage.adminAddRole(registryService.address, 'write');
       await storage.adminAddRole(token.address, 'write');
       await storage.adminAddRole(issuer.address, 'write');
+      await storage.adminAddRole(informationManager.address, 'write');
+
       await trustService.initialize();
       await registryService.setDSService(TRUST_SERVICE, trustService.address);
       await complianceService.setDSService(TRUST_SERVICE, trustService.address);
@@ -123,8 +127,9 @@ contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecond
       await registryService.setDSService(WALLET_MANAGER, walletManager.address);
       await registryService.setDSService(DS_TOKEN, token.address);
       await walletManager.setDSService(REGISTRY_SERVICE, registryService.address);
+      await informationManager.setDSService(TRUST_SERVICE,trustService.address);
 
-      //Configure issuer
+      // Configure issuer
       await issuer.setDSService(TRUST_SERVICE, trustService.address);
       await issuer.setDSService(DS_TOKEN, token.address);
       await issuer.setDSService(REGISTRY_SERVICE, registryService.address);
@@ -235,8 +240,8 @@ contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecond
       const t2 = await lockManager.getTransferableTokens(usInvestor2,latestTime());
       assert.equal(t2.valueOf(),250); // 250 tokens are locked manually
 
-      const t3 = await complianceService.getComplianceTransferableTokens(usInvestor2,latestTime(),1 * YEARS)
-      assert.equal(t3.valueOf(),250); //should be 250 because the accredited lock has passed, and 250 are locked manually
+      const t3 = await complianceService.getComplianceTransferableTokens(usInvestor2,latestTime(),1 * YEARS);
+      assert.equal(t3.valueOf(),250); // should be 250 because the accredited lock has passed, and 250 are locked manually
 
       let res = await complianceService.preTransferCheck(usInvestor,usInvestor2,250);
       assert.equal(res[0].valueOf(),32); // Hold up 1y
@@ -310,16 +315,41 @@ contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecond
       assert.equal(tx.logs[0].args.who.valueOf(), germanyInvestor);
       assert.equal(tx.logs[0].args.value.valueOf(), 100);
 
-      // //Now it should work
+      // Now it should work
       token.transfer(germanyInvestor2Wallet,1500,{ from: germanyInvestor });
     });
 
-    it('should allow wallet iteration',async function(){
+    it('should allow wallet iteration',async function () {
       // Iterate through all the wallets
       const count = await token.walletCount.call();
-      assert.equal(count.valueOf(),5);    //USinvestor, usinvestorSecondary,usinvestor2,IsraelInvestor, and germanyInvestor2
-    })
+      assert.equal(count.valueOf(),5); // USinvestor, usinvestorSecondary,usinvestor2,IsraelInvestor, and germanyInvestor2
+    });
+  });
+  describe('information handling',function () {
+    it('should handle issuance information correctly', async function () {
+      // await informationManager.setComplianceInformation(1,)
+    });
+    it('should handle investor information correctly', async function () {
+      const tx = await informationManager.setInvestorInformation(US_INVESTOR_ID,17,'https://www.google.com');
+      assert.equal(tx.logs[0].event, 'DSIssuanceInformationManagerInvestorInformationSet');
+      assert.equal(tx.logs[0].args._id.valueOf(), US_INVESTOR_ID);
+      assert.equal(tx.logs[0].args._informationId.valueOf(), 17);
+      assert.equal(tx.logs[0].args._hash, 'https://www.google.com');
 
+      const val = await informationManager.getInvestorInformation.call(US_INVESTOR_ID,17);
+      assert.equal(val,'https://www.google.com');
+    });
+  });
+  describe('special operations',function () {
+    it('should handle correctly issuer,platform and exchange wallets', async function () {
+
+    });
+    it('should seize tokens correctly', async function () {
+
+    });
+    it('should burn tokens correctly', async function () {
+
+    });
     it('should allow upgrading the compliance manager and the token', async function () {
 
     });
