@@ -123,8 +123,12 @@ contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecond
       await registryService.setDSService(WALLET_MANAGER, walletManager.address);
       await registryService.setDSService(DS_TOKEN, token.address);
       await walletManager.setDSService(REGISTRY_SERVICE, registryService.address);
+
+      //Configure issuer
       await issuer.setDSService(TRUST_SERVICE, trustService.address);
-      // await trustService.setRole(ISSUER,issuer.address);
+      await issuer.setDSService(DS_TOKEN, token.address);
+      await issuer.setDSService(REGISTRY_SERVICE, registryService.address);
+      await trustService.setRole(issuer.address,ISSUER);
     });
     it('should get the basic details of the token correctly', async function () {
       const name = await token.name.call();
@@ -192,7 +196,7 @@ contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecond
       // getRegistryService().getAttributeValue(getRegistryService().getInvestor(_wallet), getRegistryService().QUALIFIED()) != getRegistryService().APPROVED()
     });
     it('should register investors via the token issuer',async function () {
-      // await issuer.issueTokens(US_INVESTOR_ID_3,usInvestor3Wallet,1000,0,new Date().getTime(),'',0,US_INVESTOR_COLLISION_HASH_3,'USA');
+      await issuer.issueTokens(ISRAEL_INVESTOR_ID,israelInvestor,777,latestTime(),0,'',0,ISRAEL_INVESTOR_COLLISION_HASH,'Israel');
     });
     it('should be able to issue and have a correct number of eu and us investors', async function () {
       let usInvestorsCount = await complianceService.getUSInvestorsCount.call();
@@ -231,9 +235,8 @@ contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecond
       const t2 = await lockManager.getTransferableTokens(usInvestor2,latestTime());
       assert.equal(t2.valueOf(),250); // 250 tokens are locked manually
 
-      // const t2 = await complianceService.getComplianceTransferableTokens(usInvestor2,latestTime(),latestTime() + 52 * WEEKS)
-      // console.log(t2)
-      // assert.equal(t2,500); //should be 500 because the accredited lock has passed, and 500 are locked manually
+      const t3 = await complianceService.getComplianceTransferableTokens(usInvestor2,latestTime(),1 * YEARS)
+      assert.equal(t3.valueOf(),250); //should be 250 because the accredited lock has passed, and 250 are locked manually
 
       let res = await complianceService.preTransferCheck(usInvestor,usInvestor2,250);
       assert.equal(res[0].valueOf(),32); // Hold up 1y
@@ -314,7 +317,7 @@ contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecond
     it('should allow wallet iteration',async function(){
       // Iterate through all the wallets
       const count = await token.walletCount.call();
-      assert.equal(count.valueOf(),4);    //USinvestor, usinvestorSecondary,usinvestor2, and germanyInvestor2
+      assert.equal(count.valueOf(),5);    //USinvestor, usinvestorSecondary,usinvestor2,IsraelInvestor, and germanyInvestor2
     })
 
     it('should allow upgrading the compliance manager and the token', async function () {
