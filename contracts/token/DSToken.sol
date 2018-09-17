@@ -98,6 +98,8 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
     if (_valueLocked > 0) {
       getLockManager().addManualLockRecord(_to, _valueLocked, _reason, _releaseTime);
     }
+
+    checkWalletsForList(address(0),_to);
   }
 
   function totalIssued() public view returns (uint){
@@ -120,6 +122,7 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
     setUint(TOTAL_SUPPLY, getUint(TOTAL_SUPPLY).sub(_value));
     emit Burn(_who, _value, _reason);
     emit Transfer(_who, address(0), _value);
+    checkWalletsForList(_who,address(0));
   }
 
   //*********************
@@ -138,6 +141,7 @@ contract DSToken is ProxyTarget, DSTokenInterface, ESServiceConsumer, ESPausable
     updateInvestorBalance(_to, _value, true);
     emit Seize(_from, _to, _value, _reason);
     emit Transfer(_from, _to, _value);
+    checkWalletsForList(_from,_to);
   }
 
   //*********************

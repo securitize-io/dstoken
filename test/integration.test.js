@@ -172,7 +172,6 @@ contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecond
       assert.equal(tx.logs[0].args._wallet.valueOf(), spainInvestor);
       assert.equal(tx.logs[0].args._investorId.valueOf(), SPAIN_INVESTOR_ID);
 
-
       await registryService.registerInvestor(GERMANY_INVESTOR_ID, GERMANY_INVESTOR_COLLISION_HASH);
       await registryService.setCountry(GERMANY_INVESTOR_ID, 'Germany');
       await registryService.addWallet(germanyInvestor, GERMANY_INVESTOR_ID);
@@ -245,15 +244,14 @@ contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecond
       res = await complianceService.preTransferCheck(usInvestor3Wallet,usInvestor2,2500);
       assert.equal(res[0].valueOf(),0); // Valid
 
-      //Allow moving between investor's own wallets
-      res = await token.balanceOfInvestor(US_INVESTOR_ID)
+      // Allow moving between investor's own wallets
+      res = await token.balanceOfInvestor(US_INVESTOR_ID);
       assert.equal(res.valueOf(),1000); // 1000 tokens issued
       res = await complianceService.preTransferCheck(usInvestor,usInvestorSecondaryWallet,250);
       assert.equal(res[0].valueOf(),0); // Valid
       let tx = await token.transfer(usInvestorSecondaryWallet,250,{ from: usInvestor });
-      res = await token.balanceOfInvestor(US_INVESTOR_ID)
+      res = await token.balanceOfInvestor(US_INVESTOR_ID);
       assert.equal(res.valueOf(),1000); // Should still be 1000
-
 
       tx = await token.transfer(usInvestor2,2500,{ from: usInvestor3Wallet });
       assert.equal(tx.logs[0].event, 'Transfer');
@@ -310,8 +308,14 @@ contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecond
       assert.equal(tx.logs[0].args.value.valueOf(), 100);
 
       // //Now it should work
-      tx = token.transfer(germanyInvestor2Wallet,1500,{ from: germanyInvestor });
+      token.transfer(germanyInvestor2Wallet,1500,{ from: germanyInvestor });
     });
+
+    it('should allow wallet iteration',async function(){
+      // Iterate through all the wallets
+      const count = await token.walletCount.call();
+      assert.equal(count.valueOf(),4);    //USinvestor, usinvestorSecondary,usinvestor2, and germanyInvestor2
+    })
 
     it('should allow upgrading the compliance manager and the token', async function () {
 
