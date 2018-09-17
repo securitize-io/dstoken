@@ -35,7 +35,7 @@ contract ESIssuanceInformationManager is DSIssuanceInformationManagerInterface, 
    * @param _informationId The type of information needed to be fetched.
    * @return The value.
    */
-  function getInvestorInformation(string _id, uint8 _informationId) public returns (string) {
+  function getInvestorInformation(string _id, uint8 _informationId) public view returns (string) {
     return getString8(INVESTORS, _id, COMPLIANCE, _informationId);
   }
 
@@ -45,10 +45,10 @@ contract ESIssuanceInformationManager is DSIssuanceInformationManagerInterface, 
    * @param _value The value to be set.
    * @return A boolean that indicates if the operation was successful.
    */
-  function setComplianceInformation(uint8 _informationId, uint _value) public onlyIssuerOrAbove returns (bool) {
-    setUint8(COMPLIANCE, _informationId, _value);
+  function setComplianceInformation(string _id, uint8 _informationId, string _value) public onlyIssuerOrAbove returns (bool) {
+    setString8(COMPLIANCE, _id, COMPLIANCE, _informationId, _value);
 
-    emit DSIssuanceInformationManagerComplianceInformationSet(_informationId, _value, msg.sender);
+    emit DSIssuanceInformationManagerComplianceInformationSet(_id, _informationId, _value, msg.sender);
 
     return true;
   }
@@ -58,7 +58,7 @@ contract ESIssuanceInformationManager is DSIssuanceInformationManagerInterface, 
    * @param _informationId The type of information needed to be fetched.
    * @return The value.
    */
-  function getComplianceInformation(uint8 _informationId) public returns (uint) {
-    return getUint8(COMPLIANCE, _informationId);
+  function getComplianceInformation(string _id, uint8 _informationId) public view returns (string) {
+    return getString8(COMPLIANCE, _id, COMPLIANCE, _informationId);
   }
 }
