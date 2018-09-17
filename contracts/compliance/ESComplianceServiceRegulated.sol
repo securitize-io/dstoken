@@ -144,7 +144,7 @@ contract ESComplianceServiceRegulated is ESComplianceService {
       } else if (toRegion == FORBIDDEN) {
         return (26, DESTINATION_RESTRICTED);
       } else if (toRegion == EU && getRegistryService().getAttributeValue(toInvestor, getRegistryService().QUALIFIED()) != getRegistryService().APPROVED()) {
-        if (getUint(EU_RETAIL_INVESTORS_COUNT, toCountry) >= 150 && (keccak256(fromCountry) != keccak256(toCountry) || getToken().balanceOfInvestor(fromInvestor) > _value) &&
+        if (getUint(EU_RETAIL_INVESTORS_COUNT, toCountry) >= 150 && (keccak256(abi.encodePacked(fromCountry)) != keccak256(abi.encodePacked(toCountry)) || getToken().balanceOfInvestor(fromInvestor) > _value) &&
           getToken().balanceOfInvestor(toInvestor) == 0) {
           return (40, MAX_INVESTORS_IN_CATEGORY);
         }
@@ -232,6 +232,12 @@ contract ESComplianceServiceRegulated is ESComplianceService {
       return true;
     }
 
+    function getUSInvestorsCount() public view returns (uint){
+        return getUint(US_INVESTORS_COUNT);
+    }
+    function getEURetailInvestorCount(string _country) public view returns (uint){
+        return getUint(EU_RETAIL_INVESTORS_COUNT,_country);
+    }
     function setUsInvestorsCount(uint256 _amount) public onlyMaster returns (bool) {
       setUint(US_INVESTORS_COUNT, _amount);
 
@@ -240,7 +246,6 @@ contract ESComplianceServiceRegulated is ESComplianceService {
 
     function setEuRetailInvestorsCount(string _country, uint256 _amount) public onlyMaster returns (bool) {
       setUint(EU_RETAIL_INVESTORS_COUNT, _country, _amount);
-
       return true;
     }
 }

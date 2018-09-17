@@ -176,12 +176,12 @@ contract('ESLockManager', function ([owner, wallet, issuerAccount, issuerWallet,
     });
 
     it('Should return 0 because tokens will be locked', async function () {
-      let realeseTime = latestTime()+1000;
+      let releaseTime = latestTime()+1000;
       await this.token.setCap(1000);
       await this.token.issueTokens(owner, 100);
       assert.equal(await this.token.balanceOf(owner), 100);
-      await this.lockManager.addManualLockRecord(owner, 100, REASON_STRING, realeseTime);
-      assert.equal(await this.lockManager.getTransferableTokens(owner, realeseTime - 100), 0);
+      await this.lockManager.addManualLockRecord(owner, 100, REASON_STRING, releaseTime);
+      assert.equal(await this.lockManager.getTransferableTokens(owner, releaseTime - 100), 0);
     });
 
     it('Should return 100 because tokens will be unlocked', async function () {

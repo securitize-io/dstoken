@@ -1,6 +1,6 @@
 {
   "name": "Digital_Securities",
-  "version": "0.9",
+  "version": "v0.9.0",
   "description": "Digital Securities Reference Implementation",
   "main": "truffle.js",
   "directories": {
