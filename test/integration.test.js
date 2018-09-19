@@ -174,7 +174,7 @@ contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecond
       assert.equal(tx.logs[0].event, 'DSRegistryServiceInvestorAdded');
       assert.equal(tx.logs[0].args._investorId.valueOf(), SPAIN_INVESTOR_ID);
       tx = await registryService.setCountry(SPAIN_INVESTOR_ID, 'Spain');
-      assert.equal(tx.logs[0].event, 'DSRegistryServiceInvestorChanged');
+      assert.equal(tx.logs[0].event, 'DSRegistryServiceInvestorCountryChanged');
       assert.equal(tx.logs[0].args._investorId.valueOf(), SPAIN_INVESTOR_ID);
       tx = await registryService.addWallet(spainInvestor, SPAIN_INVESTOR_ID);
       assert.equal(tx.logs[0].event, 'DSRegistryServiceWalletAdded');

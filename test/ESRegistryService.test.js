@@ -106,7 +106,7 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, exch
         const { logs } = await this.registryService.setCountry(investorId, investorCountry);
 
         assert.equal(logs.length, 1);
-        assert.equal(logs[0].event, 'DSRegistryServiceInvestorChanged');
+        assert.equal(logs[0].event, 'DSRegistryServiceInvestorCountryChanged');
         assert.equal(logs[0].args._investorId, investorId);
         assert.equal(logs[0].args._sender, owner);
       });
@@ -167,7 +167,7 @@ contract('ESRegistryService', function ([owner, noneAccount, issuerAccount, exch
             const {logs} = await this.registryService.setAttribute(investorId, attributeTypes[i], attributeStatuses[j], expiry, proofHash);
 
             assert.equal(logs.length, 1);
-            assert.equal(logs[0].event, 'DSRegistryServiceInvestorChanged');
+            assert.equal(logs[0].event, 'DSRegistryServiceInvestorAttributeChanged');
             assert.equal(logs[0].args._investorId, investorId);
             assert.equal(logs[0].args._sender, owner);
 

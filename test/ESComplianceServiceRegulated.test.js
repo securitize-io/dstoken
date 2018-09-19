@@ -1,5 +1,5 @@
 import assertRevert from './helpers/assertRevert';
-const EternalStorage = artifacts.require('EternalStorage');
+const EternalStorage = artifacts.require('DSEternalStorage');
 const ESWalletManager = artifacts.require('ESWalletManager');
 const ESTrustService = artifacts.require('ESTrustService');
 const ESLockManager = artifacts.require('ESLockManager');

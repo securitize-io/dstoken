@@ -123,7 +123,7 @@ contract ESComplianceServiceRegulated is ESComplianceService {
       uint toRegion = getCountryCompliance(toCountry);
 
       if (fromRegion == US && toRegion == US) {
-        if (getComplianceTransferableTokens(_from, uint64(now), uint64(1 years)) < _value) {
+        if (getComplianceTransferableTokens(_from, uint64(now), uint64(365 days)) < _value) {
           return (32, HOLD_UP_1Y);
         }
 
@@ -238,6 +238,7 @@ contract ESComplianceServiceRegulated is ESComplianceService {
     function getEURetailInvestorCount(string _country) public view returns (uint){
         return getUint(EU_RETAIL_INVESTORS_COUNT,_country);
     }
+
     function setUsInvestorsCount(uint256 _amount) public onlyMaster returns (bool) {
       setUint(US_INVESTORS_COUNT, _amount);
 
@@ -246,6 +247,7 @@ contract ESComplianceServiceRegulated is ESComplianceService {
 
     function setEuRetailInvestorsCount(string _country, uint256 _amount) public onlyMaster returns (bool) {
       setUint(EU_RETAIL_INVESTORS_COUNT, _country, _amount);
+
       return true;
     }
 }

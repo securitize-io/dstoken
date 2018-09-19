@@ -50,11 +50,11 @@ contract('ESIssuanceInformationManager', function() {
 
   describe('Set compliance information', function () {
     it(`should not set compliance information because account don't have permissions`, async function () {
-        await assertRevert(this.issuanceInformationManager.setComplianceInformation("1", 1, "1", { from: web3.eth.accounts[1] }));
+        await assertRevert(this.issuanceInformationManager.setComplianceInformation(1, "1", { from: web3.eth.accounts[1] }));
     });
 
     it(`should set compliance information right`, async function () {
-        let tx1 = await this.issuanceInformationManager.setComplianceInformation("1", 1, "1");
+        let tx1 = await this.issuanceInformationManager.setComplianceInformation(1, "1");
         assert.equal(tx1.logs[0].event, 'DSIssuanceInformationManagerComplianceInformationSet');
         assert.equal(tx1.logs[0].args._informationId, 1);
         assert.equal(tx1.logs[0].args._value, "1");
@@ -64,12 +64,12 @@ contract('ESIssuanceInformationManager', function() {
 
   describe('Get compliance information', function () {
     it(`should get compliance information right`, async function () {
-        let tx1 = await this.issuanceInformationManager.setComplianceInformation("1", 1, "1");
+        let tx1 = await this.issuanceInformationManager.setComplianceInformation(1, "1");
         assert.equal(tx1.logs[0].event, 'DSIssuanceInformationManagerComplianceInformationSet');
         assert.equal(tx1.logs[0].args._informationId, 1);
         assert.equal(tx1.logs[0].args._value, "1");
         assert.equal(tx1.logs[0].args._sender.valueOf(), web3.eth.accounts[0]);
-        assert.equal("1", await this.issuanceInformationManager.getComplianceInformation("1", 1));
+        assert.equal("1", await this.issuanceInformationManager.getComplianceInformation(1));
     });
   });
 

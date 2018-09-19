@@ -1,5 +1,5 @@
 import assertRevert from './helpers/assertRevert';
-const EternalStorage = artifacts.require('EternalStorage');
+const EternalStorage = artifacts.require('DSEternalStorage');
 const DSToken = artifacts.require('DSToken');
 const ESComplianceServiceNotRegulated = artifacts.require('ESComplianceServiceNotRegulated');
 const ESComplianceServiceWhitelisted = artifacts.require('ESComplianceServiceWhitelisted');

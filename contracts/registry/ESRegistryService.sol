@@ -31,7 +31,6 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
     deleteAddress(INVESTORS, _id, CREATOR);
     deleteAddress(INVESTORS, _id, LAST_UPDATED_BY);
     deleteString(INVESTORS, _id, COUNTRY);
-    deleteString(INVESTORS, _id, COLLISION_HASH);
 
     for (uint index = 0; index < 16; ++index) {
       deleteUint(INVESTORS, _id, index, VALUE);
@@ -50,7 +49,7 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
     setString(INVESTORS, _id, COUNTRY, _country);
     setAddress(INVESTORS, _id, LAST_UPDATED_BY, msg.sender);
 
-    emit DSRegistryServiceInvestorChanged(_id, msg.sender);
+    emit DSRegistryServiceInvestorCountryChanged(_id, _country, msg.sender);
 
     return true;
   }
@@ -71,7 +70,7 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
     setString8(INVESTORS, _id, _attributeId, PROOF_HASH, _proofHash);
     setAddress(INVESTORS, _id, LAST_UPDATED_BY, msg.sender);
 
-    emit DSRegistryServiceInvestorChanged(_id, msg.sender);
+    emit DSRegistryServiceInvestorAttributeChanged(_id, _attributeId, _value, _expiry, _proofHash, msg.sender);
 
     return true;
   }
@@ -102,7 +101,7 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
   }
 
   function removeWallet(address _address, string _id) public onlyExchangeOrAbove walletExists(_address) walletBelongsToInvestor(_address, _id) returns (bool) {
-    DSTrustServiceInterface trustManager = DSTrustServiceInterface(getDSService(TRUST_SERVICE));
+    DSTrustServiceInterface trustManager = getTrustService();
     require(trustManager.getRole(msg.sender) != trustManager.EXCHANGE() ||
             getAddress(WALLETS, _address, CREATOR) == msg.sender);
 
@@ -121,8 +120,7 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
   }
 
   function getInvestorDetails(address _address) public view returns (string, string) {
-    // TODO: make code cleaner
-    return (getString(WALLETS, _address, OWNER), getCountry(getString(WALLETS, _address, OWNER)));
+    return (getInvestor(_address), getCountry(getInvestor(_address)));
   }
 
   function isInvestor(string _id) public view returns (bool) {
@@ -130,7 +128,7 @@ contract ESRegistryService is ESServiceConsumer, DSRegistryServiceInterface {
   }
 
   function isWallet(address _address) public view returns (bool) {
-    return keccak256(getInvestor(_address)) != keccak256("");
+    return keccak256(abi.encodePacked(getInvestor(_address))) != keccak256("");
   }
 
   function isSpecialWallet(address _address) internal view returns (bool) {

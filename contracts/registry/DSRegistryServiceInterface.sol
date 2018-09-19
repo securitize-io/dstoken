@@ -18,7 +18,8 @@ contract DSRegistryServiceInterface is DSServiceConsumerInterface {
 
   event DSRegistryServiceInvestorAdded(string _investorId, address _sender);
   event DSRegistryServiceInvestorRemoved(string _investorId, address _sender);
-  event DSRegistryServiceInvestorChanged(string _investorId, address _sender);
+  event DSRegistryServiceInvestorCountryChanged(string _investorId, string _country, address _sender);
+  event DSRegistryServiceInvestorAttributeChanged(string _investorId, uint256 _attributeId, uint256 _value, uint256 _expiry, string _proofHash, address _sender);
   event DSRegistryServiceWalletAdded(address _wallet, string _investorId, address _sender);
   event DSRegistryServiceWalletRemoved(address _wallet, string _investorId, address _sender);
 

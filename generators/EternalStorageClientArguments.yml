@@ -4,7 +4,6 @@ uint256:
   - string
   - string,string
   - string,address
-  - string,uint8
   - string,string,string
   - string,string,uint256
   - string,address,string
@@ -19,6 +18,7 @@ address:
   - string,string,string
   - string,address,string
 string:
+  - string,uint8
   - string,string,string
   - string,string,uint256
   - string,address,string
