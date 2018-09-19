@@ -53,6 +53,7 @@ contract ESServiceConsumer is DSServiceConsumerInterface, EternalStorageClient {
 
   function setDSService(uint _serviceId, address _address) public onlyMaster returns (bool) {
     setAddress("services", _serviceId, _address);
+    emit DSServiceSet(_serviceId,_address);
     return true;
   }
 

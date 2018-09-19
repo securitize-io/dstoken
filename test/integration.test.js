@@ -3,6 +3,8 @@ import assertRevert from './helpers/assertRevert';
 
 const DSEternalStorage = artifacts.require('DSEternalStorage');
 const DSToken = artifacts.require('DSToken');
+const ESComplianceServiceNotRegulated = artifacts.require('ESComplianceServiceNotRegulated');
+const ESComplianceServiceWhitelisted = artifacts.require('ESComplianceServiceWhitelisted');
 const ESComplianceServiceRegulated = artifacts.require('ESComplianceServiceRegulated');
 const ESWalletManager = artifacts.require('ESWalletManager');
 const ESInvestorLockManager = artifacts.require('ESInvestorLockManager');
@@ -10,6 +12,7 @@ const ESTrustService = artifacts.require('ESTrustService');
 const ESRegistryService = artifacts.require('ESRegistryService');
 const ESTokenIssuer = artifacts.require('ESTokenIssuer');
 const ESInformationManager = artifacts.require('ESIssuanceInformationManager');
+const ESStandardTokenMock = artifacts.require('ESStandardTokenMock');
 const Proxy = artifacts.require('proxy');
 const TRUST_SERVICE = 1;
 const DS_TOKEN = 2;
@@ -362,11 +365,11 @@ contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecond
     it('should allow sending tokens to and from platform wallets', async function () {
       await token.transfer(platformWallet,2,{ from: usInvestor });
 
-      //BUG - should work!!
-      //await token.transfer(usInvestor,2,{ from: platformWallet });
+      // BUG - should work!!
+      // await token.transfer(usInvestor,2,{ from: platformWallet });
     });
     it('should allow sending tokens to exchange wallets as long as their slots allow', async function () {
-      //TODO: how to check this? is this implemented?
+      // TODO: how to check this? is this implemented?
     });
     it('should seize tokens correctly to issuer wallets', async function () {
       const tx = await token.seize(usInvestor,issuerWallet,4,'testing');
@@ -400,14 +403,53 @@ contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecond
       let tx = await token.pause();
       assert.equal(tx.logs[0].event, 'Pause');
       // should revert
-      await await assertRevert(token.transfer(germanyInvestor,2,{ from: germanyInvestor2Wallet }));
+      await assertRevert(token.transfer(germanyInvestor,2,{ from: germanyInvestor2Wallet }));
       tx = await token.unpause();
       assert.equal(tx.logs[0].event, 'Unpause');
       // now it should be ok
       await token.transfer(germanyInvestor,2,{ from: germanyInvestor2Wallet });
     });
-    it('should allow upgrading the compliance manager and the token', async function () {
+    it('should allow upgrading the compliance manager', async function () {
+      // At first usInvestor should not be allowed to send any tokens to another us investor
 
+      await assertRevert(token.transfer(usInvestor2,2,{ from: usInvestor }));
+      // Create a new compliance service and set the token to work with it
+
+      const complianceServiceWhiteListed = await ESComplianceServiceWhitelisted.new(storage.address, 'DSTokenTestComplianceManager');
+      await storage.adminAddRole(complianceServiceWhiteListed.address, 'write');
+      await complianceServiceWhiteListed.setDSService(REGISTRY_SERVICE, registryService.address);
+      await complianceServiceWhiteListed.setDSService(TRUST_SERVICE, trustService.address);
+
+      const tx = await token.setDSService(COMPLIANCE_SERVICE,complianceServiceWhiteListed.address);
+      assert.equal(tx.logs[0].event, 'DSServiceSet');
+      assert.equal(tx.logs[0].args.serviceId, COMPLIANCE_SERVICE);
+      assert.equal(tx.logs[0].args.serviceAddress, complianceServiceWhiteListed.address);
+
+      // Now it should work
+      await token.transfer(usInvestor2,2,{ from: usInvestor });
+    });
+    it('should allow upgrading the token', async function () {
+      // At first usInvestor should not be allowed to send any tokens to another us investor
+
+      const before = await token.balanceOf(usInvestor);
+      assert(before.valueOf(),998);
+      await assertRevert(token.transfer(0x0001,2,{ from: usInvestor })); // Not a registered wallet
+
+      // Create a new token
+
+      const simpleTokenImpl = await ESStandardTokenMock.new(0x0, '');
+      const tx = await proxy.setTarget(simpleTokenImpl.address);
+      assert.equal(tx.logs[0].event, 'ProxyTargetSet');
+      assert.equal(tx.logs[0].args.target, simpleTokenImpl.address);
+
+
+      let after = await token.balanceOf(usInvestor);
+      assert(after.valueOf(),998);
+
+      // Now it should allow sending to any address
+      await token.transfer(0x0001,2,{ from: usInvestor });
+      after = await token.balanceOf(0x0001);
+      assert(after.valueOf(),2);
     });
   });
 });

@@ -39,4 +39,7 @@ contract DSServiceConsumerInterface {
 
   function getDSService(uint _serviceId) public view returns (address);
   function setDSService(uint _serviceId, address _address) public /*onlyMaster*/ returns (bool);
+
+
+  event DSServiceSet(uint serviceId, address serviceAddress);
 }

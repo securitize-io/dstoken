@@ -3,7 +3,7 @@ pragma solidity ^0.4.21;
 contract Proxy{
   address public owner;
   address public target;
-
+  event ProxyTargetSet(address target);
   constructor () public{
     owner = msg.sender;
   }
@@ -18,6 +18,7 @@ contract Proxy{
 
   function setTarget(address _target) public onlyOwner {
     target = _target;
+    emit ProxyTargetSet(_target);
   }
 
   function () payable public {
