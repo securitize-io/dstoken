@@ -365,11 +365,10 @@ contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecond
     it('should allow sending tokens to and from platform wallets', async function () {
       await token.transfer(platformWallet,2,{ from: usInvestor });
 
-      // BUG - should work!!
-      // await token.transfer(usInvestor,2,{ from: platformWallet });
+      await token.transfer(usInvestor,2,{ from: platformWallet });
     });
     it('should allow sending tokens to exchange wallets as long as their slots allow', async function () {
-      // TODO: how to check this? is this implemented?
+      // TODO: check this after it's fully implemented
     });
     it('should seize tokens correctly to issuer wallets', async function () {
       const tx = await token.seize(usInvestor,issuerWallet,4,'testing');
@@ -383,7 +382,6 @@ contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecond
       // console.log(res);
 
       // Should fail to send FROM the issuer wallet
-      // TODO: why is this working?
       await assertRevert(token.transfer(usInvestor,1,{ from: issuerWallet }));
     });
     it('should burn tokens correctly', async function () {
