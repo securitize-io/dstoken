@@ -160,10 +160,10 @@ contract ESComplianceServiceRegulated is DSComplianceServiceInterface, ESService
             if (getComplianceTransferableTokens(_from, uint64(now), uint64(365 days)) < _value) {
                 return (32, HOLD_UP_1Y);
             }
-            if (forceFullTransfer && getToken().balanceOfInvestor(fromInvestor) > _value) {
-                return (50, ONLY_FULL_TRANSFER);
-            }
             if (toRegion == US) {
+                if (forceFullTransfer && getToken().balanceOfInvestor(fromInvestor) > _value) {
+                    return (50, ONLY_FULL_TRANSFER);
+                }
                 if (isFund && getToken().balanceOfInvestor(fromInvestor) > _value && getUint(US_INVESTORS_COUNT) >= 99 &&
                 getToken().balanceOfInvestor(toInvestor) == 0) {
                     return (41, ONLY_FULL_TRANSFER);
@@ -269,7 +269,7 @@ contract ESComplianceServiceRegulated is DSComplianceServiceInterface, ESService
         return true;
     }
 
-    function getTotalInvestors() public view returns (uint256) {
+    function getTotalInvestorCount() public view returns (uint256) {
         return getUint(TOTAL_INVESTORS);
     }
 

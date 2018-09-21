@@ -323,10 +323,14 @@ contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecond
       token.transfer(germanyInvestor2Wallet,1500,{ from: germanyInvestor });
     });
 
-    it('should allow wallet iteration',async function () {
+    it('should allow wallet iteration and investor counting',async function () {
       // Iterate through all the wallets
-      const count = await token.walletCount.call();
+      let count = await token.walletCount.call();
       assert.equal(count.valueOf(),5); // USinvestor, usinvestorSecondary,usinvestor2,IsraelInvestor, and germanyInvestor2
+
+      count = await complianceService.getTotalInvestorCount.call(); // USInvestor, USInvestor2, IsraelInvestor, GermanyInvestor2
+      assert.equal(count.valueOf(),4);
+
     });
   });
   describe('information handling',function () {
