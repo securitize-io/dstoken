@@ -18,7 +18,6 @@ contract ESComplianceServiceRegulated is DSComplianceServiceInterface, ESService
     bool public initialized = false;
     using SafeMath for uint256;
 
-
     constructor(address _address, string _namespace) public ESServiceConsumer(_address, _namespace) {}
 
     function initialize(bool _isFund, bool _forceFullTransfer, uint _minUsTokens, uint _minEuTokens) public returns (bool) {
@@ -70,7 +69,7 @@ contract ESComplianceServiceRegulated is DSComplianceServiceInterface, ESService
         require(getWalletManager().getWalletType(_to) == getWalletManager().ISSUER());
 
         if (_value > 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_from)) == _value) {
-            adjustInvestorCount(_to, false);
+            adjustInvestorCount(_from, false);
         }
 
         return true;
@@ -140,7 +139,12 @@ contract ESComplianceServiceRegulated is DSComplianceServiceInterface, ESService
             return (16, TOKENS_LOCKED);
         }
 
+        string memory fromInvestor = getRegistryService().getInvestor(_from);
+        uint balanceOfFrom = getToken().balanceOfInvestor(fromInvestor);
         if (getWalletManager().getWalletType(_to) == getWalletManager().PLATFORM()) {
+            if (forceFullTransfer && balanceOfFrom > _value) {
+                return (50, ONLY_FULL_TRANSFER);
+            }
             return checkTransfer(_from, _to, _value);
         }
 
@@ -149,7 +153,7 @@ contract ESComplianceServiceRegulated is DSComplianceServiceInterface, ESService
             return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
         }
 
-        string memory fromInvestor = getRegistryService().getInvestor(_from);
+
         string memory toInvestor = getRegistryService().getInvestor(_to);
         string memory fromCountry = getRegistryService().getCountry(fromInvestor);
         uint fromRegion = getCountryCompliance(fromCountry);
@@ -161,10 +165,10 @@ contract ESComplianceServiceRegulated is DSComplianceServiceInterface, ESService
                 return (32, HOLD_UP_1Y);
             }
             if (toRegion == US) {
-                if (forceFullTransfer && getToken().balanceOfInvestor(fromInvestor) > _value) {
+                if (forceFullTransfer && balanceOfFrom > _value) {
                     return (50, ONLY_FULL_TRANSFER);
                 }
-                if (isFund && getToken().balanceOfInvestor(fromInvestor) > _value && getUint(US_INVESTORS_COUNT) >= 99 &&
+                if (isFund && balanceOfFrom > _value && getUint(US_INVESTORS_COUNT) >= 99 &&
                 getToken().balanceOfInvestor(toInvestor) == 0) {
                     return (41, ONLY_FULL_TRANSFER);
                 }

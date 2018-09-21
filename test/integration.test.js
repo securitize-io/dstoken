@@ -367,9 +367,12 @@ contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecond
       await walletManager.addExchangeWallet(exchangeWallet, exchangeWallet);
     });
     it('should allow sending tokens to and from platform wallets', async function () {
-      await token.transfer(platformWallet,2,{ from: usInvestor });
+      const balance = await token.balanceOfInvestor.call(US_INVESTOR_ID_2);
 
-      await token.transfer(usInvestor,2,{ from: platformWallet });
+      await assertRevert(token.transfer(platformWallet,2,{ from: usInvestor2 })); //Only full transfers
+      await token.transfer(platformWallet,balance,{ from: usInvestor2 });
+
+      await token.transfer(usInvestor2,balance,{ from: platformWallet });
     });
     it('should allow sending tokens to exchange wallets as long as their slots allow', async function () {
       // TODO: check this after it's fully implemented
