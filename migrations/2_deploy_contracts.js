@@ -11,6 +11,7 @@ const ESLockManager = artifacts.require('ESLockManager');
 const ESInvestorLockManager = artifacts.require('ESInvestorLockManager');
 const DSToken = artifacts.require('DSToken');
 const Proxy = artifacts.require('Proxy');
+const ESTokenIssuer = artifacts.require('ESTokenIssuer');
 const argv = require('minimist')(process.argv.slice(2));
 
 const TRUST_SERVICE = 1;
@@ -26,7 +27,6 @@ const NONE = 0;
 const MASTER = 1;
 const ISSUER = 2;
 const EXCHANGE = 4;
-
 
 module.exports = function (deployer) {
   const name = argv.name;
@@ -59,6 +59,7 @@ module.exports = function (deployer) {
   let walletManager = null;
   let lockManager = null;
   let issuanceInformationManager = null;
+  let tokenIssuer = null;
 
   // Deploy eternal storage
   deployer.deploy(DSEternalStorage).then(s => {
@@ -119,6 +120,11 @@ module.exports = function (deployer) {
     return deployer.deploy(Proxy);
   }).then(s => {
     proxy = s;
+
+    return deployer.deploy(ESTokenIssuer, storage.address, `${name}TokenIssuer`);
+  }).then(s => {
+    tokenIssuer = s;
+
     // Connect proxy to token
     return proxy.setTarget(tokenImpl.address);
   }).then(() => {
@@ -146,6 +152,9 @@ module.exports = function (deployer) {
   }).then(() => {
     console.log('Adding write right on eternal storage to token');
     return storage.adminAddRole(token.address, 'write');
+  }).then(() => {
+    console.log('Adding write right on eternal storage to token issuer');
+    return storage.adminAddRole(tokenIssuer.address, 'write');
   }).then(() => {
     console.log('Initializing trust service');
     return trustService.initialize();
@@ -191,8 +200,10 @@ module.exports = function (deployer) {
     console.log('Connecting token to lock manager');
     return token.setDSService(LOCK_MANAGER, lockManager.address);
   }).then(() => {
-    console.log('Connecting token to registry');
-    return token.setDSService(REGISTRY_SERVICE, registry.address);
+    if (registry) {
+      console.log('Connecting token to registry');
+      return token.setDSService(REGISTRY_SERVICE, registry.address);
+    }
   }).then(() => {
     console.log('Connecting compliance service to token');
     return complianceService.setDSService(DS_TOKEN, token.address);
@@ -208,8 +219,10 @@ module.exports = function (deployer) {
     console.log('Connecting lock manager to trust service');
     return lockManager.setDSService(TRUST_SERVICE, trustService.address);
   }).then(() => {
-    console.log('Connecting lock manager to registry');
-    return lockManager.setDSService(REGISTRY_SERVICE, registry.address);
+    if (registry) {
+      console.log('Connecting lock manager to registry');
+      return lockManager.setDSService(REGISTRY_SERVICE, registry.address);
+    }
   }).then(() => {
     console.log('Connecting lock manager to compliance service');
     return lockManager.setDSService(COMPLIANCE_SERVICE, complianceService.address);
@@ -217,10 +230,25 @@ module.exports = function (deployer) {
     console.log('Connecting lock manager to token');
     return lockManager.setDSService(DS_TOKEN, token.address);
   }).then(() => {
+    console.log('Connecting token issuer to trust service');
+    return tokenIssuer.setDSService(TRUST_SERVICE, trustService.address);
+  }).then(() => {
+    if (registry) {
+      console.log('Connecting token issuer to registry');
+      return tokenIssuer.setDSService(REGISTRY_SERVICE, registry.address);
+    }
+  }).then(() => {
+    console.log('Connecting token issuer to token');
+    return tokenIssuer.setDSService(DS_TOKEN, token.address);
+  }).then(() => {
+    console.log("Give issuer permissions to token issuer");
+    return trustService.setRole(tokenIssuer.address, ISSUER);
+  }).then(() => {
     console.log(`\n\nToken ${name} deployment complete`);
     console.log('-------------------------');
     console.log(`Token is at address: ${token.address} (behind proxy)`);
     console.log(`Token implementation is at address: ${tokenImpl.address}`);
+    console.log(`Token issuer is at address: ${tokenIssuer.address}`);
     console.log(`Compliance service is at address: ${complianceService.address}, and is of type ${complianceManagerType}.`);
     console.log(`Wallet manager is at address: ${walletManager.address}`);
     console.log(`Lock manager is at address: ${lockManager.address}, and is of type ${lockManagerType}.`);

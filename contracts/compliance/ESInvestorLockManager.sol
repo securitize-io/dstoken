@@ -54,7 +54,7 @@ contract ESInvestorLockManager is ESLockManager {
         //Put the last lock instead of the lock to remove (this will work even with 1 lock in the list)
         uint lastLockNumber = getUint(LOCK_COUNT, investor);
 
-        require(_lockIndex > 0 && _lockIndex < lastLockNumber,"Index is greater than the number of locks");
+        require(_lockIndex < lastLockNumber,"Index is greater than the number of locks");
 
         lastLockNumber -= 1;
 
