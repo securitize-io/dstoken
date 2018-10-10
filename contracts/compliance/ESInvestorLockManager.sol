@@ -108,7 +108,7 @@ contract ESInvestorLockManager is ESLockManager {
       require (_who != address(0));
       string memory investor = getRegistryService().getInvestor(_who);
       uint lastLockNumber = getUint(LOCK_COUNT,investor);
-      require(_lockIndex > 0 && _lockIndex < lastLockNumber,"Index is greater than the number of locks");
+      require(_lockIndex < lastLockNumber,"Index is greater than the number of locks");
       reasonCode = getUint(LOCKS_REASON,investor,_lockIndex);
       reasonString= getString(LOCKS_REASON_STRING,investor,_lockIndex);
       value = getUint(LOCKS_VALUE,investor,_lockIndex);

@@ -11,7 +11,7 @@ const ESLockManager = artifacts.require('ESLockManager');
 const ESInvestorLockManager = artifacts.require('ESInvestorLockManager');
 const DSToken = artifacts.require('DSToken');
 const Proxy = artifacts.require('Proxy');
-const ESTokenIssuer = artifacts.require('ESTokenIssuer');
+const ESTokenIssuer = artifacts.require('ESMegaTokenIssuer');
 const argv = require('minimist')(process.argv.slice(2));
 
 const TRUST_SERVICE = 1;
@@ -237,6 +237,9 @@ module.exports = function (deployer) {
       console.log('Connecting token issuer to registry');
       return tokenIssuer.setDSService(REGISTRY_SERVICE, registry.address);
     }
+  }).then(() => {
+    console.log('Connecting token issuer to lock manager');
+    return tokenIssuer.setDSService(LOCK_MANAGER, lockManager.address);
   }).then(() => {
     console.log('Connecting token issuer to token');
     return tokenIssuer.setDSService(DS_TOKEN, token.address);

@@ -115,7 +115,7 @@ contract ESLockManager is DSLockManagerInterface,ESServiceConsumer {
     function lockInfo(address _who, uint _lockIndex) public view returns (uint reasonCode, string reasonString, uint value, uint autoReleaseTime){
         require (_who != address(0));
         uint lastLockNumber = getUint(LOCK_COUNT,_who);
-        require(_lockIndex > 0 && _lockIndex < lastLockNumber,"Index is greater than the number of locks");
+        require(_lockIndex < lastLockNumber,"Index is greater than the number of locks");
         reasonCode = getUint(LOCKS_REASON,_who,_lockIndex);
         reasonString= getString(LOCKS_REASON_STRING,_who,_lockIndex);
         value = getUint(LOCKS_VALUE,_who,_lockIndex);
