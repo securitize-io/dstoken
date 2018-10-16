@@ -3,5 +3,5 @@ pragma solidity ^0.4.23;
 import "../DSServiceConsumerInterface.sol";
 
 contract DSTokenIssuerInterface is DSServiceConsumerInterface {
-  function issueTokens(string _id, address _to, uint _value, uint _issuanceTime, uint256 _valueLocked, string _reason, uint64 _releaseTime, string _collisionHash, string _country) public /*onlyIssuerOrAbove*/ returns (bool);
+  function issueTokens(string _id, address _to, uint[] _issuanceValues, string _reason, uint[] _locksValues, uint64[] _releaseTimes, string _collisionHash, string _country, uint[] attributeValues, uint[] attributeExpirations) public /*onlyIssuerOrAbove*/ returns (bool);
 }
