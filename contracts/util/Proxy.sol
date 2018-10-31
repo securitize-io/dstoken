@@ -4,6 +4,8 @@ contract Proxy{
   address public owner;
   address public target;
   event ProxyTargetSet(address target);
+  event ProxyOwnerChanged(address _owner);
+
   constructor () public{
     owner = msg.sender;
   }
@@ -19,6 +21,11 @@ contract Proxy{
   function setTarget(address _target) public onlyOwner {
     target = _target;
     emit ProxyTargetSet(_target);
+  }
+
+  function setOwner(address _owner) public onlyOwner {
+    owner = _owner;
+    emit ProxyOwnerChanged(_owner);
   }
 
   function () payable public {
