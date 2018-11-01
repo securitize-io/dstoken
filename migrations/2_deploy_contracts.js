@@ -11,7 +11,7 @@ const ESLockManager = artifacts.require('ESLockManager');
 const ESInvestorLockManager = artifacts.require('ESInvestorLockManager');
 const DSToken = artifacts.require('DSToken');
 const Proxy = artifacts.require('Proxy');
-const ESTokenIssuer = artifacts.require('ESMegaTokenIssuer');
+const ESTokenIssuer = artifacts.require('ESTokenIssuer');
 const argv = require('minimist')(process.argv.slice(2));
 
 const TRUST_SERVICE = 1;
