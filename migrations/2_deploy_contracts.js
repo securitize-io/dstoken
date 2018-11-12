@@ -12,6 +12,7 @@ const ESInvestorLockManager = artifacts.require('ESInvestorLockManager');
 const DSToken = artifacts.require('DSToken');
 const Proxy = artifacts.require('Proxy');
 const ESTokenIssuer = artifacts.require('ESTokenIssuer');
+const ESWalletRegistrar = artifacts.require('ESWalletRegistrar');
 const argv = require('minimist')(process.argv.slice(2));
 
 const TRUST_SERVICE = 1;
@@ -60,6 +61,7 @@ module.exports = function (deployer) {
   let lockManager = null;
   let issuanceInformationManager = null;
   let tokenIssuer = null;
+  let walletRegistrar = null;
 
   // Deploy eternal storage
   deployer.deploy(DSEternalStorage).then(s => {
@@ -125,6 +127,10 @@ module.exports = function (deployer) {
   }).then(s => {
     tokenIssuer = s;
 
+    return deployer.deploy(ESWalletRegistrar, storage.address, `${name}WalletRegistrar`);
+  }).then(s => {
+    walletRegistrar = s;
+
     // Connect proxy to token
     return proxy.setTarget(tokenImpl.address);
   }).then(() => {
@@ -156,6 +162,9 @@ module.exports = function (deployer) {
     console.log('Adding write right on eternal storage to token issuer');
     return storage.adminAddRole(tokenIssuer.address, 'write');
   }).then(() => {
+    console.log('Adding write right on eternal storage to token issuer');
+    return storage.adminAddRole(walletRegistrar.address, 'write');
+  }).then(() => {
     console.log('Initializing trust service');
     return trustService.initialize();
   }).then(() => {
@@ -172,6 +181,9 @@ module.exports = function (deployer) {
   }).then(() => {
     console.log('Connecting compliance manager to lock manager');
     return complianceService.setDSService(LOCK_MANAGER, lockManager.address);
+  }).then(() => {
+    console.log('Connecting compliance service to token');
+    return complianceService.setDSService(DS_TOKEN, token.address);
   }).then(() => {
     if (registry) {
       console.log('Connecting registry to trust service');
@@ -204,9 +216,6 @@ module.exports = function (deployer) {
       console.log('Connecting token to registry');
       return token.setDSService(REGISTRY_SERVICE, registry.address);
     }
-  }).then(() => {
-    console.log('Connecting compliance service to token');
-    return complianceService.setDSService(DS_TOKEN, token.address);
   }).then(() => {
     console.log('Connecting wallet manager to trust service');
     return walletManager.setDSService(TRUST_SERVICE, trustService.address);
@@ -244,8 +253,17 @@ module.exports = function (deployer) {
     console.log('Connecting token issuer to token');
     return tokenIssuer.setDSService(DS_TOKEN, token.address);
   }).then(() => {
+    console.log('Connecting wallet registrar to trust service');
+    return walletRegistrar.setDSService(TRUST_SERVICE, trustService.address);
+  }).then(() => {
+    console.log('Connecting wallet registrar to registry');
+    return walletRegistrar.setDSService(REGISTRY_SERVICE, registry.address);
+  }).then(() => {
     console.log("Give issuer permissions to token issuer");
     return trustService.setRole(tokenIssuer.address, ISSUER);
+  }).then(() => {
+    console.log("Give issuer permissions to wallet registrar");
+    return trustService.setRole(walletRegistrar.address, ISSUER);
   }).then(() => {
     console.log(`\n\nToken ${name} deployment complete`);
     console.log('-------------------------');
