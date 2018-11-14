@@ -265,7 +265,7 @@ module.exports = function (deployer) {
     console.log("Give issuer permissions to wallet registrar");
     return trustService.setRole(walletRegistrar.address, ISSUER);
   }).then(() => {
-    console.log(`\n\nToken "${name}" [${symbol}] (decimals: ${decimals}) deployment complete`);
+    console.log(`\n\nToken "${name}" (${symbol}) [decimals: ${decimals}] deployment complete`);
     console.log('-------------------------');
     console.log(`Token is at address (2): ${token.address} (behind proxy)`);
     console.log(`Trust service is at address (1): ${trustService.address}`);
