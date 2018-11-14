@@ -265,16 +265,17 @@ module.exports = function (deployer) {
     console.log("Give issuer permissions to wallet registrar");
     return trustService.setRole(walletRegistrar.address, ISSUER);
   }).then(() => {
-    console.log(`\n\nToken ${name} deployment complete`);
+    console.log(`\n\nToken "${name}" (${symbol}) (decimals: ${decimals}) deployment complete`);
     console.log('-------------------------');
-    console.log(`Token is at address: ${token.address} (behind proxy)`);
+    console.log(`Token is at address (2): ${token.address} (behind proxy)`);
     console.log(`Token implementation is at address: ${tokenImpl.address}`);
     console.log(`Token issuer is at address: ${tokenIssuer.address}`);
-    console.log(`Compliance service is at address: ${complianceService.address}, and is of type ${complianceManagerType}.`);
-    console.log(`Wallet manager is at address: ${walletManager.address}`);
-    console.log(`Lock manager is at address: ${lockManager.address}, and is of type ${lockManagerType}.`);
-    console.log(`Trust service is at address: ${trustService.address}`);
+    console.log(`Compliance service is at address (8): ${complianceService.address}, and is of type ${complianceManagerType}.`);
+    console.log(`Wallet manager is at address (32): ${walletManager.address}`);
+    console.log(`Lock manager is at address (64): ${lockManager.address}, and is of type ${lockManagerType}.`);
+    console.log(`Trust service is at address (1): ${trustService.address}`);
     console.log(`Eternal storage is at address: ${storage.address}`);
+    console.log(`Wallet registrar is at address: ${walletRegistrar.address}`);
     if (registry) {
       console.log(`Investor registry is at address: ${registry.address}`);
     } else {
