@@ -1,5 +1,5 @@
 import assertRevert from './helpers/assertRevert';
-const EternalStorage = artifacts.require('EternalStorage');
+const EternalStorage = artifacts.require('DSEternalStorage');
 const ESWalletManager = artifacts.require('ESWalletManager');
 const ESTrustService = artifacts.require('ESTrustService');
 const ESInvestorLockManager = artifacts.require('ESInvestorLockManager');
@@ -23,8 +23,8 @@ const NONE = 0;
 const MASTER = 1;
 const ISSUER = 2;
 const EXCHANGE = 4;
-const LOCK_INDEX = 1;
-const REASON_CODE = 1;
+const LOCK_INDEX = 0;
+const REASON_CODE = 0;
 const REASON_STRING = "Test";
 
 const WALLET_ID = "1";
@@ -112,14 +112,6 @@ contract('ESInvestorLockManager', function ([owner, wallet, issuerAccount, issue
   });
 
   describe('Remove Lock Record:', function () {
-    it('Should revert due to lockIndex = 0', async function () {
-      await this.registryService.registerInvestor(WALLET_ID, "wallet");
-      await this.registryService.addWallet(wallet, WALLET_ID);
-      await this.lockManager.addManualLockRecord(wallet, 100, REASON_STRING, latestTime()+1000, {from: issuerAccount});
-      assert.equal(await this.lockManager.lockCount(wallet), 1);
-      await assertRevert(this.lockManager.removeLockRecord(wallet, 0));
-    });
-
     it('Should revert due to lockIndex > lastLockNumber', async function () {
       await this.registryService.registerInvestor(WALLET_ID, "wallet");
       await this.registryService.addWallet(wallet, WALLET_ID);
@@ -154,9 +146,8 @@ contract('ESInvestorLockManager', function ([owner, wallet, issuerAccount, issue
       await this.lockManager.addManualLockRecord(owner, 100, REASON_STRING, latestTime()+1000, {from: issuerAccount});
       assert.equal(await this.lockManager.lockCount(owner), 1);
       assert.equal(await this.lockManager.getTransferableTokens(owner, latestTime()), 0);
-      //Why is not working ??? 
-      /*await this.lockManager.removeLockRecord(wallet, LOCK_INDEX, {from: issuerAccount}); <- revert here
-      assert.equal(await this.lockManager.lockCount(wallet), 1);*/
+      await this.lockManager.removeLockRecord(owner, LOCK_INDEX, {from: issuerAccount});
+      assert.equal(await this.lockManager.lockCount(owner), 0);
     });
   });
 
@@ -176,20 +167,12 @@ contract('ESInvestorLockManager', function ([owner, wallet, issuerAccount, issue
   });
 
   describe('Lock info:', function () {
-    it('Should revert due to lockIndex = 0', async function () {
-      await this.registryService.registerInvestor(WALLET_ID, "wallet");
-      await this.registryService.addWallet(wallet, WALLET_ID);
-      await this.lockManager.addManualLockRecord(wallet, 100, REASON_STRING, latestTime()+1000, {from: issuerAccount});
-      assert.equal(await this.lockManager.lockCount(wallet), 1);
-      await assertRevert(this.lockManager.lockInfo(wallet, 0));
-    });
-
     it('Should revert due to lockIndex > lastLockNumber', async function () {
       await this.registryService.registerInvestor(WALLET_ID, "wallet");
       await this.registryService.addWallet(wallet, WALLET_ID);
       await this.lockManager.addManualLockRecord(wallet, 100, REASON_STRING, latestTime()+1000, {from: issuerAccount});
       assert.equal(await this.lockManager.lockCount(wallet), 1);
-      await assertRevert(this.lockManager.lockInfo(wallet, 0));
+      await assertRevert(this.lockManager.lockInfo(wallet, 1));
     });
 
     it('Should pass', async function () {
@@ -199,12 +182,11 @@ contract('ESInvestorLockManager', function ([owner, wallet, issuerAccount, issue
       await this.lockManager.addManualLockRecord(wallet, 100, REASON_STRING, realeseTime, {from: issuerAccount});
       assert.equal(await this.lockManager.lockCount(wallet), 1);
 
-      // Why not working ??
-      /*let info = await this.lockManager.lockInfo(wallet, LOCK_INDEX); <- revert here
+      let info = await this.lockManager.lockInfo(wallet, LOCK_INDEX);
       assert.equal(info[0], REASON_CODE);
       assert.equal(info[1], REASON_STRING);
       assert.equal(info[2], 100);
-      assert.equal(info[3], realeseTime);*/
+      assert.equal(info[3], realeseTime);
     });
   });
 

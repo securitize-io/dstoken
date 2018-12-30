@@ -205,7 +205,7 @@ contract('Integration', function ([_, issuerWallet, usInvestor, usInvestorSecond
       // getRegistryService().getAttributeValue(getRegistryService().getInvestor(_wallet), getRegistryService().QUALIFIED()) != getRegistryService().APPROVED()
     });
     it('should register investors via the token issuer', async function () {
-      await issuer.issueTokens(ISRAEL_INVESTOR_ID, israelInvestor, 777, latestTime(), 0, '', 0, ISRAEL_INVESTOR_COLLISION_HASH, 'Israel');
+      await issuer.issueTokens(ISRAEL_INVESTOR_ID, israelInvestor, [777, latestTime()], '', [], [], ISRAEL_INVESTOR_COLLISION_HASH, 'Israel', [1,0,0], [0,0,0]);
     });
     it('should be able to issue and have a correct number of eu and us investors', async function () {
       let usInvestorsCount = await complianceService.getUSInvestorsCount.call();

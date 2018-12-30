@@ -59,12 +59,12 @@ contract ESInvestorLockManager is ESLockManager {
         lastLockNumber -= 1;
 
         //Emit must be done on start ,because we're going to overwrite this value
-        emit Unlocked(_to,getUint(LOCKS_VALUE,investor,_lockIndex),getUint(LOCKS_REASON,investor,_lockIndex),getString("locks_reasonString",investor,_lockIndex),getUint("locks_releaseTime",investor,_lockIndex));
+        emit Unlocked(_to,getUint(LOCKS_VALUE,investor,_lockIndex),getUint(LOCKS_REASON,investor,_lockIndex),getString(LOCKS_REASON_STRING,investor,_lockIndex),getUint(LOCKS_RELEASE_TIME,investor,_lockIndex));
 
-        //Move the  the lock
+        //Move the lock
         uint reasonCode = getUint(LOCKS_REASON,investor,lastLockNumber);
 
-        setLockInfoImpl(investor, _lockIndex, getUint(LOCKS_VALUE,investor,lastLockNumber), reasonCode, getString("locks_reasonString",investor,lastLockNumber), getUint("locks_releaseTime",investor,lastLockNumber));
+        setLockInfoImpl(investor, _lockIndex, getUint(LOCKS_VALUE,investor,lastLockNumber), reasonCode, getString(LOCKS_REASON_STRING,investor,lastLockNumber), getUint(LOCKS_RELEASE_TIME,investor,lastLockNumber));
 
         //delete the last _lock
         //Remove from reverse index
