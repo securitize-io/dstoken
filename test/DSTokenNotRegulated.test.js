@@ -1,14 +1,14 @@
 import assertRevert from './helpers/assertRevert';
-const EternalStorage = artifacts.require('DSEternalStorage');
-const DSToken = artifacts.require('DSToken');
-const ESComplianceServiceNotRegulated = artifacts.require('ESComplianceServiceNotRegulated');
-const ESComplianceServiceWhitelisted = artifacts.require('ESComplianceServiceWhitelisted');
-const ESWalletManager = artifacts.require('ESWalletManager');
-const ESLockManager = artifacts.require('ESLockManager');
-const ESTrustService = artifacts.require('ESTrustService');
-const ESRegistryService = artifacts.require('ESRegistryService');
+const EternalStorage = artifacts.require('DSEternalStorageVersioned');
+const DSToken = artifacts.require('DSTokenVersioned');
+const ESComplianceServiceNotRegulated = artifacts.require('ESComplianceServiceNotRegulatedVersioned');
+const ESComplianceServiceWhitelisted = artifacts.require('ESComplianceServiceWhitelistedVersioned');
+const ESWalletManager = artifacts.require('ESWalletManagerVersioned');
+const ESLockManager = artifacts.require('ESLockManagerVersioned');
+const ESTrustService = artifacts.require('ESTrustServiceVersioned');
+const ESRegistryService = artifacts.require('ESRegistryServiceVersioned');
 
-const Proxy = artifacts.require('proxy');
+const Proxy = artifacts.require('ProxyVersioned');
 const TRUST_SERVICE=1;
 const DS_TOKEN=2;
 const REGISTRY_SERVICE=4;

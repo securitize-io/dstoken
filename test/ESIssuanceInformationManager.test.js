@@ -1,7 +1,7 @@
 import assertRevert from './helpers/assertRevert';
-const DSEternalStorage = artifacts.require('DSEternalStorage');
-const ESIssuanceInformationManager = artifacts.require('ESIssuanceInformationManager');
-const ESTrustService = artifacts.require('ESTrustService');
+const DSEternalStorage = artifacts.require('DSEternalStorageVersioned');
+const ESIssuanceInformationManager = artifacts.require('ESIssuanceInformationManagerVersioned');
+const ESTrustService = artifacts.require('ESTrustServiceVersioned');
 
 const TRUST_SERVICE=1;
 

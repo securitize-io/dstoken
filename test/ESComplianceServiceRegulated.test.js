@@ -1,11 +1,12 @@
 import assertRevert from './helpers/assertRevert';
-const EternalStorage = artifacts.require('DSEternalStorage');
-const ESWalletManager = artifacts.require('ESWalletManager');
-const ESTrustService = artifacts.require('ESTrustService');
-const ESLockManager = artifacts.require('ESLockManager');
-const DSToken = artifacts.require('DSToken');
-const ESComplianceServiceRegulated = artifacts.require('ESComplianceServiceRegulated');
-const ESRegistryService = artifacts.require('ESRegistryService');
+const EternalStorage = artifacts.require('DSEternalStorageVersioned');
+const ESWalletManager = artifacts.require('ESWalletManagerVersioned');
+const ESTrustService = artifacts.require('ESTrustServiceVersioned');
+const ESLockManager = artifacts.require('ESLockManagerVersioned');
+const DSToken = artifacts.require('DSTokenVersioned');
+const ESComplianceServiceRegulated = artifacts.require('ESComplianceServiceRegulatedVersioned');
+const ESRegistryService = artifacts.require('ESRegistryServiceVersioned');
+const ESComplianceConfigurationService = artifacts.require('ESComplianceConfigurationServiceVersioned');
 
 let latestTime = require('./utils/latestTime');
 let increaseTimeTo = require('./helpers/increaseTime');
@@ -19,13 +20,14 @@ const duration = {
   years: function (val) { return val * this.days(365); },
 };
 
-const Proxy = artifacts.require('proxy');
+const Proxy = artifacts.require('ProxyVersioned');
 const TRUST_SERVICE = 1;
 const DS_TOKEN = 2;
 const REGISTRY_SERVICE = 4;
 const COMPLIANCE_SERVICE = 8;
 const WALLET_MANAGER = 32;
 const LOCK_MANAGER = 64;
+const COMPLIANCE_CONFIGURATION_SERVICE=256;
 
 const NONE = 0;
 const ISSUER = 2;
@@ -40,7 +42,7 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issu
     this.storage = await EternalStorage.new();
     this.trustService = await ESTrustService.new(this.storage.address, 'DSTokenTestTrustManager');
     this.complianceService = await ESComplianceServiceRegulated.new(this.storage.address, 'DSTokenTestComplianceManager');
-    await this.complianceService.initialize(true, true, 0, 0);
+    this.complianceConfiguration = await ESComplianceConfigurationService.new(this.storage.address, 'DSTokenTestComplianceConfiguration');
     this.walletManager = await ESWalletManager.new(this.storage.address, 'DSTokenTestWalletManager');
     this.lockManager = await ESLockManager.new(this.storage.address, 'DSTokenTestLockManager');
     this.tokenImpl = await DSToken.new();
@@ -55,6 +57,7 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issu
     await this.storage.adminAddRole(this.lockManager.address, 'write');
     await this.storage.adminAddRole(this.registryService.address, 'write');
     await this.storage.adminAddRole(this.token.address, 'write');
+    await this.storage.adminAddRole(this.complianceConfiguration.address, 'write');
     await this.trustService.initialize();
     await this.registryService.setDSService(TRUST_SERVICE, this.trustService.address);
     await this.registryService.setDSService(WALLET_MANAGER, this.walletManager.address);
@@ -64,6 +67,8 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issu
     await this.complianceService.setDSService(TRUST_SERVICE, this.trustService.address);
     await this.complianceService.setDSService(WALLET_MANAGER, this.walletManager.address);
     await this.complianceService.setDSService(LOCK_MANAGER, this.lockManager.address);
+    await this.complianceService.setDSService(COMPLIANCE_CONFIGURATION_SERVICE, this.complianceConfiguration.address);
+    await this.complianceConfiguration.setDSService(TRUST_SERVICE, this.trustService.address);
     await this.token.setDSService(TRUST_SERVICE, this.trustService.address);
     await this.token.setDSService(COMPLIANCE_SERVICE, this.complianceService.address);
     await this.token.setDSService(WALLET_MANAGER, this.walletManager.address);
@@ -81,8 +86,9 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issu
     await this.lockManager.setDSService(DS_TOKEN, this.token.address);
 
     await this.trustService.setRole(issuerAccount, ISSUER);
-    await this.complianceService.setCountryCompliance('US', 1);
-    await this.complianceService.setCountryCompliance('EU', 2);
+    await this.complianceConfiguration.setCountryCompliance('US', 1);
+    await this.complianceConfiguration.setCountryCompliance('EU', 2);
+    await this.complianceConfiguration.setAll([0,0,0,0,0,0,0,0,0,0,0,0,150],[true,false]);
   });
 
   describe('Validate issuance(recordIssuance):', function () {
@@ -215,7 +221,7 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issu
     });
 
     it('Should prevent chinese investors', async function () {
-      await this.complianceService.setCountryCompliance('CH', 4);
+      await this.complianceConfiguration.setCountryCompliance('CH', 4);
       await this.registryService.registerInvestor(walletID, 'wallet');
       await this.registryService.registerInvestor(walletID2, 'wallet1');
       await this.registryService.setCountry(walletID, 'US');
@@ -370,8 +376,8 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issu
       await this.registryService.addWallet(owner, walletID2);
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
-      await this.complianceService.setCountryCompliance('US', 1);
-      await this.complianceService.setCountryCompliance('EU', 2);
+      await this.complianceConfiguration.setCountryCompliance('US', 1);
+      await this.complianceConfiguration.setCountryCompliance('EU', 2);
       assert.equal(await this.token.balanceOf(wallet), 100);
       let [a, b] = await this.complianceService.preTransferCheck(wallet, owner, 10);
       assert.equal(a.toNumber(), 32);
@@ -387,8 +393,8 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issu
       await this.registryService.addWallet(owner, walletID2);
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
-      await this.complianceService.setCountryCompliance('US', 1);
-      await this.complianceService.setCountryCompliance('EU', 2);
+      await this.complianceConfiguration.setCountryCompliance('US', 1);
+      await this.complianceConfiguration.setCountryCompliance('EU', 2);
       assert.equal(await this.token.balanceOf(wallet), 100);
       await increaseTimeTo(duration.days(370));
       let [a, b] = await this.complianceService.preTransferCheck(wallet, owner, 50);
@@ -405,8 +411,8 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issu
       await this.registryService.addWallet(owner, walletID2);
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
-      await this.complianceService.setCountryCompliance('US', 1);
-      await this.complianceService.setCountryCompliance('EU', 2);
+      await this.complianceConfiguration.setCountryCompliance('US', 1);
+      await this.complianceConfiguration.setCountryCompliance('EU', 2);
       assert.equal(await this.token.balanceOf(wallet), 100);
       let [a, b] = await this.complianceService.preTransferCheck(wallet, owner, 10);
       assert.equal(a.toNumber(), 25);
@@ -423,8 +429,8 @@ contract('ESComplianceServiceRegulated', function ([owner, wallet, wallet1, issu
       await this.walletManager.addPlatformWallet(platformWallet);
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
-      await this.complianceService.setCountryCompliance('US', 1);
-      await this.complianceService.setCountryCompliance('EU', 2);
+      await this.complianceConfiguration.setCountryCompliance('US', 1);
+      await this.complianceConfiguration.setCountryCompliance('EU', 2);
       assert.equal(await this.token.balanceOf(wallet), 100);
       let [a, b] = await this.complianceService.preTransferCheck(wallet, platformWallet, 100);
       assert.equal(a.toNumber(), 0);

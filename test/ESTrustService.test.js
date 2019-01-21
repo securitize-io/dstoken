@@ -1,6 +1,6 @@
 import assertRevert from './helpers/assertRevert';
-const EternalStorage = artifacts.require('EternalStorage');
-const ESTrustService = artifacts.require('ESTrustService');
+const EternalStorage = artifacts.require('DSEternalStorageVersioned');
+const ESTrustService = artifacts.require('ESTrustServiceVersioned');
 
 const NONE = 0;
 const MASTER = 1;

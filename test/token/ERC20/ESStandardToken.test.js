@@ -1,11 +1,11 @@
 import assertRevert from '../../helpers/assertRevert';
-const EternalStorage = artifacts.require('EternalStorage');
-const ESStandardToken = artifacts.require('DSToken');
-const ESComplianceServiceNotRegulated = artifacts.require('ESComplianceServiceNotRegulated');
-const ESTrustService = artifacts.require('ESTrustService');
-const ESWalletManager = artifacts.require('ESWalletManager');
-const ESLockManager = artifacts.require('ESLockManager');
-const ESRegistryService = artifacts.require('ESRegistryService');
+const EternalStorage = artifacts.require('DSEternalStorageVersioned');
+const ESStandardToken = artifacts.require('DSTokenVersioned');
+const ESComplianceServiceNotRegulated = artifacts.require('ESComplianceServiceNotRegulatedVersioned');
+const ESTrustService = artifacts.require('ESTrustServiceVersioned');
+const ESWalletManager = artifacts.require('ESWalletManagerVersioned');
+const ESLockManager = artifacts.require('ESLockManagerVersioned');
+const ESRegistryService = artifacts.require('ESRegistryServiceVersioned');
 
 const TRUST_SERVICE=1;
 const DS_TOKEN=2;

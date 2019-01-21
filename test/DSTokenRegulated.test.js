@@ -1,13 +1,14 @@
 import assertRevert from './helpers/assertRevert';
-const DSEternalStorage = artifacts.require('DSEternalStorage');
-const DSToken = artifacts.require('DSToken');
-const ESComplianceServiceRegulated = artifacts.require('ESComplianceServiceRegulated');
-const ESWalletManager = artifacts.require('ESWalletManager');
-const ESInvestorLockManager = artifacts.require('ESInvestorLockManager');
-const ESTrustService = artifacts.require('ESTrustService');
-const ESRegistryService = artifacts.require('ESRegistryService');
+const DSEternalStorage = artifacts.require('DSEternalStorageVersioned');
+const DSToken = artifacts.require('DSTokenVersioned');
+const ESComplianceServiceRegulated = artifacts.require('ESComplianceServiceRegulatedVersioned');
+const ESWalletManager = artifacts.require('ESWalletManagerVersioned');
+const ESInvestorLockManager = artifacts.require('ESInvestorLockManagerVersioned');
+const ESTrustService = artifacts.require('ESTrustServiceVersioned');
+const ESRegistryService = artifacts.require('ESRegistryServiceVersioned');
+const ESComplianceConfigurationService = artifacts.require('ESComplianceConfigurationServiceVersioned');
 
-const Proxy = artifacts.require('proxy');
+const Proxy = artifacts.require('ProxyVersioned');
 const TRUST_SERVICE=1;
 const DS_TOKEN=2;
 const REGISTRY_SERVICE=4;
@@ -16,6 +17,7 @@ const COMMS_SERVICE=16;
 const WALLET_MANAGER=32;
 const LOCK_MANAGER=64;
 const ISSUANCE_INFORMATION_MANAGER=128;
+const COMPLIANCE_CONFIGURATION_SERVICE=256;
 
 const NONE = 0;
 
@@ -62,7 +64,7 @@ contract('DSToken (regulated)', function ([_, issuerWallet, usInvestor, usInvest
     this.storage = await DSEternalStorage.new();
     this.trustService = await ESTrustService.new(this.storage.address, 'DSTokenTestTrustManager');
     this.complianceService = await ESComplianceServiceRegulated.new(this.storage.address, 'DSTokenTestComplianceManager');
-    await this.complianceService.initialize(true, true, 0, 0);
+    this.complianceConfiguration = await ESComplianceConfigurationService.new(this.storage.address, 'DSTokenTestComplianceConfiguration');
     this.walletManager = await ESWalletManager.new(this.storage.address, 'DSTokenTestWalletManager');
     this.lockManager = await ESInvestorLockManager.new(this.storage.address, 'DSTokenTestLockManager');
     this.tokenImpl = await DSToken.new();
@@ -77,12 +79,15 @@ contract('DSToken (regulated)', function ([_, issuerWallet, usInvestor, usInvest
     await this.storage.adminAddRole(this.lockManager.address, 'write');
     await this.storage.adminAddRole(this.registryService.address, 'write');
     await this.storage.adminAddRole(this.token.address, 'write');
+    await this.storage.adminAddRole(this.complianceConfiguration.address, 'write');
     await this.trustService.initialize();
     await this.registryService.setDSService(TRUST_SERVICE,this.trustService.address);
     await this.complianceService.setDSService(TRUST_SERVICE,this.trustService.address);
     await this.complianceService.setDSService(WALLET_MANAGER,this.walletManager.address);
     await this.complianceService.setDSService(LOCK_MANAGER,this.lockManager.address);
     await this.complianceService.setDSService(REGISTRY_SERVICE, this.registryService.address);
+    await this.complianceService.setDSService(COMPLIANCE_CONFIGURATION_SERVICE, this.complianceConfiguration.address);
+    await this.complianceConfiguration.setDSService(TRUST_SERVICE, this.trustService.address);
     await this.token.setDSService(TRUST_SERVICE,this.trustService.address);
     await this.token.setDSService(COMPLIANCE_SERVICE,this.complianceService.address);
     await this.token.setDSService(WALLET_MANAGER,this.walletManager.address);
@@ -99,10 +104,10 @@ contract('DSToken (regulated)', function ([_, issuerWallet, usInvestor, usInvest
     await this.walletManager.setDSService(REGISTRY_SERVICE,this.registryService.address);
 
     // Basic seed
-    await this.complianceService.setCountryCompliance("USA", US);
-    await this.complianceService.setCountryCompliance("Spain", EU);
-    await this.complianceService.setCountryCompliance("Germany", EU);
-    await this.complianceService.setCountryCompliance("China", FORBIDDEN);
+    await this.complianceConfiguration.setCountryCompliance("USA", US);
+    await this.complianceConfiguration.setCountryCompliance("Spain", EU);
+    await this.complianceConfiguration.setCountryCompliance("Germany", EU);
+    await this.complianceConfiguration.setCountryCompliance("China", FORBIDDEN);
 
     // Registering the investors and wallets
     await this.registryService.registerInvestor(US_INVESTOR_ID, US_INVESTOR_COLLISION_HASH);
@@ -129,6 +134,8 @@ contract('DSToken (regulated)', function ([_, issuerWallet, usInvestor, usInvest
     await this.registryService.registerInvestor(ISRAEL_INVESTOR_ID, ISRAEL_INVESTOR_COLLISION_HASH);
     await this.registryService.setCountry(ISRAEL_INVESTOR_ID, "Israel");
     await this.registryService.addWallet(israelInvestor, ISRAEL_INVESTOR_ID);
+
+    await this.complianceConfiguration.setAll([0,0,0,0,0,0,0,0,0,0,0,0,150],[true,false]);
   });
 
   describe('creation', function () {

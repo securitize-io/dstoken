@@ -1,7 +1,7 @@
 pragma solidity ^0.4.21;
 
-import '../zeppelin/ownership/Ownable.sol';
-import './DSEternalStorage.sol';
+import '../../zeppelin/ownership/Ownable.sol';
+import './DSEternalStorageVersioned.sol';
 
 /**
 * @title EternalStorageClient
@@ -10,50 +10,71 @@ import './DSEternalStorage.sol';
 *
 * NOTE: this is a AUTOMATICALLY GENERATED file, and can be OVERWRITTEN. it should not be manually edited.
 */
+<% for (let i = 0 ; i < names.length ; i++) { %>
+library EternalStorageClient<%=names[i]%>Library {
+  function get<%=names[i]%>Generic(EternalStorageClientVersioned _client, bytes encoded) view internal returns (<%=types[i]%>) {
+    return _client.eternalStorage().get<%=names[i]%>(keccak256(encoded));
+  }
 
+  function set<%=names[i]%>Generic(EternalStorageClientVersioned _client, bytes encoded, <%=types[i]%> v) internal {
+    _client.eternalStorage().set<%=names[i]%>(keccak256(encoded), v);
+  }
 
-contract EternalStorageClient is Ownable {
-  DSEternalStorage public eternalStorage;
+  function delete<%=names[i]%>Generic(EternalStorageClientVersioned _client, bytes encoded) internal {
+    _client.eternalStorage().delete<%=names[i]%>(keccak256(encoded));
+  }<% const functionArguments = functionArgumentsByType[types[i]] || [];
+      for (let j = 0 ; j < functionArguments.length ; j++) {
+      functionArgs = functionArguments[j].split(",");
+      const arguments = functionArgs.map((arg, k) => `${arg} p${k+1}`).join(",");
+      const argumentTypes = functionArgs.map((arg) => abbrs[arg]).join("");
+      const argumentsNoType = functionArgs.map((arg, k) => `p${k+1}`).join(",");
+      const hasEightBit = functionArgs.includes('uint8') ? '8' : ''; %>
+
+  function get<%=`${names[i]}${hasEightBit}`%>(EternalStorageClientVersioned _client, <%= arguments %>) view public returns (<%=types[i]%>) {
+    return get<%=names[i]%>Generic(_client, abi.encodePacked(_client.namespace(),<%= argumentsNoType %>));
+  }
+
+  function set<%=`${names[i]}${hasEightBit}`%>(EternalStorageClientVersioned _client, <%= arguments %>, <%=types[i]%> v) public {
+    set<%=names[i]%>Generic(_client, abi.encodePacked(_client.namespace(),<%= argumentsNoType %>), v);
+  }
+
+  function delete<%=`${names[i]}${hasEightBit}`%>(EternalStorageClientVersioned _client, <%= arguments %>) public {
+    delete<%=names[i]%>Generic(_client, abi.encodePacked(_client.namespace(),<%= argumentsNoType %>));
+  }<% } %>
+}
+<% } %>
+
+contract EternalStorageClientVersioned is Ownable, VersionedContract {
+  DSEternalStorageVersioned public eternalStorage;
   string public namespace;
 
   constructor(address _address, string _namespace) public {
-    eternalStorage = DSEternalStorage(_address);
+    eternalStorage = DSEternalStorageVersioned(_address);
     namespace = _namespace;
+    VERSIONS.push(1);
   }
 
   function setStorage(address _address) onlyOwner internal {
-    eternalStorage = DSEternalStorage(_address);
+    eternalStorage = DSEternalStorageVersioned(_address);
   }<% for (let i = 0 ; i < names.length ; i++) { %>
 
-  /* <%=names[i]%> functions */
-
-  function get<%=names[i]%>Generic(bytes encoded) view internal returns (<%=types[i]%>) {
-    return eternalStorage.get<%=names[i]%>(keccak256(encoded));
-  }
-
-  function set<%=names[i]%>Generic(bytes encoded, <%=types[i]%> v) internal {
-    eternalStorage.set<%=names[i]%>(keccak256(encoded), v);
-  }
-
-  function delete<%=names[i]%>Generic(bytes encoded) internal {
-    eternalStorage.delete<%=names[i]%>(keccak256(encoded));
-  }<% const functionArguments = functionArgumentsByType[types[i]] || [];
+  /* <%=names[i]%> functions */<% const functionArguments = functionArgumentsByType[types[i]] || [];
       for (let j = 0 ; j < functionArguments.length ; j++) {
-      functionArguments[j] = functionArguments[j].split(",");
-      const arguments = functionArguments[j].map((arg, k) => `${arg} p${k+1}`).join(",");
-      const argumentTypes = functionArguments[j].map((arg) => abbrs[arg]).join("");
-      const argumentsNoType = functionArguments[j].map((arg, k) => `p${k+1}`).join(",");
-      const hasEightBit = functionArguments[j].includes('uint8') ? '8' : ''; %>
+      functionArgs = functionArguments[j].split(",");
+      const arguments = functionArgs.map((arg, k) => `${arg} p${k+1}`).join(",");
+      const argumentTypes = functionArgs.map((arg) => abbrs[arg]).join("");
+      const argumentsNoType = functionArgs.map((arg, k) => `p${k+1}`).join(",");
+      const hasEightBit = functionArgs.includes('uint8') ? '8' : ''; %>
 
   function get<%=`${names[i]}${hasEightBit}`%>(<%= arguments %>) view internal returns (<%=types[i]%>) {
-    return get<%=names[i]%>Generic(abi.encodePacked(namespace,<%= argumentsNoType %>));
+    return EternalStorageClient<%=names[i]%>Library.get<%=`${names[i]}${hasEightBit}`%>(this,<%= argumentsNoType %>);
   }
 
   function set<%=`${names[i]}${hasEightBit}`%>(<%= arguments %>, <%=types[i]%> v) internal {
-    set<%=names[i]%>Generic(abi.encodePacked(namespace,<%= argumentsNoType %>), v);
+    EternalStorageClient<%=names[i]%>Library.set<%=`${names[i]}${hasEightBit}`%>(this,<%= argumentsNoType %>,v);
   }
 
   function delete<%=`${names[i]}${hasEightBit}`%>(<%= arguments %>) internal {
-    delete<%=names[i]%>Generic(abi.encodePacked(namespace,<%= argumentsNoType %>));
+    EternalStorageClient<%=names[i]%>Library.delete<%=`${names[i]}${hasEightBit}`%>(this,<%= argumentsNoType %>);
   }<% } %><% } %>
 }

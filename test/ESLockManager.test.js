@@ -1,14 +1,14 @@
 import assertRevert from './helpers/assertRevert';
-const EternalStorage = artifacts.require('DSEternalStorage');
-const ESWalletManager = artifacts.require('ESWalletManager');
-const ESTrustService = artifacts.require('ESTrustService');
-const ESLockManager = artifacts.require('ESLockManager');
-const DSToken = artifacts.require('DSToken');
-const ESComplianceServiceNotRegulated = artifacts.require('ESComplianceServiceNotRegulated');
-const ESRegistryService = artifacts.require('ESRegistryService');
+const EternalStorage = artifacts.require('DSEternalStorageVersioned');
+const ESWalletManager = artifacts.require('ESWalletManagerVersioned');
+const ESTrustService = artifacts.require('ESTrustServiceVersioned');
+const ESLockManager = artifacts.require('ESLockManagerVersioned');
+const DSToken = artifacts.require('DSTokenVersioned');
+const ESComplianceServiceNotRegulated = artifacts.require('ESComplianceServiceNotRegulatedVersioned');
+const ESRegistryService = artifacts.require('ESRegistryServiceVersioned');
 
 let latestTime = require('./utils/latestTime');
-const Proxy = artifacts.require('proxy');
+const Proxy = artifacts.require('ProxyVersioned');
 
 const TRUST_SERVICE=1;
 const DS_TOKEN=2;
