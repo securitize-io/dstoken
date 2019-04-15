@@ -164,8 +164,7 @@ contract DSTokenVersioned is ProxyTargetVersioned, DSTokenInterfaceVersioned, ES
    * @param _value The amount of tokens to be transferred.
    */
 
-  //TODO: check if "whenNotPaused" is needed here or the super implementation gets called automatically
-  function transfer(address _to, uint256 _value) whenNotPaused canTransfer(msg.sender, _to, _value) public returns (bool) {
+  function transfer(address _to, uint256 _value) canTransfer(msg.sender, _to, _value) public returns (bool) {
     bool result = super.transfer(_to, _value);
 
     if (result) {
