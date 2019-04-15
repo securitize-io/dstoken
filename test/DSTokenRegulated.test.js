@@ -53,7 +53,7 @@ const DAYS = 24 * HOURS;
 const WEEKS = 7 * DAYS;
 const YEARS = 365 * DAYS;
 
-let latestTime = require('./utils/latestTime');
+let latestTime = require('./helpers/latestTime');
 let increaseTimeTo = require('./helpers/increaseTime');
 
 contract('DSToken (regulated)', function ([_, issuerWallet, usInvestor, usInvestorSecondaryWallet, usInvestor2, spainInvestor, germanyInvestor, chinaInvestor, israelInvestor]) {

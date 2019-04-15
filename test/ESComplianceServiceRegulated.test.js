@@ -8,7 +8,7 @@ const ESComplianceServiceRegulated = artifacts.require('ESComplianceServiceRegul
 const ESRegistryService = artifacts.require('ESRegistryServiceVersioned');
 const ESComplianceConfigurationService = artifacts.require('ESComplianceConfigurationServiceVersioned');
 
-let latestTime = require('./utils/latestTime');
+let latestTime = require('./helpers/latestTime');
 let increaseTimeTo = require('./helpers/increaseTime');
 
 const duration = {
