@@ -159,11 +159,12 @@ contract DSTokenVersioned is ProxyTargetVersioned, DSTokenInterfaceVersioned, ES
   }
 
   /**
-   * @dev override for transfer with modifier
+   * @dev override for transfer with modifiers:
+   * whether the token is not paused (checked in super class) 
+   * and that the sender is allowed to transfer tokens
    * @param _to The address that will receive the tokens.
    * @param _value The amount of tokens to be transferred.
    */
-
   function transfer(address _to, uint256 _value) canTransfer(msg.sender, _to, _value) public returns (bool) {
     bool result = super.transfer(_to, _value);
 
@@ -178,7 +179,9 @@ contract DSTokenVersioned is ProxyTargetVersioned, DSTokenInterfaceVersioned, ES
   }
 
   /**
-  * @dev override for transferFrom with modifier
+  * @dev override for transfer with modifiers:
+  * whether the token is not paused (checked in super class) 
+  * and that the sender is allowed to transfer tokens
   * @param _from The address that will send the tokens.
   * @param _to The address that will receive the tokens.
   * @param _value The amount of tokens to be transferred.
