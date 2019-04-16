@@ -7,7 +7,7 @@ const DSToken = artifacts.require('DSTokenVersioned');
 const ESComplianceServiceNotRegulated = artifacts.require('ESComplianceServiceNotRegulatedVersioned');
 const ESRegistryService = artifacts.require('ESRegistryServiceVersioned');
 
-let latestTime = require('./helpers/latestTime');
+import latestTime from "./helpers/latestTime";
 const Proxy = artifacts.require('ProxyVersioned');
 
 const TRUST_SERVICE=1;
