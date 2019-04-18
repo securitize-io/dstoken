@@ -114,7 +114,7 @@ contract("Integration", function([
 ]) {
   const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
   describe("creation", async function() {
-    it.only("should be able to deploy the contracts", async function() {
+    it("should be able to deploy the contracts", async function() {
       // Setting up the environment
       storage = await DSEternalStorage.new();
       trustService = await ESTrustService.new(
