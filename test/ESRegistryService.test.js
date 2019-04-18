@@ -1,11 +1,11 @@
-const assertRevert = require("./helpers/assertRevert");
-const EternalStorage = artifacts.require("DSEternalStorageVersioned");
-const crypto = require("crypto");
-const ESTrustService = artifacts.require("ESTrustServiceVersioned");
-const ESRegistryService = artifacts.require("ESRegistryServiceVersioned");
-const ESWalletManager = artifacts.require("ESWalletManagerVersioned");
-const DSToken = artifacts.require("DSTokenVersioned");
-const Proxy = artifacts.require("ProxyVersioned");
+const assertRevert = require('./helpers/assertRevert');
+const EternalStorage = artifacts.require('DSEternalStorageVersioned');
+const crypto = require('crypto');
+const ESTrustService = artifacts.require('ESTrustServiceVersioned');
+const ESRegistryService = artifacts.require('ESRegistryServiceVersioned');
+const ESWalletManager = artifacts.require('ESWalletManagerVersioned');
+const DSToken = artifacts.require('DSTokenVersioned');
+const Proxy = artifacts.require('ProxyVersioned');
 
 const TRUST_SERVICE = 1;
 const DS_TOKEN = 2;
@@ -30,10 +30,10 @@ const PENDING = 0;
 const APPROVED = 1;
 const REJECTED = 2;
 
-let investorFullName = "olegvoytenko";
-let investorBirthDate = "28091994";
-let investorIdNumber = "MT753328";
-let investorCountry = "Ukraine";
+let investorFullName = 'olegvoytenko';
+let investorBirthDate = '28091994';
+let investorIdNumber = 'MT753328';
+let investorCountry = 'Ukraine';
 
 let investorId = generateInvestorId(
   investorFullName,
@@ -48,10 +48,10 @@ let investorCollisionHash = generateCollisionHash(
 let attributeTypes = [KYC_APPROVED, ACCREDITED, QUALIFIED, PROFESSIONAL];
 let attributeStatuses = [PENDING, APPROVED, REJECTED];
 
-const expiry = "10072018";
+const expiry = '10072018';
 const proofHash = generateRandomInvestorId();
 
-contract("ESRegistryService", function([
+contract('ESRegistryService', function([
   owner,
   noneAccount,
   issuerAccount,
@@ -67,32 +67,32 @@ contract("ESRegistryService", function([
     this.storage = await EternalStorage.new();
     this.trustService = await ESTrustService.new(
       this.storage.address,
-      "DSTokenTestTrustManager"
+      'DSTokenTestTrustManager'
     );
     this.registryService = await ESRegistryService.new(
       this.storage.address,
-      "DSTokenTestESRegistryService"
+      'DSTokenTestESRegistryService'
     );
     this.walletManager = await ESWalletManager.new(
       this.storage.address,
-      "DSTokenTestWalletManager"
+      'DSTokenTestWalletManager'
     );
     this.tokenImpl = await DSToken.new();
     this.proxy = await Proxy.new();
     await this.proxy.setTarget(this.tokenImpl.address);
     this.token = DSToken.at(this.proxy.address);
     await this.token.initialize(
-      "DSTokenMock",
-      "DST",
+      'DSTokenMock',
+      'DST',
       18,
       this.storage.address,
-      "DSTokenMock"
+      'DSTokenMock'
     );
 
-    await this.storage.adminAddRole(this.trustService.address, "write");
-    await this.storage.adminAddRole(this.registryService.address, "write");
-    await this.storage.adminAddRole(this.walletManager.address, "write");
-    await this.storage.adminAddRole(this.token.address, "write");
+    await this.storage.adminAddRole(this.trustService.address, 'write');
+    await this.storage.adminAddRole(this.registryService.address, 'write');
+    await this.storage.adminAddRole(this.walletManager.address, 'write');
+    await this.storage.adminAddRole(this.token.address, 'write');
     await this.trustService.initialize();
     await this.registryService.setDSService(
       TRUST_SERVICE,
@@ -117,27 +117,27 @@ contract("ESRegistryService", function([
     );
   });
 
-  describe("Register the new investor flow", function() {
-    describe("Register investor", function() {
+  describe('Register the new investor flow', function() {
+    describe('Register investor', function() {
       it(`Checking the role for the creator account - ${owner} - should be MASTER - ${MASTER}`, async function() {
         const role = await this.trustService.getRole(owner);
 
         assert.equal(role.c[0], MASTER);
       });
 
-      it("Trying to register the new investor", async function() {
+      it('Trying to register the new investor', async function() {
         const { logs } = await this.registryService.registerInvestor(
           investorId,
           investorCollisionHash
         );
 
         assert.equal(logs.length, 1);
-        assert.equal(logs[0].event, "DSRegistryServiceInvestorAdded");
+        assert.equal(logs[0].event, 'DSRegistryServiceInvestorAdded');
         assert.equal(logs[0].args._investorId, investorId);
         assert.equal(logs[0].args._sender, owner);
       });
 
-      describe("Register investor: negative tests ", function() {
+      describe('Register investor: negative tests ', function() {
         it(`Trying to register the same account twice - should be an error`, async function() {
           await assertRevert(
             this.registryService.registerInvestor(
@@ -163,26 +163,26 @@ contract("ESRegistryService", function([
       });
     });
 
-    describe("SET | GET the country", function() {
-      it("Trying to set the country for the investor", async function() {
+    describe('SET | GET the country', function() {
+      it('Trying to set the country for the investor', async function() {
         const { logs } = await this.registryService.setCountry(
           investorId,
           investorCountry
         );
 
         assert.equal(logs.length, 1);
-        assert.equal(logs[0].event, "DSRegistryServiceInvestorCountryChanged");
+        assert.equal(logs[0].event, 'DSRegistryServiceInvestorCountryChanged');
         assert.equal(logs[0].args._investorId, investorId);
         assert.equal(logs[0].args._sender, owner);
       });
 
-      it("Trying to get the country for investor", async function() {
+      it('Trying to get the country for investor', async function() {
         const country = await this.registryService.getCountry(investorId);
 
         assert.equal(country, investorCountry);
       });
 
-      describe("SET | GET the country: negative tests", function() {
+      describe('SET | GET the country: negative tests', function() {
         it(`Trying to set the country using the account with NONE - ${NONE} permissions - should be the error`, async function() {
           const newInvestorId = generateRandomInvestorId();
           const role = await this.trustService.getRole(account1);
@@ -195,7 +195,7 @@ contract("ESRegistryService", function([
           );
         });
 
-        it("Trying to set the country for the investor with wrong ID - should be the error", async function() {
+        it('Trying to set the country for the investor with wrong ID - should be the error', async function() {
           const newInvestorId = generateRandomInvestorId();
 
           await assertRevert(
@@ -204,17 +204,17 @@ contract("ESRegistryService", function([
         });
 
         // TODO: activate test
-        it("Trying to get the country for the investor with wrong ID - should be empty", async function() {
+        it('Trying to get the country for the investor with wrong ID - should be empty', async function() {
           const newInvestorId = generateRandomInvestorId();
 
           const country = await this.registryService.getCountry(newInvestorId);
-          assert.equal(country, "");
+          assert.equal(country, '');
         });
       });
     });
 
-    describe("Collision hash", function() {
-      it("Trying to get the collision hash", async function() {
+    describe('Collision hash', function() {
+      it('Trying to get the collision hash', async function() {
         const collisionHash = await this.registryService.getCollisionHash(
           investorId
         );
@@ -222,20 +222,20 @@ contract("ESRegistryService", function([
         assert.equal(collisionHash, investorCollisionHash);
       });
 
-      describe("Collision hash: negative tests", function() {
-        it("Trying to get the collision hash for the investor with wrong ID - should be empty", async function() {
+      describe('Collision hash: negative tests', function() {
+        it('Trying to get the collision hash for the investor with wrong ID - should be empty', async function() {
           const newInvestorId = generateRandomInvestorId();
 
           const collisionHash = await this.registryService.getCollisionHash(
             newInvestorId
           );
 
-          assert.equal(collisionHash, "");
+          assert.equal(collisionHash, '');
         });
       });
     });
 
-    describe("Attributes", function() {
+    describe('Attributes', function() {
       it(`Trying to set and get the attributes`, async function() {
         for (let i = 0; i < attributeTypes.length; i++) {
           for (let j = 0; j < attributeStatuses.length; j++) {
@@ -250,7 +250,7 @@ contract("ESRegistryService", function([
             assert.equal(logs.length, 1);
             assert.equal(
               logs[0].event,
-              "DSRegistryServiceInvestorAttributeChanged"
+              'DSRegistryServiceInvestorAttributeChanged'
             );
             assert.equal(logs[0].args._investorId, investorId);
             assert.equal(logs[0].args._sender, owner);
@@ -283,7 +283,7 @@ contract("ESRegistryService", function([
         assert.equal(attributeProofHash, proofHash);
       });
 
-      describe("Attributes: negative tests", function() {
+      describe('Attributes: negative tests', function() {
         it(`Trying to set the attribute using the account with NONE - ${NONE} permissions - should be the error`, async function() {
           const role = await this.trustService.getRole(account1);
 
@@ -300,7 +300,7 @@ contract("ESRegistryService", function([
           );
         });
 
-        it("Trying to set the attribute for the investor with wrong ID - should be the error", async function() {
+        it('Trying to set the attribute for the investor with wrong ID - should be the error', async function() {
           const newInvestorId = generateRandomInvestorId();
 
           await assertRevert(
@@ -314,7 +314,7 @@ contract("ESRegistryService", function([
           );
         });
 
-        it("Trying to get the attribute for the investor with wrong ID - should be empty", async function() {
+        it('Trying to get the attribute for the investor with wrong ID - should be empty', async function() {
           const newInvestorId = generateRandomInvestorId();
 
           const value = await this.registryService.getAttributeValue(
@@ -348,7 +348,7 @@ contract("ESRegistryService", function([
       });
     });
 
-    describe("Wallets", function() {
+    describe('Wallets', function() {
       before(async function() {
         await this.trustService.setRole(issuerAccount, ISSUER);
         await this.registryService.addWallet(issuerWallet, investorId, {
@@ -366,7 +366,7 @@ contract("ESRegistryService", function([
         );
 
         assert.equal(logs.length, 1);
-        assert.equal(logs[0].event, "DSRegistryServiceWalletAdded");
+        assert.equal(logs[0].event, 'DSRegistryServiceWalletAdded');
         assert.equal(logs[0].args._investorId, investorId);
         assert.equal(logs[0].args._wallet, wallet1);
         assert.equal(logs[0].args._sender, owner);
@@ -379,7 +379,7 @@ contract("ESRegistryService", function([
         );
 
         assert.equal(logs.length, 1);
-        assert.equal(logs[0].event, "DSRegistryServiceWalletRemoved");
+        assert.equal(logs[0].event, 'DSRegistryServiceWalletRemoved');
       });
 
       it(`Trying to remove the wallet with ISSUER - ${ISSUER} permissions`, async function() {
@@ -394,7 +394,7 @@ contract("ESRegistryService", function([
         );
 
         assert.equal(logs.length, 1);
-        assert.equal(logs[0].event, "DSRegistryServiceWalletRemoved");
+        assert.equal(logs[0].event, 'DSRegistryServiceWalletRemoved');
       });
 
       it(`Trying to remove the wallet with EXCHANGE - ${EXCHANGE} permissions (same one that created the wallet)`, async function() {
@@ -409,10 +409,10 @@ contract("ESRegistryService", function([
         );
 
         assert.equal(logs.length, 1);
-        assert.equal(logs[0].event, "DSRegistryServiceWalletRemoved");
+        assert.equal(logs[0].event, 'DSRegistryServiceWalletRemoved');
       });
 
-      describe("Wallets: negative tests", function() {
+      describe('Wallets: negative tests', function() {
         before(async function() {
           await this.registryService.addWallet(wallet1, investorId);
           this.registryService.addWallet(exchangeWallet, investorId, {
@@ -484,14 +484,14 @@ contract("ESRegistryService", function([
       });
     });
 
-    describe("Get the investor", function() {
-      it("Trying to get the investor", async function() {
+    describe('Get the investor', function() {
+      it('Trying to get the investor', async function() {
         const investorID = await this.registryService.getInvestor(wallet1);
 
         assert.equal(investorID, investorId);
       });
 
-      it("Trying to get the investor details", async function() {
+      it('Trying to get the investor details', async function() {
         const investorDetails = await this.registryService.getInvestorDetails(
           wallet1
         );
@@ -499,22 +499,22 @@ contract("ESRegistryService", function([
         assert.equal(investorDetails[0], investorId);
         assert.equal(investorDetails[1], investorCountry);
       });
-      describe("Get the investor: negative tests", function() {
+      describe('Get the investor: negative tests', function() {
         // TODO: activate test
-        it("Trying to get the investor using the wrong Wallet - should be empty", async function() {
+        it('Trying to get the investor using the wrong Wallet - should be empty', async function() {
           const investor = await this.registryService.getInvestor(
             additionalWallet
           );
 
-          assert.equal(investor, "");
+          assert.equal(investor, '');
         });
 
-        it("Trying to get the investor details using the wrong Wallet - should be empty", async function() {
+        it('Trying to get the investor details using the wrong Wallet - should be empty', async function() {
           const investorDetails = await this.registryService.getInvestorDetails(
             additionalWallet
           );
 
-          assert.deepEqual(investorDetails, ["", ""]);
+          assert.deepEqual(investorDetails, ['', '']);
         });
       });
     });
@@ -524,9 +524,9 @@ contract("ESRegistryService", function([
 function generateInvestorId(fullName, birthDay, idNumber) {
   const hashString = `${fullName}${birthDay}${idNumber}`;
   return crypto
-    .createHash("sha256")
+    .createHash('sha256')
     .update(hashString)
-    .digest("hex");
+    .digest('hex');
 }
 
 function generateRandomInvestorId() {
@@ -536,17 +536,17 @@ function generateRandomInvestorId() {
   const hashString = `${fullName}${birthDay}${idNumber}`;
 
   return crypto
-    .createHash("sha256")
+    .createHash('sha256')
     .update(hashString)
-    .digest("hex");
+    .digest('hex');
 }
 
 function generateCollisionHash(fullName, birthDay) {
   const hashString = `${fullName}${birthDay}`;
   return crypto
-    .createHash("sha256")
+    .createHash('sha256')
     .update(hashString)
-    .digest("hex");
+    .digest('hex');
 }
 
 function generateRandomString() {

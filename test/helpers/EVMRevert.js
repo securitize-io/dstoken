@@ -1,1 +1,1 @@
-module.exports = "revert";
+module.exports = 'revert';

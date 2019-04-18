@@ -1,4 +1,4 @@
-const SolidityEvent = require("web3/lib/web3/event.js");
+const SolidityEvent = require('web3/lib/web3/event.js');
 
 module.exports = function decodeLogs(logs, contract, address) {
   return logs.map(log => {

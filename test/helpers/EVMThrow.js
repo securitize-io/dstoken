@@ -1,1 +1,1 @@
-module.exports = "invalid opcode";
+module.exports = 'invalid opcode';

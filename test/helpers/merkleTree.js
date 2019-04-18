@@ -1,4 +1,4 @@
-const utils = require("ethereumjs-util");
+const utils = require('ethereumjs-util');
 
 module.exports = class MerkleTree {
   constructor(elements) {
@@ -16,7 +16,7 @@ module.exports = class MerkleTree {
 
   getLayers(elements) {
     if (elements.length === 0) {
-      return [[""]];
+      return [['']];
     }
 
     const layers = [];
@@ -64,7 +64,7 @@ module.exports = class MerkleTree {
     let idx = this.bufIndexOf(el, this.elements);
 
     if (idx === -1) {
-      throw new Error("Element does not exist in Merkle tree");
+      throw new Error('Element does not exist in Merkle tree');
     }
 
     return this.layers.reduce((proof, layer) => {
@@ -123,10 +123,10 @@ module.exports = class MerkleTree {
 
   bufArrToHexArr(arr) {
     if (arr.some(el => !Buffer.isBuffer(el))) {
-      throw new Error("Array is not an array of buffers");
+      throw new Error('Array is not an array of buffers');
     }
 
-    return arr.map(el => "0x" + el.toString("hex"));
+    return arr.map(el => '0x' + el.toString('hex'));
   }
 
   sortAndConcat(...args) {

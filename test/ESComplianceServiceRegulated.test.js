@@ -1,19 +1,19 @@
-const assertRevert = require("./helpers/assertRevert");
-const EternalStorage = artifacts.require("DSEternalStorageVersioned");
-const ESWalletManager = artifacts.require("ESWalletManagerVersioned");
-const ESTrustService = artifacts.require("ESTrustServiceVersioned");
-const ESLockManager = artifacts.require("ESLockManagerVersioned");
-const DSToken = artifacts.require("DSTokenVersioned");
+const assertRevert = require('./helpers/assertRevert');
+const EternalStorage = artifacts.require('DSEternalStorageVersioned');
+const ESWalletManager = artifacts.require('ESWalletManagerVersioned');
+const ESTrustService = artifacts.require('ESTrustServiceVersioned');
+const ESLockManager = artifacts.require('ESLockManagerVersioned');
+const DSToken = artifacts.require('DSTokenVersioned');
 const ESComplianceServiceRegulated = artifacts.require(
-  "ESComplianceServiceRegulatedVersioned"
+  'ESComplianceServiceRegulatedVersioned'
 );
-const ESRegistryService = artifacts.require("ESRegistryServiceVersioned");
+const ESRegistryService = artifacts.require('ESRegistryServiceVersioned');
 const ESComplianceConfigurationService = artifacts.require(
-  "ESComplianceConfigurationServiceVersioned"
+  'ESComplianceConfigurationServiceVersioned'
 );
 
-let latestTime = require("./utils/latestTime");
-let increaseTimeTo = require("./helpers/increaseTime").increaseTimeTo;
+let latestTime = require('./utils/latestTime');
+let increaseTimeTo = require('./helpers/increaseTime').increaseTimeTo;
 
 const duration = {
   seconds: function(val) {
@@ -36,7 +36,7 @@ const duration = {
   }
 };
 
-const Proxy = artifacts.require("ProxyVersioned");
+const Proxy = artifacts.require('ProxyVersioned');
 const TRUST_SERVICE = 1;
 const DS_TOKEN = 2;
 const REGISTRY_SERVICE = 4;
@@ -49,11 +49,11 @@ const NONE = 0;
 const ISSUER = 2;
 const EXCHANGE = 4;
 
-const ownerId = "owner";
-const walletID = "1";
-const walletID2 = "2";
+const ownerId = 'owner';
+const walletID = '1';
+const walletID2 = '2';
 
-contract("ESComplianceServiceRegulated", function([
+contract('ESComplianceServiceRegulated', function([
   owner,
   wallet,
   wallet1,
@@ -69,48 +69,48 @@ contract("ESComplianceServiceRegulated", function([
     this.storage = await EternalStorage.new();
     this.trustService = await ESTrustService.new(
       this.storage.address,
-      "DSTokenTestTrustManager"
+      'DSTokenTestTrustManager'
     );
     this.complianceService = await ESComplianceServiceRegulated.new(
       this.storage.address,
-      "DSTokenTestComplianceManager"
+      'DSTokenTestComplianceManager'
     );
     this.complianceConfiguration = await ESComplianceConfigurationService.new(
       this.storage.address,
-      "DSTokenTestComplianceConfiguration"
+      'DSTokenTestComplianceConfiguration'
     );
     this.walletManager = await ESWalletManager.new(
       this.storage.address,
-      "DSTokenTestWalletManager"
+      'DSTokenTestWalletManager'
     );
     this.lockManager = await ESLockManager.new(
       this.storage.address,
-      "DSTokenTestLockManager"
+      'DSTokenTestLockManager'
     );
     this.tokenImpl = await DSToken.new();
     this.proxy = await Proxy.new();
     this.registryService = await ESRegistryService.new(
       this.storage.address,
-      "DSTokenTestRegistryService"
+      'DSTokenTestRegistryService'
     );
     await this.proxy.setTarget(this.tokenImpl.address);
     this.token = DSToken.at(this.proxy.address);
     await this.token.initialize(
-      "DSTokenMock",
-      "DST",
+      'DSTokenMock',
+      'DST',
       18,
       this.storage.address,
-      "DSTokenMock"
+      'DSTokenMock'
     );
-    await this.storage.adminAddRole(this.trustService.address, "write");
-    await this.storage.adminAddRole(this.complianceService.address, "write");
-    await this.storage.adminAddRole(this.walletManager.address, "write");
-    await this.storage.adminAddRole(this.lockManager.address, "write");
-    await this.storage.adminAddRole(this.registryService.address, "write");
-    await this.storage.adminAddRole(this.token.address, "write");
+    await this.storage.adminAddRole(this.trustService.address, 'write');
+    await this.storage.adminAddRole(this.complianceService.address, 'write');
+    await this.storage.adminAddRole(this.walletManager.address, 'write');
+    await this.storage.adminAddRole(this.lockManager.address, 'write');
+    await this.storage.adminAddRole(this.registryService.address, 'write');
+    await this.storage.adminAddRole(this.token.address, 'write');
     await this.storage.adminAddRole(
       this.complianceConfiguration.address,
-      "write"
+      'write'
     );
     await this.trustService.initialize();
     await this.registryService.setDSService(
@@ -194,24 +194,24 @@ contract("ESComplianceServiceRegulated", function([
     await this.lockManager.setDSService(DS_TOKEN, this.token.address);
 
     await this.trustService.setRole(issuerAccount, ISSUER);
-    await this.complianceConfiguration.setCountryCompliance("US", 1);
-    await this.complianceConfiguration.setCountryCompliance("EU", 2);
+    await this.complianceConfiguration.setCountryCompliance('US', 1);
+    await this.complianceConfiguration.setCountryCompliance('EU', 2);
     await this.complianceConfiguration.setAll(
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150],
       [true, false]
     );
   });
 
-  describe("Validate issuance(recordIssuance):", function() {
-    it("Should revert due to not token call", async function() {
+  describe('Validate issuance(recordIssuance):', function() {
+    it('Should revert due to not token call', async function() {
       await this.token.setCap(1000);
       await assertRevert(
         this.complianceService.validateIssuance(wallet, 100, latestTime())
       );
     });
 
-    it("Should issue tokens", async function() {
-      await this.registryService.registerInvestor(walletID, "wallet");
+    it('Should issue tokens', async function() {
+      await this.registryService.registerInvestor(walletID, 'wallet');
       await this.registryService.addWallet(wallet, walletID);
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
@@ -219,9 +219,9 @@ contract("ESComplianceServiceRegulated", function([
     });
   });
 
-  describe("Validate(recordTransfer)", function() {
-    it("Should revert due to Wallet Not In Registry Service", async function() {
-      await this.registryService.registerInvestor(walletID, "wallet");
+  describe('Validate(recordTransfer)', function() {
+    it('Should revert due to Wallet Not In Registry Service', async function() {
+      await this.registryService.registerInvestor(walletID, 'wallet');
       await this.registryService.addWallet(wallet, walletID);
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
@@ -231,14 +231,14 @@ contract("ESComplianceServiceRegulated", function([
       );
     });
 
-    it("Should revert due to Wallet has not enough tokens", async function() {
+    it('Should revert due to Wallet has not enough tokens', async function() {
       await this.registryService.registerInvestor(walletID, walletID);
       await this.registryService.addWallet(wallet, walletID);
       assert.equal(await this.token.balanceOf(wallet), 0);
       await assertRevert(this.token.transfer(wallet, 100, { from: wallet }));
     });
 
-    it("Pre transfer check with tokens locked", async function() {
+    it('Pre transfer check with tokens locked', async function() {
       await this.registryService.registerInvestor(walletID, walletID);
       await this.registryService.addWallet(wallet, walletID);
       await this.token.setCap(1000);
@@ -246,15 +246,15 @@ contract("ESComplianceServiceRegulated", function([
       await this.lockManager.addManualLockRecord(
         wallet,
         95,
-        "Test",
+        'Test',
         latestTime() + 1000
       );
       await assertRevert(this.token.transfer(owner, 100, { from: wallet }));
     });
 
-    it("Should decrease total investors value when transfer tokens", async function() {
-      await this.registryService.registerInvestor(walletID, "wallet");
-      await this.registryService.registerInvestor(walletID2, "noneAccount");
+    it('Should decrease total investors value when transfer tokens', async function() {
+      await this.registryService.registerInvestor(walletID, 'wallet');
+      await this.registryService.registerInvestor(walletID2, 'noneAccount');
       await this.registryService.addWallet(wallet, walletID);
       await this.registryService.addWallet(noneAccount, walletID2);
       await this.token.setCap(1000);
@@ -272,10 +272,10 @@ contract("ESComplianceServiceRegulated", function([
       // to do: test that investor amount decrease
     });
 
-    it("Should increase total investors value when transfer tokens", async function() {
-      await this.registryService.registerInvestor(walletID, "wallet");
+    it('Should increase total investors value when transfer tokens', async function() {
+      await this.registryService.registerInvestor(walletID, 'wallet');
       await this.registryService.addWallet(wallet, walletID);
-      await this.registryService.registerInvestor(walletID2, "noneAccount");
+      await this.registryService.registerInvestor(walletID2, 'noneAccount');
       await this.registryService.addWallet(noneAccount, walletID2);
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100, { gas: 4e6 });
@@ -292,11 +292,11 @@ contract("ESComplianceServiceRegulated", function([
       // to do: test that investor amount increase
     });
 
-    it("Should not be able to transfer tokens because of 1 year lock for US investors", async function() {
-      await this.registryService.registerInvestor(walletID, "wallet");
+    it('Should not be able to transfer tokens because of 1 year lock for US investors', async function() {
+      await this.registryService.registerInvestor(walletID, 'wallet');
       await this.registryService.registerInvestor(walletID2, ownerId);
-      await this.registryService.setCountry(walletID, "US");
-      await this.registryService.setCountry(walletID2, "US");
+      await this.registryService.setCountry(walletID, 'US');
+      await this.registryService.setCountry(walletID2, 'US');
       await this.registryService.addWallet(wallet, walletID);
       await this.registryService.addWallet(owner, walletID2);
       await this.token.setCap(1000);
@@ -307,11 +307,11 @@ contract("ESComplianceServiceRegulated", function([
       );
     });
 
-    it("Should not be able to transfer tokens because of 1 year lock for US investors", async function() {
-      await this.registryService.registerInvestor(walletID, "wallet");
+    it('Should not be able to transfer tokens because of 1 year lock for US investors', async function() {
+      await this.registryService.registerInvestor(walletID, 'wallet');
       await this.registryService.registerInvestor(walletID2, ownerId);
-      await this.registryService.setCountry(walletID, "EU");
-      await this.registryService.setCountry(walletID2, "US");
+      await this.registryService.setCountry(walletID, 'EU');
+      await this.registryService.setCountry(walletID2, 'US');
       await this.registryService.addWallet(wallet, walletID);
       await this.registryService.addWallet(owner, walletID2);
       await this.token.setCap(1000);
@@ -322,11 +322,11 @@ contract("ESComplianceServiceRegulated", function([
       );
     });
 
-    it("Should not be able to transfer tokens due to full transfer enabled", async function() {
-      await this.registryService.registerInvestor(walletID, "wallet");
+    it.only('Should not be able to transfer tokens due to full transfer enabled', async function() {
+      await this.registryService.registerInvestor(walletID, 'wallet');
       await this.registryService.registerInvestor(walletID2, ownerId);
-      await this.registryService.setCountry(walletID, "US");
-      await this.registryService.setCountry(walletID2, "US");
+      await this.registryService.setCountry(walletID, 'US');
+      await this.registryService.setCountry(walletID2, 'US');
       await this.registryService.addWallet(wallet, walletID);
       await this.registryService.addWallet(owner, walletID2);
       await this.token.setCap(1000);
@@ -338,11 +338,11 @@ contract("ESComplianceServiceRegulated", function([
       );
     });
 
-    it("Should be able to transfer tokens before 1 year for platform account", async function() {
-      await this.registryService.registerInvestor(walletID, "wallet");
+    it('Should be able to transfer tokens before 1 year for platform account', async function() {
+      await this.registryService.registerInvestor(walletID, 'wallet');
       await this.registryService.registerInvestor(walletID2, ownerId);
-      await this.registryService.setCountry(walletID, "US");
-      await this.registryService.setCountry(walletID2, "US");
+      await this.registryService.setCountry(walletID, 'US');
+      await this.registryService.setCountry(walletID2, 'US');
       await this.registryService.addWallet(wallet, walletID);
       await this.registryService.addWallet(owner, walletID2);
       await this.walletManager.addPlatformWallet(platformWallet);
@@ -355,12 +355,12 @@ contract("ESComplianceServiceRegulated", function([
       });
     });
 
-    it("Should prevent chinese investors", async function() {
-      await this.complianceConfiguration.setCountryCompliance("CH", 4);
-      await this.registryService.registerInvestor(walletID, "wallet");
-      await this.registryService.registerInvestor(walletID2, "wallet1");
-      await this.registryService.setCountry(walletID, "US");
-      await this.registryService.setCountry(walletID2, "CH");
+    it('Should prevent chinese investors', async function() {
+      await this.complianceConfiguration.setCountryCompliance('CH', 4);
+      await this.registryService.registerInvestor(walletID, 'wallet');
+      await this.registryService.registerInvestor(walletID2, 'wallet1');
+      await this.registryService.setCountry(walletID, 'US');
+      await this.registryService.setCountry(walletID2, 'CH');
       await this.registryService.addWallet(wallet, walletID);
       await this.registryService.addWallet(wallet1, walletID2);
       await this.token.setCap(1000);
@@ -371,11 +371,11 @@ contract("ESComplianceServiceRegulated", function([
       );
     });
 
-    it("Should transfer tokens", async function() {
-      await this.registryService.registerInvestor(walletID, "wallet");
+    it('Should transfer tokens', async function() {
+      await this.registryService.registerInvestor(walletID, 'wallet');
       await this.registryService.registerInvestor(walletID2, ownerId);
-      await this.registryService.setCountry(walletID, "US");
-      await this.registryService.setCountry(walletID2, "US");
+      await this.registryService.setCountry(walletID, 'US');
+      await this.registryService.setCountry(walletID2, 'US');
       await this.registryService.addWallet(wallet, walletID);
       await this.registryService.addWallet(owner, walletID2);
       await this.token.setCap(1000);
@@ -387,42 +387,42 @@ contract("ESComplianceServiceRegulated", function([
     });
   });
 
-  describe("Validate burn", function() {
-    it("Should revert due to trying burn tokens for account with NONE permissions", async function() {
+  describe('Validate burn', function() {
+    it('Should revert due to trying burn tokens for account with NONE permissions', async function() {
       await this.registryService.registerInvestor(walletID, walletID);
       await this.registryService.addWallet(wallet, walletID);
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
       await assertRevert(
-        this.token.burn(wallet, 100, "Test", { from: wallet })
+        this.token.burn(wallet, 100, 'Test', { from: wallet })
       );
     });
 
-    it("Should decrease total investors value when burn tokens", async function() {
+    it('Should decrease total investors value when burn tokens', async function() {
       await this.registryService.registerInvestor(walletID2, walletID2);
       await this.registryService.addWallet(owner, walletID2);
       await this.token.setCap(1000);
       await this.token.issueTokens(owner, 100);
       assert.equal(await this.registryService.getInvestor(owner), walletID2);
       assert.equal(await this.token.balanceOf(owner), 100);
-      await this.token.burn(owner, 100, "Test");
+      await this.token.burn(owner, 100, 'Test');
       assert.equal(await this.token.balanceOf(owner), 0);
     });
 
-    it("Should burn tokens", async function() {
+    it('Should burn tokens', async function() {
       await this.registryService.registerInvestor(walletID, walletID);
       await this.registryService.addWallet(wallet, walletID);
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await this.token.burn(wallet, 100, "Test");
+      await this.token.burn(wallet, 100, 'Test');
       assert.equal(await this.token.balanceOf(wallet), 0);
     });
   });
 
-  describe("Validate seize", function() {
-    it("Should revert due to trying seize tokens for account with NONE permissions", async function() {
+  describe('Validate seize', function() {
+    it('Should revert due to trying seize tokens for account with NONE permissions', async function() {
       await this.registryService.registerInvestor(walletID, walletID);
       await this.registryService.registerInvestor(walletID2, walletID2);
       await this.registryService.addWallet(wallet, walletID);
@@ -432,10 +432,10 @@ contract("ESComplianceServiceRegulated", function([
       assert.equal(await this.token.balanceOf(owner), 100);
       const role = await this.trustService.getRole(issuerAccount);
       assert.equal(role.c[0], ISSUER);
-      await assertRevert(this.token.seize(owner, wallet, 100, "Test"));
+      await assertRevert(this.token.seize(owner, wallet, 100, 'Test'));
     });
 
-    it("Should seize tokens", async function() {
+    it('Should seize tokens', async function() {
       await this.registryService.registerInvestor(walletID, walletID);
       await this.registryService.registerInvestor(walletID2, walletID2);
       await this.registryService.addWallet(issuerAccount, walletID);
@@ -449,8 +449,8 @@ contract("ESComplianceServiceRegulated", function([
     });
   });
 
-  describe("Pre transfer check", function() {
-    it("Pre transfer check with paused", async function() {
+  describe('Pre transfer check', function() {
+    it('Pre transfer check with paused', async function() {
       await this.registryService.registerInvestor(ownerId, ownerId);
       await this.registryService.addWallet(owner, ownerId);
       await this.registryService.registerInvestor(walletID, walletID);
@@ -464,10 +464,10 @@ contract("ESComplianceServiceRegulated", function([
         10
       );
       assert.equal(10, a.toNumber());
-      assert.equal("Token Paused", b);
+      assert.equal('Token Paused', b);
     });
 
-    it("Pre transfer check with not enough tokens", async function() {
+    it('Pre transfer check with not enough tokens', async function() {
       await this.registryService.registerInvestor(ownerId, ownerId);
       await this.registryService.addWallet(owner, ownerId);
       await this.registryService.registerInvestor(walletID, ownerId);
@@ -480,10 +480,10 @@ contract("ESComplianceServiceRegulated", function([
         10
       );
       assert.equal(15, a.toNumber());
-      assert.equal("Not Enough Tokens", b);
+      assert.equal('Not Enough Tokens', b);
     });
 
-    it("Pre transfer check when transfer myself", async function() {
+    it('Pre transfer check when transfer myself', async function() {
       await this.registryService.registerInvestor(walletID, walletID);
       await this.registryService.addWallet(noneAccount, walletID);
       await this.token.setCap(1000);
@@ -494,10 +494,10 @@ contract("ESComplianceServiceRegulated", function([
         10
       );
       assert.equal(0, a.toNumber());
-      assert.equal("Valid", b);
+      assert.equal('Valid', b);
     });
 
-    it("Should revert due to Wallet Not In Registry Service", async function() {
+    it('Should revert due to Wallet Not In Registry Service', async function() {
       await this.registryService.registerInvestor(walletID, walletID);
       await this.registryService.addWallet(noneAccount, walletID);
       await this.token.setCap(1000);
@@ -508,10 +508,10 @@ contract("ESComplianceServiceRegulated", function([
         10
       );
       assert.equal(20, a.toNumber());
-      assert.equal("Wallet not in registry Service", b);
+      assert.equal('Wallet not in registry Service', b);
     });
 
-    it("Pre transfer check with tokens locked", async function() {
+    it('Pre transfer check with tokens locked', async function() {
       await this.registryService.registerInvestor(walletID, walletID);
       await this.registryService.addWallet(wallet, walletID);
       await this.token.setCap(1000);
@@ -519,7 +519,7 @@ contract("ESComplianceServiceRegulated", function([
       await this.lockManager.addManualLockRecord(
         wallet,
         95,
-        "Test",
+        'Test',
         latestTime() + 1000
       );
       let [a, b] = await this.complianceService.preTransferCheck(
@@ -528,20 +528,20 @@ contract("ESComplianceServiceRegulated", function([
         10
       );
       assert.equal(16, a.toNumber());
-      assert.equal("Tokens Locked", b);
+      assert.equal('Tokens Locked', b);
     });
 
-    it("Pre transfer check with tokens locked for 1 year (For Us investors)", async function() {
-      await this.registryService.registerInvestor(walletID, "wallet");
+    it('Pre transfer check with tokens locked for 1 year (For Us investors)', async function() {
+      await this.registryService.registerInvestor(walletID, 'wallet');
       await this.registryService.registerInvestor(walletID2, ownerId);
-      await this.registryService.setCountry(walletID, "US");
-      await this.registryService.setCountry(walletID2, "US");
+      await this.registryService.setCountry(walletID, 'US');
+      await this.registryService.setCountry(walletID2, 'US');
       await this.registryService.addWallet(wallet, walletID);
       await this.registryService.addWallet(owner, walletID2);
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
-      await this.complianceConfiguration.setCountryCompliance("US", 1);
-      await this.complianceConfiguration.setCountryCompliance("EU", 2);
+      await this.complianceConfiguration.setCountryCompliance('US', 1);
+      await this.complianceConfiguration.setCountryCompliance('EU', 2);
       assert.equal(await this.token.balanceOf(wallet), 100);
       let [a, b] = await this.complianceService.preTransferCheck(
         wallet,
@@ -549,20 +549,20 @@ contract("ESComplianceServiceRegulated", function([
         10
       );
       assert.equal(a.toNumber(), 32);
-      assert.equal(b, "Hold-up 1y");
+      assert.equal(b, 'Hold-up 1y');
     });
 
-    it("Pre transfer check for full transfer - should return code 50", async function() {
-      await this.registryService.registerInvestor(walletID, "wallet");
+    it('Pre transfer check for full transfer - should return code 50', async function() {
+      await this.registryService.registerInvestor(walletID, 'wallet');
       await this.registryService.registerInvestor(walletID2, ownerId);
-      await this.registryService.setCountry(walletID, "US");
-      await this.registryService.setCountry(walletID2, "US");
+      await this.registryService.setCountry(walletID, 'US');
+      await this.registryService.setCountry(walletID2, 'US');
       await this.registryService.addWallet(wallet, walletID);
       await this.registryService.addWallet(owner, walletID2);
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
-      await this.complianceConfiguration.setCountryCompliance("US", 1);
-      await this.complianceConfiguration.setCountryCompliance("EU", 2);
+      await this.complianceConfiguration.setCountryCompliance('US', 1);
+      await this.complianceConfiguration.setCountryCompliance('EU', 2);
       assert.equal(await this.token.balanceOf(wallet), 100);
       await increaseTimeTo(duration.days(370));
       let [a, b] = await this.complianceService.preTransferCheck(
@@ -571,20 +571,20 @@ contract("ESComplianceServiceRegulated", function([
         50
       );
       assert.equal(a.toNumber(), 50);
-      assert.equal(b, "Only Full Transfer");
+      assert.equal(b, 'Only Full Transfer');
     });
 
-    it("Pre transfer check from nonUs investor to US - should return code 25", async function() {
-      await this.registryService.registerInvestor(walletID, "wallet");
+    it('Pre transfer check from nonUs investor to US - should return code 25', async function() {
+      await this.registryService.registerInvestor(walletID, 'wallet');
       await this.registryService.registerInvestor(walletID2, ownerId);
-      await this.registryService.setCountry(walletID, "EU");
-      await this.registryService.setCountry(walletID2, "US");
+      await this.registryService.setCountry(walletID, 'EU');
+      await this.registryService.setCountry(walletID2, 'US');
       await this.registryService.addWallet(wallet, walletID);
       await this.registryService.addWallet(owner, walletID2);
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
-      await this.complianceConfiguration.setCountryCompliance("US", 1);
-      await this.complianceConfiguration.setCountryCompliance("EU", 2);
+      await this.complianceConfiguration.setCountryCompliance('US', 1);
+      await this.complianceConfiguration.setCountryCompliance('EU', 2);
       assert.equal(await this.token.balanceOf(wallet), 100);
       let [a, b] = await this.complianceService.preTransferCheck(
         wallet,
@@ -592,21 +592,21 @@ contract("ESComplianceServiceRegulated", function([
         10
       );
       assert.equal(a.toNumber(), 25);
-      assert.equal(b, "Flowback");
+      assert.equal(b, 'Flowback');
     });
 
-    it("Pre transfer check for platform account", async function() {
-      await this.registryService.registerInvestor(walletID, "wallet");
+    it('Pre transfer check for platform account', async function() {
+      await this.registryService.registerInvestor(walletID, 'wallet');
       await this.registryService.registerInvestor(walletID2, ownerId);
-      await this.registryService.setCountry(walletID, "US");
-      await this.registryService.setCountry(walletID2, "US");
+      await this.registryService.setCountry(walletID, 'US');
+      await this.registryService.setCountry(walletID2, 'US');
       await this.registryService.addWallet(wallet, walletID);
       await this.registryService.addWallet(owner, walletID2);
       await this.walletManager.addPlatformWallet(platformWallet);
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
-      await this.complianceConfiguration.setCountryCompliance("US", 1);
-      await this.complianceConfiguration.setCountryCompliance("EU", 2);
+      await this.complianceConfiguration.setCountryCompliance('US', 1);
+      await this.complianceConfiguration.setCountryCompliance('EU', 2);
       assert.equal(await this.token.balanceOf(wallet), 100);
       let [a, b] = await this.complianceService.preTransferCheck(
         wallet,
@@ -614,16 +614,16 @@ contract("ESComplianceServiceRegulated", function([
         100
       );
       assert.equal(a.toNumber(), 0);
-      assert.equal(b, "Valid");
+      assert.equal(b, 'Valid');
     });
 
-    it("Pre transfer check when transfer ok", async function() {
+    it('Pre transfer check when transfer ok', async function() {
       await this.registryService.registerInvestor(walletID, walletID);
       await this.registryService.registerInvestor(walletID2, walletID2);
       await this.registryService.addWallet(owner, walletID);
       await this.registryService.addWallet(wallet, walletID2);
-      await this.registryService.setCountry(walletID, "EU");
-      await this.registryService.setCountry(walletID2, "EU");
+      await this.registryService.setCountry(walletID, 'EU');
+      await this.registryService.setCountry(walletID2, 'EU');
       await this.token.setCap(1000);
       await this.token.issueTokens(owner, 100);
       let [a, b] = await this.complianceService.preTransferCheck(
@@ -632,7 +632,7 @@ contract("ESComplianceServiceRegulated", function([
         10
       );
       assert.equal(0, a.toNumber());
-      assert.equal("Valid", b);
+      assert.equal('Valid', b);
     });
   });
 });

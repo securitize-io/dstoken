@@ -1,14 +1,14 @@
-const assertRevert = require("./helpers/assertRevert");
-const EternalStorage = artifacts.require("DSEternalStorageVersioned");
-const ESWalletManager = artifacts.require("ESWalletManagerVersioned");
-const ESRegistryService = artifacts.require("ESRegistryServiceVersioned");
-const ESTrustService = artifacts.require("ESTrustServiceVersioned");
+const assertRevert = require('./helpers/assertRevert');
+const EternalStorage = artifacts.require('DSEternalStorageVersioned');
+const ESWalletManager = artifacts.require('ESWalletManagerVersioned');
+const ESRegistryService = artifacts.require('ESRegistryServiceVersioned');
+const ESTrustService = artifacts.require('ESTrustServiceVersioned');
 
 const NONE = 0;
 const MASTER = 1;
 const ISSUER = 2;
 const EXCHANGE = 4;
-const COUNTRY = "UA";
+const COUNTRY = 'UA';
 const ACCREDITATION_STATUS = 1;
 const SLOTS = 3;
 
@@ -21,7 +21,7 @@ const WALLET_MANAGER = 32;
 const LOCK_MANAGER = 64;
 const ISSUANCE_INFORMATION_MANAGER = 128;
 
-contract("ESWalletManager", function([
+contract('ESWalletManager', function([
   owner,
   wallet,
   issuerAccount,
@@ -36,19 +36,19 @@ contract("ESWalletManager", function([
     this.storage = await EternalStorage.new();
     this.trustService = await ESTrustService.new(
       this.storage.address,
-      "DSTokenTestTrustManager"
+      'DSTokenTestTrustManager'
     );
     this.walletManager = await ESWalletManager.new(
       this.storage.address,
-      "DSTokenTestWalletManager"
+      'DSTokenTestWalletManager'
     );
     this.registryService = await ESRegistryService.new(
       this.storage.address,
-      "DSTokenTestESRegistryService"
+      'DSTokenTestESRegistryService'
     );
-    await this.storage.adminAddRole(this.trustService.address, "write");
-    await this.storage.adminAddRole(this.walletManager.address, "write");
-    await this.storage.adminAddRole(this.registryService.address, "write");
+    await this.storage.adminAddRole(this.trustService.address, 'write');
+    await this.storage.adminAddRole(this.walletManager.address, 'write');
+    await this.storage.adminAddRole(this.registryService.address, 'write');
     await this.trustService.initialize();
     await this.walletManager.setDSService(
       TRUST_SERVICE,
@@ -71,7 +71,7 @@ contract("ESWalletManager", function([
     await this.trustService.setRole(exchangeAccount, EXCHANGE);
   });
 
-  describe("Add issuer wallet:", function() {
+  describe('Add issuer wallet:', function() {
     it(`Trying to add the issuer wallet with MASTER - ${MASTER} permissions`, async function() {
       const role = await this.trustService.getRole(owner);
       assert.equal(role.c[0], MASTER);
@@ -79,7 +79,7 @@ contract("ESWalletManager", function([
       const { logs } = await this.walletManager.addIssuerWallet(wallet);
 
       assert.equal(logs[0].args._wallet, wallet);
-      assert.equal(logs[0].event, "DSWalletManagerSpecialWalletAdded");
+      assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletAdded');
 
       assert.equal(await this.walletManager.getWalletType(wallet), 1);
     });
@@ -93,10 +93,10 @@ contract("ESWalletManager", function([
       });
 
       assert.equal(logs[0].args._wallet, issuerWallet);
-      assert.equal(logs[0].event, "DSWalletManagerSpecialWalletAdded");
+      assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletAdded');
     });
 
-    describe("Add issuer wallet: negative tests", function() {
+    describe('Add issuer wallet: negative tests', function() {
       it(`Trying to add the issuer wallet with NONE - ${NONE} permissions - should be the error`, async function() {
         const role = await this.trustService.getRole(noneAccount);
         assert.equal(role.c[0], NONE);
@@ -126,14 +126,14 @@ contract("ESWalletManager", function([
         );
 
         assert.equal(logs[0].args._wallet, issuerWallet);
-        assert.equal(logs[0].event, "DSWalletManagerSpecialWalletAdded");
+        assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletAdded');
 
         await assertRevert(this.walletManager.addIssuerWallet(issuerWallet));
       });
     });
   });
 
-  describe("Add platform wallet:", function() {
+  describe('Add platform wallet:', function() {
     it(`Trying to add the platform wallet with MASTER - ${MASTER} permissions`, async function() {
       const role = await this.trustService.getRole(owner);
       assert.equal(role.c[0], MASTER);
@@ -141,7 +141,7 @@ contract("ESWalletManager", function([
       const { logs } = await this.walletManager.addPlatformWallet(issuerWallet);
 
       assert.equal(logs[0].args._wallet, issuerWallet);
-      assert.equal(logs[0].event, "DSWalletManagerSpecialWalletAdded");
+      assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletAdded');
     });
 
     it(`Trying to add the platform wallet with ISSUER - ${ISSUER} permissions`, async function() {
@@ -154,10 +154,10 @@ contract("ESWalletManager", function([
       );
 
       assert.equal(logs[0].args._wallet, issuerWallet);
-      assert.equal(logs[0].event, "DSWalletManagerSpecialWalletAdded");
+      assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletAdded');
     });
 
-    describe("Add platform wallet: negative tests", function() {
+    describe('Add platform wallet: negative tests', function() {
       it(`Trying to add the platform wallet with NONE - ${NONE} permissions - should be the error`, async function() {
         const role = await this.trustService.getRole(noneAccount);
         assert.equal(role.c[0], NONE);
@@ -187,14 +187,14 @@ contract("ESWalletManager", function([
         );
 
         assert.equal(logs[0].args._wallet, issuerWallet);
-        assert.equal(logs[0].event, "DSWalletManagerSpecialWalletAdded");
+        assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletAdded');
 
         await assertRevert(this.walletManager.addPlatformWallet(issuerWallet));
       });
     });
   });
 
-  describe("Add exchange wallet:", function() {
+  describe('Add exchange wallet:', function() {
     it(`Trying to add the exchange wallet with MASTER - ${MASTER} permissions`, async function() {
       const role = await this.trustService.getRole(owner);
       assert.equal(role.c[0], MASTER);
@@ -205,7 +205,7 @@ contract("ESWalletManager", function([
       );
 
       assert.equal(logs[0].args._wallet, issuerWallet);
-      assert.equal(logs[0].event, "DSWalletManagerSpecialWalletAdded");
+      assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletAdded');
     });
 
     it(`Trying to add the exchange wallet with ISSUER - ${ISSUER} permissions`, async function() {
@@ -219,10 +219,10 @@ contract("ESWalletManager", function([
       );
 
       assert.equal(logs[0].args._wallet, exchangeWallet);
-      assert.equal(logs[0].event, "DSWalletManagerSpecialWalletAdded");
+      assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletAdded');
     });
 
-    describe("Add exchange wallet: negative tests", function() {
+    describe('Add exchange wallet: negative tests', function() {
       it(`Trying to add the exchange wallet with NONE - ${NONE} permissions - should be the error`, async function() {
         const role = await this.trustService.getRole(noneAccount);
         assert.equal(role.c[0], NONE);
@@ -258,7 +258,7 @@ contract("ESWalletManager", function([
       });
     });
   });
-  describe("Remove special wallet:", function() {
+  describe('Remove special wallet:', function() {
     it(`Trying to remove the wallet with MASTER - ${MASTER} permissions`, async function() {
       const role = await this.trustService.getRole(owner);
       assert.equal(role.c[0], MASTER);
@@ -268,7 +268,7 @@ contract("ESWalletManager", function([
       const { logs } = await this.walletManager.removeSpecialWallet(wallet);
 
       assert.equal(logs[0].args._wallet, wallet);
-      assert.equal(logs[0].event, "DSWalletManagerSpecialWalletRemoved");
+      assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletRemoved');
     });
 
     it(`Trying to remove the wallet with ISSUER - ${ISSUER} permissions`, async function() {
@@ -285,10 +285,10 @@ contract("ESWalletManager", function([
       );
 
       assert.equal(logs[0].args._wallet, issuerWallet);
-      assert.equal(logs[0].event, "DSWalletManagerSpecialWalletRemoved");
+      assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletRemoved');
     });
 
-    describe("Remove special wallet: negative tests", function() {
+    describe('Remove special wallet: negative tests', function() {
       it(`Trying to remove special wallet with NONE - ${NONE} permissions - should be the error`, async function() {
         const role = await this.trustService.getRole(noneAccount);
         assert.equal(role.c[0], NONE);
@@ -317,7 +317,7 @@ contract("ESWalletManager", function([
     });
   });
 
-  describe("Set reserved slots:", function() {
+  describe('Set reserved slots:', function() {
     it(`Trying to set reserved slots with MASTER - ${MASTER} permissions`, async function() {
       const role = await this.trustService.getRole(owner);
       assert.equal(role.c[0], MASTER);
@@ -330,7 +330,7 @@ contract("ESWalletManager", function([
       );
 
       assert.equal(logs[0].args._wallet, wallet);
-      assert.equal(logs[0].event, "DSWalletManagerReservedSlotsSet");
+      assert.equal(logs[0].event, 'DSWalletManagerReservedSlotsSet');
 
       assert.equal(
         await this.walletManager.getReservedSlots(
@@ -355,7 +355,7 @@ contract("ESWalletManager", function([
       );
 
       assert.equal(logs[0].args._wallet, wallet);
-      assert.equal(logs[0].event, "DSWalletManagerReservedSlotsSet");
+      assert.equal(logs[0].event, 'DSWalletManagerReservedSlotsSet');
 
       assert.equal(
         await this.walletManager.getReservedSlots(
@@ -367,7 +367,7 @@ contract("ESWalletManager", function([
       );
     });
 
-    describe("Set reserved slots: negative tests", function() {
+    describe('Set reserved slots: negative tests', function() {
       it(`Trying to set reserved slots with NONE - ${NONE} permissions - should be the error`, async function() {
         const role = await this.trustService.getRole(noneAccount);
         assert.equal(role.c[0], NONE);
@@ -400,7 +400,7 @@ contract("ESWalletManager", function([
     });
   });
 
-  describe("Set reserved slots:", function() {
+  describe('Set reserved slots:', function() {
     it(`Should return correct value`, async function() {
       await this.walletManager.setReservedSlots(
         wallet,
