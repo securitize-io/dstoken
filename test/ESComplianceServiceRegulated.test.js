@@ -13,7 +13,7 @@ const ESComplianceConfigurationService = artifacts.require(
 );
 
 let latestTime = require("./utils/latestTime");
-let increaseTimeTo = require("./helpers/increaseTime");
+let increaseTimeTo = require("./helpers/increaseTime").increaseTimeTo;
 
 const duration = {
   seconds: function(val) {
