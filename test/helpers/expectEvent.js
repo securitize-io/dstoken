@@ -1,4 +1,4 @@
-const assert = require('chai').assert;
+const assert = require("chai").assert;
 
 const inLogs = async (logs, eventName) => {
   const event = logs.find(e => e.event === eventName);
@@ -13,5 +13,5 @@ const inTransaction = async (tx, eventName) => {
 
 module.exports = {
   inLogs,
-  inTransaction,
+  inTransaction
 };
