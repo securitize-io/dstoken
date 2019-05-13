@@ -238,10 +238,8 @@ library ESComplianceServiceLibrary {
 }
 
 /**
-*   @title Concrete compliance service for tokens with no regulation
+*   @title Concrete compliance service for tokens with regulation
 *
-*   This simple compliance service is meant to be used for tokens outside of any specific regulations
-*   it simply returns true for all checks.
 */
 
 contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelistedVersioned {
