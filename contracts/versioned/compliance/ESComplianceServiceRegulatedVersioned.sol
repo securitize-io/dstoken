@@ -251,7 +251,7 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
 
     function recordBurn(address _who, uint _value) internal returns (bool) {
         if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_who)) == _value) {
-            adjustInvestorsCounts(_who, false);
+            adjustTotalInvestorsCounts(_who, false);
         }
 
         return true;
@@ -259,25 +259,41 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
 
     function recordSeize(address _from, address /*_to*/, uint _value) internal returns (bool) {
         if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_from)) == _value) {
-            adjustInvestorsCounts(_from, false);
+            adjustTotalInvestorsCounts(_from, false);
         }
 
         return true;
     }
 
-    function adjustInvestorsCounts(address _wallet, bool _increase) internal {
+    function adjustInvestorCountsAfterCountryChange(string _id,string _country,string _prevCountry) public {
+        if(getToken().balanceOfInvestor(_id) == 0) {
+            return;
+        }
+
+        adjustInvestorsCountsByCountry(_prevCountry,_id,false);
+        adjustInvestorsCountsByCountry(_country,_id,false);
+    }
+
+    function adjustTotalInvestorsCounts(address _wallet, bool _increase) internal {
         if (getWalletManager().getWalletType(_wallet) == getWalletManager().NONE()) {
             setUint(TOTAL_INVESTORS, _increase ? getUint(TOTAL_INVESTORS).add(1) : getUint(TOTAL_INVESTORS).sub(1));
-            string memory country = getRegistryService().getCountry(getRegistryService().getInvestor(_wallet));
-            uint countryCompliance = getComplianceConfigurationService().getCountryCompliance(country);
-            if (countryCompliance == US) {
-                setUint(US_INVESTORS_COUNT, _increase ? getUint(US_INVESTORS_COUNT).add(1) : getUint(US_INVESTORS_COUNT).sub(1));
-                if (getRegistryService().getAttributeValue(getRegistryService().getInvestor(_wallet), getRegistryService().ACCREDITED()) != getRegistryService().APPROVED()) {
-                    setUint(US_ACCREDITED_INVESTORS_COUNT, _increase ? getUint(US_ACCREDITED_INVESTORS_COUNT).add(1) : getUint(US_ACCREDITED_INVESTORS_COUNT).sub(1));
-                }
-            } else if (countryCompliance == EU && getRegistryService().getAttributeValue(getRegistryService().getInvestor(_wallet), getRegistryService().QUALIFIED()) != getRegistryService().APPROVED()) {
-                setUint(EU_RETAIL_INVESTORS_COUNT, country, _increase ? getUint(EU_RETAIL_INVESTORS_COUNT, country).add(1) : getUint(EU_RETAIL_INVESTORS_COUNT, country).sub(1));
+
+            string memory id = getRegistryService().getInvestor(_wallet);
+            string memory country = getRegistryService().getCountry(id);
+
+            adjustInvestorsCountsByCountry(country,id,_increase);
+        }
+    }
+
+    function adjustInvestorsCountsByCountry(string _country,string _id, bool _increase) internal {
+        uint countryCompliance = getComplianceConfigurationService().getCountryCompliance(_country);
+        if (countryCompliance == US) {
+            setUint(US_INVESTORS_COUNT, _increase ? getUint(US_INVESTORS_COUNT).add(1) : getUint(US_INVESTORS_COUNT).sub(1));
+            if (getRegistryService().getAttributeValue(_id, getRegistryService().ACCREDITED()) != getRegistryService().APPROVED()) {
+                setUint(US_ACCREDITED_INVESTORS_COUNT, _increase ? getUint(US_ACCREDITED_INVESTORS_COUNT).add(1) : getUint(US_ACCREDITED_INVESTORS_COUNT).sub(1));
             }
+        } else if (countryCompliance == EU && getRegistryService().getAttributeValue(_id, getRegistryService().QUALIFIED()) != getRegistryService().APPROVED()) {
+            setUint(EU_RETAIL_INVESTORS_COUNT, _country, _increase ? getUint(EU_RETAIL_INVESTORS_COUNT, _country).add(1) : getUint(EU_RETAIL_INVESTORS_COUNT, _country).sub(1));
         }
     }
 
@@ -293,7 +309,7 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
 
     function recordIssuance(address _to, uint _value, uint _issuanceTime) internal returns (bool){
         if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_to)) == 0) {
-            adjustInvestorsCounts(_to, true);
+            adjustTotalInvestorsCounts(_to, true);
         }
 
         require(createIssuanceInformation(getRegistryService().getInvestor(_to), _value, _issuanceTime));
@@ -362,11 +378,11 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
 
     function recordTransfer(address _from, address _to, uint _value) internal returns (bool) {
         if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_from)) == _value) {
-            adjustInvestorsCounts(_from, false);
+            adjustTotalInvestorsCounts(_from, false);
         }
 
         if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_to)) == 0) {
-            adjustInvestorsCounts(_to, true);
+            adjustTotalInvestorsCounts(_to, true);
         }
 
         return true;
