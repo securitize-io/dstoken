@@ -3,6 +3,9 @@ const EternalStorage = artifacts.require('DSEternalStorageVersioned');
 const crypto = require('crypto');
 const ESTrustService = artifacts.require('ESTrustServiceVersioned');
 const ESRegistryService = artifacts.require('ESRegistryServiceVersioned');
+const ESComplianceServiceRegulated = artifacts.require(
+  'ESComplianceServiceRegulatedVersioned'
+);
 const ESWalletManager = artifacts.require('ESWalletManagerVersioned');
 const DSToken = artifacts.require('DSTokenVersioned');
 const Proxy = artifacts.require('ProxyVersioned');
@@ -15,6 +18,7 @@ const COMMS_SERVICE = 16;
 const WALLET_MANAGER = 32;
 const LOCK_MANAGER = 64;
 const ISSUANCE_INFORMATION_MANAGER = 128;
+const COMPLIANCE_SERVICE = 8;
 
 const NONE = 0;
 const MASTER = 1;
@@ -73,6 +77,10 @@ contract('ESRegistryService', function([
       this.storage.address,
       'DSTokenTestESRegistryService'
     );
+    this.complianceService = await ESComplianceServiceRegulated.new(
+      this.storage.address,
+      'DSTokenTestComplianceManager'
+    );
     this.walletManager = await ESWalletManager.new(
       this.storage.address,
       'DSTokenTestWalletManager'
@@ -103,6 +111,10 @@ contract('ESRegistryService', function([
       this.walletManager.address
     );
     await this.registryService.setDSService(DS_TOKEN, this.token.address);
+    await this.registryService.setDSService(
+      COMPLIANCE_SERVICE,
+      this.complianceService.address
+    );
     await this.walletManager.setDSService(
       REGISTRY_SERVICE,
       this.registryService.address
