@@ -33,7 +33,7 @@ const duration = {
   },
   years: function(val) {
     return val * this.days(365);
-  }
+  },
 };
 
 const Proxy = artifacts.require('ProxyVersioned');
@@ -63,7 +63,7 @@ contract('ESComplianceServiceRegulated', function([
   exchangeWallet,
   noneAccount,
   noneWallet,
-  platformWallet
+  platformWallet,
 ]) {
   beforeEach(async function() {
     this.storage = await EternalStorage.new();
@@ -194,6 +194,7 @@ contract('ESComplianceServiceRegulated', function([
     await this.lockManager.setDSService(DS_TOKEN, this.token.address);
 
     await this.trustService.setRole(issuerAccount, ISSUER);
+    await this.trustService.setRole(this.registryService.address, EXCHANGE);
     await this.complianceConfiguration.setCountryCompliance('US', 1);
     await this.complianceConfiguration.setCountryCompliance('EU', 2);
     await this.complianceConfiguration.setAll(
@@ -226,16 +227,14 @@ contract('ESComplianceServiceRegulated', function([
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await assertRevert(
-        this.token.transfer(noneAccount, 100, { from: wallet })
-      );
+      await assertRevert(this.token.transfer(noneAccount, 100, {from: wallet}));
     });
 
     it('Should revert due to Wallet has not enough tokens', async function() {
       await this.registryService.registerInvestor(walletID, walletID);
       await this.registryService.addWallet(wallet, walletID);
       assert.equal(await this.token.balanceOf(wallet), 0);
-      await assertRevert(this.token.transfer(wallet, 100, { from: wallet }));
+      await assertRevert(this.token.transfer(wallet, 100, {from: wallet}));
     });
 
     it('Pre transfer check with tokens locked', async function() {
@@ -249,7 +248,7 @@ contract('ESComplianceServiceRegulated', function([
         'Test',
         latestTime() + 1000
       );
-      await assertRevert(this.token.transfer(owner, 100, { from: wallet }));
+      await assertRevert(this.token.transfer(owner, 100, {from: wallet}));
     });
 
     it('Should decrease total investors value when transfer tokens', async function() {
@@ -258,8 +257,8 @@ contract('ESComplianceServiceRegulated', function([
       await this.registryService.addWallet(wallet, walletID);
       await this.registryService.addWallet(noneAccount, walletID2);
       await this.token.setCap(1000);
-      await this.token.issueTokens(wallet, 100, { gas: 2e6 });
-      await this.token.issueTokens(noneAccount, 100, { gas: 2e6 });
+      await this.token.issueTokens(wallet, 100, {gas: 2e6});
+      await this.token.issueTokens(noneAccount, 100, {gas: 2e6});
       assert.equal(await this.registryService.getInvestor(wallet), walletID);
       assert.equal(
         await this.registryService.getInvestor(noneAccount),
@@ -278,14 +277,14 @@ contract('ESComplianceServiceRegulated', function([
       await this.registryService.registerInvestor(walletID2, 'noneAccount');
       await this.registryService.addWallet(noneAccount, walletID2);
       await this.token.setCap(1000);
-      await this.token.issueTokens(wallet, 100, { gas: 4e6 });
+      await this.token.issueTokens(wallet, 100, {gas: 4e6});
       assert.equal(await this.registryService.getInvestor(wallet), walletID);
       assert.equal(
         await this.registryService.getInvestor(noneAccount),
         walletID2
       );
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await this.token.transfer(noneAccount, 50, { from: wallet });
+      await this.token.transfer(noneAccount, 50, {from: wallet});
       assert.equal(await this.token.balanceOf(wallet), 50);
       assert.equal(await this.token.balanceOf(noneAccount), 50);
 
@@ -303,7 +302,7 @@ contract('ESComplianceServiceRegulated', function([
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
       await assertRevert(
-        this.token.transfer(owner, 100, { from: wallet, gas: 5e6 })
+        this.token.transfer(owner, 100, {from: wallet, gas: 5e6})
       );
     });
 
@@ -318,11 +317,11 @@ contract('ESComplianceServiceRegulated', function([
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
       await assertRevert(
-        this.token.transfer(owner, 100, { from: wallet, gas: 5e6 })
+        this.token.transfer(owner, 100, {from: wallet, gas: 5e6})
       );
     });
 
-    it.only('Should not be able to transfer tokens due to full transfer enabled', async function() {
+    it('Should not be able to transfer tokens due to full transfer enabled', async function() {
       await this.registryService.registerInvestor(walletID, 'wallet');
       await this.registryService.registerInvestor(walletID2, ownerId);
       await this.registryService.setCountry(walletID, 'US');
@@ -334,7 +333,7 @@ contract('ESComplianceServiceRegulated', function([
       assert.equal(await this.token.balanceOf(wallet), 100);
       await increaseTimeTo(duration.days(370));
       await assertRevert(
-        this.token.transfer(owner, 50, { from: wallet, gas: 5e6 })
+        this.token.transfer(owner, 50, {from: wallet, gas: 5e6})
       );
     });
 
@@ -351,7 +350,7 @@ contract('ESComplianceServiceRegulated', function([
       assert.equal(await this.token.balanceOf(wallet), 100);
       await this.token.transfer(platformWallet, 100, {
         from: wallet,
-        gas: 5e6
+        gas: 5e6,
       });
     });
 
@@ -367,7 +366,7 @@ contract('ESComplianceServiceRegulated', function([
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
       await assertRevert(
-        this.token.transfer(wallet1, 50, { from: wallet, gas: 5e6 })
+        this.token.transfer(wallet1, 50, {from: wallet, gas: 5e6})
       );
     });
 
@@ -382,7 +381,7 @@ contract('ESComplianceServiceRegulated', function([
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
       await increaseTimeTo(duration.days(370));
-      await this.token.transfer(owner, 100, { from: wallet, gas: 5e6 });
+      await this.token.transfer(owner, 100, {from: wallet, gas: 5e6});
       assert.equal(await this.token.balanceOf(wallet), 0);
     });
   });
@@ -394,9 +393,7 @@ contract('ESComplianceServiceRegulated', function([
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await assertRevert(
-        this.token.burn(wallet, 100, 'Test', { from: wallet })
-      );
+      await assertRevert(this.token.burn(wallet, 100, 'Test', {from: wallet}));
     });
 
     it('Should decrease total investors value when burn tokens', async function() {
@@ -456,7 +453,7 @@ contract('ESComplianceServiceRegulated', function([
       await this.registryService.registerInvestor(walletID, walletID);
       await this.registryService.addWallet(wallet, walletID);
       await this.token.setCap(1000);
-      await this.token.issueTokens(owner, 100, { gas: 2e6 });
+      await this.token.issueTokens(owner, 100, {gas: 2e6});
       await this.token.pause();
       let [a, b] = await this.complianceService.preTransferCheck(
         owner,

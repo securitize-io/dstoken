@@ -529,6 +529,10 @@ module.exports = function(deployer) {
         console.log('Give issuer permissions to wallet registrar');
         return trustService.setRole(walletRegistrar.address, ISSUER);
       })
+      .then(() => {
+        console.log('Give exchange permissions to registry service');
+        return trustService.setRole(registry.address, EXCHANGE);
+      })
       .then(async () => {
         console.log(
           `\n\nToken "${name}" (${symbol}) [decimals: ${decimals}] deployment complete`

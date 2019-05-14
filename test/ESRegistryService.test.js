@@ -175,7 +175,7 @@ contract('ESRegistryService', function([
     });
 
     describe('SET | GET the country', function() {
-      it.only('Trying to set the country for the investor', async function() {
+      it('Trying to set the country for the investor', async function() {
         const {logs} = await this.registryService.setCountry(
           investorId,
           investorCountry
