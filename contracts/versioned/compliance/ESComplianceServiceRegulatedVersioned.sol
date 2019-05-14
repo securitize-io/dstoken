@@ -265,7 +265,7 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
         return true;
     }
 
-    function adjustInvestorCountsAfterCountryChange(string _id,string _country,string _prevCountry) public onlyExchangeOrAbove {
+    function adjustInvestorCountsAfterCountryChange(string _id,string _country,string _prevCountry) public onlyRegistry {
         if(getToken().balanceOfInvestor(_id) == 0) {
             return;
         }

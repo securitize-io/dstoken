@@ -25,7 +25,7 @@ contract DSRegistryServiceInterfaceVersioned is DSServiceConsumerInterfaceVersio
   uint8 public constant REJECTED = 2;
 
   modifier investorExists(string _id) {
-    require(isInvestor(_id));
+    require(isInvestor(_id),"Unknown investor");
     _;
   }
 

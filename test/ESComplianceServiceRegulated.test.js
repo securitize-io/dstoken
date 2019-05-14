@@ -194,7 +194,6 @@ contract('ESComplianceServiceRegulated', function([
     await this.lockManager.setDSService(DS_TOKEN, this.token.address);
 
     await this.trustService.setRole(issuerAccount, ISSUER);
-    await this.trustService.setRole(this.registryService.address, EXCHANGE);
     await this.complianceConfiguration.setCountryCompliance('US', 1);
     await this.complianceConfiguration.setCountryCompliance('EU', 2);
     await this.complianceConfiguration.setAll(
