@@ -92,8 +92,6 @@ library ESRegistryServiceLibrary {
     EternalStorageClientAddressLibrary.setAddress(_registry, INVESTORS, _id, LAST_UPDATED_BY, msg.sender);
   }
 
-
-
   function getInvestor(ESRegistryServiceVersioned _registry, address _address) public view returns (string) {
     return EternalStorageClientStringLibrary.getString(_registry, WALLETS, _address, OWNER);
   }
