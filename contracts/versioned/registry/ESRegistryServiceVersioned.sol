@@ -157,9 +157,9 @@ contract ESRegistryServiceVersioned is ESServiceConsumerVersioned, DSRegistrySer
   }
 
   function setCountry(string _id, string _country) public onlyExchangeOrAbove investorExists(_id) returns (bool) {
-    string memory prevCountry = getCountry(_id);
-    
-    getComplianceService().adjustInvestorCountsAfterCountryChange(_id,_country,prevCountry);
+    //string memory prevCountry = getCountry(_id);
+
+    //getComplianceService().adjustInvestorCountsAfterCountryChange(_id,_country,prevCountry);
 
     ESRegistryServiceLibrary.setCountry(this, _id, _country);
 

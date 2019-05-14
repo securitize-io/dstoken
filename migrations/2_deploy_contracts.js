@@ -428,6 +428,15 @@ module.exports = function(deployer) {
         }
       })
       .then(() => {
+        if (registry) {
+          console.log('Connecting registry to compliance service');
+          return registry.setDSService(
+            COMPLIANCE_SERVICE,
+            complianceService.address
+          );
+        }
+      })
+      .then(() => {
         console.log('Connecting token to trust service');
         return token.setDSService(TRUST_SERVICE, trustService.address);
       })
