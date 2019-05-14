@@ -271,7 +271,7 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
         }
 
         adjustInvestorsCountsByCountry(_prevCountry,_id,false);
-        adjustInvestorsCountsByCountry(_country,_id,false);
+        adjustInvestorsCountsByCountry(_country,_id,true);
     }
 
     function adjustTotalInvestorsCounts(address _wallet, bool _increase) internal {
