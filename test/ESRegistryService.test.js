@@ -1,4 +1,5 @@
 const assertRevert = require('./helpers/assertRevert');
+const utils = require('./utils');
 const EternalStorage = artifacts.require('DSEternalStorageVersioned');
 const crypto = require('crypto');
 const ESTrustService = artifacts.require('ESTrustServiceVersioned');
@@ -6,18 +7,13 @@ const ESRegistryService = artifacts.require('ESRegistryServiceVersioned');
 const ESComplianceServiceRegulated = artifacts.require(
   'ESComplianceServiceRegulatedVersioned'
 );
+const ESComplianceConfigurationService = artifacts.require(
+  'ESComplianceConfigurationServiceVersioned'
+);
 const ESWalletManager = artifacts.require('ESWalletManagerVersioned');
 const DSToken = artifacts.require('DSTokenVersioned');
+const ESLockManager = artifacts.require('ESLockManagerVersioned');
 const Proxy = artifacts.require('ProxyVersioned');
-
-const TRUST_SERVICE = 1;
-const DS_TOKEN = 2;
-const REGISTRY_SERVICE = 4;
-const COMPLIANCE_SERVICE = 8;
-const COMMS_SERVICE = 16;
-const WALLET_MANAGER = 32;
-const LOCK_MANAGER = 64;
-const ISSUANCE_INFORMATION_MANAGER = 128;
 
 const NONE = 0;
 const MASTER = 1;
@@ -80,10 +76,19 @@ contract('ESRegistryService', function([
       this.storage.address,
       'DSTokenTestComplianceManager'
     );
+    this.complianceConfiguration = await ESComplianceConfigurationService.new(
+      this.storage.address,
+      'DSTokenTestComplianceConfiguration'
+    );
     this.walletManager = await ESWalletManager.new(
       this.storage.address,
       'DSTokenTestWalletManager'
     );
+    this.lockManager = await ESLockManager.new(
+      this.storage.address,
+      'DSTokenTestLockManager'
+    );
+
     this.tokenImpl = await DSToken.new();
     this.proxy = await Proxy.new();
     await this.proxy.setTarget(this.tokenImpl.address);
@@ -96,35 +101,50 @@ contract('ESRegistryService', function([
       'DSTokenMock'
     );
 
-    await this.storage.adminAddRole(this.trustService.address, 'write');
-    await this.storage.adminAddRole(this.registryService.address, 'write');
-    await this.storage.adminAddRole(this.walletManager.address, 'write');
-    await this.storage.adminAddRole(this.token.address, 'write');
+    await utils.addStorageAdminRules(this.storage, [
+      this.trustService.address,
+      this.registryService.address,
+      this.walletManager.address,
+      this.token.address,
+      this.complianceService.address,
+      this.complianceConfiguration.address,
+      this.lockManager.address,
+    ]);
+
     await this.trustService.initialize();
-    await this.registryService.setDSService(
-      TRUST_SERVICE,
-      this.trustService.address
-    );
-    await this.registryService.setDSService(
-      WALLET_MANAGER,
-      this.walletManager.address
-    );
-    await this.registryService.setDSService(DS_TOKEN, this.token.address);
-    await this.registryService.setDSService(
-      COMPLIANCE_SERVICE,
+
+    await utils.setRegisteryDepServices(
+      this.registryService,
+      this.trustService.address,
+      this.walletManager.address,
+      this.token.address,
       this.complianceService.address
     );
-    await this.walletManager.setDSService(
-      REGISTRY_SERVICE,
-      this.registryService.address
-    );
-    await this.walletManager.setDSService(
-      TRUST_SERVICE,
+    await utils.setWalletManagerDepServices(
+      this.walletManager,
+      this.registryService.address,
       this.trustService.address
     );
-    await this.token.setDSService(
-      REGISTRY_SERVICE,
-      this.registryService.address
+    await utils.setTokenDepServices(this.token, this.registryService.address);
+    await utils.setComplianceDepServices(
+      this.complianceService,
+      this.trustService.address,
+      this.walletManager.address,
+      this.lockManager.address,
+      this.complianceConfiguration.address,
+      this.registryService.address,
+      this.token.address
+    );
+    await utils.setLockManagerDepServices(
+      this.lockManager,
+      this.trustService.address,
+      this.registryService.address,
+      this.complianceService.address,
+      this.token.address
+    );
+    await utils.setComplianceConfDepServices(
+      this.complianceConfiguration,
+      this.trustService.address
     );
   });
 
