@@ -1,4 +1,5 @@
 const assertRevert = require('./helpers/assertRevert');
+const utils = require('./utils');
 const EternalStorage = artifacts.require('DSEternalStorageVersioned');
 const ESWalletManager = artifacts.require('ESWalletManagerVersioned');
 const ESTrustService = artifacts.require('ESTrustServiceVersioned');
@@ -102,16 +103,17 @@ contract('ESComplianceServiceRegulated', function([
       this.storage.address,
       'DSTokenMock'
     );
-    await this.storage.adminAddRole(this.trustService.address, 'write');
-    await this.storage.adminAddRole(this.complianceService.address, 'write');
-    await this.storage.adminAddRole(this.walletManager.address, 'write');
-    await this.storage.adminAddRole(this.lockManager.address, 'write');
-    await this.storage.adminAddRole(this.registryService.address, 'write');
-    await this.storage.adminAddRole(this.token.address, 'write');
-    await this.storage.adminAddRole(
+
+    await utils.addStorageAdminRules(this.storage, [
+      this.trustService.address,
+      this.complianceService.address,
+      this.walletManager.address,
+      this.lockManager.address,
+      this.registryService.address,
+      this.token.address,
       this.complianceConfiguration.address,
-      'write'
-    );
+    ]);
+
     await this.trustService.initialize();
     await this.registryService.setDSService(
       TRUST_SERVICE,

@@ -1,5 +1,6 @@
 const assertRevert = require('./helpers/assertRevert');
 const utils = require('./utils');
+const services = require('./utils/globals').services;
 const EternalStorage = artifacts.require('DSEternalStorageVersioned');
 const crypto = require('crypto');
 const ESTrustService = artifacts.require('ESTrustServiceVersioned');
@@ -113,38 +114,76 @@ contract('ESRegistryService', function([
 
     await this.trustService.initialize();
 
-    await utils.setRegisteryDepServices(
+    await utils.setServicesDependencies(
       this.registryService,
-      this.trustService.address,
-      this.walletManager.address,
-      this.token.address,
-      this.complianceService.address
+      [
+        services.TRUST_SERVICE,
+        services.WALLET_MANAGER,
+        services.DS_TOKEN,
+        services.COMPLIANCE_SERVICE,
+        services.LOCK_MANAGER,
+      ],
+      [
+        this.trustService.address,
+        this.walletManager.address,
+        this.token.address,
+        this.complianceService.address,
+        this.lockManager.address,
+      ]
     );
-    await utils.setWalletManagerDepServices(
+
+    await utils.setServicesDependencies(
       this.walletManager,
-      this.registryService.address,
-      this.trustService.address
+      [services.REGISTRY_SERVICE, services.TRUST_SERVICE],
+      [this.registryService.address, this.trustService.address]
     );
-    await utils.setTokenDepServices(this.token, this.registryService.address);
-    await utils.setComplianceDepServices(
+
+    await utils.setServicesDependencies(
+      this.token,
+      [services.REGISTRY_SERVICE],
+      [this.registryService.address]
+    );
+
+    await utils.setServicesDependencies(
       this.complianceService,
-      this.trustService.address,
-      this.walletManager.address,
-      this.lockManager.address,
-      this.complianceConfiguration.address,
-      this.registryService.address,
-      this.token.address
+      [
+        services.TRUST_SERVICE,
+        services.WALLET_MANAGER,
+        services.LOCK_MANAGER,
+        services.COMPLIANCE_CONFIGURATION_SERVICE,
+        services.REGISTRY_SERVICE,
+        services.DS_TOKEN,
+      ],
+      [
+        this.trustService.address,
+        this.walletManager.address,
+        this.lockManager.address,
+        this.complianceConfiguration.address,
+        this.registryService.address,
+        this.token.address,
+      ]
     );
-    await utils.setLockManagerDepServices(
+
+    await utils.setServicesDependencies(
       this.lockManager,
-      this.trustService.address,
-      this.registryService.address,
-      this.complianceService.address,
-      this.token.address
+      [
+        services.TRUST_SERVICE,
+        services.REGISTRY_SERVICE,
+        services.COMPLIANCE_SERVICE,
+        services.DS_TOKEN,
+      ],
+      [
+        this.trustService.address,
+        this.registryService.address,
+        this.complianceService.address,
+        this.token.address,
+      ]
     );
-    await utils.setComplianceConfDepServices(
+
+    await utils.setServicesDependencies(
       this.complianceConfiguration,
-      this.trustService.address
+      [services.TRUST_SERVICE],
+      [this.trustService.address]
     );
   });
 
