@@ -1,5 +1,6 @@
 const assertRevert = require('./helpers/assertRevert');
 const utils = require('./utils');
+const services = require('./utils/globals').services;
 const EternalStorage = artifacts.require('DSEternalStorageVersioned');
 const ESWalletManager = artifacts.require('ESWalletManagerVersioned');
 const ESTrustService = artifacts.require('ESTrustServiceVersioned');
@@ -115,85 +116,100 @@ contract('ESComplianceServiceRegulated', function([
     ]);
 
     await this.trustService.initialize();
-    await this.registryService.setDSService(
-      TRUST_SERVICE,
-      this.trustService.address
+
+    await utils.setServicesDependencies(
+      this.registryService,
+      [
+        services.TRUST_SERVICE,
+        services.WALLET_MANAGER,
+        services.DS_TOKEN,
+        services.COMPLIANCE_SERVICE,
+        services.LOCK_MANAGER,
+      ],
+      [
+        this.trustService.address,
+        this.walletManager.address,
+        this.token.address,
+        this.complianceService.address,
+        this.lockManager.address,
+      ]
     );
-    await this.registryService.setDSService(
-      WALLET_MANAGER,
-      this.walletManager.address
+
+    await utils.setServicesDependencies(
+      this.complianceService,
+      [
+        services.TRUST_SERVICE,
+        services.WALLET_MANAGER,
+        services.LOCK_MANAGER,
+        services.COMPLIANCE_CONFIGURATION_SERVICE,
+        services.REGISTRY_SERVICE,
+        services.DS_TOKEN,
+      ],
+      [
+        this.trustService.address,
+        this.walletManager.address,
+        this.lockManager.address,
+        this.complianceConfiguration.address,
+        this.registryService.address,
+        this.token.address,
+      ]
     );
-    await this.registryService.setDSService(
-      COMPLIANCE_SERVICE,
-      this.complianceService.address
+
+    await utils.setServicesDependencies(
+      this.walletManager,
+      [
+        services.TRUST_SERVICE,
+        services.REGISTRY_SERVICE,
+        services.COMPLIANCE_SERVICE,
+        services.DS_TOKEN,
+      ],
+      [
+        this.trustService.address,
+        this.registryService.address,
+        this.complianceService.address,
+        this.token.address,
+      ]
     );
-    await this.registryService.setDSService(DS_TOKEN, this.token.address);
-    await this.registryService.setDSService(
-      LOCK_MANAGER,
-      this.lockManager.address
+
+    await utils.setServicesDependencies(
+      this.lockManager,
+      [
+        services.REGISTRY_SERVICE,
+        services.COMPLIANCE_SERVICE,
+        services.DS_TOKEN,
+        services.TRUST_SERVICE,
+      ],
+      [
+        this.registryService.address,
+        this.complianceService.address,
+        this.token.address,
+        this.trustService.address,
+      ]
     );
-    await this.complianceService.setDSService(
-      TRUST_SERVICE,
-      this.trustService.address
+
+    await utils.setServicesDependencies(
+      this.complianceConfiguration,
+      [services.TRUST_SERVICE],
+      [this.trustService.address]
     );
-    await this.complianceService.setDSService(
-      WALLET_MANAGER,
-      this.walletManager.address
+
+    await utils.setServicesDependencies(
+      this.token,
+      [
+        services.TRUST_SERVICE,
+        services.COMPLIANCE_SERVICE,
+        services.WALLET_MANAGER,
+        services.LOCK_MANAGER,
+        services.REGISTRY_SERVICE,
+      ],
+      [
+        this.trustService.address,
+        this.complianceService.address,
+        this.walletManager.address,
+        this.lockManager.address,
+        this.registryService.address,
+      ]
     );
-    await this.complianceService.setDSService(
-      LOCK_MANAGER,
-      this.lockManager.address
-    );
-    await this.complianceService.setDSService(
-      COMPLIANCE_CONFIGURATION_SERVICE,
-      this.complianceConfiguration.address
-    );
-    await this.complianceConfiguration.setDSService(
-      TRUST_SERVICE,
-      this.trustService.address
-    );
-    await this.token.setDSService(TRUST_SERVICE, this.trustService.address);
-    await this.token.setDSService(
-      COMPLIANCE_SERVICE,
-      this.complianceService.address
-    );
-    await this.token.setDSService(WALLET_MANAGER, this.walletManager.address);
-    await this.token.setDSService(LOCK_MANAGER, this.lockManager.address);
-    await this.token.setDSService(
-      REGISTRY_SERVICE,
-      this.registryService.address
-    );
-    await this.complianceService.setDSService(
-      REGISTRY_SERVICE,
-      this.registryService.address
-    );
-    await this.complianceService.setDSService(DS_TOKEN, this.token.address);
-    await this.walletManager.setDSService(
-      TRUST_SERVICE,
-      this.trustService.address
-    );
-    await this.walletManager.setDSService(
-      REGISTRY_SERVICE,
-      this.registryService.address
-    );
-    await this.walletManager.setDSService(
-      COMPLIANCE_SERVICE,
-      this.complianceService.address
-    );
-    await this.walletManager.setDSService(DS_TOKEN, this.token.address);
-    await this.lockManager.setDSService(
-      TRUST_SERVICE,
-      this.trustService.address
-    );
-    await this.lockManager.setDSService(
-      REGISTRY_SERVICE,
-      this.registryService.address
-    );
-    await this.lockManager.setDSService(
-      COMPLIANCE_SERVICE,
-      this.complianceService.address
-    );
-    await this.lockManager.setDSService(DS_TOKEN, this.token.address);
 
     await this.trustService.setRole(issuerAccount, ISSUER);
     await this.complianceConfiguration.setCountryCompliance('US', 1);
