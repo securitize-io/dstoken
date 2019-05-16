@@ -1,4 +1,4 @@
-async function addStorageAdminRules(storageService, servicesAddresses) {
+async function addAdminRules(storageService, servicesAddresses) {
   servicesAddresses.forEach(async address => {
     await storageService.adminAddRole(address, 'write');
   });
@@ -11,6 +11,6 @@ async function setServicesDependencies(service, depTypes, depAddresses) {
 }
 
 module.exports = {
-  addStorageAdminRules,
+  addAdminRules,
   setServicesDependencies,
 };

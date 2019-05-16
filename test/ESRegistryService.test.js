@@ -102,7 +102,7 @@ contract('ESRegistryService', function([
       'DSTokenMock'
     );
 
-    await utils.addStorageAdminRules(this.storage, [
+    await utils.addAdminRules(this.storage, [
       this.trustService.address,
       this.registryService.address,
       this.walletManager.address,
