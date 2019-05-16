@@ -437,6 +437,30 @@ contract('Integration', function([
       );
       assert.equal(euRetailInvestorsCount, 1);
     });
+
+    it('should update us and eu investors correctly after country change', async function() {
+      await registryService.setCountry(US_INVESTOR_ID, 'Germany');
+      let euRetailInvestorsCount = await complianceService.getEURetailInvestorsCount.call(
+        'Germany'
+      );
+      assert.equal(euRetailInvestorsCount, 2);
+      let usInvestorsCount = await complianceService.getUSInvestorsCount.call();
+      assert.equal(usInvestorsCount, 2);
+
+      await registryService.setCountry(US_INVESTOR_ID, 'USA');
+      euRetailInvestorsCount = await complianceService.getEURetailInvestorsCount.call(
+        'Germany'
+      );
+      usInvestorsCount = await complianceService.getUSInvestorsCount.call();
+      assert.equal(usInvestorsCount, 3);
+      assert.equal(euRetailInvestorsCount, 1);
+      await registryService.setCountry(US_INVESTOR_ID, 'israel');
+      usInvestorsCount = await complianceService.getUSInvestorsCount.call();
+      assert.equal(usInvestorsCount, 2);
+      await registryService.setCountry(US_INVESTOR_ID, 'USA');
+      usInvestorsCount = await complianceService.getUSInvestorsCount.call();
+      assert.equal(usInvestorsCount, 3);
+    });
   });
   describe('transfers', function() {
     it('should allow some transfers and update the number of eu and us investors', async function() {

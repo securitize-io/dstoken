@@ -269,6 +269,10 @@ contract('ESComplianceServiceRegulated', function([
     });
 
     it('Should decrease total investors value when transfer tokens', async function() {
+      assert.equal(
+        (await this.complianceService.getTotalInvestorsCount()).toNumber(),
+        0
+      );
       await this.registryService.registerInvestor(walletID, 'wallet');
       await this.registryService.registerInvestor(walletID2, 'noneAccount');
       await this.registryService.addWallet(wallet, walletID);
@@ -281,14 +285,26 @@ contract('ESComplianceServiceRegulated', function([
         await this.registryService.getInvestor(noneAccount),
         walletID2
       );
-      assert.equal(await this.token.balanceOf(wallet), 100);
-      // await this.token.transfer(noneAccount, 100, {from: wallet, gas: 2e6});
-      // assert.equal(await this.token.balanceOf(wallet), 0);
+      assert.equal(
+        (await this.complianceService.getTotalInvestorsCount()).toNumber(),
+        2
+      );
 
-      // to do: test that investor amount decrease
+      assert.equal(await this.token.balanceOf(wallet), 100);
+      await this.token.transfer(noneAccount, 100, {from: wallet});
+      assert.equal(await this.token.balanceOf(wallet), 0);
+
+      assert.equal(
+        (await this.complianceService.getTotalInvestorsCount()).toNumber(),
+        1
+      );
     });
 
     it('Should increase total investors value when transfer tokens', async function() {
+      assert.equal(
+        (await this.complianceService.getTotalInvestorsCount()).toNumber(),
+        0
+      );
       await this.registryService.registerInvestor(walletID, 'wallet');
       await this.registryService.addWallet(wallet, walletID);
       await this.registryService.registerInvestor(walletID2, 'noneAccount');
@@ -301,11 +317,17 @@ contract('ESComplianceServiceRegulated', function([
         walletID2
       );
       assert.equal(await this.token.balanceOf(wallet), 100);
+      assert.equal(
+        (await this.complianceService.getTotalInvestorsCount()).toNumber(),
+        1
+      );
       await this.token.transfer(noneAccount, 50, {from: wallet});
       assert.equal(await this.token.balanceOf(wallet), 50);
       assert.equal(await this.token.balanceOf(noneAccount), 50);
-
-      // to do: test that investor amount increase
+      assert.equal(
+        (await this.complianceService.getTotalInvestorsCount()).toNumber(),
+        2
+      );
     });
 
     it('Should not be able to transfer tokens because of 1 year lock for US investors', async function() {
