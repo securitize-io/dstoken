@@ -34,7 +34,7 @@ npm install
 
 # or if using yarn: yarn install
 
-truffle migrate [OPTIONS] --name <token name> --symbol <token symbol> --decimals <token decimals>
+npm run migrate -- --name <token name> --symbol <token symbol> --decimals <token decimals>
 --reset - re-deploys the contracts
 --no_registry - skip registry service
 --compliance TYPE - compliance service type (NOT_REGULATED,WHITELIST,NORMAL) - if omitted, NORMAL is selected
@@ -43,7 +43,7 @@ truffle migrate [OPTIONS] --name <token name> --symbol <token symbol> --decimals
 For example, to install a standard DSToken (with default compliance manager and lock manager), run:
 
 ```
-truffle migrate --network ganache --name ExampleToken --symbol EXM --decimals 18
+npm run migrate -- --network ganache --name ExampleToken --symbol EXM --decimals 18
 
 ```
 

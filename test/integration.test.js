@@ -80,7 +80,7 @@ const DAYS = 24 * HOURS;
 const WEEKS = 7 * DAYS;
 const YEARS = 365 * DAYS;
 
-let latestTime = require('./utils/latestTime');
+import latestTime from "./helpers/latestTime";
 let increaseTimeTo = require('./helpers/increaseTime');
 
 let storage;
