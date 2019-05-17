@@ -1,4 +1,4 @@
-export default async promise => {
+module.exports = async function expectThrow(promise) {
   try {
     await promise;
   } catch (error) {
@@ -13,7 +13,7 @@ export default async promise => {
     const revert = error.message.search('revert') >= 0;
     assert(
       invalidOpcode || outOfGas || revert,
-      'Expected throw, got \'' + error + '\' instead',
+      "Expected throw, got '" + error + "' instead"
     );
     return;
   }
