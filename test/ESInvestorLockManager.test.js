@@ -11,7 +11,7 @@ const ESComplianceServiceNotRegulated = artifacts.require(
 );
 const ESRegistryService = artifacts.require('ESRegistryServiceVersioned');
 
-let latestTime = require('./utils/latestTime');
+import latestTime from "./helpers/latestTime";
 const Proxy = artifacts.require('ProxyVersioned');
 
 const TRUST_SERVICE = 1;
