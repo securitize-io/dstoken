@@ -105,7 +105,7 @@ contract('ESComplianceServiceRegulated', function([
       'DSTokenMock'
     );
 
-    await utils.addAdminRules(this.storage, [
+    await utils.addWriteRoles(this.storage, [
       this.trustService.address,
       this.complianceService.address,
       this.walletManager.address,
