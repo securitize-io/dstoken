@@ -1,4 +1,4 @@
-const assertRevert = require('./helpers/assertRevert');
+const assertRevert = require('../helpers/assertRevert');
 const EternalStorage = artifacts.require('DSEternalStorageVersioned');
 const ESTrustService = artifacts.require('ESTrustServiceVersioned');
 
@@ -13,7 +13,7 @@ contract('ESTrustService', function([
   issuerAccount,
   exchangeAccount,
   account1,
-  account2
+  account2,
 ]) {
   before(async function() {
     this.storage = await EternalStorage.new();
@@ -39,12 +39,12 @@ contract('ESTrustService', function([
   describe('Set owner flow', function() {
     it(`Trying to call not by master`, async function() {
       await assertRevert(
-        this.trustService.setOwner(issuerAccount, { from: newOwner })
+        this.trustService.setOwner(issuerAccount, {from: newOwner})
       );
     });
 
     it(`Should transfer ownership (MASTER role) of the contract to ${newOwner}`, async function() {
-      const { logs } = await this.trustService.setOwner(newOwner);
+      const {logs} = await this.trustService.setOwner(newOwner);
 
       assert.equal(logs[0].args._address, owner);
       assert.equal(logs[0].event, 'DSTrustServiceRoleRemoved');
@@ -70,25 +70,25 @@ contract('ESTrustService', function([
   describe('Set Role flow', function() {
     it(`Trying to call not by master or issuer`, async function() {
       await assertRevert(
-        this.trustService.setRole(issuerAccount, ISSUER, { from: account1 })
+        this.trustService.setRole(issuerAccount, ISSUER, {from: account1})
       );
     });
 
     it(`Trying to set MASTER role for this account - ${issuerAccount} - should be the error`, async function() {
       await assertRevert(
-        this.trustService.setRole(issuerAccount, MASTER, { from: newOwner })
+        this.trustService.setRole(issuerAccount, MASTER, {from: newOwner})
       );
     });
 
     it(`Trying to remove the role - set NONE role for this account - ${newOwner} - should be the error`, async function() {
       await assertRevert(
-        this.trustService.setRole(newOwner, NONE, { from: newOwner })
+        this.trustService.setRole(newOwner, NONE, {from: newOwner})
       );
     });
 
     it(`Trying to set ISSUER role for this account - ${issuerAccount}`, async function() {
-      const { logs } = await this.trustService.setRole(issuerAccount, ISSUER, {
-        from: newOwner
+      const {logs} = await this.trustService.setRole(issuerAccount, ISSUER, {
+        from: newOwner,
       });
 
       assert.equal(logs[0].args._address, issuerAccount);
@@ -103,10 +103,10 @@ contract('ESTrustService', function([
     });
 
     it(`Trying to set EXCHANGE role for this account - ${exchangeAccount}`, async function() {
-      const { logs } = await this.trustService.setRole(
+      const {logs} = await this.trustService.setRole(
         exchangeAccount,
         EXCHANGE,
-        { from: newOwner }
+        {from: newOwner}
       );
 
       assert.equal(logs[0].args._address, exchangeAccount);
@@ -123,19 +123,19 @@ contract('ESTrustService', function([
 
   describe('Remove Role flow', function() {
     before(async function() {
-      await this.trustService.setRole(account1, ISSUER, { from: newOwner });
-      await this.trustService.setRole(account2, EXCHANGE, { from: newOwner });
+      await this.trustService.setRole(account1, ISSUER, {from: newOwner});
+      await this.trustService.setRole(account2, EXCHANGE, {from: newOwner});
     });
 
     it(`Trying to remove the role using EXCHANGE account - ${exchangeAccount} - should be the error`, async function() {
       await assertRevert(
-        this.trustService.removeRole(exchangeAccount, { from: exchangeAccount })
+        this.trustService.removeRole(exchangeAccount, {from: exchangeAccount})
       );
     });
 
     it(`Trying to remove the role using NONE account - ${owner} - should be the error`, async function() {
       await assertRevert(
-        this.trustService.removeRole(exchangeAccount, { from: owner })
+        this.trustService.removeRole(exchangeAccount, {from: owner})
       );
     });
 
@@ -146,8 +146,8 @@ contract('ESTrustService', function([
       });
 
       it(`Trying to remove the role using ISSUER account - ${issuerAccount}`, async function() {
-        const { logs } = await this.trustService.removeRole(account1, {
-          from: issuerAccount
+        const {logs} = await this.trustService.removeRole(account1, {
+          from: issuerAccount,
         });
 
         assert.equal(logs[0].args._address, account1);
@@ -167,8 +167,8 @@ contract('ESTrustService', function([
       });
 
       it(`Trying to remove the role using MASTER account - ${newOwner}`, async function() {
-        const { logs } = await this.trustService.removeRole(account2, {
-          from: newOwner
+        const {logs} = await this.trustService.removeRole(account2, {
+          from: newOwner,
         });
 
         assert.equal(logs[0].args._address, account2);

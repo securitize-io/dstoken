@@ -1,6 +1,6 @@
-const assertRevert = require('./helpers/assertRevert');
-const utils = require('./utils');
-const services = require('./utils/globals').services;
+const assertRevert = require('../helpers/assertRevert');
+const utils = require('../utils');
+const services = require('../utils/globals').services;
 const EternalStorage = artifacts.require('DSEternalStorageVersioned');
 const ESWalletManager = artifacts.require('ESWalletManagerVersioned');
 const ESTrustService = artifacts.require('ESTrustServiceVersioned');
@@ -14,8 +14,8 @@ const ESComplianceConfigurationService = artifacts.require(
   'ESComplianceConfigurationServiceVersioned'
 );
 
-let latestTime = require('./helpers/latestTime');
-let increaseTimeTo = require('./helpers/increaseTime').increaseTimeTo;
+let latestTime = require('../helpers/latestTime');
+let increaseTimeTo = require('../helpers/increaseTime').increaseTimeTo;
 
 const duration = {
   seconds: function(val) {

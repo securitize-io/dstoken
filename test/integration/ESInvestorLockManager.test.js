@@ -1,4 +1,4 @@
-const assertRevert = require('./helpers/assertRevert');
+const assertRevert = require('../helpers/assertRevert');
 const EternalStorage = artifacts.require('DSEternalStorageVersioned');
 const ESWalletManager = artifacts.require('ESWalletManagerVersioned');
 const ESTrustService = artifacts.require('ESTrustServiceVersioned');
@@ -11,7 +11,7 @@ const ESComplianceServiceNotRegulated = artifacts.require(
 );
 const ESRegistryService = artifacts.require('ESRegistryServiceVersioned');
 
-const latestTime = require('./helpers/latestTime');
+const latestTime = require('../helpers/latestTime');
 const Proxy = artifacts.require('ProxyVersioned');
 
 const TRUST_SERVICE = 1;

@@ -1,4 +1,4 @@
-const assertRevert = require('./helpers/assertRevert');
+const assertRevert = require('../helpers/assertRevert');
 
 const SimpleContractMock = artifacts.require('SimpleContractMock');
 const SimpleContractMock2 = artifacts.require('SimpleContractMock2');
@@ -57,7 +57,7 @@ contract('PROXY', function([owner, recipient, anotherAccount]) {
       const newSimpleContract = await SimpleContractMock.new();
       await assertRevert(
         this.proxy.setTarget(newSimpleContract.address, {
-          from: anotherAccount
+          from: anotherAccount,
         })
       );
     });
