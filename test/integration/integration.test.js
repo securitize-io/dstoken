@@ -151,7 +151,7 @@ contract('Integration', function([
         'DSTokenMock'
       );
 
-      await utils.addAdminRules(storage, [
+      await utils.addWriteRoles(storage, [
         trustService.address,
         complianceService.address,
         walletManager.address,

@@ -49,7 +49,7 @@ contract DSComplianceServiceInterfaceVersioned is DSServiceConsumerInterfaceVers
 
   function validate(address _from, address _to, uint _value) /*onlyToken*/ public returns (bool);
 
-  function preIssuanceCheck(address _to, uint _value) public view  returns (uint code, string reason);
+  function preIssuanceCheck(address _to, uint _value) public view returns (uint code, string reason);
 
   function preTransferCheck(address _from, address _to, uint _value) public view returns (uint code, string reason);
 }
