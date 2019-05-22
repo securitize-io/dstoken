@@ -27,7 +27,6 @@ const ESComplianceServiceLibrary = artifacts.require(
 );
 const ESRegistryServiceLibrary = artifacts.require('ESRegistryServiceLibrary');
 
-const ESStandardTokenMock = artifacts.require('ESStandardTokenMockVersioned');
 const ESRegistryService = artifacts.require('ESRegistryServiceVersioned');
 const ESWalletManager = artifacts.require('ESWalletManagerVersioned');
 const ESLockManager = artifacts.require('ESLockManagerVersioned');
@@ -59,7 +58,6 @@ const EternalStorageClients = [
   ESLockManager,
   ESInvestorLockManager,
   ESIssuanceInformationManager,
-  ESStandardTokenMock,
   ESTokenIssuer,
   ESWalletRegistrar,
   ESComplianceConfigurationService,

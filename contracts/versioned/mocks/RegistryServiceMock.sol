@@ -31,4 +31,7 @@ contract RegistryServiceMock is DSRegistryServiceInterfaceVersioned {
     function getInvestorDetails(address _address) public view returns (string, string){}
     function isInvestor(string _id) public view returns (bool){}
     function isWallet(address _address) public view returns (bool){}
+
+    function getDSService(uint _serviceId) public view returns (address) {}
+    function setDSService(uint _serviceId, address _address) public /*onlyMaster*/ returns (bool) {}
 }

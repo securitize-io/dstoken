@@ -33,4 +33,7 @@ contract WalletManagerMock is DSWalletManagerInterfaceVersioned {
   function getReservedSlots(address _wallet, string _country, uint8 _accreditationStatus) public view returns (uint) {
 
   }
+
+  function getDSService(uint _serviceId) public view returns (address) {}
+  function setDSService(uint _serviceId, address _address) public returns (bool) {}
 }
