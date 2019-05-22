@@ -414,7 +414,7 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
         return true;
     }
 
-    function setUsInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+    function setUSInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
         setUint(US_INVESTORS_COUNT, _value);
 
         return true;
