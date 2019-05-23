@@ -27,6 +27,7 @@ const ESComplianceServiceLibrary = artifacts.require(
 );
 const ESRegistryServiceLibrary = artifacts.require('ESRegistryServiceLibrary');
 
+const ESStandardTokenMock = artifacts.require('ESStandardTokenMockVersioned');
 const ESRegistryService = artifacts.require('ESRegistryServiceVersioned');
 const ESWalletManager = artifacts.require('ESWalletManagerVersioned');
 const ESLockManager = artifacts.require('ESLockManagerVersioned');
@@ -43,7 +44,6 @@ const ESIssuanceInformationManager = artifacts.require(
 const ESComplianceConfigurationService = artifacts.require(
   'ESComplianceConfigurationServiceVersioned'
 );
-
 const argv = require('minimist')(process.argv.slice(2));
 
 const EternalStorageClients = [
@@ -58,6 +58,7 @@ const EternalStorageClients = [
   ESLockManager,
   ESInvestorLockManager,
   ESIssuanceInformationManager,
+  ESStandardTokenMock,
   ESTokenIssuer,
   ESWalletRegistrar,
   ESComplianceConfigurationService,
@@ -423,15 +424,6 @@ module.exports = function(deployer) {
         if (registry) {
           console.log('Connecting registry to token');
           return registry.setDSService(DS_TOKEN, token.address);
-        }
-      })
-      .then(() => {
-        if (registry) {
-          console.log('Connecting registry to compliance service');
-          return registry.setDSService(
-            COMPLIANCE_SERVICE,
-            complianceService.address
-          );
         }
       })
       .then(() => {
