@@ -1,4 +1,4 @@
-const assertRevert = require('../helpers/assertRevert');
+const assertRevert = require('../utils/assertRevert');
 
 const SimpleContractMock = artifacts.require('SimpleContractMock');
 const SimpleContractMock2 = artifacts.require('SimpleContractMock2');

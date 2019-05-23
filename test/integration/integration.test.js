@@ -1,5 +1,5 @@
 /* eslint-disable comma-spacing,max-len */
-const assertRevert = require('../helpers/assertRevert');
+const assertRevert = require('../utils/assertRevert');
 const utils = require('../utils');
 const services = require('../utils/globals').services;
 const DSEternalStorage = artifacts.require('DSEternalStorageVersioned');
@@ -72,7 +72,7 @@ const DAYS = 24 * HOURS;
 const WEEKS = 7 * DAYS;
 const YEARS = 365 * DAYS;
 
-const latestTime = require('../helpers/latestTime');
+const latestTime = require('../utils/latestTime');
 
 let storage;
 let trustService;

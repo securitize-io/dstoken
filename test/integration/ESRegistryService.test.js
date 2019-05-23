@@ -1,4 +1,4 @@
-const assertRevert = require('../helpers/assertRevert');
+const assertRevert = require('../utils/assertRevert');
 const utils = require('../utils');
 const services = require('../utils/globals').services;
 const EternalStorage = artifacts.require('DSEternalStorageVersioned');

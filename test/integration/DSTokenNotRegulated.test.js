@@ -1,4 +1,4 @@
-const assertRevert = require('../helpers/assertRevert');
+const assertRevert = require('../utils/assertRevert');
 const EternalStorage = artifacts.require('DSEternalStorageVersioned');
 const DSToken = artifacts.require('DSTokenVersioned');
 const ESComplianceServiceNotRegulated = artifacts.require(
