@@ -1,5 +1,9 @@
 const assertRevert = require('../helpers/assertRevert');
 const utils = require('../utils');
+const countries = require('../utils/globals').countries;
+const compliances = require('../utils/globals').compliances;
+const investorStatusIds = require('../utils/globals').investorStatusIds;
+const investorStatuses = require('../utils/globals').investorStatuses;
 const services = require('../utils/globals').services;
 const RegistryServiceMock = artifacts.require('RegistryServiceMock');
 const TokenMock = artifacts.require('TokenMock');
@@ -53,14 +57,23 @@ contract('ESComplianceServiceRegulated', function([owner, wallet1]) {
       services.COMPLIANCE_SERVICE,
       this.complianceService.address
     );
-    await this.complianceConfigurationMock.setCountryCompliance('USA', 1);
-    await this.complianceConfigurationMock.setCountryCompliance('France', 2);
+    await this.complianceConfigurationMock.setCountryCompliance(
+      countries.USA,
+      compliances.US
+    );
+    await this.complianceConfigurationMock.setCountryCompliance(
+      countries.FRANCE,
+      compliances.EU
+    );
   });
   describe('Tests', () => {
     beforeEach(async () => {
       await this.complianceService.setUSInvestorsCount(0);
       await this.complianceService.setUSAccreditedInvestorsCount(0);
-      await this.complianceService.setEuRetailInvestorsCount('France', 0);
+      await this.complianceService.setEuRetailInvestorsCount(
+        countries.FRANCE,
+        0
+      );
       await this.tokenMock.setInvestorBalance(investorId1, 0);
       await this.registryServiceMock.setCountry(investorId1, '');
     });
@@ -77,7 +90,7 @@ contract('ESComplianceServiceRegulated', function([owner, wallet1]) {
       });
 
       it('Should keep the US investors count the same when the balance of the investor is 0', async () => {
-        await this.registryServiceMock.setCountry(investorId1, 'USA');
+        await this.registryServiceMock.setCountry(investorId1, countries.USA);
         usInvestorsCount = await this.complianceService.getUSInvestorsCount();
         assert.equal(usInvestorsCount.toNumber(), 0);
       });
@@ -88,7 +101,7 @@ contract('ESComplianceServiceRegulated', function([owner, wallet1]) {
         assert.equal(usInvestorsCount.toNumber(), 0);
         assert.equal(accreditedUSInvestorsCount.toNumber(), 0);
         await this.tokenMock.setInvestorBalance(investorId1, 500);
-        await this.registryServiceMock.setCountry(investorId1, 'USA');
+        await this.registryServiceMock.setCountry(investorId1, countries.USA);
         usInvestorsCount = await this.complianceService.getUSInvestorsCount();
         accreditedUSInvestorsCount = await this.complianceService.getUSAccreditedInvestorsCount();
         assert.equal(usInvestorsCount.toNumber(), 1);
@@ -97,13 +110,16 @@ contract('ESComplianceServiceRegulated', function([owner, wallet1]) {
 
       it('Should increate EU investors count and decrease US investors count when changing country to EU from US', async () => {
         await this.tokenMock.setInvestorBalance(investorId1, 500);
-        await this.registryServiceMock.setCountry(investorId1, 'USA');
+        await this.registryServiceMock.setCountry(investorId1, countries.USA);
         let usInvestorsCount = await this.complianceService.getUSInvestorsCount();
         assert.equal(usInvestorsCount.toNumber(), 1);
 
-        await this.registryServiceMock.setCountry(investorId1, 'France');
+        await this.registryServiceMock.setCountry(
+          investorId1,
+          countries.FRANCE
+        );
         let euInvestorsCount = await this.complianceService.getEURetailInvestorsCount(
-          'France'
+          countries.FRANCE
         );
         usInvestorsCount = await this.complianceService.getUSInvestorsCount();
         assert.equal(euInvestorsCount.toNumber(), 1);
@@ -112,8 +128,14 @@ contract('ESComplianceServiceRegulated', function([owner, wallet1]) {
 
       it('Should only increase US investors count and not US retail investors count when accreditation status is APPROVED', async () => {
         await this.tokenMock.setInvestorBalance(investorId1, 500);
-        await this.registryServiceMock.setAttribute(investorId1, 2, 1, 0, '');
-        await this.registryServiceMock.setCountry(investorId1, 'USA');
+        await this.registryServiceMock.setAttribute(
+          investorId1,
+          investorStatusIds.ACCREDITED,
+          investorStatuses.APPROVED,
+          0,
+          ''
+        );
+        await this.registryServiceMock.setCountry(investorId1, countries.USA);
         let usInvestorsCount = await this.complianceService.getUSInvestorsCount();
         let accreditedUSInvestorsCount = await this.complianceService.getUSAccreditedInvestorsCount();
         assert.equal(usInvestorsCount.toNumber(), 1);
@@ -122,10 +144,19 @@ contract('ESComplianceServiceRegulated', function([owner, wallet1]) {
 
       it('Should not increase EU investors count when accreditation status is APPROVED', async () => {
         await this.tokenMock.setInvestorBalance(investorId1, 500);
-        await this.registryServiceMock.setAttribute(investorId1, 4, 1, 0, '');
-        await this.registryServiceMock.setCountry(investorId1, 'France');
+        await this.registryServiceMock.setAttribute(
+          investorId1,
+          investorStatusIds.QUALIFIED,
+          investorStatuses.APPROVED,
+          0,
+          ''
+        );
+        await this.registryServiceMock.setCountry(
+          investorId1,
+          countries.FRANCE
+        );
         let euInvestorsCount = await this.complianceService.getEURetailInvestorsCount(
-          'France'
+          countries.FRANCE
         );
         assert.equal(euInvestorsCount.toNumber(), 0);
       });
