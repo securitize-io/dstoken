@@ -61,7 +61,7 @@ contract('ESRegistryService', function([
   wallet2,
   issuerWallet,
   exchangeWallet,
-  additionalWallet
+  additionalWallet,
 ]) {
   before(async function() {
     this.storage = await EternalStorage.new();
@@ -126,7 +126,7 @@ contract('ESRegistryService', function([
       });
 
       it('Trying to register the new investor', async function() {
-        const { logs } = await this.registryService.registerInvestor(
+        const {logs} = await this.registryService.registerInvestor(
           investorId,
           investorCollisionHash
         );
@@ -156,7 +156,7 @@ contract('ESRegistryService', function([
             this.registryService.registerInvestor(
               newInvestorId,
               investorCollisionHash,
-              { from: account1 }
+              {from: account1}
             )
           );
         });
@@ -165,7 +165,7 @@ contract('ESRegistryService', function([
 
     describe('SET | GET the country', function() {
       it('Trying to set the country for the investor', async function() {
-        const { logs } = await this.registryService.setCountry(
+        const {logs} = await this.registryService.setCountry(
           investorId,
           investorCountry
         );
@@ -190,7 +190,7 @@ contract('ESRegistryService', function([
           assert.equal(role.c[0], NONE);
           await assertRevert(
             this.registryService.setCountry(newInvestorId, investorCountry, {
-              from: account1
+              from: account1,
             })
           );
         });
@@ -239,7 +239,7 @@ contract('ESRegistryService', function([
       it(`Trying to set and get the attributes`, async function() {
         for (let i = 0; i < attributeTypes.length; i++) {
           for (let j = 0; j < attributeStatuses.length; j++) {
-            const { logs } = await this.registryService.setAttribute(
+            const {logs} = await this.registryService.setAttribute(
               investorId,
               attributeTypes[i],
               attributeStatuses[j],
@@ -295,7 +295,7 @@ contract('ESRegistryService', function([
               PENDING,
               expiry,
               proofHash,
-              { from: account1 }
+              {from: account1}
             )
           );
         });
@@ -352,15 +352,15 @@ contract('ESRegistryService', function([
       before(async function() {
         await this.trustService.setRole(issuerAccount, ISSUER);
         await this.registryService.addWallet(issuerWallet, investorId, {
-          from: issuerAccount
+          from: issuerAccount,
         });
         await this.trustService.setRole(exchangeAccount, EXCHANGE);
         await this.registryService.addWallet(exchangeWallet, investorId, {
-          from: exchangeAccount
+          from: exchangeAccount,
         });
       });
       it(`Trying to add the wallet - ${wallet1}`, async function() {
-        const { logs } = await this.registryService.addWallet(
+        const {logs} = await this.registryService.addWallet(
           wallet1,
           investorId
         );
@@ -373,7 +373,7 @@ contract('ESRegistryService', function([
       });
 
       it(`Trying to remove the wallet with MASTER - ${MASTER} permissions`, async function() {
-        const { logs } = await this.registryService.removeWallet(
+        const {logs} = await this.registryService.removeWallet(
           wallet1,
           investorId
         );
@@ -387,10 +387,10 @@ contract('ESRegistryService', function([
 
         assert.equal(role.c[0], ISSUER);
 
-        const { logs } = await this.registryService.removeWallet(
+        const {logs} = await this.registryService.removeWallet(
           issuerWallet,
           investorId,
-          { from: issuerAccount }
+          {from: issuerAccount}
         );
 
         assert.equal(logs.length, 1);
@@ -402,10 +402,10 @@ contract('ESRegistryService', function([
 
         assert.equal(role.c[0], EXCHANGE);
 
-        const { logs } = await this.registryService.removeWallet(
+        const {logs} = await this.registryService.removeWallet(
           exchangeWallet,
           investorId,
-          { from: exchangeAccount }
+          {from: exchangeAccount}
         );
 
         assert.equal(logs.length, 1);
@@ -416,7 +416,7 @@ contract('ESRegistryService', function([
         before(async function() {
           await this.registryService.addWallet(wallet1, investorId);
           this.registryService.addWallet(exchangeWallet, investorId, {
-            from: exchangeAccount
+            from: exchangeAccount,
           });
         });
 
@@ -426,7 +426,7 @@ contract('ESRegistryService', function([
           assert.equal(role.c[0], NONE);
           await assertRevert(
             this.registryService.addWallet(wallet2, investorId, {
-              from: account1
+              from: account1,
             })
           );
         });
@@ -461,7 +461,7 @@ contract('ESRegistryService', function([
           this.trustService.setRole(additionalWallet, EXCHANGE);
           await assertRevert(
             this.registryService.removeWallet(exchangeWallet, investorId, {
-              from: additionalWallet
+              from: additionalWallet,
             })
           );
         });
@@ -469,7 +469,7 @@ contract('ESRegistryService', function([
         it(`Trying to remove the wallet by a wallet without permissions - should be the error`, async function() {
           await assertRevert(
             this.registryService.removeWallet(exchangeWallet, investorId, {
-              from: wallet1
+              from: wallet1,
             })
           );
         });
@@ -477,7 +477,7 @@ contract('ESRegistryService', function([
         it(`A wallet trying to remove itself - should be the error`, async function() {
           await assertRevert(
             this.registryService.removeWallet(exchangeWallet, investorId, {
-              from: exchangeWallet
+              from: exchangeWallet,
             })
           );
         });

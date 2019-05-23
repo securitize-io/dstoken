@@ -59,7 +59,7 @@ const DAYS = 24 * HOURS;
 const WEEKS = 7 * DAYS;
 const YEARS = 365 * DAYS;
 
-import latestTime from "./helpers/latestTime";
+import latestTime from './helpers/latestTime';
 let increaseTimeTo = require('./helpers/increaseTime');
 
 contract('DSToken (regulated)', function([
@@ -71,7 +71,7 @@ contract('DSToken (regulated)', function([
   spainInvestor,
   germanyInvestor,
   chinaInvestor,
-  israelInvestor
+  israelInvestor,
 ]) {
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -344,7 +344,7 @@ contract('DSToken (regulated)', function([
         latestTime() + 1 * WEEKS
       );
       await assertRevert(
-        this.token.transfer(germanyInvestor, 1, { from: israelInvestor })
+        this.token.transfer(germanyInvestor, 1, {from: israelInvestor})
       );
     });
 
@@ -357,7 +357,7 @@ contract('DSToken (regulated)', function([
         'TEST',
         latestTime() + 1 * WEEKS
       );
-      await this.token.transfer(germanyInvestor, 50, { from: israelInvestor });
+      await this.token.transfer(germanyInvestor, 50, {from: israelInvestor});
       const israelBalance = await this.token.balanceOf(israelInvestor);
       assert.equal(israelBalance, 50);
       const germanyBalance = await this.token.balanceOf(germanyInvestor);
@@ -374,7 +374,7 @@ contract('DSToken (regulated)', function([
         latestTime() + 1 * WEEKS
       );
       await this.token.transfer(usInvestorSecondaryWallet, 50, {
-        from: usInvestor
+        from: usInvestor,
       });
       const usInvestorBalance = await this.token.balanceOf(usInvestor);
       assert.equal(usInvestorBalance.valueOf(), 50);

@@ -80,7 +80,7 @@ const DAYS = 24 * HOURS;
 const WEEKS = 7 * DAYS;
 const YEARS = 365 * DAYS;
 
-import latestTime from "./helpers/latestTime";
+import latestTime from './helpers/latestTime';
 let increaseTimeTo = require('./helpers/increaseTime');
 
 let storage;
@@ -110,7 +110,7 @@ contract('Integration', function([
   germanyInvestor2Wallet,
   spainInvestor2Wallet,
   platformWallet,
-  exchangeWallet
+  exchangeWallet,
 ]) {
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
   describe('creation', async function() {
@@ -454,12 +454,12 @@ contract('Integration', function([
       );
       assert.equal(res[0].valueOf(), 0); // Valid
       let tx = await token.transfer(usInvestorSecondaryWallet, 250, {
-        from: usInvestor
+        from: usInvestor,
       });
       res = await token.balanceOfInvestor(US_INVESTOR_ID);
       assert.equal(res.valueOf(), 1000); // Should still be 1000
 
-      tx = await token.transfer(usInvestor2, 2500, { from: usInvestor3Wallet });
+      tx = await token.transfer(usInvestor2, 2500, {from: usInvestor3Wallet});
       assert.equal(tx.logs[0].event, 'Transfer');
       assert.equal(tx.logs[0].args.from.valueOf(), usInvestor3Wallet);
       assert.equal(tx.logs[0].args.to.valueOf(), usInvestor2);
@@ -481,7 +481,7 @@ contract('Integration', function([
       );
       assert.equal(res[0].valueOf(), 0); // Valid
       tx = await token.transfer(germanyInvestor, 500, {
-        from: germanyInvestor2Wallet
+        from: germanyInvestor2Wallet,
       });
       let euRetailInvestorsCount = await complianceService.getEURetailInvestorsCount.call(
         'Germany'
@@ -515,18 +515,18 @@ contract('Integration', function([
 
       // Try to move locked tokens - should fail
       await assertRevert(
-        token.transfer(germanyInvestor2Wallet, 1500, { from: germanyInvestor })
+        token.transfer(germanyInvestor2Wallet, 1500, {from: germanyInvestor})
       );
       // Move forward in time
       web3.currentProvider.send({
         jsonrpc: '2.0',
         method: 'evm_increaseTime',
         params: [2 * WEEKS],
-        id: new Date().getTime()
+        id: new Date().getTime(),
       });
       // Should still fail
       await assertRevert(
-        token.transfer(germanyInvestor2Wallet, 1500, { from: germanyInvestor })
+        token.transfer(germanyInvestor2Wallet, 1500, {from: germanyInvestor})
       );
 
       // Remove the manual lock
@@ -541,7 +541,7 @@ contract('Integration', function([
       assert.equal(tx.logs[0].args.value.valueOf(), 100);
 
       // Now it should work
-      token.transfer(germanyInvestor2Wallet, 1500, { from: germanyInvestor });
+      token.transfer(germanyInvestor2Wallet, 1500, {from: germanyInvestor});
     });
 
     it('should allow wallet iteration and investor counting', async function() {
@@ -606,10 +606,10 @@ contract('Integration', function([
       const balance = await token.balanceOfInvestor.call(US_INVESTOR_ID_2);
 
       await assertRevert(
-        token.transfer(platformWallet, 2, { from: usInvestor2 })
+        token.transfer(platformWallet, 2, {from: usInvestor2})
       ); //Only full transfers
-      await token.transfer(platformWallet, balance, { from: usInvestor2 });
-      await token.transfer(usInvestor2, balance, { from: platformWallet });
+      await token.transfer(platformWallet, balance, {from: usInvestor2});
+      await token.transfer(usInvestor2, balance, {from: platformWallet});
     });
     it('should allow sending tokens to exchange wallets as long as their slots allow', async function() {
       // TODO: check this after it's fully implemented
@@ -626,7 +626,7 @@ contract('Integration', function([
       // console.log(res);
 
       // Should fail to send FROM the issuer wallet
-      await assertRevert(token.transfer(usInvestor, 1, { from: issuerWallet }));
+      await assertRevert(token.transfer(usInvestor, 1, {from: issuerWallet}));
     });
     it('should burn tokens correctly', async function() {
       const balanceBefore = await token.balanceOf.call(issuerWallet);
@@ -646,19 +646,19 @@ contract('Integration', function([
       assert.equal(tx.logs[0].event, 'Pause');
       // should revert
       await assertRevert(
-        token.transfer(germanyInvestor, 2, { from: germanyInvestor2Wallet })
+        token.transfer(germanyInvestor, 2, {from: germanyInvestor2Wallet})
       );
       tx = await token.unpause();
       assert.equal(tx.logs[0].event, 'Unpause');
       // now it should be ok
       await token.transfer(germanyInvestor, 2, {
-        from: germanyInvestor2Wallet
+        from: germanyInvestor2Wallet,
       });
     });
     it('should allow upgrading the compliance manager', async function() {
       // At first usInvestor should not be allowed to send any tokens to another us investor
 
-      await assertRevert(token.transfer(usInvestor2, 2, { from: usInvestor }));
+      await assertRevert(token.transfer(usInvestor2, 2, {from: usInvestor}));
       // Create a new compliance service and set the token to work with it
 
       const complianceServiceWhiteListed = await ESComplianceServiceWhitelisted.new(
@@ -679,14 +679,14 @@ contract('Integration', function([
       );
 
       // // Now it should work
-      await token.transfer(usInvestor2, 2, { from: usInvestor });
+      await token.transfer(usInvestor2, 2, {from: usInvestor});
     });
     it('should allow upgrading the token', async function() {
       // At first usInvestor should not be allowed to send any tokens to another us investor
 
       const before = await token.balanceOf(usInvestor);
       assert(before.valueOf(), 998);
-      await assertRevert(token.transfer(0x0001, 2, { from: usInvestor })); // Not a registered wallet
+      await assertRevert(token.transfer(0x0001, 2, {from: usInvestor})); // Not a registered wallet
 
       // Create a new token
 
@@ -699,7 +699,7 @@ contract('Integration', function([
       assert(after.valueOf(), 998);
 
       // Now it should allow sending to any address
-      await token.transfer(0x0001, 2, { from: usInvestor });
+      await token.transfer(0x0001, 2, {from: usInvestor});
       after = await token.balanceOf(0x0001);
       assert(after.valueOf(), 2);
     });
