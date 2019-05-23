@@ -36,7 +36,7 @@ contract('DSToken (not regulated)', function([
   recipient,
   anotherAccount,
   wallet,
-  wallet1
+  wallet1,
 ]) {
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -337,7 +337,7 @@ contract('DSToken (not regulated)', function([
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await assertRevert(this.token.transfer(wallet1, 100, { from: wallet }));
+      await assertRevert(this.token.transfer(wallet1, 100, {from: wallet}));
     });
 
     it('Test function getInvestor(InvestorID) before/after adding an investor', async function() {
@@ -359,7 +359,7 @@ contract('DSToken (not regulated)', function([
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await this.token.transfer(wallet1, 100, { from: wallet });
+      await this.token.transfer(wallet1, 100, {from: wallet});
       assert.equal(await this.token.balanceOf(wallet), 0);
       assert.equal(await this.token.balanceOf(wallet1), 100);
     });
@@ -398,7 +398,7 @@ contract('DSToken (not regulated)', function([
     it('should issue unlocked tokens to a wallet', async function() {
       const balance = await this.token.balanceOf(owner);
       assert.equal(balance, 100);
-      await this.token.transfer(recipient, 100, { from: owner });
+      await this.token.transfer(recipient, 100, {from: owner});
       const ownerBalance = await this.token.balanceOf(owner);
       assert.equal(ownerBalance, 0);
       const recipientBalance = await this.token.balanceOf(recipient);

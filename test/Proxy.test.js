@@ -57,7 +57,7 @@ contract('PROXY', function([owner, recipient, anotherAccount]) {
       const newSimpleContract = await SimpleContractMock.new();
       await assertRevert(
         this.proxy.setTarget(newSimpleContract.address, {
-          from: anotherAccount
+          from: anotherAccount,
         })
       );
     });

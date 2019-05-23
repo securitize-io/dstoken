@@ -39,7 +39,7 @@ contract('ESIssuanceInformationManager', function() {
     it(`should not set investor information because account don't have permissions`, async function() {
       await assertRevert(
         this.issuanceInformationManager.setInvestorInformation('1', 1, '1', {
-          from: web3.eth.accounts[1]
+          from: web3.eth.accounts[1],
         })
       );
     });
@@ -87,7 +87,7 @@ contract('ESIssuanceInformationManager', function() {
     it(`should not set compliance information because account don't have permissions`, async function() {
       await assertRevert(
         this.issuanceInformationManager.setComplianceInformation(1, '1', {
-          from: web3.eth.accounts[1]
+          from: web3.eth.accounts[1],
         })
       );
     });

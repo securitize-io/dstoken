@@ -30,7 +30,7 @@ contract('ESWalletManager', function([
   exchangeWallet,
   noneAccount,
   noneWallet,
-  platformWallet
+  platformWallet,
 ]) {
   beforeEach(async function() {
     this.storage = await EternalStorage.new();
@@ -76,7 +76,7 @@ contract('ESWalletManager', function([
       const role = await this.trustService.getRole(owner);
       assert.equal(role.c[0], MASTER);
 
-      const { logs } = await this.walletManager.addIssuerWallet(wallet);
+      const {logs} = await this.walletManager.addIssuerWallet(wallet);
 
       assert.equal(logs[0].args._wallet, wallet);
       assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletAdded');
@@ -88,8 +88,8 @@ contract('ESWalletManager', function([
       const role = await this.trustService.getRole(issuerAccount);
       assert.equal(role.c[0], ISSUER);
 
-      const { logs } = await this.walletManager.addIssuerWallet(issuerWallet, {
-        from: issuerAccount
+      const {logs} = await this.walletManager.addIssuerWallet(issuerWallet, {
+        from: issuerAccount,
       });
 
       assert.equal(logs[0].args._wallet, issuerWallet);
@@ -103,7 +103,7 @@ contract('ESWalletManager', function([
 
         await assertRevert(
           this.walletManager.addIssuerWallet(issuerWallet, {
-            from: noneAccount
+            from: noneAccount,
           })
         );
       });
@@ -114,16 +114,15 @@ contract('ESWalletManager', function([
 
         await assertRevert(
           this.walletManager.addIssuerWallet(exchangeWallet, {
-            from: exchangeAccount
+            from: exchangeAccount,
           })
         );
       });
 
       it(`Trying to add the same ISSUER wallet - should be the error`, async function() {
-        const { logs } = await this.walletManager.addIssuerWallet(
-          issuerWallet,
-          { from: issuerAccount }
-        );
+        const {logs} = await this.walletManager.addIssuerWallet(issuerWallet, {
+          from: issuerAccount,
+        });
 
         assert.equal(logs[0].args._wallet, issuerWallet);
         assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletAdded');
@@ -138,7 +137,7 @@ contract('ESWalletManager', function([
       const role = await this.trustService.getRole(owner);
       assert.equal(role.c[0], MASTER);
 
-      const { logs } = await this.walletManager.addPlatformWallet(issuerWallet);
+      const {logs} = await this.walletManager.addPlatformWallet(issuerWallet);
 
       assert.equal(logs[0].args._wallet, issuerWallet);
       assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletAdded');
@@ -148,10 +147,9 @@ contract('ESWalletManager', function([
       const role = await this.trustService.getRole(issuerAccount);
       assert.equal(role.c[0], ISSUER);
 
-      const { logs } = await this.walletManager.addPlatformWallet(
-        issuerWallet,
-        { from: issuerAccount }
-      );
+      const {logs} = await this.walletManager.addPlatformWallet(issuerWallet, {
+        from: issuerAccount,
+      });
 
       assert.equal(logs[0].args._wallet, issuerWallet);
       assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletAdded');
@@ -164,7 +162,7 @@ contract('ESWalletManager', function([
 
         await assertRevert(
           this.walletManager.addPlatformWallet(issuerWallet, {
-            from: noneAccount
+            from: noneAccount,
           })
         );
       });
@@ -175,15 +173,15 @@ contract('ESWalletManager', function([
 
         await assertRevert(
           this.walletManager.addPlatformWallet(exchangeWallet, {
-            from: exchangeAccount
+            from: exchangeAccount,
           })
         );
       });
 
       it(`Trying to add the same platform wallet - should be the error`, async function() {
-        const { logs } = await this.walletManager.addPlatformWallet(
+        const {logs} = await this.walletManager.addPlatformWallet(
           issuerWallet,
-          { from: issuerAccount }
+          {from: issuerAccount}
         );
 
         assert.equal(logs[0].args._wallet, issuerWallet);
@@ -199,7 +197,7 @@ contract('ESWalletManager', function([
       const role = await this.trustService.getRole(owner);
       assert.equal(role.c[0], MASTER);
 
-      const { logs } = await this.walletManager.addExchangeWallet(
+      const {logs} = await this.walletManager.addExchangeWallet(
         issuerWallet,
         exchangeAccount
       );
@@ -212,10 +210,10 @@ contract('ESWalletManager', function([
       const role = await this.trustService.getRole(issuerAccount);
       assert.equal(role.c[0], ISSUER);
 
-      const { logs } = await this.walletManager.addExchangeWallet(
+      const {logs} = await this.walletManager.addExchangeWallet(
         exchangeWallet,
         exchangeAccount,
-        { from: issuerAccount }
+        {from: issuerAccount}
       );
 
       assert.equal(logs[0].args._wallet, exchangeWallet);
@@ -229,7 +227,7 @@ contract('ESWalletManager', function([
 
         await assertRevert(
           this.walletManager.addExchangeWallet(issuerWallet, noneAccount, {
-            from: noneAccount
+            from: noneAccount,
           })
         );
       });
@@ -242,7 +240,7 @@ contract('ESWalletManager', function([
           this.walletManager.addExchangeWallet(
             exchangeWallet,
             exchangeAccount,
-            { from: exchangeAccount }
+            {from: exchangeAccount}
           )
         );
       });
@@ -252,7 +250,7 @@ contract('ESWalletManager', function([
           this.walletManager.addExchangeWallet(
             exchangeWallet,
             exchangeAccount,
-            { from: exchangeAccount }
+            {from: exchangeAccount}
           )
         );
       });
@@ -265,7 +263,7 @@ contract('ESWalletManager', function([
 
       await this.walletManager.addIssuerWallet(wallet);
 
-      const { logs } = await this.walletManager.removeSpecialWallet(wallet);
+      const {logs} = await this.walletManager.removeSpecialWallet(wallet);
 
       assert.equal(logs[0].args._wallet, wallet);
       assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletRemoved');
@@ -276,12 +274,12 @@ contract('ESWalletManager', function([
       assert.equal(role.c[0], ISSUER);
 
       await this.walletManager.addIssuerWallet(issuerWallet, {
-        from: issuerAccount
+        from: issuerAccount,
       });
 
-      const { logs } = await this.walletManager.removeSpecialWallet(
+      const {logs} = await this.walletManager.removeSpecialWallet(
         issuerWallet,
-        { from: issuerAccount }
+        {from: issuerAccount}
       );
 
       assert.equal(logs[0].args._wallet, issuerWallet);
@@ -295,7 +293,7 @@ contract('ESWalletManager', function([
 
         await assertRevert(
           this.walletManager.removeSpecialWallet(noneAccount, {
-            from: noneAccount
+            from: noneAccount,
           })
         );
       });
@@ -306,7 +304,7 @@ contract('ESWalletManager', function([
 
         await assertRevert(
           this.walletManager.removeSpecialWallet(exchangeAccount, {
-            from: exchangeAccount
+            from: exchangeAccount,
           })
         );
       });
@@ -322,7 +320,7 @@ contract('ESWalletManager', function([
       const role = await this.trustService.getRole(owner);
       assert.equal(role.c[0], MASTER);
 
-      const { logs } = await this.walletManager.setReservedSlots(
+      const {logs} = await this.walletManager.setReservedSlots(
         wallet,
         COUNTRY,
         ACCREDITATION_STATUS,
@@ -346,12 +344,12 @@ contract('ESWalletManager', function([
       const role = await this.trustService.getRole(issuerAccount);
       assert.equal(role.c[0], ISSUER);
 
-      const { logs } = await this.walletManager.setReservedSlots(
+      const {logs} = await this.walletManager.setReservedSlots(
         wallet,
         COUNTRY,
         ACCREDITATION_STATUS,
         SLOTS,
-        { from: issuerAccount }
+        {from: issuerAccount}
       );
 
       assert.equal(logs[0].args._wallet, wallet);
@@ -378,7 +376,7 @@ contract('ESWalletManager', function([
             COUNTRY,
             ACCREDITATION_STATUS,
             SLOTS,
-            { from: noneAccount }
+            {from: noneAccount}
           )
         );
       });
@@ -393,7 +391,7 @@ contract('ESWalletManager', function([
             COUNTRY,
             ACCREDITATION_STATUS,
             SLOTS,
-            { from: exchangeAccount }
+            {from: exchangeAccount}
           )
         );
       });
