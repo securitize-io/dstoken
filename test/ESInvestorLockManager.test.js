@@ -11,7 +11,7 @@ const ESComplianceServiceNotRegulated = artifacts.require(
 );
 const ESRegistryService = artifacts.require('ESRegistryServiceVersioned');
 
-import latestTime from "./helpers/latestTime";
+import latestTime from './helpers/latestTime';
 const Proxy = artifacts.require('ProxyVersioned');
 
 const TRUST_SERVICE = 1;
@@ -42,7 +42,7 @@ contract('ESInvestorLockManager', function([
   exchangeWallet,
   noneAccount,
   noneWallet,
-  platformWallet
+  platformWallet,
 ]) {
   beforeEach(async function() {
     this.storage = await EternalStorage.new();
@@ -186,7 +186,7 @@ contract('ESInvestorLockManager', function([
           100,
           REASON_STRING,
           latestTime() + 1000,
-          { from: noneAccount }
+          {from: noneAccount}
         )
       );
     });
@@ -200,7 +200,7 @@ contract('ESInvestorLockManager', function([
           100,
           REASON_STRING,
           latestTime() + 1000,
-          { from: exchangeAccount }
+          {from: exchangeAccount}
         )
       );
     });
@@ -220,7 +220,7 @@ contract('ESInvestorLockManager', function([
         100,
         REASON_STRING,
         latestTime() + 1000,
-        { from: issuerAccount }
+        {from: issuerAccount}
       );
       assert.equal(await this.lockManager.lockCount(owner), 1);
       assert.equal(
@@ -239,7 +239,7 @@ contract('ESInvestorLockManager', function([
         100,
         REASON_STRING,
         latestTime() + 1000,
-        { from: issuerAccount }
+        {from: issuerAccount}
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
       await assertRevert(this.lockManager.removeLockRecord(wallet, 2));
@@ -253,12 +253,12 @@ contract('ESInvestorLockManager', function([
         100,
         REASON_STRING,
         latestTime() + 1000,
-        { from: issuerAccount }
+        {from: issuerAccount}
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
       await assertRevert(
         this.lockManager.removeLockRecord(wallet, LOCK_INDEX, {
-          from: noneAccount
+          from: noneAccount,
         })
       );
     });
@@ -271,12 +271,12 @@ contract('ESInvestorLockManager', function([
         100,
         REASON_STRING,
         latestTime() + 1000,
-        { from: issuerAccount }
+        {from: issuerAccount}
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
       await assertRevert(
         this.lockManager.removeLockRecord(wallet, LOCK_INDEX, {
-          from: exchangeAccount
+          from: exchangeAccount,
         })
       );
     });
@@ -296,7 +296,7 @@ contract('ESInvestorLockManager', function([
         100,
         REASON_STRING,
         latestTime() + 1000,
-        { from: issuerAccount }
+        {from: issuerAccount}
       );
       assert.equal(await this.lockManager.lockCount(owner), 1);
       assert.equal(
@@ -304,7 +304,7 @@ contract('ESInvestorLockManager', function([
         0
       );
       await this.lockManager.removeLockRecord(owner, LOCK_INDEX, {
-        from: issuerAccount
+        from: issuerAccount,
       });
       assert.equal(await this.lockManager.lockCount(owner), 0);
     });
@@ -325,7 +325,7 @@ contract('ESInvestorLockManager', function([
         100,
         REASON_STRING,
         latestTime() + 1000,
-        { from: issuerAccount }
+        {from: issuerAccount}
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
     });
@@ -340,7 +340,7 @@ contract('ESInvestorLockManager', function([
         100,
         REASON_STRING,
         latestTime() + 1000,
-        { from: issuerAccount }
+        {from: issuerAccount}
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
       await assertRevert(this.lockManager.lockInfo(wallet, 1));
@@ -355,7 +355,7 @@ contract('ESInvestorLockManager', function([
         100,
         REASON_STRING,
         realeseTime,
-        { from: issuerAccount }
+        {from: issuerAccount}
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
 
