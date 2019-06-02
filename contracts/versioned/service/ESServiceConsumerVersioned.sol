@@ -41,6 +41,11 @@ contract ESServiceConsumerVersioned is DSServiceConsumerInterfaceVersioned, Eter
     _;
   }
 
+  modifier onlyRegistry {
+    require(msg.sender == getDSService(REGISTRY_SERVICE), "This function can only called by the registry service");
+    _;
+  }
+
   modifier onlyIssuerOrAboveOrToken {
     if (msg.sender != getDSService(DS_TOKEN)) {
       DSTrustServiceInterfaceVersioned trustManager = DSTrustServiceInterfaceVersioned(getDSService(TRUST_SERVICE));

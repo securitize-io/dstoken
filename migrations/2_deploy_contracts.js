@@ -44,6 +44,7 @@ const ESIssuanceInformationManager = artifacts.require(
 const ESComplianceConfigurationService = artifacts.require(
   'ESComplianceConfigurationServiceVersioned'
 );
+
 const argv = require('minimist')(process.argv.slice(2));
 
 const EternalStorageClients = [
@@ -424,6 +425,15 @@ module.exports = function(deployer) {
         if (registry) {
           console.log('Connecting registry to token');
           return registry.setDSService(DS_TOKEN, token.address);
+        }
+      })
+      .then(() => {
+        if (registry) {
+          console.log('Connecting registry to compliance service');
+          return registry.setDSService(
+            COMPLIANCE_SERVICE,
+            complianceService.address
+          );
         }
       })
       .then(() => {

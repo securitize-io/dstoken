@@ -1,4 +1,6 @@
 const assertRevert = require('./helpers/assertRevert');
+const utils = require('./utils');
+const services = require('./utils/globals').services;
 const EternalStorage = artifacts.require('DSEternalStorageVersioned');
 const ESWalletManager = artifacts.require('ESWalletManagerVersioned');
 const ESTrustService = artifacts.require('ESTrustServiceVersioned');
@@ -12,7 +14,7 @@ const ESComplianceConfigurationService = artifacts.require(
   'ESComplianceConfigurationServiceVersioned'
 );
 
-import latestTime from './helpers/latestTime';
+let latestTime = require('./helpers/latestTime');
 let increaseTimeTo = require('./helpers/increaseTime').increaseTimeTo;
 
 const duration = {
@@ -102,96 +104,112 @@ contract('ESComplianceServiceRegulated', function([
       this.storage.address,
       'DSTokenMock'
     );
-    await this.storage.adminAddRole(this.trustService.address, 'write');
-    await this.storage.adminAddRole(this.complianceService.address, 'write');
-    await this.storage.adminAddRole(this.walletManager.address, 'write');
-    await this.storage.adminAddRole(this.lockManager.address, 'write');
-    await this.storage.adminAddRole(this.registryService.address, 'write');
-    await this.storage.adminAddRole(this.token.address, 'write');
-    await this.storage.adminAddRole(
+
+    await utils.addWriteRoles(this.storage, [
+      this.trustService.address,
+      this.complianceService.address,
+      this.walletManager.address,
+      this.lockManager.address,
+      this.registryService.address,
+      this.token.address,
       this.complianceConfiguration.address,
-      'write'
-    );
+    ]);
+
     await this.trustService.initialize();
-    await this.registryService.setDSService(
-      TRUST_SERVICE,
-      this.trustService.address
+
+    await utils.setServicesDependencies(
+      this.registryService,
+      [
+        services.TRUST_SERVICE,
+        services.WALLET_MANAGER,
+        services.DS_TOKEN,
+        services.COMPLIANCE_SERVICE,
+        services.LOCK_MANAGER,
+      ],
+      [
+        this.trustService.address,
+        this.walletManager.address,
+        this.token.address,
+        this.complianceService.address,
+        this.lockManager.address,
+      ]
     );
-    await this.registryService.setDSService(
-      WALLET_MANAGER,
-      this.walletManager.address
+
+    await utils.setServicesDependencies(
+      this.complianceService,
+      [
+        services.TRUST_SERVICE,
+        services.WALLET_MANAGER,
+        services.LOCK_MANAGER,
+        services.COMPLIANCE_CONFIGURATION_SERVICE,
+        services.REGISTRY_SERVICE,
+        services.DS_TOKEN,
+      ],
+      [
+        this.trustService.address,
+        this.walletManager.address,
+        this.lockManager.address,
+        this.complianceConfiguration.address,
+        this.registryService.address,
+        this.token.address,
+      ]
     );
-    await this.registryService.setDSService(
-      COMPLIANCE_SERVICE,
-      this.complianceService.address
+
+    await utils.setServicesDependencies(
+      this.walletManager,
+      [
+        services.TRUST_SERVICE,
+        services.REGISTRY_SERVICE,
+        services.COMPLIANCE_SERVICE,
+        services.DS_TOKEN,
+      ],
+      [
+        this.trustService.address,
+        this.registryService.address,
+        this.complianceService.address,
+        this.token.address,
+      ]
     );
-    await this.registryService.setDSService(DS_TOKEN, this.token.address);
-    await this.registryService.setDSService(
-      LOCK_MANAGER,
-      this.lockManager.address
+
+    await utils.setServicesDependencies(
+      this.lockManager,
+      [
+        services.REGISTRY_SERVICE,
+        services.COMPLIANCE_SERVICE,
+        services.DS_TOKEN,
+        services.TRUST_SERVICE,
+      ],
+      [
+        this.registryService.address,
+        this.complianceService.address,
+        this.token.address,
+        this.trustService.address,
+      ]
     );
-    await this.complianceService.setDSService(
-      TRUST_SERVICE,
-      this.trustService.address
+
+    await utils.setServicesDependencies(
+      this.complianceConfiguration,
+      [services.TRUST_SERVICE],
+      [this.trustService.address]
     );
-    await this.complianceService.setDSService(
-      WALLET_MANAGER,
-      this.walletManager.address
+
+    await utils.setServicesDependencies(
+      this.token,
+      [
+        services.TRUST_SERVICE,
+        services.COMPLIANCE_SERVICE,
+        services.WALLET_MANAGER,
+        services.LOCK_MANAGER,
+        services.REGISTRY_SERVICE,
+      ],
+      [
+        this.trustService.address,
+        this.complianceService.address,
+        this.walletManager.address,
+        this.lockManager.address,
+        this.registryService.address,
+      ]
     );
-    await this.complianceService.setDSService(
-      LOCK_MANAGER,
-      this.lockManager.address
-    );
-    await this.complianceService.setDSService(
-      COMPLIANCE_CONFIGURATION_SERVICE,
-      this.complianceConfiguration.address
-    );
-    await this.complianceConfiguration.setDSService(
-      TRUST_SERVICE,
-      this.trustService.address
-    );
-    await this.token.setDSService(TRUST_SERVICE, this.trustService.address);
-    await this.token.setDSService(
-      COMPLIANCE_SERVICE,
-      this.complianceService.address
-    );
-    await this.token.setDSService(WALLET_MANAGER, this.walletManager.address);
-    await this.token.setDSService(LOCK_MANAGER, this.lockManager.address);
-    await this.token.setDSService(
-      REGISTRY_SERVICE,
-      this.registryService.address
-    );
-    await this.complianceService.setDSService(
-      REGISTRY_SERVICE,
-      this.registryService.address
-    );
-    await this.complianceService.setDSService(DS_TOKEN, this.token.address);
-    await this.walletManager.setDSService(
-      TRUST_SERVICE,
-      this.trustService.address
-    );
-    await this.walletManager.setDSService(
-      REGISTRY_SERVICE,
-      this.registryService.address
-    );
-    await this.walletManager.setDSService(
-      COMPLIANCE_SERVICE,
-      this.complianceService.address
-    );
-    await this.walletManager.setDSService(DS_TOKEN, this.token.address);
-    await this.lockManager.setDSService(
-      TRUST_SERVICE,
-      this.trustService.address
-    );
-    await this.lockManager.setDSService(
-      REGISTRY_SERVICE,
-      this.registryService.address
-    );
-    await this.lockManager.setDSService(
-      COMPLIANCE_SERVICE,
-      this.complianceService.address
-    );
-    await this.lockManager.setDSService(DS_TOKEN, this.token.address);
 
     await this.trustService.setRole(issuerAccount, ISSUER);
     await this.complianceConfiguration.setCountryCompliance('US', 1);
@@ -251,6 +269,10 @@ contract('ESComplianceServiceRegulated', function([
     });
 
     it('Should decrease total investors value when transfer tokens', async function() {
+      assert.equal(
+        (await this.complianceService.getTotalInvestorsCount()).toNumber(),
+        0
+      );
       await this.registryService.registerInvestor(walletID, 'wallet');
       await this.registryService.registerInvestor(walletID2, 'noneAccount');
       await this.registryService.addWallet(wallet, walletID);
@@ -263,14 +285,26 @@ contract('ESComplianceServiceRegulated', function([
         await this.registryService.getInvestor(noneAccount),
         walletID2
       );
-      assert.equal(await this.token.balanceOf(wallet), 100);
-      // await this.token.transfer(noneAccount, 100, {from: wallet, gas: 2e6});
-      // assert.equal(await this.token.balanceOf(wallet), 0);
+      assert.equal(
+        (await this.complianceService.getTotalInvestorsCount()).toNumber(),
+        2
+      );
 
-      // to do: test that investor amount decrease
+      assert.equal(await this.token.balanceOf(wallet), 100);
+      await this.token.transfer(noneAccount, 100, {from: wallet});
+      assert.equal(await this.token.balanceOf(wallet), 0);
+
+      assert.equal(
+        (await this.complianceService.getTotalInvestorsCount()).toNumber(),
+        1
+      );
     });
 
     it('Should increase total investors value when transfer tokens', async function() {
+      assert.equal(
+        (await this.complianceService.getTotalInvestorsCount()).toNumber(),
+        0
+      );
       await this.registryService.registerInvestor(walletID, 'wallet');
       await this.registryService.addWallet(wallet, walletID);
       await this.registryService.registerInvestor(walletID2, 'noneAccount');
@@ -283,11 +317,17 @@ contract('ESComplianceServiceRegulated', function([
         walletID2
       );
       assert.equal(await this.token.balanceOf(wallet), 100);
+      assert.equal(
+        (await this.complianceService.getTotalInvestorsCount()).toNumber(),
+        1
+      );
       await this.token.transfer(noneAccount, 50, {from: wallet});
       assert.equal(await this.token.balanceOf(wallet), 50);
       assert.equal(await this.token.balanceOf(noneAccount), 50);
-
-      // to do: test that investor amount increase
+      assert.equal(
+        (await this.complianceService.getTotalInvestorsCount()).toNumber(),
+        2
+      );
     });
 
     it('Should not be able to transfer tokens because of 1 year lock for US investors', async function() {
@@ -320,7 +360,7 @@ contract('ESComplianceServiceRegulated', function([
       );
     });
 
-    it.only('Should not be able to transfer tokens due to full transfer enabled', async function() {
+    it('Should not be able to transfer tokens due to full transfer enabled', async function() {
       await this.registryService.registerInvestor(walletID, 'wallet');
       await this.registryService.registerInvestor(walletID2, ownerId);
       await this.registryService.setCountry(walletID, 'US');

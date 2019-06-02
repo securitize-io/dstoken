@@ -1,6 +1,7 @@
 /* eslint-disable comma-spacing,max-len */
 const assertRevert = require('./helpers/assertRevert');
-
+const utils = require('./utils');
+const services = require('./utils/globals').services;
 const DSEternalStorage = artifacts.require('DSEternalStorageVersioned');
 const DSToken = artifacts.require('DSTokenVersioned');
 const ESComplianceServiceNotRegulated = artifacts.require(
@@ -27,15 +28,6 @@ const ESInformationManager = artifacts.require(
 );
 const ESStandardTokenMock = artifacts.require('ESStandardTokenMockVersioned');
 const Proxy = artifacts.require('ProxyVersioned');
-const TRUST_SERVICE = 1;
-const DS_TOKEN = 2;
-const REGISTRY_SERVICE = 4;
-const COMPLIANCE_SERVICE = 8;
-const COMMS_SERVICE = 16;
-const WALLET_MANAGER = 32;
-const LOCK_MANAGER = 64;
-const ISSUANCE_INFORMATION_MANAGER = 128;
-const COMPLIANCE_CONFIGURATION_SERVICE = 256;
 
 const NONE = 0;
 
@@ -80,8 +72,7 @@ const DAYS = 24 * HOURS;
 const WEEKS = 7 * DAYS;
 const YEARS = 365 * DAYS;
 
-import latestTime from './helpers/latestTime';
-let increaseTimeTo = require('./helpers/increaseTime');
+const latestTime = require('./helpers/latestTime');
 
 let storage;
 let trustService;
@@ -159,65 +150,116 @@ contract('Integration', function([
         storage.address,
         'DSTokenMock'
       );
-      await storage.adminAddRole(trustService.address, 'write');
-      await storage.adminAddRole(complianceService.address, 'write');
-      await storage.adminAddRole(walletManager.address, 'write');
-      await storage.adminAddRole(lockManager.address, 'write');
-      await storage.adminAddRole(registryService.address, 'write');
-      await storage.adminAddRole(token.address, 'write');
-      await storage.adminAddRole(issuer.address, 'write');
-      await storage.adminAddRole(informationManager.address, 'write');
-      await storage.adminAddRole(complianceConfiguration.address, 'write');
+
+      await utils.addWriteRoles(storage, [
+        trustService.address,
+        complianceService.address,
+        walletManager.address,
+        lockManager.address,
+        registryService.address,
+        token.address,
+        complianceConfiguration.address,
+        issuer.address,
+        informationManager.address,
+      ]);
 
       await trustService.initialize();
-      await registryService.setDSService(TRUST_SERVICE, trustService.address);
-      await complianceService.setDSService(TRUST_SERVICE, trustService.address);
-      await complianceService.setDSService(
-        WALLET_MANAGER,
-        walletManager.address
+
+      await utils.setServicesDependencies(
+        registryService,
+        [
+          services.TRUST_SERVICE,
+          services.WALLET_MANAGER,
+          services.DS_TOKEN,
+          services.COMPLIANCE_SERVICE,
+        ],
+        [
+          trustService.address,
+          walletManager.address,
+          token.address,
+          complianceService.address,
+        ]
       );
-      await complianceService.setDSService(LOCK_MANAGER, lockManager.address);
-      await complianceService.setDSService(
-        REGISTRY_SERVICE,
-        registryService.address
+
+      await utils.setServicesDependencies(
+        complianceService,
+        [
+          services.TRUST_SERVICE,
+          services.WALLET_MANAGER,
+          services.LOCK_MANAGER,
+          services.COMPLIANCE_CONFIGURATION_SERVICE,
+          services.REGISTRY_SERVICE,
+          services.DS_TOKEN,
+        ],
+        [
+          trustService.address,
+          walletManager.address,
+          lockManager.address,
+          complianceConfiguration.address,
+          registryService.address,
+          token.address,
+        ]
       );
-      await complianceService.setDSService(
-        COMPLIANCE_CONFIGURATION_SERVICE,
-        complianceConfiguration.address
+
+      await utils.setServicesDependencies(
+        complianceConfiguration,
+        [services.TRUST_SERVICE],
+        [trustService.address]
       );
-      await complianceConfiguration.setDSService(
-        TRUST_SERVICE,
-        trustService.address
+
+      await utils.setServicesDependencies(
+        token,
+        [
+          services.TRUST_SERVICE,
+          services.COMPLIANCE_SERVICE,
+          services.WALLET_MANAGER,
+          services.LOCK_MANAGER,
+          services.REGISTRY_SERVICE,
+        ],
+        [
+          trustService.address,
+          complianceService.address,
+          walletManager.address,
+          lockManager.address,
+          registryService.address,
+        ]
       );
-      await token.setDSService(TRUST_SERVICE, trustService.address);
-      await token.setDSService(COMPLIANCE_SERVICE, complianceService.address);
-      await token.setDSService(WALLET_MANAGER, walletManager.address);
-      await token.setDSService(LOCK_MANAGER, lockManager.address);
-      await token.setDSService(REGISTRY_SERVICE, registryService.address);
-      await complianceService.setDSService(DS_TOKEN, token.address);
-      await walletManager.setDSService(TRUST_SERVICE, trustService.address);
-      await lockManager.setDSService(TRUST_SERVICE, trustService.address);
-      await lockManager.setDSService(REGISTRY_SERVICE, registryService.address);
-      await lockManager.setDSService(
-        COMPLIANCE_SERVICE,
-        complianceService.address
+
+      await utils.setServicesDependencies(
+        walletManager,
+        [services.TRUST_SERVICE, services.REGISTRY_SERVICE],
+        [trustService.address, registryService.address]
       );
-      await lockManager.setDSService(DS_TOKEN, token.address);
-      await registryService.setDSService(WALLET_MANAGER, walletManager.address);
-      await registryService.setDSService(DS_TOKEN, token.address);
-      await walletManager.setDSService(
-        REGISTRY_SERVICE,
-        registryService.address
+
+      await utils.setServicesDependencies(
+        lockManager,
+        [
+          services.REGISTRY_SERVICE,
+          services.COMPLIANCE_SERVICE,
+          services.DS_TOKEN,
+          services.TRUST_SERVICE,
+        ],
+        [
+          registryService.address,
+          complianceService.address,
+          token.address,
+          trustService.address,
+        ]
       );
-      await informationManager.setDSService(
-        TRUST_SERVICE,
-        trustService.address
+
+      await utils.setServicesDependencies(
+        informationManager,
+        [services.TRUST_SERVICE],
+        [trustService.address]
       );
 
       // Configure issuer
-      await issuer.setDSService(TRUST_SERVICE, trustService.address);
-      await issuer.setDSService(DS_TOKEN, token.address);
-      await issuer.setDSService(REGISTRY_SERVICE, registryService.address);
+      await utils.setServicesDependencies(
+        issuer,
+        [services.TRUST_SERVICE, services.DS_TOKEN, services.REGISTRY_SERVICE],
+        [trustService.address, token.address, registryService.address]
+      );
+
       await trustService.setRole(issuer.address, ISSUER);
       await complianceConfiguration.setAll(
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150],
@@ -393,6 +435,30 @@ contract('Integration', function([
         'Germany'
       );
       assert.equal(euRetailInvestorsCount, 1);
+    });
+
+    it('should update us and eu investors correctly after country change', async function() {
+      await registryService.setCountry(US_INVESTOR_ID, 'Germany');
+      let euRetailInvestorsCount = await complianceService.getEURetailInvestorsCount.call(
+        'Germany'
+      );
+      assert.equal(euRetailInvestorsCount, 2);
+      let usInvestorsCount = await complianceService.getUSInvestorsCount.call();
+      assert.equal(usInvestorsCount, 2);
+
+      await registryService.setCountry(US_INVESTOR_ID, 'USA');
+      euRetailInvestorsCount = await complianceService.getEURetailInvestorsCount.call(
+        'Germany'
+      );
+      usInvestorsCount = await complianceService.getUSInvestorsCount.call();
+      assert.equal(usInvestorsCount, 3);
+      assert.equal(euRetailInvestorsCount, 1);
+      await registryService.setCountry(US_INVESTOR_ID, 'israel');
+      usInvestorsCount = await complianceService.getUSInvestorsCount.call();
+      assert.equal(usInvestorsCount, 2);
+      await registryService.setCountry(US_INVESTOR_ID, 'USA');
+      usInvestorsCount = await complianceService.getUSInvestorsCount.call();
+      assert.equal(usInvestorsCount, 3);
     });
   });
   describe('transfers', function() {

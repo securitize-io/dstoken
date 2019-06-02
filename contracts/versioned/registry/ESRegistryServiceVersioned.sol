@@ -88,8 +88,6 @@ library ESRegistryServiceLibrary {
   }
 
   function setCountry(ESRegistryServiceVersioned _registry, string _id, string _country) public returns (bool) {
-    require(getToken(_registry).balanceOfInvestor(_id) == 0);
-
     EternalStorageClientStringLibrary.setString(_registry, INVESTORS, _id, COUNTRY, _country);
     EternalStorageClientAddressLibrary.setAddress(_registry, INVESTORS, _id, LAST_UPDATED_BY, msg.sender);
   }
@@ -157,6 +155,10 @@ contract ESRegistryServiceVersioned is ESServiceConsumerVersioned, DSRegistrySer
   }
 
   function setCountry(string _id, string _country) public onlyExchangeOrAbove investorExists(_id) returns (bool) {
+    string memory prevCountry = getCountry(_id);
+
+    getComplianceService().adjustInvestorCountsAfterCountryChange(_id,_country,prevCountry);
+
     ESRegistryServiceLibrary.setCountry(this, _id, _country);
 
     emit DSRegistryServiceInvestorCountryChanged(_id, _country, msg.sender);

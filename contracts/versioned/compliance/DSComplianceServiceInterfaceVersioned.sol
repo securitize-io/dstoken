@@ -35,6 +35,8 @@ contract DSComplianceServiceInterfaceVersioned is DSServiceConsumerInterfaceVers
   string internal constant ONLY_ACCREDITED = "Only accredited";
   string internal constant NOT_ENOUGH_INVESTORS = "Not enough investors";
 
+  function adjustInvestorCountsAfterCountryChange(string _id,string _country,string _prevCountry) public;
+
   //*****************************************
   // TOKEN ACTION VALIDATIONS
   //*****************************************
@@ -47,7 +49,7 @@ contract DSComplianceServiceInterfaceVersioned is DSServiceConsumerInterfaceVers
 
   function validate(address _from, address _to, uint _value) /*onlyToken*/ public returns (bool);
 
-  function preIssuanceCheck(address _to, uint _value) view public returns (uint code, string reason);
+  function preIssuanceCheck(address _to, uint _value) public view returns (uint code, string reason);
 
-  function preTransferCheck(address _from, address _to, uint _value) view public returns (uint code, string reason);
+  function preTransferCheck(address _from, address _to, uint _value) public view returns (uint code, string reason);
 }

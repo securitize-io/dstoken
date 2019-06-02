@@ -37,6 +37,11 @@ contract DSServiceConsumerInterfaceVersioned is VersionedContract {
     _;
   }
 
+  modifier onlyRegistry {
+    assert(false);
+    _;
+  }
+
   modifier onlyIssuerOrAboveOrToken {
     assert(false);
     _;
