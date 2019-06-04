@@ -5,7 +5,7 @@ import "../../zeppelin/token/ERC20/ERC20.sol";
 
 contract DSComplianceServiceInterfaceVersioned is DSServiceConsumerInterfaceVersioned {
   constructor() internal {
-    VERSIONS.push(1);
+    VERSIONS.push(2);
   }
 
   uint internal constant NONE = 0;
@@ -35,7 +35,7 @@ contract DSComplianceServiceInterfaceVersioned is DSServiceConsumerInterfaceVers
   string internal constant ONLY_ACCREDITED = "Only accredited";
   string internal constant NOT_ENOUGH_INVESTORS = "Not enough investors";
 
-  function adjustInvestorCountsAfterCountryChange(string _id,string _country,string _prevCountry) public;
+  function adjustInvestorCountsAfterCountryChange(string _id,string _country,string _prevCountry) public returns (bool);
 
   //*****************************************
   // TOKEN ACTION VALIDATIONS

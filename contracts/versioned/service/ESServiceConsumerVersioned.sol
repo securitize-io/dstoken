@@ -12,7 +12,7 @@ import "../registry/DSRegistryServiceInterfaceVersioned.sol";
 
 contract ESServiceConsumerVersioned is DSServiceConsumerInterfaceVersioned, EternalStorageClientVersioned {
   constructor(address _address, string _namespace) public EternalStorageClientVersioned(_address, _namespace) {
-    VERSIONS.push(1);
+    VERSIONS.push(2);
   }
 
   modifier onlyMaster {

@@ -4,7 +4,7 @@ import "../trust/DSTrustServiceInterfaceVersioned.sol";
 
 contract DSServiceConsumerInterfaceVersioned is VersionedContract {
   constructor() internal {
-    VERSIONS.push(1);
+    VERSIONS.push(2);
   }
 
   uint public constant TRUST_SERVICE = 1;

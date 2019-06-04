@@ -246,7 +246,7 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
     using SafeMath for uint256;
 
     constructor(address _address, string _namespace) public ESComplianceServiceWhitelistedVersioned(_address, _namespace) {
-        VERSIONS.push(1);
+        VERSIONS.push(2);
     }
 
     function recordBurn(address _who, uint _value) internal returns (bool) {
@@ -265,13 +265,15 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
         return true;
     }
 
-    function adjustInvestorCountsAfterCountryChange(string _id,string _country,string _prevCountry) public onlyRegistry {
+    function adjustInvestorCountsAfterCountryChange(string _id,string _country,string _prevCountry) public onlyRegistry returns (bool) {
         if(getToken().balanceOfInvestor(_id) == 0) {
             return;
         }
 
         adjustInvestorsCountsByCountry(_prevCountry,_id,false);
         adjustInvestorsCountsByCountry(_country,_id,true);
+
+        return true;
     }
 
     function adjustTotalInvestorsCounts(address _wallet, bool _increase) internal {

@@ -15,7 +15,7 @@ const ESComplianceConfigurationService = artifacts.require(
 );
 
 let latestTime = require('../utils/latestTime');
-let increaseTimeTo = require('../utils/increaseTime').increaseTimeTo;
+let increaseTime = require('../utils/increaseTime').increaseTime;
 
 const duration = {
   seconds: function(val) {
@@ -370,7 +370,7 @@ contract('ESComplianceServiceRegulated', function([
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await increaseTimeTo(duration.days(370));
+      await increaseTime(duration.days(370));
       await assertRevert(
         this.token.transfer(owner, 50, {from: wallet, gas: 5e6})
       );
@@ -419,7 +419,7 @@ contract('ESComplianceServiceRegulated', function([
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await increaseTimeTo(duration.days(370));
+      await increaseTime(duration.days(370));
       await this.token.transfer(owner, 100, {from: wallet, gas: 5e6});
       assert.equal(await this.token.balanceOf(wallet), 0);
     });
@@ -600,7 +600,7 @@ contract('ESComplianceServiceRegulated', function([
       await this.complianceConfiguration.setCountryCompliance('US', 1);
       await this.complianceConfiguration.setCountryCompliance('EU', 2);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await increaseTimeTo(duration.days(370));
+      await increaseTime(duration.days(370));
       let [a, b] = await this.complianceService.preTransferCheck(
         wallet,
         owner,

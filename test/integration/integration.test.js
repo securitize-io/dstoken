@@ -657,7 +657,7 @@ contract('Integration', function([
     });
   });
   describe('special operations', function() {
-    it('should crete correctly issuer,platform and exchange wallets', async function() {
+    it('should create correctly issuer,platform and exchange wallets', async function() {
       let tx = await walletManager.addIssuerWallet(issuerWallet);
       assert.equal(tx.logs[0].event, 'DSWalletManagerSpecialWalletAdded');
       assert.equal(tx.logs[0].args._wallet, issuerWallet);
@@ -733,12 +733,12 @@ contract('Integration', function([
       );
       await storage.adminAddRole(complianceServiceWhiteListed.address, 'write');
       const tx = await token.setDSService(
-        COMPLIANCE_SERVICE,
+        services.COMPLIANCE_SERVICE,
         complianceServiceWhiteListed.address
       );
 
       assert.equal(tx.logs[0].event, 'DSServiceSet');
-      assert.equal(tx.logs[0].args.serviceId, COMPLIANCE_SERVICE);
+      assert.equal(tx.logs[0].args.serviceId, services.COMPLIANCE_SERVICE);
       assert.equal(
         tx.logs[0].args.serviceAddress,
         complianceServiceWhiteListed.address
