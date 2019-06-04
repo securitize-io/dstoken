@@ -4,7 +4,7 @@ import '../service/DSServiceConsumerInterfaceVersioned.sol';
 
 contract DSRegistryServiceInterfaceVersioned is DSServiceConsumerInterfaceVersioned {
   constructor() internal {
-    VERSIONS.push(1);
+    VERSIONS.push(2);
   }
 
   event DSRegistryServiceInvestorAdded(string _investorId, address _sender);

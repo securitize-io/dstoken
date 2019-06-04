@@ -246,7 +246,7 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
     using SafeMath for uint256;
 
     constructor(address _address, string _namespace) public ESComplianceServiceWhitelistedVersioned(_address, _namespace) {
-        VERSIONS.push(1);
+        VERSIONS.push(2);
     }
 
     function recordBurn(address _who, uint _value) internal returns (bool) {
