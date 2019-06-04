@@ -1,4 +1,5 @@
 /* eslint-disable no-multiple-empty-lines */
+var MultiSigWallet = artifacts.require('MultiSigWalletVersioned');
 var DSEternalStorage = artifacts.require('DSEternalStorageVersioned');
 const ESTrustService = artifacts.require('ESTrustServiceVersioned');
 const ESComplianceServiceNotRegulated = artifacts.require(
@@ -123,7 +124,16 @@ module.exports = function(deployer) {
     const decimals = parseInt(argv.decimals);
     const complianceManagerType = argv.compliance || 'NORMAL';
     const lockManagerType = argv.lock_manager || 'INVESTOR';
-    if (argv.help || !name || !symbol || !decimals || isNaN(decimals)) {
+    let owners = argv.owners;
+    const requiredConfirmations = argv.required_confirmations || 2;
+    if (
+      argv.help ||
+      !name ||
+      !symbol ||
+      !decimals ||
+      isNaN(decimals) ||
+      !owners
+    ) {
       console.log('Token Deployer');
       console.log(
         'Usage: truffle migrate [OPTIONS] --name <token name>' +
@@ -137,13 +147,22 @@ module.exports = function(deployer) {
       console.log(
         '   --lock_manager TYPE - lock manager type (WALLET,INVESTOR) - if omitted, INVESTOR is selected'
       );
+      console.log(
+        '   --owners - a space seperated string of owner addresses that own the multisig wallet'
+      );
+      console.log(
+        '   --required_confirmations - the number of required confirmations to execute a multisig wallet transaction'
+      );
       console.log('   --help - outputs this help');
       console.log('\n');
       return;
-      //process.exit(0);
     }
 
+    // Get multisig wallet owners as an array
+    owners = owners.split(' ');
+
     // Deploy eternal storage
+    let multisig = null;
     let storage = null;
     let trustService = null;
     let complianceServiceLib = null;
@@ -161,6 +180,12 @@ module.exports = function(deployer) {
 
     // Deploy eternal storage
     await deployLibraries(deployer)
+      .then(() => {
+        return deployer.deploy(MultiSigWallet, owners, requiredConfirmations);
+      })
+      .then(s => {
+        multisig = s;
+      })
       .then(() => {
         return deployer.deploy(DSEternalStorage);
       })
@@ -533,6 +558,11 @@ module.exports = function(deployer) {
           `\n\nToken "${name}" (${symbol}) [decimals: ${decimals}] deployment complete`
         );
         console.log('-------------------------');
+        console.log(
+          `Multisig wallet is at address: ${
+            multisig.address
+          } Version: ${await multisig.getVersion()}`
+        );
         console.log(
           `Token is at address (2): ${
             token.address

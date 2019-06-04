@@ -76,6 +76,10 @@ contract('MultiSigWallet', accounts => {
       'Submission'
     );
 
+    const exist = await multisigInstance.doesTransactionExist(id);
+
+    assert.isTrue(exist);
+
     const executedTransactionId = utils.getParamFromTxEvent(
       await multisigInstance.confirmTransaction(id, {
         from: accounts[1],
