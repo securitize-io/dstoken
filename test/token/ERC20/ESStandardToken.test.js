@@ -1,4 +1,4 @@
-const assertRevert = require('../../helpers/assertRevert');
+const assertRevert = require('../../utils/assertRevert');
 const EternalStorage = artifacts.require('DSEternalStorageVersioned');
 const ESStandardToken = artifacts.require('DSTokenVersioned');
 const ESComplianceServiceNotRegulated = artifacts.require(
@@ -28,7 +28,7 @@ contract.skip('ESStandardToken', function([
   _,
   owner,
   recipient,
-  anotherAccount
+  anotherAccount,
 ]) {
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -136,7 +136,7 @@ contract.skip('ESStandardToken', function([
         const amount = 101;
 
         it('reverts', async function() {
-          await assertRevert(this.token.transfer(to, amount, { from: owner }));
+          await assertRevert(this.token.transfer(to, amount, {from: owner}));
         });
       });
 
@@ -144,7 +144,7 @@ contract.skip('ESStandardToken', function([
         const amount = 100;
 
         it('transfers the requested amount', async function() {
-          await this.token.transfer(to, amount, { from: owner });
+          await this.token.transfer(to, amount, {from: owner});
 
           const senderBalance = await this.token.balanceOf(owner);
           assert.equal(senderBalance, 0);
@@ -154,8 +154,8 @@ contract.skip('ESStandardToken', function([
         });
 
         it('emits a transfer event', async function() {
-          const { logs } = await this.token.transfer(to, amount, {
-            from: owner
+          const {logs} = await this.token.transfer(to, amount, {
+            from: owner,
           });
 
           assert.equal(logs.length, 1);
@@ -171,7 +171,7 @@ contract.skip('ESStandardToken', function([
       const to = ZERO_ADDRESS;
 
       it('reverts', async function() {
-        await assertRevert(this.token.transfer(to, 100, { from: owner }));
+        await assertRevert(this.token.transfer(to, 100, {from: owner}));
       });
     });
   });
@@ -184,8 +184,8 @@ contract.skip('ESStandardToken', function([
         const amount = 100;
 
         it('emits an approval event', async function() {
-          const { logs } = await this.token.approve(spender, amount, {
-            from: owner
+          const {logs} = await this.token.approve(spender, amount, {
+            from: owner,
           });
 
           assert.equal(logs.length, 1);
@@ -197,7 +197,7 @@ contract.skip('ESStandardToken', function([
 
         describe('when there was no approved amount before', function() {
           it('approves the requested amount', async function() {
-            await this.token.approve(spender, amount, { from: owner });
+            await this.token.approve(spender, amount, {from: owner});
 
             const allowance = await this.token.allowance(owner, spender);
             assert.equal(allowance, amount);
@@ -206,11 +206,11 @@ contract.skip('ESStandardToken', function([
 
         describe('when the spender had an approved amount', function() {
           beforeEach(async function() {
-            await this.token.approve(spender, 1, { from: owner });
+            await this.token.approve(spender, 1, {from: owner});
           });
 
           it('approves the requested amount and replaces the previous one', async function() {
-            await this.token.approve(spender, amount, { from: owner });
+            await this.token.approve(spender, amount, {from: owner});
 
             const allowance = await this.token.allowance(owner, spender);
             assert.equal(allowance, amount);
@@ -222,8 +222,8 @@ contract.skip('ESStandardToken', function([
         const amount = 101;
 
         it('emits an approval event', async function() {
-          const { logs } = await this.token.approve(spender, amount, {
-            from: owner
+          const {logs} = await this.token.approve(spender, amount, {
+            from: owner,
           });
 
           assert.equal(logs.length, 1);
@@ -235,7 +235,7 @@ contract.skip('ESStandardToken', function([
 
         describe('when there was no approved amount before', function() {
           it('approves the requested amount', async function() {
-            await this.token.approve(spender, amount, { from: owner });
+            await this.token.approve(spender, amount, {from: owner});
 
             const allowance = await this.token.allowance(owner, spender);
             assert.equal(allowance, amount);
@@ -244,11 +244,11 @@ contract.skip('ESStandardToken', function([
 
         describe('when the spender had an approved amount', function() {
           beforeEach(async function() {
-            await this.token.approve(spender, 1, { from: owner });
+            await this.token.approve(spender, 1, {from: owner});
           });
 
           it('approves the requested amount and replaces the previous one', async function() {
-            await this.token.approve(spender, amount, { from: owner });
+            await this.token.approve(spender, amount, {from: owner});
 
             const allowance = await this.token.allowance(owner, spender);
             assert.equal(allowance, amount);
@@ -262,15 +262,15 @@ contract.skip('ESStandardToken', function([
       const spender = ZERO_ADDRESS;
 
       it('approves the requested amount', async function() {
-        await this.token.approve(spender, amount, { from: owner });
+        await this.token.approve(spender, amount, {from: owner});
 
         const allowance = await this.token.allowance(owner, spender);
         assert.equal(allowance, amount);
       });
 
       it('emits an approval event', async function() {
-        const { logs } = await this.token.approve(spender, amount, {
-          from: owner
+        const {logs} = await this.token.approve(spender, amount, {
+          from: owner,
         });
 
         assert.equal(logs.length, 1);
@@ -290,14 +290,14 @@ contract.skip('ESStandardToken', function([
 
       describe('when the spender has enough approved balance', function() {
         beforeEach(async function() {
-          await this.token.approve(spender, 100, { from: owner });
+          await this.token.approve(spender, 100, {from: owner});
         });
 
         describe('when the owner has enough balance', function() {
           const amount = 100;
 
           it('transfers the requested amount', async function() {
-            await this.token.transferFrom(owner, to, amount, { from: spender });
+            await this.token.transferFrom(owner, to, amount, {from: spender});
 
             const senderBalance = await this.token.balanceOf(owner);
             assert.equal(senderBalance, 0);
@@ -307,15 +307,15 @@ contract.skip('ESStandardToken', function([
           });
 
           it('decreases the spender allowance', async function() {
-            await this.token.transferFrom(owner, to, amount, { from: spender });
+            await this.token.transferFrom(owner, to, amount, {from: spender});
 
             const allowance = await this.token.allowance(owner, spender);
             assert(allowance.eq(0));
           });
 
           it('emits a transfer event', async function() {
-            const { logs } = await this.token.transferFrom(owner, to, amount, {
-              from: spender
+            const {logs} = await this.token.transferFrom(owner, to, amount, {
+              from: spender,
             });
 
             assert.equal(logs.length, 1);
@@ -331,7 +331,7 @@ contract.skip('ESStandardToken', function([
 
           it('reverts', async function() {
             await assertRevert(
-              this.token.transferFrom(owner, to, amount, { from: spender })
+              this.token.transferFrom(owner, to, amount, {from: spender})
             );
           });
         });
@@ -339,7 +339,7 @@ contract.skip('ESStandardToken', function([
 
       describe('when the spender does not have enough approved balance', function() {
         beforeEach(async function() {
-          await this.token.approve(spender, 99, { from: owner });
+          await this.token.approve(spender, 99, {from: owner});
         });
 
         describe('when the owner has enough balance', function() {
@@ -347,7 +347,7 @@ contract.skip('ESStandardToken', function([
 
           it('reverts', async function() {
             await assertRevert(
-              this.token.transferFrom(owner, to, amount, { from: spender })
+              this.token.transferFrom(owner, to, amount, {from: spender})
             );
           });
         });
@@ -357,7 +357,7 @@ contract.skip('ESStandardToken', function([
 
           it('reverts', async function() {
             await assertRevert(
-              this.token.transferFrom(owner, to, amount, { from: spender })
+              this.token.transferFrom(owner, to, amount, {from: spender})
             );
           });
         });
@@ -369,12 +369,12 @@ contract.skip('ESStandardToken', function([
       const to = ZERO_ADDRESS;
 
       beforeEach(async function() {
-        await this.token.approve(spender, amount, { from: owner });
+        await this.token.approve(spender, amount, {from: owner});
       });
 
       it('reverts', async function() {
         await assertRevert(
-          this.token.transferFrom(owner, to, amount, { from: spender })
+          this.token.transferFrom(owner, to, amount, {from: spender})
         );
       });
     });
@@ -388,8 +388,8 @@ contract.skip('ESStandardToken', function([
         const amount = 100;
 
         it('emits an approval event', async function() {
-          const { logs } = await this.token.decreaseApproval(spender, amount, {
-            from: owner
+          const {logs} = await this.token.decreaseApproval(spender, amount, {
+            from: owner,
           });
 
           assert.equal(logs.length, 1);
@@ -401,7 +401,7 @@ contract.skip('ESStandardToken', function([
 
         describe('when there was no approved amount before', function() {
           it('keeps the allowance to zero', async function() {
-            await this.token.decreaseApproval(spender, amount, { from: owner });
+            await this.token.decreaseApproval(spender, amount, {from: owner});
 
             const allowance = await this.token.allowance(owner, spender);
             assert.equal(allowance, 0);
@@ -410,11 +410,11 @@ contract.skip('ESStandardToken', function([
 
         describe('when the spender had an approved amount', function() {
           beforeEach(async function() {
-            await this.token.approve(spender, amount + 1, { from: owner });
+            await this.token.approve(spender, amount + 1, {from: owner});
           });
 
           it('decreases the spender allowance subtracting the requested amount', async function() {
-            await this.token.decreaseApproval(spender, amount, { from: owner });
+            await this.token.decreaseApproval(spender, amount, {from: owner});
 
             const allowance = await this.token.allowance(owner, spender);
             assert.equal(allowance, 1);
@@ -426,8 +426,8 @@ contract.skip('ESStandardToken', function([
         const amount = 101;
 
         it('emits an approval event', async function() {
-          const { logs } = await this.token.decreaseApproval(spender, amount, {
-            from: owner
+          const {logs} = await this.token.decreaseApproval(spender, amount, {
+            from: owner,
           });
 
           assert.equal(logs.length, 1);
@@ -439,7 +439,7 @@ contract.skip('ESStandardToken', function([
 
         describe('when there was no approved amount before', function() {
           it('keeps the allowance to zero', async function() {
-            await this.token.decreaseApproval(spender, amount, { from: owner });
+            await this.token.decreaseApproval(spender, amount, {from: owner});
 
             const allowance = await this.token.allowance(owner, spender);
             assert.equal(allowance, 0);
@@ -448,11 +448,11 @@ contract.skip('ESStandardToken', function([
 
         describe('when the spender had an approved amount', function() {
           beforeEach(async function() {
-            await this.token.approve(spender, amount + 1, { from: owner });
+            await this.token.approve(spender, amount + 1, {from: owner});
           });
 
           it('decreases the spender allowance subtracting the requested amount', async function() {
-            await this.token.decreaseApproval(spender, amount, { from: owner });
+            await this.token.decreaseApproval(spender, amount, {from: owner});
 
             const allowance = await this.token.allowance(owner, spender);
             assert.equal(allowance, 1);
@@ -466,15 +466,15 @@ contract.skip('ESStandardToken', function([
       const spender = ZERO_ADDRESS;
 
       it('decreases the requested amount', async function() {
-        await this.token.decreaseApproval(spender, amount, { from: owner });
+        await this.token.decreaseApproval(spender, amount, {from: owner});
 
         const allowance = await this.token.allowance(owner, spender);
         assert.equal(allowance, 0);
       });
 
       it('emits an approval event', async function() {
-        const { logs } = await this.token.decreaseApproval(spender, amount, {
-          from: owner
+        const {logs} = await this.token.decreaseApproval(spender, amount, {
+          from: owner,
         });
 
         assert.equal(logs.length, 1);
@@ -494,8 +494,8 @@ contract.skip('ESStandardToken', function([
 
       describe('when the sender has enough balance', function() {
         it('emits an approval event', async function() {
-          const { logs } = await this.token.increaseApproval(spender, amount, {
-            from: owner
+          const {logs} = await this.token.increaseApproval(spender, amount, {
+            from: owner,
           });
 
           assert.equal(logs.length, 1);
@@ -507,7 +507,7 @@ contract.skip('ESStandardToken', function([
 
         describe('when there was no approved amount before', function() {
           it('approves the requested amount', async function() {
-            await this.token.increaseApproval(spender, amount, { from: owner });
+            await this.token.increaseApproval(spender, amount, {from: owner});
 
             const allowance = await this.token.allowance(owner, spender);
             assert.equal(allowance, amount);
@@ -516,11 +516,11 @@ contract.skip('ESStandardToken', function([
 
         describe('when the spender had an approved amount', function() {
           beforeEach(async function() {
-            await this.token.approve(spender, 1, { from: owner });
+            await this.token.approve(spender, 1, {from: owner});
           });
 
           it('increases the spender allowance adding the requested amount', async function() {
-            await this.token.increaseApproval(spender, amount, { from: owner });
+            await this.token.increaseApproval(spender, amount, {from: owner});
 
             const allowance = await this.token.allowance(owner, spender);
             assert.equal(allowance, amount + 1);
@@ -532,8 +532,8 @@ contract.skip('ESStandardToken', function([
         const amount = 101;
 
         it('emits an approval event', async function() {
-          const { logs } = await this.token.increaseApproval(spender, amount, {
-            from: owner
+          const {logs} = await this.token.increaseApproval(spender, amount, {
+            from: owner,
           });
 
           assert.equal(logs.length, 1);
@@ -545,7 +545,7 @@ contract.skip('ESStandardToken', function([
 
         describe('when there was no approved amount before', function() {
           it('approves the requested amount', async function() {
-            await this.token.increaseApproval(spender, amount, { from: owner });
+            await this.token.increaseApproval(spender, amount, {from: owner});
 
             const allowance = await this.token.allowance(owner, spender);
             assert.equal(allowance, amount);
@@ -554,11 +554,11 @@ contract.skip('ESStandardToken', function([
 
         describe('when the spender had an approved amount', function() {
           beforeEach(async function() {
-            await this.token.approve(spender, 1, { from: owner });
+            await this.token.approve(spender, 1, {from: owner});
           });
 
           it('increases the spender allowance adding the requested amount', async function() {
-            await this.token.increaseApproval(spender, amount, { from: owner });
+            await this.token.increaseApproval(spender, amount, {from: owner});
 
             const allowance = await this.token.allowance(owner, spender);
             assert.equal(allowance, amount + 1);
@@ -571,15 +571,15 @@ contract.skip('ESStandardToken', function([
       const spender = ZERO_ADDRESS;
 
       it('approves the requested amount', async function() {
-        await this.token.increaseApproval(spender, amount, { from: owner });
+        await this.token.increaseApproval(spender, amount, {from: owner});
 
         const allowance = await this.token.allowance(owner, spender);
         assert.equal(allowance, amount);
       });
 
       it('emits an approval event', async function() {
-        const { logs } = await this.token.increaseApproval(spender, amount, {
-          from: owner
+        const {logs} = await this.token.increaseApproval(spender, amount, {
+          from: owner,
         });
 
         assert.equal(logs.length, 1);

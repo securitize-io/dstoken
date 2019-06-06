@@ -135,7 +135,7 @@ library ESRegistryServiceLibrary {
 
 contract ESRegistryServiceVersioned is ESServiceConsumerVersioned, DSRegistryServiceInterfaceVersioned {
   constructor(address _address, string _namespace) public ESServiceConsumerVersioned(_address, _namespace) {
-    VERSIONS.push(1);
+    VERSIONS.push(2);
   }
 
   function registerInvestor(string _id, string _collision_hash) public onlyExchangeOrAbove newInvestor(_id) returns (bool) {

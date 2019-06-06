@@ -10,4 +10,24 @@ module.exports = {
     ISSUANCE_INFORMATION_MANAGER: 128,
     COMPLIANCE_CONFIGURATION_SERVICE: 256,
   },
+  countries: {
+    FRANCE: 'France',
+    USA: 'USA',
+  },
+  investorStatusIds: {
+    NONE: 0,
+    KYC_APPROVED: 1,
+    ACCREDITED: 2,
+    QUALIFIED: 4,
+    PROFESSIONAL: 8,
+  },
+  investorStatuses: {
+    PENDING: 0,
+    APPROVED: 1,
+    REJECTED: 2,
+  },
+  compliances: {
+    US: 1,
+    EU: 2,
+  },
 };

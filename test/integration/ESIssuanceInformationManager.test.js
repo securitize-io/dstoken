@@ -1,4 +1,4 @@
-const assertRevert = require('./helpers/assertRevert');
+const assertRevert = require('../utils/assertRevert');
 const DSEternalStorage = artifacts.require('DSEternalStorageVersioned');
 const ESIssuanceInformationManager = artifacts.require(
   'ESIssuanceInformationManagerVersioned'

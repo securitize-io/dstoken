@@ -1,6 +1,6 @@
-const assertRevert = require('./helpers/assertRevert');
-const utils = require('./utils');
-const services = require('./utils/globals').services;
+const assertRevert = require('../utils/assertRevert');
+const utils = require('../utils');
+const services = require('../utils/globals').services;
 const DSEternalStorage = artifacts.require('DSEternalStorageVersioned');
 const DSToken = artifacts.require('DSTokenVersioned');
 const ESComplianceServiceRegulated = artifacts.require(
@@ -51,7 +51,7 @@ const DAYS = 24 * HOURS;
 const WEEKS = 7 * DAYS;
 const YEARS = 365 * DAYS;
 
-const latestTime = require('./helpers/latestTime');
+const latestTime = require('../utils/latestTime');
 
 contract('DSToken (regulated)', function([
   _,

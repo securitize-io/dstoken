@@ -5,7 +5,7 @@ import "../../zeppelin/token/ERC20/ERC20.sol";
 
 contract DSComplianceServiceInterfaceVersioned is DSServiceConsumerInterfaceVersioned {
   constructor() internal {
-    VERSIONS.push(1);
+    VERSIONS.push(2);
   }
 
   uint internal constant NONE = 0;
