@@ -35,7 +35,7 @@ contract DSComplianceServiceInterfaceVersioned is DSServiceConsumerInterfaceVers
   string internal constant ONLY_ACCREDITED = "Only accredited";
   string internal constant NOT_ENOUGH_INVESTORS = "Not enough investors";
 
-  function adjustInvestorCountsAfterCountryChange(string _id,string _country,string _prevCountry) public;
+  function adjustInvestorCountsAfterCountryChange(string _id,string _country,string _prevCountry) public returns (bool);
 
   //*****************************************
   // TOKEN ACTION VALIDATIONS

@@ -265,13 +265,15 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
         return true;
     }
 
-    function adjustInvestorCountsAfterCountryChange(string _id,string _country,string _prevCountry) public onlyRegistry {
+    function adjustInvestorCountsAfterCountryChange(string _id,string _country,string _prevCountry) public onlyRegistry returns (bool) {
         if(getToken().balanceOfInvestor(_id) == 0) {
             return;
         }
 
         adjustInvestorsCountsByCountry(_prevCountry,_id,false);
         adjustInvestorsCountsByCountry(_country,_id,true);
+
+        return true;
     }
 
     function adjustTotalInvestorsCounts(address _wallet, bool _increase) internal {
