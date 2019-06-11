@@ -32,31 +32,6 @@ library ESRegistryServiceLibrary {
     return getWalletManager(_registry).getWalletType(_address) != getWalletManager(_registry).NONE();
   }
 
-  function updateInvestor(ESRegistryServiceVersioned _registry,string _id, string _collisionHash, string _country, address [] _wallets, uint8[] _attributeIds, uint[] _attributeValues, uint[] _attributeExpirations) public  returns (bool) {
-    require(_attributeValues.length == _attributeIds.length);
-    require(_attributeIds.length == _attributeValues.length);
-
-    if (!_registry.isInvestor(_id)) {
-      _registry.registerInvestor(_id, _collisionHash);
-    }
-
-    if (bytes(_country).length > 0)
-      _registry.setCountry(_id,_country);
-
-    for (uint i = 0; i < _wallets.length; i++) {
-      if (_registry.isWallet(_wallets[i])) {
-        require(keccak256(abi.encodePacked(_registry.getInvestor(_wallets[i]))) == keccak256(abi.encodePacked(_id)), "Wallet belongs to a different investor");
-      } else {
-        _registry.addWallet(_wallets[i], _id);
-      }
-    }
-
-    for (i = 0 ; i < _attributeIds.length ; i++){
-      _registry.setAttribute(_id, _attributeIds[i] ,_attributeValues[i], _attributeExpirations[i], "");
-    }
-    return true;
-  }
-
   function registerInvestor(ESRegistryServiceVersioned _registry, string _id, string _collision_hash) public returns (bool) {
     EternalStorageClientStringLibrary.setString(_registry, INVESTORS, _id, ID, _id);
     EternalStorageClientStringLibrary.setString(_registry, INVESTORS, _id, COLLISION_HASH, _collision_hash);
@@ -180,7 +155,30 @@ contract ESRegistryServiceVersioned is ESServiceConsumerVersioned, DSRegistrySer
   }
 
   function updateInvestor(string _id, string _collisionHash, string _country, address [] _wallets, uint8[] _attributeIds, uint[] _attributeValues, uint[] _attributeExpirations) public onlyIssuerOrAbove returns (bool) {
-    return ESRegistryServiceLibrary.updateInvestor(this,_id,_collisionHash,_country,_wallets,_attributeIds,_attributeValues,_attributeExpirations);
+    require(_attributeValues.length == _attributeIds.length);
+    require(_attributeIds.length == _attributeValues.length);
+
+    if (!isInvestor(_id)) {
+      registerInvestor(_id, _collisionHash);
+    }
+
+    if (bytes(_country).length > 0){
+      setCountry(_id,_country);
+    }
+
+    for (uint i = 0; i < _wallets.length; i++) {
+      if (isWallet(_wallets[i])) {
+        require(keccak256(abi.encodePacked(getInvestor(_wallets[i]))) == keccak256(abi.encodePacked(_id)), "Wallet belongs to a different investor");
+      } else {
+        addWallet(_wallets[i], _id);
+      }
+    }
+
+    for (i = 0 ; i < _attributeIds.length ; i++){
+      setAttribute(_id, _attributeIds[i] ,_attributeValues[i], _attributeExpirations[i], "");
+    }
+    return true;
+
   }
   function setCountry(string _id, string _country) public onlyExchangeOrAbove investorExists(_id) returns (bool) {
     string memory prevCountry = getCountry(_id);

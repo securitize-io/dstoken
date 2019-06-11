@@ -34,6 +34,7 @@ contract DSRegistryServiceInterfaceVersioned is DSServiceConsumerInterfaceVersio
     _;
   }
 
+
   modifier walletExists(address _address) {
     require(isWallet(_address));
     _;
@@ -50,6 +51,7 @@ contract DSRegistryServiceInterfaceVersioned is DSServiceConsumerInterfaceVersio
   }
 
   function registerInvestor(string _id, string _collision_hash) public /*onlyExchangeOrAbove newInvestor(_id)*/ returns (bool);
+  function updateInvestor(string _id, string _collisionHash, string _country, address [] _wallets, uint8[] _attributeIds, uint[] _attributeValues, uint[] _attributeExpirations) public /*onlyIssuerOrAbove*/ returns (bool);
   function removeInvestor(string _id) public /*onlyExchangeOrAbove investorExists(_id)*/ returns (bool);
   function setCountry(string _id, string _country) public /*onlyExchangeOrAbove investorExists(_id)*/ returns (bool);
   function getCountry(string _id) public view returns (string);
