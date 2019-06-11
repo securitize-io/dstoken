@@ -38,28 +38,5 @@ contract ESTokenIssuerVersioned is DSTokenIssuerInterfaceVersioned, ESServiceCon
         return true;
     }
 
-    function registerInvestor(string _id, string _collisionHash, string _country, address [] _wallets, uint8[] _attributeIds, uint[] _attributeValues, uint[] _attributeExpirations) public onlyIssuerOrAbove returns (bool) {
-        require(_attributeValues.length == _attributeIds.length);
-        require(_attributeIds.length == _attributeValues.length);
 
-        if (!getRegistryService().isInvestor(_id)) {
-            getRegistryService().registerInvestor(_id, _collisionHash);
-        }
-
-        if (bytes(_country).length > 0)
-            getRegistryService().setCountry(_id,_country);
-
-        for (uint i = 0; i < _wallets.length; i++) {
-            if (getRegistryService().isWallet(_wallets[i])) {
-                require(keccak256(abi.encodePacked(getRegistryService().getInvestor(_wallets[i]))) == keccak256(abi.encodePacked(_id)), "Wallet belongs to a different investor");
-            } else {
-                getRegistryService().addWallet(_wallets[i], _id);
-            }
-        }
-
-        for (i = 0 ; i < _attributeIds.length ; i++){
-            getRegistryService().setAttribute(_id, _attributeIds[i] ,_attributeValues[i], _attributeExpirations[i], "");
-        }
-        return true;
-    }
 }
