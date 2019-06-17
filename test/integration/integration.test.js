@@ -262,7 +262,7 @@ contract('Integration', function([
 
       await trustService.setRole(issuer.address, ISSUER);
       await complianceConfiguration.setAll(
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 1 * YEARS],
         [true, false]
       );
     });

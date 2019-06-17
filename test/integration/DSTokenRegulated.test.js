@@ -253,7 +253,7 @@ contract('DSToken (regulated)', function([
     await this.registryService.addWallet(israelInvestor, ISRAEL_INVESTOR_ID);
 
     await this.complianceConfiguration.setAll(
-      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 1 * YEARS],
       [true, false]
     );
   });

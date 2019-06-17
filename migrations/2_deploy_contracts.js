@@ -81,37 +81,32 @@ const ISSUER = 2;
 const EXCHANGE = 4;
 
 deployLibraries = async function(deployer) {
-  await Promise.all([
-    deployer.deploy(EternalStorageClientUintLibrary),
-    deployer.deploy(EternalStorageClientAddressLibrary),
-    deployer.deploy(EternalStorageClientBooleanLibrary),
-    deployer.deploy(EternalStorageClientStringLibrary),
-    deployer.deploy(ESComplianceServiceLibrary),
-  ])
-    .then(() => {
-      let promises = [];
-      for (const client of EternalStorageClients) {
-        promises.push(deployer.link(EternalStorageClientUintLibrary, client));
-        promises.push(
-          deployer.link(EternalStorageClientAddressLibrary, client)
-        );
-        promises.push(
-          deployer.link(EternalStorageClientBooleanLibrary, client)
-        );
-        promises.push(deployer.link(EternalStorageClientStringLibrary, client));
-      }
-      return Promise.all(promises);
-    })
-    .then(() => {
-      return deployer.deploy(ESRegistryServiceLibrary);
-    })
-    .then(() => {
-      return Promise.all([
-        deployer.link(ESRegistryServiceLibrary, ESRegistryService),
-        deployer.link(ESComplianceServiceLibrary, ESComplianceServiceRegulated),
-      ]);
-    });
-};
+  await deployer.deploy(EternalStorageClientUintLibrary).then(() => {
+          return deployer.deploy(EternalStorageClientAddressLibrary)
+        }).then(() => {
+          return deployer.deploy(EternalStorageClientBooleanLibrary)
+        }).then(() => {
+          return deployer.deploy(EternalStorageClientStringLibrary)
+        }).then(() => {
+          return deployer.deploy(ESComplianceServiceLibrary)
+        }).then(() => {
+                        let promises = [];
+                        for (const client of EternalStorageClients) {
+                          promises.push(deployer.link(EternalStorageClientUintLibrary, client));
+                          promises.push(deployer.link(EternalStorageClientAddressLibrary, client));
+                          promises.push(deployer.link(EternalStorageClientBooleanLibrary, client));
+                          promises.push(deployer.link(EternalStorageClientStringLibrary, client));
+                        }
+                        return Promise.all(promises);
+                      }).then(() => {
+                        return deployer.deploy(ESRegistryServiceLibrary);
+                      }).then(() => {
+                        return Promise.all([
+                                            deployer.link(ESRegistryServiceLibrary, ESRegistryService),
+                                            deployer.link(ESComplianceServiceLibrary, ESComplianceServiceRegulated)
+                                          ])
+                      });
+}
 
 module.exports = function(deployer) {
   deployer.then(async () => {
@@ -561,64 +556,64 @@ module.exports = function(deployer) {
         console.log(
           `Multisig wallet is at address: ${
             multisig.address
-          } Version: ${await multisig.getVersion()}`
+          } | Version: ${await multisig.getVersion()}`
         );
         console.log(
           `Token is at address (2): ${
             token.address
-          } (behind proxy) Version: ${await token.getVersion()}`
+          } (behind proxy)`
         );
         console.log(
           `Trust service is at address (1): ${
             trustService.address
-          } Version: ${await trustService.getVersion()}`
+          } | Version: ${await trustService.getVersion()}`
         );
         if (registry) {
           console.log(
             `Investor registry is at address (4): ${
               registry.address
-            } Version: ${await registry.getVersion()}`
+            } | Version: ${await registry.getVersion()}`
           );
         }
         console.log(
           `Compliance service is at address (8): ${
             complianceService.address
-          }, and is of type ${complianceManagerType}. Version: ${await complianceService.getVersion()}`
+          }, and is of type ${complianceManagerType} | Version: ${await complianceService.getVersion()}`
         );
         console.log(
           `Compliance configuration service is at address (256): ${
             complianceConfiguration.address
-          }. Version: ${await complianceConfiguration.getVersion()}`
+          } | Version: ${await complianceConfiguration.getVersion()}`
         );
         console.log(
           `Wallet manager is at address (32): ${
             walletManager.address
-          } Version: ${await walletManager.getVersion()}`
+          } | Version: ${await walletManager.getVersion()}`
         );
         console.log(
           `Lock manager is at address (64): ${
             lockManager.address
-          }, and is of type ${lockManagerType}. Version: ${await lockManager.getVersion()}`
+          }, and is of type ${lockManagerType}. | Version: ${await lockManager.getVersion()}`
         );
         console.log(
           `Eternal storage is at address: ${
             storage.address
-          } Version: ${await storage.getVersion()}`
+          } | Version: ${await storage.getVersion()}`
         );
         console.log(
           `Token implementation is at address: ${
             tokenImpl.address
-          } Version: ${await tokenImpl.getVersion()}`
+          } | Version: ${await tokenImpl.getVersion()}`
         );
         console.log(
           `Token issuer is at address: ${
             tokenIssuer.address
-          } Version: ${await tokenIssuer.getVersion()}`
+          } | Version: ${await tokenIssuer.getVersion()}`
         );
         console.log(
           `Wallet registrar is at address: ${
             walletRegistrar.address
-          } Version: ${await walletRegistrar.getVersion()}`
+          } | Version: ${await walletRegistrar.getVersion()}`
         );
 
         if (!registry) {

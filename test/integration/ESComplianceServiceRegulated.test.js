@@ -215,7 +215,7 @@ contract('ESComplianceServiceRegulated', function([
     await this.complianceConfiguration.setCountryCompliance('US', 1);
     await this.complianceConfiguration.setCountryCompliance('EU', 2);
     await this.complianceConfiguration.setAll(
-      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, duration.years(1)],
       [true, false]
     );
   });

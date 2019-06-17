@@ -5,7 +5,7 @@ import "../../zeppelin/token/ERC20/ERC20.sol";
 
 contract DSComplianceServiceInterfaceVersioned is DSServiceConsumerInterfaceVersioned {
   constructor() internal {
-    VERSIONS.push(2);
+    VERSIONS.push(3);
   }
 
   uint internal constant NONE = 0;
@@ -21,6 +21,7 @@ contract DSComplianceServiceInterfaceVersioned is DSServiceConsumerInterfaceVers
   string internal constant TOTAL_INVESTORS = "totalInvestors";
   string internal constant US_INVESTORS_COUNT = "usInvestorsCount";
   string internal constant US_ACCREDITED_INVESTORS_COUNT = "usAccreditedInvestorsCount";
+  string internal constant ACCREDITED_INVESTORS_COUNT = "accreditedInvestorsCount";
   string internal constant EU_RETAIL_INVESTORS_COUNT = "euRetailInvestorsCount";
   string internal constant ISSUANCES_COUNT = "issuancesCount";
   string internal constant ISSUANCE_VALUE = "issuanceValue";
