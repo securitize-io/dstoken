@@ -379,7 +379,9 @@ module.exports = function(deployer) {
         return storage.adminAddRole(tokenIssuer.address, 'write');
       })
       .then(() => {
-        console.log('Adding write right on eternal storage to wallet registrar');
+        console.log(
+          'Adding write right on eternal storage to wallet registrar'
+        );
         return storage.adminAddRole(walletRegistrar.address, 'write');
       })
       .then(() => {
@@ -465,13 +467,18 @@ module.exports = function(deployer) {
       })
       .then(() => {
         console.log('Connecting token to trust service');
-        return token.setDSService(TRUST_SERVICE, trustService.address);
+        return token.setDSService(TRUST_SERVICE, trustService.address, {
+          gas: 1e6,
+        });
       })
       .then(() => {
         console.log('Connecting token to compliance service');
         return token.setDSService(
           COMPLIANCE_SERVICE,
-          complianceService.address
+          complianceService.address,
+          {
+            gas: 1e6,
+          }
         );
       })
       .then(() => {
