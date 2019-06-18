@@ -1,68 +1,77 @@
 /* eslint-disable camelcase */
-require("dotenv").config();
+require('dotenv').config();
 
-const WalletProvider = require("truffle-wallet-provider");
+const WalletProvider = require('truffle-wallet-provider');
+const HDWalletProvider = require('truffle-hdwallet-provider');
 let privateKey = null;
 if (process.env.PRIVATE_KEY) {
-  privateKey = require("ethereumjs-wallet").fromPrivateKey(
-    Buffer.from(process.env.PRIVATE_KEY, "hex")
+  privateKey = require('ethereumjs-wallet').fromPrivateKey(
+    Buffer.from(process.env.PRIVATE_KEY, 'hex')
   );
 } else {
-  privateKey = require("ethereumjs-wallet").fromPrivateKey(
+  privateKey = require('ethereumjs-wallet').fromPrivateKey(
     Buffer.from(
-      "9de51fddb94bc44f2eeaa2fd346befdd2dd7a18945689f8ed42c041d8a9dd459",
-      "hex"
+      '9de51fddb94bc44f2eeaa2fd346befdd2dd7a18945689f8ed42c041d8a9dd459',
+      'hex'
     )
   ); // Fake private key
 }
 module.exports = {
   networks: {
     development: {
-      host: "localhost",
+      host: 'localhost',
       port: 7545,
-      network_id: "*" // eslint-disable-line camelcase
+      network_id: '*', // eslint-disable-line camelcase
     },
     ropsten: {
       provider: new WalletProvider(
         privateKey,
         `https://ropsten.infura.io/${process.env.INFURA_API_KEY}`
       ),
-      network_id: 3 // eslint-disable-line camelcase
+      network_id: 3, // eslint-disable-line camelcase
     },
     coverage: {
-      host: "localhost",
-      network_id: "*", // eslint-disable-line camelcase
+      host: 'localhost',
+      network_id: '*', // eslint-disable-line camelcase
       port: 8555,
       gas: 0xfffffffffff,
-      gasPrice: 0x01
+      gasPrice: 0x01,
     },
     ganache: {
-      host: "localhost",
+      host: 'localhost',
       port: 8545,
-      network_id: "*" // eslint-disable-line camelcase
+      network_id: '*', // eslint-disable-line camelcase
     },
     rinkeby: {
       gasPrice: 20000000000,
-      provider: new WalletProvider(
-        privateKey,
+      provider: new HDWalletProvider(
+        'mirror cable umbrella oppose asthma waste setup youth escape warfare exclude tissue',
         `https://rinkeby.infura.io/${process.env.INFURA_API_KEY}`
       ),
-      network_id: "4"
+      network_id: '4',
     },
     live: {
       //  "gas":      20000000,
-      gasPrice: 22000000000,
-      provider: new WalletProvider(
-        privateKey,
+      //gasPrice: 22000000000,
+      gasPrice: 5000000000,
+      provider: new HDWalletProvider(
+        'nmemonic',
         `https://mainnet.infura.io/${process.env.INFURA_API_KEY}`
       ),
-      network_id: "1"
-    }
+      network_id: '1',
+      timeoutBlocks: 1000000,
+      skipDryRun: true,
+    },
   },
-  solc: {
-    optimizer: {
-      enabled: true,
-      runs: 200
-    }
-  }
+  compilers: {
+    solc: {
+      version: '^0.4.23',
+      settings: {
+        optimizer: {
+          enabled: true,
+          runs: 200,
+        },
+      },
+    },
+  },
 };
