@@ -46,8 +46,7 @@ module.exports = {
       gasPrice: 20000000000,
       provider: new HDWalletProvider(
         privateKey,
-        `https://rinkeby.infura.io/${process.env.INFURA_API_KEY}`,
-        0
+        `https://rinkeby.infura.io/${process.env.INFURA_API_KEY}`
       ),
       network_id: '4',
     },

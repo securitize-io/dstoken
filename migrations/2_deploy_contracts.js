@@ -379,7 +379,7 @@ module.exports = function(deployer) {
         return storage.adminAddRole(tokenIssuer.address, 'write');
       })
       .then(() => {
-        console.log('Adding write right on eternal storage to token issuer');
+        console.log('Adding write right on eternal storage to wallet registrar');
         return storage.adminAddRole(walletRegistrar.address, 'write');
       })
       .then(() => {
