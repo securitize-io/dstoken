@@ -25,7 +25,7 @@ module.exports = {
     },
     ropsten: {
       provider: new HDWalletProvider(
-        privateKey,
+        process.env.PRIVATE_KEY,
         `https://ropsten.infura.io/${process.env.INFURA_API_KEY}`
       ),
       network_id: 3, // eslint-disable-line camelcase
@@ -45,7 +45,7 @@ module.exports = {
     rinkeby: {
       gasPrice: 20000000000,
       provider: new HDWalletProvider(
-        privateKey,
+        process.env.PRIVATE_KEY,
         `https://rinkeby.infura.io/${process.env.INFURA_API_KEY}`
       ),
       network_id: '4',
@@ -53,7 +53,7 @@ module.exports = {
     live: {
       gasPrice: 5000000000,
       provider: new HDWalletProvider(
-        privateKey,
+        process.env.PRIVATE_KEY,
         `https://mainnet.infura.io/${process.env.INFURA_API_KEY}`
       ),
       network_id: '1',
