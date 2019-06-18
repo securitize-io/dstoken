@@ -45,7 +45,7 @@ module.exports = {
     rinkeby: {
       gasPrice: 20000000000,
       provider: new HDWalletProvider(
-        'mirror cable umbrella oppose asthma waste setup youth escape warfare exclude tissue',
+        process.env.PRIVATE_KEY || '9de51fddb94bc44f2eeaa2fd346befdd2dd7a18945689f8ed42c041d8a9dd459',
         `https://rinkeby.infura.io/${process.env.INFURA_API_KEY}`
       ),
       network_id: '4',
