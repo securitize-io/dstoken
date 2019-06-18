@@ -1,8 +1,8 @@
 /* eslint-disable camelcase */
 require('dotenv').config();
 
-const WalletProvider = require('truffle-wallet-provider');
 const HDWalletProvider = require('truffle-hdwallet-provider');
+
 let privateKey = null;
 if (process.env.PRIVATE_KEY) {
   privateKey = require('ethereumjs-wallet').fromPrivateKey(
@@ -24,7 +24,7 @@ module.exports = {
       network_id: '*', // eslint-disable-line camelcase
     },
     ropsten: {
-      provider: new WalletProvider(
+      provider: new HDWalletProvider(
         privateKey,
         `https://ropsten.infura.io/${process.env.INFURA_API_KEY}`
       ),
@@ -45,17 +45,16 @@ module.exports = {
     rinkeby: {
       gasPrice: 20000000000,
       provider: new HDWalletProvider(
-        'mirror cable umbrella oppose asthma waste setup youth escape warfare exclude tissue',
-        `https://rinkeby.infura.io/${process.env.INFURA_API_KEY}`
+        privateKey,
+        `https://rinkeby.infura.io/${process.env.INFURA_API_KEY}`,
+        0
       ),
       network_id: '4',
     },
     live: {
-      //  "gas":      20000000,
-      //gasPrice: 22000000000,
       gasPrice: 5000000000,
       provider: new HDWalletProvider(
-        'nmemonic',
+        privateKey,
         `https://mainnet.infura.io/${process.env.INFURA_API_KEY}`
       ),
       network_id: '1',

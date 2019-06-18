@@ -134,12 +134,6 @@ module.exports = function(deployer) {
     let owners = argv.owners;
     const requiredConfirmations = argv.required_confirmations || 2;
     if (argv.help || !name || !symbol || isNaN(decimals) || !owners) {
-      console.log(name);
-      console.log(symbol);
-      console.log(decimals);
-      console.log(isNaN(decimals));
-      console.log(owners);
-
       console.log('Token Deployer');
       console.log(
         'Usage: truffle migrate [OPTIONS] --name <token name>' +
@@ -482,16 +476,22 @@ module.exports = function(deployer) {
       })
       .then(() => {
         console.log('Connecting token to wallet manager');
-        return token.setDSService(WALLET_MANAGER, walletManager.address);
+        return token.setDSService(WALLET_MANAGER, walletManager.address, {
+          gas: 1e6,
+        });
       })
       .then(() => {
         console.log('Connecting token to lock manager');
-        return token.setDSService(LOCK_MANAGER, lockManager.address);
+        return token.setDSService(LOCK_MANAGER, lockManager.address, {
+          gas: 1e6,
+        });
       })
       .then(() => {
         if (registry) {
           console.log('Connecting token to registry');
-          return token.setDSService(REGISTRY_SERVICE, registry.address);
+          return token.setDSService(REGISTRY_SERVICE, registry.address, {
+            gas: 1e6,
+          });
         }
       })
       .then(() => {
