@@ -26,6 +26,10 @@
     {
       "name": "Jorge Serna",
       "email": "jorge@securitize.io"
+    },
+    {
+      "name": "Omri Perl",
+      "email": "omri@securitize.io"
     }
   ],
   "license": "ISC",
