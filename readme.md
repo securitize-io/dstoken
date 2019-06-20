@@ -39,12 +39,14 @@ npm run migrate -- --name <token name> --symbol <token symbol> --decimals <token
 --no_registry - skip registry service
 --compliance TYPE - compliance service type (NOT_REGULATED,WHITELIST,NORMAL) - if omitted, NORMAL is selected
 --lock_manager TYPE - lock manager type (WALLET,INVESTOR) - if omitted, INVESTOR is selected
+--owners - a space seperated string of owner addresses that own the multisig wallet
+--required_confirmations - the number of required confirmations to execute a multisig wallet transaction
 ```
 
 For example, to install a standard DSToken (with default compliance manager and lock manager), run:
 
 ```
-npm run migrate -- --network ganache --name ExampleToken --symbol EXM --decimals 18
+npm run migrate -- --network ganache --name ExampleToken --symbol EXM --decimals 18 --owners "0x648fC6c064d96ca6671a627D7a62C11C6CEff594" --required_confirmations 2
 
 ```
 
