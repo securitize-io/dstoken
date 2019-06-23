@@ -5,6 +5,10 @@ const HDWalletProvider = require('truffle-hdwallet-provider');
 
 const timeoutBlocks = 10000000;
 
+const privateKey =
+  process.env.PRIVATE_KEY ||
+  '28650A9B011C98C6F2D789F22CB7D7FE04CD45BA91260EF6193BBFAFC66BEA51';
+
 module.exports = {
   networks: {
     development: {
@@ -14,7 +18,7 @@ module.exports = {
     },
     ropsten: {
       provider: new HDWalletProvider(
-        process.env.PRIVATE_KEY,
+        privateKey,
         `https://ropsten.infura.io/${process.env.INFURA_API_KEY}`
       ),
       network_id: 3, // eslint-disable-line camelcase
@@ -35,7 +39,7 @@ module.exports = {
     rinkeby: {
       gasPrice: 4000000000,
       provider: new HDWalletProvider(
-        process.env.PRIVATE_KEY,
+        privateKey,
         `https://rinkeby.infura.io/${process.env.INFURA_API_KEY}`
       ),
       network_id: '4',
@@ -44,7 +48,7 @@ module.exports = {
     live: {
       gasPrice: 4000000000,
       provider: new HDWalletProvider(
-        process.env.PRIVATE_KEY,
+        privateKey,
         `https://mainnet.infura.io/${process.env.INFURA_API_KEY}`
       ),
       network_id: '1',
