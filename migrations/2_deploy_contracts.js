@@ -81,32 +81,44 @@ const ISSUER = 2;
 const EXCHANGE = 4;
 
 deployLibraries = async function(deployer) {
-  await deployer.deploy(EternalStorageClientUintLibrary).then(() => {
-          return deployer.deploy(EternalStorageClientAddressLibrary)
-        }).then(() => {
-          return deployer.deploy(EternalStorageClientBooleanLibrary)
-        }).then(() => {
-          return deployer.deploy(EternalStorageClientStringLibrary)
-        }).then(() => {
-          return deployer.deploy(ESComplianceServiceLibrary)
-        }).then(() => {
-                        let promises = [];
-                        for (const client of EternalStorageClients) {
-                          promises.push(deployer.link(EternalStorageClientUintLibrary, client));
-                          promises.push(deployer.link(EternalStorageClientAddressLibrary, client));
-                          promises.push(deployer.link(EternalStorageClientBooleanLibrary, client));
-                          promises.push(deployer.link(EternalStorageClientStringLibrary, client));
-                        }
-                        return Promise.all(promises);
-                      }).then(() => {
-                        return deployer.deploy(ESRegistryServiceLibrary);
-                      }).then(() => {
-                        return Promise.all([
-                                            deployer.link(ESRegistryServiceLibrary, ESRegistryService),
-                                            deployer.link(ESComplianceServiceLibrary, ESComplianceServiceRegulated)
-                                          ])
-                      });
-}
+  await deployer
+    .deploy(EternalStorageClientUintLibrary)
+    .then(() => {
+      return deployer.deploy(EternalStorageClientAddressLibrary);
+    })
+    .then(() => {
+      return deployer.deploy(EternalStorageClientBooleanLibrary);
+    })
+    .then(() => {
+      return deployer.deploy(EternalStorageClientStringLibrary);
+    })
+    .then(() => {
+      return deployer.deploy(ESComplianceServiceLibrary);
+    })
+    .then(() => {
+      let promises = [];
+      for (const client of EternalStorageClients) {
+        promises.push(deployer.link(EternalStorageClientUintLibrary, client));
+        promises.push(
+          deployer.link(EternalStorageClientAddressLibrary, client)
+        );
+        promises.push(
+          deployer.link(EternalStorageClientBooleanLibrary, client)
+        );
+        promises.push(deployer.link(EternalStorageClientStringLibrary, client));
+      }
+      return Promise.all(promises);
+    })
+    .then(() => {
+      return deployer.deploy(ESRegistryServiceLibrary);
+    })
+    .then(() => {
+      return Promise.all([
+        deployer.link(ESRegistryServiceLibrary, ESRegistryService),
+        deployer.link(ESComplianceServiceLibrary, ESComplianceServiceRegulated),
+      ]);
+    });
+};
 
 module.exports = function(deployer) {
   deployer.then(async () => {
@@ -121,14 +133,7 @@ module.exports = function(deployer) {
     const lockManagerType = argv.lock_manager || 'INVESTOR';
     let owners = argv.owners;
     const requiredConfirmations = argv.required_confirmations || 2;
-    if (
-      argv.help ||
-      !name ||
-      !symbol ||
-      !decimals ||
-      isNaN(decimals) ||
-      !owners
-    ) {
+    if (argv.help || !name || !symbol || isNaN(decimals) || !owners) {
       console.log('Token Deployer');
       console.log(
         'Usage: truffle migrate [OPTIONS] --name <token name>' +
@@ -321,7 +326,10 @@ module.exports = function(deployer) {
         return proxy.setTarget(tokenImpl.address);
       })
       .then(() => {
-        token = DSToken.at(proxy.address);
+        return DSToken.at(proxy.address);
+      })
+      .then(s => {
+        token = s;
         // Initialize the token parameters
         return token.initialize(
           name,
@@ -371,7 +379,9 @@ module.exports = function(deployer) {
         return storage.adminAddRole(tokenIssuer.address, 'write');
       })
       .then(() => {
-        console.log('Adding write right on eternal storage to token issuer');
+        console.log(
+          'Adding write right on eternal storage to wallet registrar'
+        );
         return storage.adminAddRole(walletRegistrar.address, 'write');
       })
       .then(() => {
@@ -457,27 +467,38 @@ module.exports = function(deployer) {
       })
       .then(() => {
         console.log('Connecting token to trust service');
-        return token.setDSService(TRUST_SERVICE, trustService.address);
+        return token.setDSService(TRUST_SERVICE, trustService.address, {
+          gas: 1e6,
+        });
       })
       .then(() => {
         console.log('Connecting token to compliance service');
         return token.setDSService(
           COMPLIANCE_SERVICE,
-          complianceService.address
+          complianceService.address,
+          {
+            gas: 1e6,
+          }
         );
       })
       .then(() => {
         console.log('Connecting token to wallet manager');
-        return token.setDSService(WALLET_MANAGER, walletManager.address);
+        return token.setDSService(WALLET_MANAGER, walletManager.address, {
+          gas: 1e6,
+        });
       })
       .then(() => {
         console.log('Connecting token to lock manager');
-        return token.setDSService(LOCK_MANAGER, lockManager.address);
+        return token.setDSService(LOCK_MANAGER, lockManager.address, {
+          gas: 1e6,
+        });
       })
       .then(() => {
         if (registry) {
           console.log('Connecting token to registry');
-          return token.setDSService(REGISTRY_SERVICE, registry.address);
+          return token.setDSService(REGISTRY_SERVICE, registry.address, {
+            gas: 1e6,
+          });
         }
       })
       .then(() => {
@@ -558,11 +579,7 @@ module.exports = function(deployer) {
             multisig.address
           } | Version: ${await multisig.getVersion()}`
         );
-        console.log(
-          `Token is at address (2): ${
-            token.address
-          } (behind proxy)`
-        );
+        console.log(`Token is at address (2): ${token.address} (behind proxy)`);
         console.log(
           `Trust service is at address (1): ${
             trustService.address
