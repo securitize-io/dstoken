@@ -64,6 +64,8 @@ contract DSRegistryServiceInterfaceVersioned is DSServiceConsumerInterfaceVersio
   function removeWallet(address _address, string _id) public /*onlyExchangeOrAbove walletExists walletBelongsToInvestor(_address, _id)*/ returns (bool);
   function getInvestor(address _address) public view returns (string);
   function getInvestorDetails(address _address) public view returns (string, string);
+  function getInvestorDetailsFull(string _id) public view returns (string,uint[],uint[], string,string,string,string);
+
   function isInvestor(string _id) public view returns (bool);
   function isWallet(address _address) public view returns (bool);
 }

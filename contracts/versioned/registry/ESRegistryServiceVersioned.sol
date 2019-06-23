@@ -177,9 +177,24 @@ contract ESRegistryServiceVersioned is ESServiceConsumerVersioned, DSRegistrySer
     for (i = 0 ; i < _attributeIds.length ; i++){
       setAttribute(_id, _attributeIds[i] ,_attributeValues[i], _attributeExpirations[i], "");
     }
-    return true;
 
+
+    return true;
   }
+
+  function getInvestorDetailsFull(string _id) public view returns (string,uint[],uint[], string,string,string,string) {
+    string memory country = ESRegistryServiceLibrary.getCountry(this, _id);
+    uint[] memory attributeValues = new uint[](4);
+    uint[] memory attributeExpiries = new uint[](4);
+    string [] memory attributeProofHashes = new string[](4);
+    for (uint8 i = 0 ; i < 4 ; i++){
+      attributeValues[i] = ESRegistryServiceLibrary.getAttributeValue(this,_id,(uint8)(2 ** i));
+      attributeExpiries[i] = ESRegistryServiceLibrary.getAttributeExpiry(this,_id,(uint8)(2 ** i));
+      attributeProofHashes[i] = ESRegistryServiceLibrary.getAttributeProofHash(this,_id,(uint8)(2 ** i));
+    }
+    return (country,attributeValues,attributeExpiries,attributeProofHashes[0],attributeProofHashes[1],attributeProofHashes[2],attributeProofHashes[3]);
+  }
+
   function setCountry(string _id, string _country) public onlyExchangeOrAbove investorExists(_id) returns (bool) {
     string memory prevCountry = getCountry(_id);
 
