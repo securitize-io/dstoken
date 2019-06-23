@@ -3,7 +3,7 @@ const ESComplianceConfigurationService = artifacts.require(
   'ESComplianceConfigurationServiceVersioned'
 );
 
-const argv = require('minimist')(process.argv.slice(2));
+const configurationManager = require('./utils/configurationManager');
 
 module.exports = async function(deployer) {
   const storage = await DSEternalStorage.deployed();
@@ -12,6 +12,6 @@ module.exports = async function(deployer) {
   return deployer.deploy(
     ESComplianceConfigurationService,
     storage.address,
-    `${argv.name}ComplianceConfiguration`
+    `${configurationManager.name}ComplianceConfiguration`
   );
 };

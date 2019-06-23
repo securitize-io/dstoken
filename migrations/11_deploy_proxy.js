@@ -2,7 +2,7 @@ const DSEternalStorage = artifacts.require('DSEternalStorageVersioned');
 const DSToken = artifacts.require('DSTokenVersioned');
 const Proxy = artifacts.require('ProxyVersioned');
 
-const argv = require('minimist')(process.argv.slice(2));
+const configurationManager = require('./utils/configurationManager');
 
 module.exports = async function(deployer) {
   const storage = await DSEternalStorage.deployed();
@@ -13,10 +13,10 @@ module.exports = async function(deployer) {
 
   const proxyToken = await DSToken.at(deployedProxy.address);
   await proxyToken.initialize(
-    argv.name,
-    argv.symbol,
-    parseInt(argv.decimals),
+    configurationManager.name,
+    configurationManager.symbol,
+    configurationManager.decimals,
     storage.address,
-    `${argv.name}Token`
+    `${configurationManager.name}Token`
   );
 };

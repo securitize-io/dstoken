@@ -1,16 +1,16 @@
 const DSEternalStorage = artifacts.require('DSEternalStorageVersioned');
 const ESRegistryService = artifacts.require('ESRegistryServiceVersioned');
 
-const argv = require('minimist')(process.argv.slice(2));
+const configurationManager = require('./utils/configurationManager');
 
 module.exports = async function(deployer) {
-  if (!argv.no_registry) {
+  if (!configurationManager.noRegistry) {
     const storage = await DSEternalStorage.deployed();
 
     return deployer.deploy(
       ESRegistryService,
       storage.address,
-      `${argv.name}Registry`
+      `${configurationManager.name}Registry`
     );
   } else {
     console.log('Skipping registry service');
