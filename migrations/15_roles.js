@@ -14,6 +14,10 @@ const configurationManager = require('./utils/configurationManager');
 const roles = require('../utils/globals').roles;
 
 module.exports = async function(deployer) {
+  if (configurationManager.isTestMode()) {
+    return;
+  }
+
   const storage = await DSEternalStorage.deployed();
   const trustService = await ESTrustService.deployed();
   const complianceService = await configurationManager

@@ -6,6 +6,10 @@ const ESComplianceConfigurationService = artifacts.require(
 const configurationManager = require('./utils/configurationManager');
 
 module.exports = async function(deployer) {
+  if (configurationManager.isTestMode()) {
+    return;
+  }
+
   const storage = await DSEternalStorage.deployed();
 
   console.log('Deploying compliance configuration service');

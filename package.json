@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "truffle compile && ./scripts/test.sh ./test/unitests/**",
+    "test": "export TEST_MODE=TRUE && truffle compile && ./scripts/test.sh ./test/unitests/**",
     "integration": "truffle compile && ./scripts/test.sh ./test/integration/**",
     "coverage": "truffle compile && ./node_modules/.bin/solidity-coverage",
     "compile": "truffle compile",

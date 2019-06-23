@@ -69,5 +69,9 @@ class ConfigurationManager {
         return artifacts.require('ESInvestorLockManagerVersioned');
     }
   }
+
+  isTestMode() {
+    return process.env.TEST_MODE === 'TRUE';
+  }
 }
 module.exports = new ConfigurationManager();

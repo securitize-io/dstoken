@@ -103,6 +103,11 @@ async function deployLibraries(deployer) {
 }
 
 module.exports = async function(deployer) {
+  if (configurationManager.isTestMode()) {
+    deployLibraries(deployer);
+    return;
+  }
+
   const success = configurationManager.setConfiguration();
 
   if (!success) {

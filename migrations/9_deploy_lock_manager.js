@@ -3,6 +3,10 @@ const DSEternalStorage = artifacts.require('DSEternalStorageVersioned');
 const configurationManager = require('./utils/configurationManager');
 
 module.exports = async function(deployer) {
+  if (configurationManager.isTestMode()) {
+    return;
+  }
+
   const abstractComplianceServiceContract = configurationManager.getAbstractLockManagerContract(
     artifacts
   );

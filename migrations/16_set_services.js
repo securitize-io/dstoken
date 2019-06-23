@@ -15,6 +15,10 @@ const configurationManager = require('./utils/configurationManager');
 const services = require('../utils/globals').services;
 
 module.exports = async function(deployer) {
+  if (configurationManager.isTestMode()) {
+    return;
+  }
+
   const trustService = await ESTrustService.deployed();
   const complianceService = await configurationManager
     .getAbstractComplianceServiceContract(artifacts)
