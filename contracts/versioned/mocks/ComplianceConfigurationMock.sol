@@ -21,8 +21,8 @@ contract ComplianceConfigurationMock is DSComplianceConfigurationServiceInterfac
     function setUsInvestorsLimit(uint) public {}
     function getUsAccreditedInvestorsLimit() public view returns (uint){}
     function setUsAccreditedInvestorsLimit(uint) public {}
-    function getNonUsNonAccreditedInvestorsLimit() public pure returns (uint){}
-    function setNonUsNonAccreditedInvestorsLimit(uint) public pure {}
+    function getNonAccreditedInvestorsLimit() public view returns (uint){}
+    function setNonAccreditedInvestorsLimit(uint) public {}
     function getMaxUsInvestorsPercentage() public view returns (uint){}
     function setMaxUsInvestorsPercentage(uint) public {}
     function getBlockFlowbackEndTime() public view returns (uint){}
@@ -37,6 +37,8 @@ contract ComplianceConfigurationMock is DSComplianceConfigurationServiceInterfac
     function setMaximumHoldingsPerInvestor(uint) public {}
     function getEuRetailLimit() public view returns (uint){}
     function setEuRetailLimit(uint) public {}
+    function getUsLockPeriod() public view returns (uint) {}
+    function setUsLockPeriod(uint) public {}
     function getForceFullTransfer() public view returns (bool){}
     function setForceFullTransfer(bool) public {}
     function getForceAccredited() public view returns (bool){}
