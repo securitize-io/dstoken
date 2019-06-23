@@ -30,7 +30,7 @@ library ESComplianceServiceLibrary {
   }
 
   function isAccredited(ESComplianceServiceRegulatedVersioned _complianceService, address _wallet) internal view returns (bool) {
-    return getRegistryService(_complianceService).getAttributeValue(getRegistryService(_complianceService).getInvestor(_wallet), getRegistryService(_complianceService).ACCREDITED()) != getRegistryService(_complianceService).APPROVED();
+    return getRegistryService(_complianceService).getAttributeValue(getRegistryService(_complianceService).getInvestor(_wallet), getRegistryService(_complianceService).ACCREDITED()) == getRegistryService(_complianceService).APPROVED();
   }
 
   function balanceOfInvestor(ESComplianceServiceRegulatedVersioned _complianceService, address _wallet) internal view returns (uint) {
