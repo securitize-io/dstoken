@@ -46,7 +46,7 @@ npm run migrate -- --name <token name> --symbol <token symbol> --decimals <token
 For example, to install a standard DSToken (with default compliance manager and lock manager), run:
 
 ```
-npm run migrate -- --network ganache --name ExampleToken --symbol EXM --decimals 18 --owners "0x648fC6c064d96ca6671a627D7a62C11C6CEff594" --required_confirmations 2
+npm run migrate -- --network ganache --name ExampleToken --symbol EXM --decimals 18 --owners "0x648fC6c064d96ca6671a627D7a62C11C6CEff594 0xB640F84605Fa887653b0752FF937AB2E64FB2715" --required_confirmations 2
 
 ```
 
