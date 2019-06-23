@@ -6,7 +6,7 @@ const configurationManager = require('./utils/configurationManager');
 module.exports = async function(deployer) {
   const storage = await DSEternalStorage.deployed();
 
-  deployer.deploy(
+  await deployer.deploy(
     ESWalletRegistrar,
     storage.address,
     `${configurationManager.name}WalletRegistrar`

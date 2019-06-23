@@ -1,6 +1,6 @@
 const assertRevert = require('../utils/assertRevert');
 const utils = require('../utils');
-const globals = require('../utils/globals');
+const globals = require('../../utils/globals');
 const countries = globals.countries;
 const compliances = globals.compliances;
 const investorStatusIds = globals.investorStatusIds;

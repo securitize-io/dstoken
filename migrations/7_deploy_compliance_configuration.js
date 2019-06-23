@@ -9,7 +9,7 @@ module.exports = async function(deployer) {
   const storage = await DSEternalStorage.deployed();
 
   console.log('Deploying compliance configuration service');
-  return deployer.deploy(
+  await deployer.deploy(
     ESComplianceConfigurationService,
     storage.address,
     `${configurationManager.name}ComplianceConfiguration`

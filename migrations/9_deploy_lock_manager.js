@@ -9,7 +9,7 @@ module.exports = async function(deployer) {
   const storage = await DSEternalStorage.deployed();
 
   console.log(`Deploying ${configurationManager.lockManagerType} lock manager`);
-  deployer.deploy(
+  await deployer.deploy(
     abstractComplianceServiceContract,
     storage.address,
     `${configurationManager.name}LockManager`

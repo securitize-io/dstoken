@@ -10,6 +10,12 @@ module.exports = {
     ISSUANCE_INFORMATION_MANAGER: 128,
     COMPLIANCE_CONFIGURATION_SERVICE: 256,
   },
+  roles: {
+    NONE: 0,
+    MASTER: 1,
+    ISSUER: 2,
+    EXCHANGE: 4,
+  },
   countries: {
     FRANCE: 'France',
     USA: 'USA',

@@ -15,7 +15,7 @@ module.exports = async function(deployer) {
         configurationManager.complianceManagerType
       } compliance service`
     );
-    deployer.deploy(
+    await deployer.deploy(
       abstractComplianceServiceContract,
       storage.address,
       `${configurationManager.name}ComplianceManager`
