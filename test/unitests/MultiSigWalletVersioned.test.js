@@ -58,10 +58,9 @@ contract('MultiSigWallet', accounts => {
     );
     assert.ok(issueResult);
     // Encode transfer call for the multisig
-    const transferEncoded = tokenInstance.contract.transfer.getData(
-      accounts[1],
-      1000000
-    );
+    const transferEncoded = tokenInstance.contract.methods
+      .transfer(accounts[1], 1000000)
+      .encodeABI();
 
     const id = await utils.getParamFromTxEvent(
       await multisigInstance.submitTransaction(
@@ -96,10 +95,9 @@ contract('MultiSigWallet', accounts => {
 
   it('transferFailure', async () => {
     // Encode transfer call for the multisig
-    const transferEncoded = tokenInstance.contract.transfer.getData(
-      accounts[1],
-      1000000
-    );
+    const transferEncoded = tokenInstance.contract.methods
+      .transfer(accounts[1], 1000000)
+      .encodeABI();
     const id = await utils.getParamFromTxEvent(
       await multisigInstance.submitTransaction(
         transactionId,
@@ -127,9 +125,9 @@ contract('MultiSigWallet', accounts => {
 
   it('callReceive1uint', async () => {
     // Encode call for the multisig
-    const receive1uintEncoded = callsInstance.contract.receive1uint.getData(
-      12345
-    );
+    const receive1uintEncoded = callsInstance.contract.methods
+      .receive1uint(12345)
+      .encodeABI();
     const id = await utils.getParamFromTxEvent(
       await multisigInstance.submitTransaction(
         transactionId,
@@ -161,10 +159,9 @@ contract('MultiSigWallet', accounts => {
 
   it('callReceive2uint', async () => {
     // Encode call for the multisig
-    const receive2uintsEncoded = callsInstance.contract.receive2uints.getData(
-      12345,
-      67890
-    );
+    const receive2uintsEncoded = callsInstance.contract.methods
+      .receive2uints(12345, 67890)
+      .encodeABI();
     const id = await utils.getParamFromTxEvent(
       await multisigInstance.submitTransaction(
         transactionId,
@@ -199,9 +196,9 @@ contract('MultiSigWallet', accounts => {
     // Encode call for the multisig
     const dataHex = '0x' + '0123456789abcdef'.repeat(100); // 800 bytes long
 
-    const receive1bytesEncoded = callsInstance.contract.receive1bytes.getData(
-      dataHex
-    );
+    const receive1bytesEncoded = callsInstance.contract.methods
+      .receive1bytes(dataHex)
+      .encodeABI();
     const id = await utils.getParamFromTxEvent(
       await multisigInstance.submitTransaction(
         transactionId,
@@ -236,9 +233,9 @@ contract('MultiSigWallet', accounts => {
 
   it('test execution after requirements changed', async () => {
     // Add owner wa_4
-    const addOwnerData = multisigInstance.contract.addOwner.getData(
-      accounts[3]
-    );
+    const addOwnerData = multisigInstance.contract.methods
+      .addOwner(accounts[3])
+      .encodeABI();
     const id = await utils.getParamFromTxEvent(
       await multisigInstance.submitTransaction(
         transactionId,
@@ -254,9 +251,9 @@ contract('MultiSigWallet', accounts => {
 
     // Update required to 1
     const newRequired = 1;
-    const updateRequirementData = multisigInstance.contract.changeRequirement.getData(
-      newRequired
-    );
+    const updateRequirementData = multisigInstance.contract.methods
+      .changeRequirement(newRequired)
+      .encodeABI();
 
     // Submit successfully
     const id2 = await utils.getParamFromTxEvent(
