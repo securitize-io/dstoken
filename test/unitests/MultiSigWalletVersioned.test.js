@@ -46,7 +46,7 @@ contract('MultiSigWallet', accounts => {
       )
     );
     const balance = await utils.balanceOf(web3, multisigInstance.address);
-    assert.equal(balance.toNumber(), deposit);
+    assert.equal(balance, deposit);
   });
 
   it('transferWithPayloadSizeCheck', async () => {
@@ -273,7 +273,7 @@ contract('MultiSigWallet', accounts => {
     await multisigInstance.confirmTransaction(id2, {
       from: accounts[1],
     });
-    assert.equal((await multisigInstance.required()).toNumber(), newRequired);
+    assert.equal(await multisigInstance.required(), newRequired);
 
     // Execution fails, because sender is not wallet owner
     await assertRevert(
