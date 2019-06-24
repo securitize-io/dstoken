@@ -9,7 +9,7 @@ contract('PROXY', function([owner, recipient, anotherAccount]) {
     this.simpleContract = await SimpleContractMock.new();
     this.proxy = await Proxy.new();
     await this.proxy.setTarget(this.simpleContract.address);
-    this.simpleContractProxy = SimpleContractMock.at(this.proxy.address);
+    this.simpleContractProxy = await SimpleContractMock.at(this.proxy.address);
   });
 
   describe('creation', function() {

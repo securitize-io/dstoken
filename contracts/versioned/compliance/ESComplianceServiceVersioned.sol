@@ -86,7 +86,7 @@ contract ESComplianceServiceVersioned is DSComplianceServiceInterfaceVersioned, 
     return (0, VALID);
   }
 
-    function adjustInvestorCountsAfterCountryChange(/*string _id,string _country,string _prevCountry*/) public pure returns (bool) {
+    function adjustInvestorCountsAfterCountryChange(string /*_id*/,string /*_country*/,string /*_prevCountry*/) public returns (bool) {
         return true;
     }
 

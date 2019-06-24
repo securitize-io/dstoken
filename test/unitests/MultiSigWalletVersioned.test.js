@@ -63,7 +63,7 @@ contract('MultiSigWallet', accounts => {
       1000000
     );
 
-    const id = utils.getParamFromTxEvent(
+    const id = await utils.getParamFromTxEvent(
       await multisigInstance.submitTransaction(
         transactionId,
         tokenInstance.address,
@@ -80,7 +80,7 @@ contract('MultiSigWallet', accounts => {
 
     assert.isTrue(exist);
 
-    const executedTransactionId = utils.getParamFromTxEvent(
+    const executedTransactionId = await utils.getParamFromTxEvent(
       await multisigInstance.confirmTransaction(id, {
         from: accounts[1],
       }),
@@ -100,7 +100,7 @@ contract('MultiSigWallet', accounts => {
       accounts[1],
       1000000
     );
-    const id = utils.getParamFromTxEvent(
+    const id = await utils.getParamFromTxEvent(
       await multisigInstance.submitTransaction(
         transactionId,
         tokenInstance.address,
@@ -113,7 +113,7 @@ contract('MultiSigWallet', accounts => {
       'Submission'
     );
     // Transfer without issuance - expected to fail
-    const failedTransactionId = utils.getParamFromTxEvent(
+    const failedTransactionId = await utils.getParamFromTxEvent(
       await multisigInstance.confirmTransaction(id, {
         from: accounts[1],
       }),
@@ -130,7 +130,7 @@ contract('MultiSigWallet', accounts => {
     const receive1uintEncoded = callsInstance.contract.receive1uint.getData(
       12345
     );
-    const id = utils.getParamFromTxEvent(
+    const id = await utils.getParamFromTxEvent(
       await multisigInstance.submitTransaction(
         transactionId,
         callsInstance.address,
@@ -143,7 +143,7 @@ contract('MultiSigWallet', accounts => {
       'Submission'
     );
 
-    const executedTransactionId = utils.getParamFromTxEvent(
+    const executedTransactionId = await utils.getParamFromTxEvent(
       await multisigInstance.confirmTransaction(id, {
         from: accounts[1],
       }),
@@ -165,7 +165,7 @@ contract('MultiSigWallet', accounts => {
       12345,
       67890
     );
-    const id = utils.getParamFromTxEvent(
+    const id = await utils.getParamFromTxEvent(
       await multisigInstance.submitTransaction(
         transactionId,
         callsInstance.address,
@@ -178,7 +178,7 @@ contract('MultiSigWallet', accounts => {
       'Submission'
     );
 
-    const executedTransactionId = utils.getParamFromTxEvent(
+    const executedTransactionId = await utils.getParamFromTxEvent(
       await multisigInstance.confirmTransaction(id, {
         from: accounts[1],
       }),
@@ -202,7 +202,7 @@ contract('MultiSigWallet', accounts => {
     const receive1bytesEncoded = callsInstance.contract.receive1bytes.getData(
       dataHex
     );
-    const id = utils.getParamFromTxEvent(
+    const id = await utils.getParamFromTxEvent(
       await multisigInstance.submitTransaction(
         transactionId,
         callsInstance.address,
@@ -215,7 +215,7 @@ contract('MultiSigWallet', accounts => {
       'Submission'
     );
 
-    const executedTransactionId = utils.getParamFromTxEvent(
+    const executedTransactionId = await utils.getParamFromTxEvent(
       await multisigInstance.confirmTransaction(id, {
         from: accounts[1],
       }),
@@ -239,7 +239,7 @@ contract('MultiSigWallet', accounts => {
     const addOwnerData = multisigInstance.contract.addOwner.getData(
       accounts[3]
     );
-    const id = utils.getParamFromTxEvent(
+    const id = await utils.getParamFromTxEvent(
       await multisigInstance.submitTransaction(
         transactionId,
         multisigInstance.address,
@@ -259,7 +259,7 @@ contract('MultiSigWallet', accounts => {
     );
 
     // Submit successfully
-    const id2 = utils.getParamFromTxEvent(
+    const id2 = await utils.getParamFromTxEvent(
       await multisigInstance.submitTransaction(
         transactionId2,
         multisigInstance.address,

@@ -10,7 +10,7 @@ async function setServicesDependencies(service, depTypes, depAddresses) {
   }
 }
 
-function getParamFromTxEvent(
+async function getParamFromTxEvent(
   transaction,
   paramName,
   contractFactory,
@@ -24,7 +24,7 @@ function getParamFromTxEvent(
   assert.equal(logs.length, 1, 'too many logs found!');
   let param = logs[0].args[paramName];
   if (contractFactory != null) {
-    let contract = contractFactory.at(param);
+    let contract = await contractFactory.at(param);
     assert.isObject(contract, `getting ${paramName} failed for ${param}`);
     return contract;
   } else {

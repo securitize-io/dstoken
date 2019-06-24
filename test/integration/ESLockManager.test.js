@@ -65,7 +65,7 @@ contract('ESLockManager', function([
       'DSTokenTestRegistryService'
     );
     await this.proxy.setTarget(this.tokenImpl.address);
-    this.token = DSToken.at(this.proxy.address);
+    this.token = await DSToken.at(this.proxy.address);
     await this.token.initialize(
       'DSTokenMock',
       'DST',

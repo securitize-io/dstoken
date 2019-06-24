@@ -142,7 +142,7 @@ contract('Integration', function([
     });
     it('should connect the deployed contracts to each other', async function() {
       await proxy.setTarget(tokenImpl.address);
-      token = DSToken.at(proxy.address);
+      token = await DSToken.at(proxy.address);
       await token.initialize(
         'DSTokenMock',
         'DST',
