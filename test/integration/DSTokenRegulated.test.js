@@ -385,11 +385,11 @@ contract('DSToken (regulated)', function([
         from: usInvestor,
       });
       const usInvestorBalance = await this.token.balanceOf(usInvestor);
-      assert.equal(usInvestorBalance.valueOf(), 50);
+      assert.equal(usInvestorBalance.toNumber(), 50);
       const usInvestorSecondaryWalletBalance = await this.token.balanceOf(
         usInvestorSecondaryWallet
       );
-      assert.equal(usInvestorSecondaryWalletBalance.valueOf(), 50);
+      assert.equal(usInvestorSecondaryWalletBalance.toNumber(), 50);
     });
   });
 

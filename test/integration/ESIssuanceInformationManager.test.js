@@ -12,7 +12,7 @@ const MASTER = 1;
 const ISSUER = 2;
 const EXCHANGE = 4;
 
-contract('ESIssuanceInformationManager', function() {
+contract('ESIssuanceInformationManager', function(accounts) {
   before(async function() {
     this.storage = await DSEternalStorage.new();
     this.trustService = await ESTrustService.new(
@@ -39,7 +39,7 @@ contract('ESIssuanceInformationManager', function() {
     it(`should not set investor information because account don't have permissions`, async function() {
       await assertRevert(
         this.issuanceInformationManager.setInvestorInformation('1', 1, '1', {
-          from: web3.eth.accounts[1],
+          from: accounts[1],
         })
       );
     });
@@ -57,7 +57,7 @@ contract('ESIssuanceInformationManager', function() {
       assert.equal(tx1.logs[0].args._id, '1');
       assert.equal(tx1.logs[0].args._informationId, 1);
       assert.equal(tx1.logs[0].args._hash, '1');
-      assert.equal(tx1.logs[0].args._sender.valueOf(), web3.eth.accounts[0]);
+      assert.equal(tx1.logs[0].args._sender.valueOf(), accounts[0]);
     });
   });
 
@@ -75,7 +75,7 @@ contract('ESIssuanceInformationManager', function() {
       assert.equal(tx1.logs[0].args._id, '1');
       assert.equal(tx1.logs[0].args._informationId, 1);
       assert.equal(tx1.logs[0].args._hash, '1');
-      assert.equal(tx1.logs[0].args._sender.valueOf(), web3.eth.accounts[0]);
+      assert.equal(tx1.logs[0].args._sender.valueOf(), accounts[0]);
       assert.equal(
         '1',
         await this.issuanceInformationManager.getInvestorInformation('1', 1)
@@ -87,7 +87,7 @@ contract('ESIssuanceInformationManager', function() {
     it(`should not set compliance information because account don't have permissions`, async function() {
       await assertRevert(
         this.issuanceInformationManager.setComplianceInformation(1, '1', {
-          from: web3.eth.accounts[1],
+          from: accounts[1],
         })
       );
     });
@@ -103,7 +103,7 @@ contract('ESIssuanceInformationManager', function() {
       );
       assert.equal(tx1.logs[0].args._informationId, 1);
       assert.equal(tx1.logs[0].args._value, '1');
-      assert.equal(tx1.logs[0].args._sender.valueOf(), web3.eth.accounts[0]);
+      assert.equal(tx1.logs[0].args._sender.valueOf(), accounts[0]);
     });
   });
 
@@ -119,7 +119,7 @@ contract('ESIssuanceInformationManager', function() {
       );
       assert.equal(tx1.logs[0].args._informationId, 1);
       assert.equal(tx1.logs[0].args._value, '1');
-      assert.equal(tx1.logs[0].args._sender.valueOf(), web3.eth.accounts[0]);
+      assert.equal(tx1.logs[0].args._sender.valueOf(), accounts[0]);
       assert.equal(
         '1',
         await this.issuanceInformationManager.getComplianceInformation(1)

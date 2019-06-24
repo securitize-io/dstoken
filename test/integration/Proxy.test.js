@@ -20,17 +20,17 @@ contract('PROXY', function([owner, recipient, anotherAccount]) {
   describe('delegating functions', function() {
     it('should be able to call a function without delegation', async function() {
       let x = await this.simpleContract.getX.call();
-      assert.equal(x.valueOf(), 0);
+      assert.equal(x.toNumber(), 0);
       await this.simpleContract.setX(17);
       x = await this.simpleContract.getX.call();
-      assert.equal(x.valueOf(), 17);
+      assert.equal(x.toNumber(), 17);
     });
     it('should be able to delegate a function call', async function() {
       let x = await this.simpleContractProxy.getX.call();
-      assert.equal(x.valueOf(), 0);
+      assert.equal(x.toNumber(), 0);
       await this.simpleContractProxy.setX(17);
       x = await this.simpleContractProxy.getX.call();
-      assert.equal(x.valueOf(), 17);
+      assert.equal(x.toNumber(), 17);
     });
     it('should recognize correctly the message sender', async function() {
       let tx1 = await this.simpleContractProxy.logSender();
@@ -42,16 +42,16 @@ contract('PROXY', function([owner, recipient, anotherAccount]) {
     it('should be able to switch the proxy implementation', async function() {
       await this.simpleContractProxy.setX(17);
       let x = await this.simpleContractProxy.getX.call();
-      assert.equal(x.valueOf(), 17);
+      assert.equal(x.toNumber(), 17);
 
       const newSimpleContract = await SimpleContractMock2.new();
       await this.proxy.setTarget(newSimpleContract.address);
       x = await this.simpleContractProxy.getX.call();
-      assert.equal(x.valueOf(), 18);
+      assert.equal(x.toNumber(), 18);
       // Back to the first one
       await this.proxy.setTarget(this.simpleContract.address);
       x = await this.simpleContractProxy.getX.call();
-      assert.equal(x.valueOf(), 17);
+      assert.equal(x.toNumber(), 17);
     });
     it('should not allow switching implementation from a non-owner', async function() {
       const newSimpleContract = await SimpleContractMock.new();

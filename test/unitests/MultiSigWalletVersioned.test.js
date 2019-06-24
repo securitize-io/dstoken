@@ -46,7 +46,7 @@ contract('MultiSigWallet', accounts => {
       )
     );
     const balance = await utils.balanceOf(web3, multisigInstance.address);
-    assert.equal(balance.valueOf(), deposit);
+    assert.equal(balance.toNumber(), deposit);
   });
 
   it('transferWithPayloadSizeCheck', async () => {

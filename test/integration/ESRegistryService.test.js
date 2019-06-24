@@ -584,7 +584,7 @@ contract('ESRegistryService', function([
             additionalWallet
           );
 
-          assert.deepEqual(investorDetails, ['', '']);
+          assert.deepEqual(investorDetails, {0: '', 1: ''});
         });
       });
     });
