@@ -224,7 +224,7 @@ contract('ESComplianceServiceRegulated', function([
     it('Should revert due to not token call', async function() {
       await this.token.setCap(1000);
       await assertRevert(
-        this.complianceService.validateIssuance(wallet, 100, latestTime())
+        this.complianceService.validateIssuance(wallet, 100, await latestTime())
       );
     });
 
@@ -263,7 +263,7 @@ contract('ESComplianceServiceRegulated', function([
         wallet,
         95,
         'Test',
-        latestTime() + 1000
+        (await latestTime()) + 1000
       );
       await assertRevert(this.token.transfer(owner, 100, {from: wallet}));
     });
@@ -467,7 +467,7 @@ contract('ESComplianceServiceRegulated', function([
       await this.token.issueTokens(owner, 100);
       assert.equal(await this.token.balanceOf(owner), 100);
       const role = await this.trustService.getRole(issuerAccount);
-      assert.equal(role.c[0], ISSUER);
+      assert.equal(role.words[0], ISSUER);
       await assertRevert(this.token.seize(owner, wallet, 100, 'Test'));
     });
 
@@ -480,7 +480,7 @@ contract('ESComplianceServiceRegulated', function([
       await this.token.issueTokens(owner, 100);
       assert.equal(await this.token.balanceOf(owner), 100);
       const role = await this.trustService.getRole(issuerAccount);
-      assert.equal(role.c[0], ISSUER);
+      assert.equal(role.words[0], ISSUER);
       // await this.token.seize(owner, issuerAccount, 100, "Test"); -> Why is not working?
     });
   });
@@ -494,13 +494,13 @@ contract('ESComplianceServiceRegulated', function([
       await this.token.setCap(1000);
       await this.token.issueTokens(owner, 100, {gas: 2e6});
       await this.token.pause();
-      let [a, b] = await this.complianceService.preTransferCheck(
+      const res = await this.complianceService.preTransferCheck(
         owner,
         wallet,
         10
       );
-      assert.equal(10, a.toNumber());
-      assert.equal('Token Paused', b);
+      assert.equal(10, res[0].toNumber());
+      assert.equal('Token Paused', res[1]);
     });
 
     it('Pre transfer check with not enough tokens', async function() {
@@ -510,13 +510,13 @@ contract('ESComplianceServiceRegulated', function([
       await this.registryService.addWallet(wallet, walletID);
       await this.token.setCap(1000);
       await this.token.issueTokens(owner, 100);
-      let [a, b] = await this.complianceService.preTransferCheck(
+      const res = await this.complianceService.preTransferCheck(
         wallet,
         owner,
         10
       );
-      assert.equal(15, a.toNumber());
-      assert.equal('Not Enough Tokens', b);
+      assert.equal(15, res[0].toNumber());
+      assert.equal('Not Enough Tokens', res[1]);
     });
 
     it('Pre transfer check when transfer myself', async function() {
@@ -524,13 +524,13 @@ contract('ESComplianceServiceRegulated', function([
       await this.registryService.addWallet(noneAccount, walletID);
       await this.token.setCap(1000);
       await this.token.issueTokens(noneAccount, 100);
-      let [a, b] = await this.complianceService.preTransferCheck(
+      const res = await this.complianceService.preTransferCheck(
         noneAccount,
         noneAccount,
         10
       );
-      assert.equal(0, a.toNumber());
-      assert.equal('Valid', b);
+      assert.equal(0, res[0].toNumber());
+      assert.equal('Valid', res[1]);
     });
 
     it('Should revert due to Wallet Not In Registry Service', async function() {
@@ -538,13 +538,13 @@ contract('ESComplianceServiceRegulated', function([
       await this.registryService.addWallet(noneAccount, walletID);
       await this.token.setCap(1000);
       await this.token.issueTokens(noneAccount, 100);
-      let [a, b] = await this.complianceService.preTransferCheck(
+      const res = await this.complianceService.preTransferCheck(
         noneAccount,
         noneWallet,
         10
       );
-      assert.equal(20, a.toNumber());
-      assert.equal('Wallet not in registry Service', b);
+      assert.equal(20, res[0].toNumber());
+      assert.equal('Wallet not in registry Service', res[1]);
     });
 
     it('Pre transfer check with tokens locked', async function() {
@@ -556,15 +556,15 @@ contract('ESComplianceServiceRegulated', function([
         wallet,
         95,
         'Test',
-        latestTime() + 1000
+        (await latestTime()) + 1000
       );
-      let [a, b] = await this.complianceService.preTransferCheck(
+      const res = await this.complianceService.preTransferCheck(
         wallet,
         owner,
         10
       );
-      assert.equal(16, a.toNumber());
-      assert.equal('Tokens Locked', b);
+      assert.equal(16, res[0].toNumber());
+      assert.equal('Tokens Locked', res[1]);
     });
 
     it('Pre transfer check with tokens locked for 1 year (For Us investors)', async function() {
@@ -579,13 +579,13 @@ contract('ESComplianceServiceRegulated', function([
       await this.complianceConfiguration.setCountryCompliance('US', 1);
       await this.complianceConfiguration.setCountryCompliance('EU', 2);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      let [a, b] = await this.complianceService.preTransferCheck(
+      const res = await this.complianceService.preTransferCheck(
         wallet,
         owner,
         10
       );
-      assert.equal(a.toNumber(), 32);
-      assert.equal(b, 'Hold-up 1y');
+      assert.equal(res[0].toNumber(), 32);
+      assert.equal(res[1], 'Hold-up 1y');
     });
 
     it('Pre transfer check for full transfer - should return code 50', async function() {
@@ -601,13 +601,13 @@ contract('ESComplianceServiceRegulated', function([
       await this.complianceConfiguration.setCountryCompliance('EU', 2);
       assert.equal(await this.token.balanceOf(wallet), 100);
       await increaseTime(duration.days(370));
-      let [a, b] = await this.complianceService.preTransferCheck(
+      const res = await this.complianceService.preTransferCheck(
         wallet,
         owner,
         50
       );
-      assert.equal(a.toNumber(), 50);
-      assert.equal(b, 'Only Full Transfer');
+      assert.equal(res[0].toNumber(), 50);
+      assert.equal(res[1], 'Only Full Transfer');
     });
 
     it('Pre transfer check from nonUs investor to US - should return code 25', async function() {
@@ -622,13 +622,13 @@ contract('ESComplianceServiceRegulated', function([
       await this.complianceConfiguration.setCountryCompliance('US', 1);
       await this.complianceConfiguration.setCountryCompliance('EU', 2);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      let [a, b] = await this.complianceService.preTransferCheck(
+      const res = await this.complianceService.preTransferCheck(
         wallet,
         owner,
         10
       );
-      assert.equal(a.toNumber(), 25);
-      assert.equal(b, 'Flowback');
+      assert.equal(res[0].toNumber(), 25);
+      assert.equal(res[1], 'Flowback');
     });
 
     it('Pre transfer check for platform account', async function() {
@@ -644,13 +644,13 @@ contract('ESComplianceServiceRegulated', function([
       await this.complianceConfiguration.setCountryCompliance('US', 1);
       await this.complianceConfiguration.setCountryCompliance('EU', 2);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      let [a, b] = await this.complianceService.preTransferCheck(
+      const res = await this.complianceService.preTransferCheck(
         wallet,
         platformWallet,
         100
       );
-      assert.equal(a.toNumber(), 0);
-      assert.equal(b, 'Valid');
+      assert.equal(res[0].toNumber(), 0);
+      assert.equal(res[1], 'Valid');
     });
 
     it('Pre transfer check when transfer ok', async function() {
@@ -662,13 +662,13 @@ contract('ESComplianceServiceRegulated', function([
       await this.registryService.setCountry(walletID2, 'EU');
       await this.token.setCap(1000);
       await this.token.issueTokens(owner, 100);
-      let [a, b] = await this.complianceService.preTransferCheck(
+      const res = await this.complianceService.preTransferCheck(
         owner,
         wallet,
         10
       );
-      assert.equal(0, a.toNumber());
-      assert.equal('Valid', b);
+      assert.equal(0, res[0].toNumber());
+      assert.equal('Valid', res[1]);
     });
   });
 });

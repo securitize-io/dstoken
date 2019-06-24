@@ -359,7 +359,7 @@ contract('Integration', function([
       await issuer.issueTokens(
         ISRAEL_INVESTOR_ID,
         israelInvestor,
-        [777, latestTime()],
+        [777, await latestTime()],
         '',
         [],
         [],
@@ -375,7 +375,7 @@ contract('Integration', function([
       let tx = await token.issueTokensCustom(
         usInvestor,
         1000,
-        latestTime(),
+        await latestTime(),
         0,
         '',
         0
@@ -388,15 +388,15 @@ contract('Integration', function([
       await token.issueTokensCustom(
         usInvestor2,
         500,
-        latestTime() - 80 * WEEKS,
+        (await latestTime()) - 80 * WEEKS,
         250,
         'TEST',
-        latestTime() + 1 * WEEKS
+        (await latestTime()) + 1 * WEEKS
       );
       await token.issueTokensCustom(
         usInvestor3Wallet,
         2500,
-        latestTime() - 80 * WEEKS,
+        (await latestTime()) - 80 * WEEKS,
         0,
         '',
         0
@@ -410,7 +410,7 @@ contract('Integration', function([
       await token.issueTokensCustom(
         germanyInvestor2Wallet,
         500,
-        latestTime(),
+        await latestTime(),
         0,
         '',
         0
@@ -422,10 +422,10 @@ contract('Integration', function([
       tx = await token.issueTokensCustom(
         germanyInvestor,
         1000,
-        latestTime(),
+        await latestTime(),
         250,
         'TEST',
-        latestTime() + 1 * WEEKS
+        (await latestTime()) + 1 * WEEKS
       );
       assert.equal(tx.logs[0].event, 'Issue');
       assert.equal(tx.logs[0].args.to.valueOf(), germanyInvestor);
@@ -468,19 +468,19 @@ contract('Integration', function([
 
       const t1 = await complianceService.getComplianceTransferableTokens(
         usInvestor,
-        latestTime(),
-        latestTime() + 52 * WEEKS
+        await latestTime(),
+        (await latestTime()) + 52 * WEEKS
       );
       assert.equal(t1, 0); // should be 0 because of yearly lock
       const t2 = await lockManager.getTransferableTokens(
         usInvestor2,
-        latestTime()
+        await latestTime()
       );
       assert.equal(t2.valueOf(), 250); // 250 tokens are locked manually
 
       const t3 = await complianceService.getComplianceTransferableTokens(
         usInvestor2,
-        latestTime(),
+        await latestTime(),
         1 * YEARS
       );
       assert.equal(t3.valueOf(), 250); // should be 250 because the accredited lock has passed, and 250 are locked manually
@@ -559,7 +559,7 @@ contract('Integration', function([
 
       let tt = await lockManager.getTransferableTokens(
         germanyInvestor,
-        latestTime()
+        await latestTime()
       );
       assert.equal(tt.valueOf(), 1250);
 
@@ -567,7 +567,7 @@ contract('Integration', function([
         germanyInvestor,
         100,
         'TEST2',
-        latestTime() + 8 * WEEKS
+        (await latestTime()) + 8 * WEEKS
       );
       assert.equal(tx.logs[0].event, 'Locked');
       assert.equal(tx.logs[0].args.who.valueOf(), germanyInvestor);
@@ -575,7 +575,7 @@ contract('Integration', function([
 
       tt = await lockManager.getTransferableTokens(
         germanyInvestor,
-        latestTime()
+        await latestTime()
       );
       assert.equal(tt.valueOf(), 1150);
 
