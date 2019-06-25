@@ -69,7 +69,7 @@ contract('ESInvestorLockManager', function([
       'DSTokenTestRegistryService'
     );
     await this.proxy.setTarget(this.tokenImpl.address);
-    this.token = DSToken.at(this.proxy.address);
+    this.token = await DSToken.at(this.proxy.address);
     await this.token.initialize(
       'DSTokenMock',
       'DST',
@@ -159,7 +159,7 @@ contract('ESInvestorLockManager', function([
           wallet,
           0,
           REASON_STRING,
-          latestTime() + 1000
+          (await latestTime()) + 1000
         )
       );
     });
@@ -172,7 +172,7 @@ contract('ESInvestorLockManager', function([
           wallet,
           0,
           REASON_STRING,
-          latestTime() - 1000
+          (await latestTime()) - 1000
         )
       );
     });
@@ -185,7 +185,7 @@ contract('ESInvestorLockManager', function([
           wallet,
           100,
           REASON_STRING,
-          latestTime() + 1000,
+          (await latestTime()) + 1000,
           {from: noneAccount}
         )
       );
@@ -199,7 +199,7 @@ contract('ESInvestorLockManager', function([
           wallet,
           100,
           REASON_STRING,
-          latestTime() + 1000,
+          (await latestTime()) + 1000,
           {from: exchangeAccount}
         )
       );
@@ -212,19 +212,19 @@ contract('ESInvestorLockManager', function([
       await this.token.issueTokens(owner, 100);
       assert.equal(await this.token.balanceOf(owner), 100);
       assert.equal(
-        await this.lockManager.getTransferableTokens(owner, latestTime()),
+        await this.lockManager.getTransferableTokens(owner, await latestTime()),
         100
       );
       await this.lockManager.addManualLockRecord(
         owner,
         100,
         REASON_STRING,
-        latestTime() + 1000,
+        (await latestTime()) + 1000,
         {from: issuerAccount}
       );
       assert.equal(await this.lockManager.lockCount(owner), 1);
       assert.equal(
-        await this.lockManager.getTransferableTokens(owner, latestTime()),
+        await this.lockManager.getTransferableTokens(owner, await latestTime()),
         0
       );
     });
@@ -238,7 +238,7 @@ contract('ESInvestorLockManager', function([
         wallet,
         100,
         REASON_STRING,
-        latestTime() + 1000,
+        (await latestTime()) + 1000,
         {from: issuerAccount}
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
@@ -252,7 +252,7 @@ contract('ESInvestorLockManager', function([
         wallet,
         100,
         REASON_STRING,
-        latestTime() + 1000,
+        (await latestTime()) + 1000,
         {from: issuerAccount}
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
@@ -270,7 +270,7 @@ contract('ESInvestorLockManager', function([
         wallet,
         100,
         REASON_STRING,
-        latestTime() + 1000,
+        (await latestTime()) + 1000,
         {from: issuerAccount}
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
@@ -288,19 +288,19 @@ contract('ESInvestorLockManager', function([
       await this.token.issueTokens(owner, 100);
       assert.equal(await this.token.balanceOf(owner), 100);
       assert.equal(
-        await this.lockManager.getTransferableTokens(owner, latestTime()),
+        await this.lockManager.getTransferableTokens(owner, await latestTime()),
         100
       );
       await this.lockManager.addManualLockRecord(
         owner,
         100,
         REASON_STRING,
-        latestTime() + 1000,
+        (await latestTime()) + 1000,
         {from: issuerAccount}
       );
       assert.equal(await this.lockManager.lockCount(owner), 1);
       assert.equal(
-        await this.lockManager.getTransferableTokens(owner, latestTime()),
+        await this.lockManager.getTransferableTokens(owner, await latestTime()),
         0
       );
       await this.lockManager.removeLockRecord(owner, LOCK_INDEX, {
@@ -324,7 +324,7 @@ contract('ESInvestorLockManager', function([
         wallet,
         100,
         REASON_STRING,
-        latestTime() + 1000,
+        (await latestTime()) + 1000,
         {from: issuerAccount}
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
@@ -339,7 +339,7 @@ contract('ESInvestorLockManager', function([
         wallet,
         100,
         REASON_STRING,
-        latestTime() + 1000,
+        (await latestTime()) + 1000,
         {from: issuerAccount}
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
@@ -349,7 +349,7 @@ contract('ESInvestorLockManager', function([
     it('Should pass', async function() {
       await this.registryService.registerInvestor(WALLET_ID, 'wallet');
       await this.registryService.addWallet(wallet, WALLET_ID);
-      let realeseTime = latestTime() + 1000;
+      let realeseTime = (await latestTime()) + 1000;
       await this.lockManager.addManualLockRecord(
         wallet,
         100,
@@ -377,7 +377,7 @@ contract('ESInvestorLockManager', function([
     it('Should return 0 because tokens will be locked', async function() {
       await this.registryService.registerInvestor(WALLET_ID, 'wallet');
       await this.registryService.addWallet(owner, WALLET_ID);
-      let realeseTime = latestTime() + 1000;
+      let realeseTime = (await latestTime()) + 1000;
       await this.token.setCap(1000);
       await this.token.issueTokens(owner, 100);
       assert.equal(await this.token.balanceOf(owner), 100);
@@ -396,7 +396,7 @@ contract('ESInvestorLockManager', function([
     it('Should return 100 because tokens will be unlocked', async function() {
       await this.registryService.registerInvestor(WALLET_ID, 'wallet');
       await this.registryService.addWallet(owner, WALLET_ID);
-      let realeseTime = latestTime() + 1000;
+      let realeseTime = (await latestTime()) + 1000;
       await this.token.setCap(1000);
       await this.token.issueTokens(owner, 100);
       assert.equal(await this.token.balanceOf(owner), 100);
@@ -415,7 +415,7 @@ contract('ESInvestorLockManager', function([
     it('Should return correct values when tokens will be locked with multiple locks', async function() {
       await this.registryService.registerInvestor(WALLET_ID, 'wallet');
       await this.registryService.addWallet(owner, WALLET_ID);
-      let realeseTime = latestTime() + 1000;
+      let realeseTime = (await latestTime()) + 1000;
       await this.token.setCap(1000);
       await this.token.issueTokens(owner, 300);
       assert.equal(await this.token.balanceOf(owner), 300);
@@ -432,7 +432,7 @@ contract('ESInvestorLockManager', function([
         realeseTime + 200
       );
       assert.equal(
-        await this.lockManager.getTransferableTokens(owner, latestTime()),
+        await this.lockManager.getTransferableTokens(owner, await latestTime()),
         100
       );
       assert.equal(

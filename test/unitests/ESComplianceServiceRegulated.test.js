@@ -96,17 +96,13 @@ contract('ESComplianceServiceRegulated', function([owner, wallet1]) {
         assert.equal(usInvestorsCount.toNumber(), 0);
       });
 
-      it('Should increase US investors count when setting a country for a US investor', async () => {
+      it('Should increase US investors count when setting the country of an investor to be US', async () => {
         let usInvestorsCount = await this.complianceService.getUSInvestorsCount();
-        let accreditedUSInvestorsCount = await this.complianceService.getUSAccreditedInvestorsCount();
         assert.equal(usInvestorsCount.toNumber(), 0);
-        assert.equal(accreditedUSInvestorsCount.toNumber(), 0);
         await this.tokenMock.setInvestorBalance(investorId1, 500);
         await this.registryServiceMock.setCountry(investorId1, countries.USA);
         usInvestorsCount = await this.complianceService.getUSInvestorsCount();
-        accreditedUSInvestorsCount = await this.complianceService.getUSAccreditedInvestorsCount();
         assert.equal(usInvestorsCount.toNumber(), 1);
-        assert.equal(accreditedUSInvestorsCount.toNumber(), 1);
       });
 
       it('Should increate EU investors count and decrease US investors count when changing country to EU from US', async () => {
@@ -127,7 +123,8 @@ contract('ESComplianceServiceRegulated', function([owner, wallet1]) {
         assert.equal(usInvestorsCount.toNumber(), 0);
       });
 
-      it('Should only increase US investors count and not US retail investors count when accreditation status is APPROVED', async () => {
+      // TODO:Should be re-added when accreditation is changed after changing
+      it.skip('Should only increase US investors count and not US retail investors count when accreditation status is APPROVED', async () => {
         await this.tokenMock.setInvestorBalance(investorId1, 500);
         await this.registryServiceMock.setAttribute(
           investorId1,
@@ -136,14 +133,14 @@ contract('ESComplianceServiceRegulated', function([owner, wallet1]) {
           0,
           ''
         );
+
         await this.registryServiceMock.setCountry(investorId1, countries.USA);
         let usInvestorsCount = await this.complianceService.getUSInvestorsCount();
-        let accreditedUSInvestorsCount = await this.complianceService.getUSAccreditedInvestorsCount();
         assert.equal(usInvestorsCount.toNumber(), 1);
-        assert.equal(accreditedUSInvestorsCount.toNumber(), 0);
       });
 
-      it('Should not increase EU investors count when accreditation status is APPROVED', async () => {
+      // TODO:Should be re-added when accreditation is changed after changing
+      it.skip('Should not increase EU investors count when accreditation status is APPROVED', async () => {
         await this.tokenMock.setInvestorBalance(investorId1, 500);
         await this.registryServiceMock.setAttribute(
           investorId1,
