@@ -82,9 +82,17 @@ module.exports = async function(deployer) {
       complianceService.address
     );
     console.log('Connecting token to registry');
-    await token.setDSService(services.REGISTRY_SERVICE, registry.address);
+    await token.setDSService(services.REGISTRY_SERVICE, registry.address, {
+      gas: 1e6,
+    });
     console.log('Connecting token issuer to registry');
-    await tokenIssuer.setDSService(services.REGISTRY_SERVICE, registry.address);
+    await tokenIssuer.setDSService(
+      services.REGISTRY_SERVICE,
+      registry.address,
+      {
+        gas: 1e6,
+      }
+    );
     console.log('Connecting wallet registrar to registry');
     await walletRegistrar.setDSService(
       services.REGISTRY_SERVICE,
@@ -105,16 +113,25 @@ module.exports = async function(deployer) {
   }
 
   console.log('Connecting token to trust service');
-  await token.setDSService(services.TRUST_SERVICE, trustService.address);
+  await token.setDSService(services.TRUST_SERVICE, trustService.address, {
+    gas: 1e6,
+  });
   console.log('Connecting token to compliance service');
   await token.setDSService(
     services.COMPLIANCE_SERVICE,
-    complianceService.address
+    complianceService.address,
+    {
+      gas: 1e6,
+    }
   );
   console.log('Connecting token to wallet manager');
-  await token.setDSService(services.WALLET_MANAGER, walletManager.address);
+  await token.setDSService(services.WALLET_MANAGER, walletManager.address, {
+    gas: 1e6,
+  });
   console.log('Connecting token to lock manager');
-  await token.setDSService(services.LOCK_MANAGER, lockManager.address);
+  await token.setDSService(services.LOCK_MANAGER, lockManager.address, {
+    gas: 1e6,
+  });
   console.log('Connecting wallet manager to trust service');
   await walletManager.setDSService(
     services.TRUST_SERVICE,
