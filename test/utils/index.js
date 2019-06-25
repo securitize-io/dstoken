@@ -1,7 +1,7 @@
 async function addWriteRoles(storageService, servicesAddresses) {
-  servicesAddresses.forEach(async address => {
-    await storageService.adminAddRole(address, 'write');
-  });
+  for (let i = 0; i < servicesAddresses.length; i++) {
+    await storageService.adminAddRole(servicesAddresses[i], 'write');
+  }
 }
 
 async function setServicesDependencies(service, depTypes, depAddresses) {
