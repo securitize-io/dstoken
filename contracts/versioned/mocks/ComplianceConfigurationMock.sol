@@ -12,37 +12,39 @@ contract ComplianceConfigurationMock is DSComplianceConfigurationServiceInterfac
         _countriesCompliance[_country] = _value;
     }
     function getTotalInvestorsLimit() public view returns (uint){}
-    function setTotalInvestorsLimit(uint _value) public {}
+    function setTotalInvestorsLimit(uint) public {}
     function getMinUsTokens() public view returns (uint){}
-    function setMinUsTokens(uint _value) public {}
+    function setMinUsTokens(uint) public {}
     function getMinEuTokens() public view returns (uint){}
-    function setMinEuTokens(uint _value) public {}
+    function setMinEuTokens(uint) public {}
     function getUsInvestorsLimit() public view returns (uint){}
-    function setUsInvestorsLimit(uint _value) public {}
+    function setUsInvestorsLimit(uint) public {}
     function getUsAccreditedInvestorsLimit() public view returns (uint){}
-    function setUsAccreditedInvestorsLimit(uint _value) public {}
-    function getNonUsNonAccreditedInvestorsLimit() public view returns (uint){}
-    function setNonUsNonAccreditedInvestorsLimit(uint _value) public {}
+    function setUsAccreditedInvestorsLimit(uint) public {}
+    function getNonAccreditedInvestorsLimit() public view returns (uint){}
+    function setNonAccreditedInvestorsLimit(uint) public {}
     function getMaxUsInvestorsPercentage() public view returns (uint){}
-    function setMaxUsInvestorsPercentage(uint _value) public {}
+    function setMaxUsInvestorsPercentage(uint) public {}
     function getBlockFlowbackEndTime() public view returns (uint){}
-    function setBlockFlowbackEndTime(uint _value) public {}
+    function setBlockFlowbackEndTime(uint) public {}
     function getNonUsLockPeriod() public view returns (uint){}
-    function setNonUsLockPeriod(uint _value) public {}
+    function setNonUsLockPeriod(uint) public {}
     function getMinimumTotalInvestors() public view returns (uint){}
-    function setMinimumTotalInvestors(uint _value) public {}
+    function setMinimumTotalInvestors(uint) public {}
     function getMinimumHoldingsPerInvestor() public view returns (uint){}
-    function setMinimumHoldingsPerInvestor(uint _value) public {}
+    function setMinimumHoldingsPerInvestor(uint) public {}
     function getMaximumHoldingsPerInvestor() public view returns (uint){}
-    function setMaximumHoldingsPerInvestor(uint _value) public {}
+    function setMaximumHoldingsPerInvestor(uint) public {}
     function getEuRetailLimit() public view returns (uint){}
-    function setEuRetailLimit(uint _value) public {}
+    function setEuRetailLimit(uint) public {}
+    function getUsLockPeriod() public view returns (uint) {}
+    function setUsLockPeriod(uint) public {}
     function getForceFullTransfer() public view returns (bool){}
-    function setForceFullTransfer(bool _value) public {}
+    function setForceFullTransfer(bool) public {}
     function getForceAccredited() public view returns (bool){}
-    function setForceAccredited(bool _value) public {}
-    function setAll(uint[] _uint_values, bool[] _bool_values) public {}
+    function setForceAccredited(bool) public {}
+    function setAll(uint[], bool[]) public {}
 
-    function getDSService(uint _serviceId) public view returns (address) {}
-    function setDSService(uint _serviceId, address _address) public returns (bool) {}
+    function getDSService(uint) public view returns (address) {}
+    function setDSService(uint, address) public returns (bool) {}
 }
