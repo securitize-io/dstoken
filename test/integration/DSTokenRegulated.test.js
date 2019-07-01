@@ -1,6 +1,6 @@
 const assertRevert = require('../utils/assertRevert');
 const utils = require('../utils');
-const services = require('../utils/globals').services;
+const services = require('../../utils/globals').services;
 const DSEternalStorage = artifacts.require('DSEternalStorageVersioned');
 const DSToken = artifacts.require('DSTokenVersioned');
 const ESComplianceServiceRegulated = artifacts.require(

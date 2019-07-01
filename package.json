@@ -7,11 +7,12 @@
     "test": "test"
   },
   "scripts": {
-    "test": "truffle compile && ./scripts/test.sh ./test/unitests/**",
-    "integration": "truffle compile && ./scripts/test.sh ./test/integration/**",
+    "test": "npm run test:unitests && npm run test:integration",
+    "test:unitests": "cross-env TEST_MODE=TRUE ./scripts/test.sh ./test/unitests/**",
+    "test:integration": "cross-env TEST_MODE=TRUE ./scripts/test.sh ./test/integration/**",
     "coverage": "truffle compile && ./node_modules/.bin/solidity-coverage",
     "compile": "truffle compile",
-    "migrate": "truffle compile && truffle migrate",
+    "migrate": "truffle migrate",
     "generate": "node ./generators/EternalStorageClientGenerator.js"
   },
   "contributors": [
@@ -38,6 +39,7 @@
     "chai-as-promised": "^7.0.0",
     "chai-bignumber": "^2.0.0",
     "coveralls": "^2.13.1",
+    "cross-env": "^5.2.0",
     "dotenv": "^4.0.0",
     "ejs": "^2.6.1",
     "eslint": "^4.11.0",

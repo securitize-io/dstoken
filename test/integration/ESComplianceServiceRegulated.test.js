@@ -1,6 +1,6 @@
 const assertRevert = require('../utils/assertRevert');
 const utils = require('../utils');
-const services = require('../utils/globals').services;
+const services = require('../../utils/globals').services;
 const EternalStorage = artifacts.require('DSEternalStorageVersioned');
 const ESWalletManager = artifacts.require('ESWalletManagerVersioned');
 const ESTrustService = artifacts.require('ESTrustServiceVersioned');
