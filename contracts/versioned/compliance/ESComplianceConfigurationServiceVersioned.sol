@@ -173,4 +173,26 @@ contract ESComplianceConfigurationServiceVersioned is DSComplianceConfigurationS
     setForceFullTransfer(_bool_values[0]);
     setForceAccredited(_bool_values[1]);
   }
+
+  function getAll() public view returns (uint[],bool[]){
+    uint[] memory uintValues = new uint[](13);
+    bool[] memory boolValues = new bool[](2);
+
+    uintValues[0] = getTotalInvestorsLimit();
+    uintValues[1] = getMinUsTokens();
+    uintValues[2] = getMinEuTokens();
+    uintValues[3] = getUsInvestorsLimit();
+    uintValues[4] = getUsAccreditedInvestorsLimit();
+    uintValues[5] = getNonUsNonAccreditedInvestorsLimit();
+    uintValues[6] = getMaxUsInvestorsPercentage();
+    uintValues[7] = getBlockFlowbackEndTime();
+    uintValues[8] = getNonUsLockPeriod();
+    uintValues[9] = getMinimumTotalInvestors();
+    uintValues[10] = getMinimumHoldingsPerInvestor();
+    uintValues[11] = getMaximumHoldingsPerInvestor();
+    uintValues[12] = getEuRetailLimit();
+    boolValues[0] = getForceFullTransfer();
+    boolValues[1] = getForceAccredited();
+    return (uintValues,boolValues);
+  }
 }
