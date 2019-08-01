@@ -5,7 +5,7 @@ import "../service/ESServiceConsumerVersioned.sol";
 
 contract ESComplianceConfigurationServiceVersioned is DSComplianceConfigurationServiceInterfaceVersioned, ESServiceConsumerVersioned {
   constructor(address _address, string _namespace) public ESServiceConsumerVersioned(_address, _namespace) {
-    VERSIONS.push(2);
+    VERSIONS.push(3);
   }
 
   string internal constant COUNTRIES = "countries";
@@ -23,6 +23,7 @@ contract ESComplianceConfigurationServiceVersioned is DSComplianceConfigurationS
   string internal constant MINIMUM_HOLDINGS_PER_INVESTOR = "minimum_holdings_per_investor";
   string internal constant MAXIMUM_HOLDINGS_PER_INVESTOR = "maximum_holdings_per_investor";
   string internal constant FORCE_ACCREDITED = "force_accredited";
+  string internal constant FORCE_ACCREDITED_US = "force_accredited_us";
   string internal constant EU_RETAIL_LIMIT = "eu_retail_limit";
   string internal constant US_LOCK_PERIOD = "us_lock_period";
 
@@ -155,6 +156,14 @@ contract ESComplianceConfigurationServiceVersioned is DSComplianceConfigurationS
     setBoolean(FORCE_FULL_TRANSFER, _value);
   }
 
+  function getForceAccreditedUS() public view returns (bool) {
+    return getBoolean(FORCE_ACCREDITED_US);
+  }
+
+  function setForceAccreditedUS(bool _value) public onlyIssuerOrAbove {
+    setBoolean(FORCE_ACCREDITED_US, _value);
+  }
+
   function getForceAccredited() public view returns (bool) {
     return getBoolean(FORCE_ACCREDITED);
   }
@@ -165,7 +174,7 @@ contract ESComplianceConfigurationServiceVersioned is DSComplianceConfigurationS
 
   function setAll(uint[] _uint_values, bool[] _bool_values) public onlyIssuerOrAbove {
     require(_uint_values.length == 14);
-    require(_bool_values.length == 2);
+    require(_bool_values.length == 3);
     setTotalInvestorsLimit(_uint_values[0]);
     setMinUsTokens(_uint_values[1]);
     setMinEuTokens(_uint_values[2]);
@@ -182,5 +191,6 @@ contract ESComplianceConfigurationServiceVersioned is DSComplianceConfigurationS
     setUsLockPeriod(_uint_values[13]);
     setForceFullTransfer(_bool_values[0]);
     setForceAccredited(_bool_values[1]);
+    setForceAccreditedUS(_bool_values[2]);
   }
 }

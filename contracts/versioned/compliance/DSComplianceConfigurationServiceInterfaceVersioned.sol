@@ -4,7 +4,7 @@ import "../service/DSServiceConsumerInterfaceVersioned.sol";
 
 contract DSComplianceConfigurationServiceInterfaceVersioned is DSServiceConsumerInterfaceVersioned {
   constructor() internal {
-    VERSIONS.push(2);
+    VERSIONS.push(3);
   }
 
   function getCountryCompliance(string _country) view public returns (uint);
@@ -41,5 +41,7 @@ contract DSComplianceConfigurationServiceInterfaceVersioned is DSServiceConsumer
   function setForceFullTransfer(bool _value) public /*onlyIssuerOrAbove*/;
   function getForceAccredited() public view returns (bool);
   function setForceAccredited(bool _value) public /*onlyIssuerOrAbove*/;
+  function setForceAccreditedUS(bool _value) public /*onlyIssuerOrAbove*/;
+  function getForceAccreditedUS() public view returns (bool);
   function setAll(uint[] _uint_values, bool[] _bool_values) public /*onlyIssuerOrAbove*/;
 }

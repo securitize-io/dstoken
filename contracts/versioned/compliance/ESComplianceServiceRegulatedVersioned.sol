@@ -21,6 +21,7 @@ library ESComplianceServiceLibrary {
   string internal constant DESTINATION_RESTRICTED = "Destination restricted";
   string internal constant MAX_INVESTORS_IN_CATEGORY = "Max Investors in category";
   string internal constant ONLY_ACCREDITED = "Only accredited";
+  string internal constant ONLY_US_ACCREDITED = "Only us accredited";
   string internal constant NOT_ENOUGH_INVESTORS = "Not enough investors";
 
   using SafeMath for uint256;
@@ -147,10 +148,14 @@ library ESComplianceServiceLibrary {
     }
 
     if (getComplianceConfigurationService(_complianceService).getForceAccredited() && !isAccredited(_complianceService, _to)) {
-      return (61, ONLY_ACCREDITED);
+        return (61, ONLY_ACCREDITED);
     }
 
     if (toRegion == US) {
+        if(getComplianceConfigurationService(_complianceService).getForceAccreditedUS() && !isAccredited(_complianceService, _to)) {
+            return (61,ONLY_US_ACCREDITED);
+        }
+
         uint usInvestorsLimit = getUsInvestorsLimit(_complianceService);
         if (usInvestorsLimit != 0 && fromInvestorBalance > _value && _complianceService.getUSInvestorsCount() >= usInvestorsLimit &&
             isNewInvestor(_complianceService, _to)) {
@@ -247,7 +252,7 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
     using SafeMath for uint256;
 
     constructor(address _address, string _namespace) public ESComplianceServiceWhitelistedVersioned(_address, _namespace) {
-        VERSIONS.push(2);
+        VERSIONS.push(3);
     }
 
     function recordBurn(address _who, uint _value) internal returns (bool) {
