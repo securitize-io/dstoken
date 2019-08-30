@@ -16,6 +16,8 @@ contract DSServiceConsumerInterfaceVersioned is VersionedContract {
   uint public constant LOCK_MANAGER = 64;
   uint public constant ISSUANCE_INFORMATION_MANAGER = 128;
   uint public constant COMPLIANCE_CONFIGURATION_SERVICE = 256;
+  uint public constant TOKEN_ISSUER = 512;
+
 
   modifier onlyMaster {
     assert(false);

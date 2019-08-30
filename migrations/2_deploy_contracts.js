@@ -74,6 +74,8 @@ const WALLET_MANAGER = 32;
 const LOCK_MANAGER = 64;
 const ISSUANCE_INFORMATION_MANAGER = 128;
 const COMPLIANCE_CONFIGURATION_SERVICE = 256;
+const TOKEN_ISSUER = 512;
+
 
 const NONE = 0;
 const MASTER = 1;
@@ -366,6 +368,7 @@ module.exports = function(deployer) {
           trustService.address
         );
       })
+
       .then(() => {
         console.log('Connecting compliance manager to trust service');
         return complianceService.setDSService(
@@ -446,6 +449,10 @@ module.exports = function(deployer) {
           COMPLIANCE_SERVICE,
           complianceService.address
         );
+      })
+      .then(() => {
+          console.log('Connecting token to token issuer');
+          return token.setDSService(TOKEN_ISSUER, tokenIssuer.address);
       })
       .then(() => {
         console.log('Connecting token to wallet manager');
