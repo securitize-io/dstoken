@@ -116,10 +116,20 @@ contract DSLockManagerInterfaceVersioned is DSServiceConsumerInterfaceVersioned 
    */
 
   function lockInfoForHolder(string _holderId, uint _lockIndex) public view returns (uint reasonCode, string reasonString, uint value, uint autoReleaseTime);
-    /**
-     * @dev get total number of transferable tokens for a user, at a certain time
+
+
+  /**
+     * @dev get total number of transferable tokens for a wallet, at a certain time
      * @param _who address to get number of transferable tokens for
      * @param _time time to calculate for
      */
   function getTransferableTokens(address _who, uint64 _time) public view returns (uint);
+
+  /**
+       * @dev get total number of transferable tokens for a holder, at a certain time
+       * @param _holderId holder id
+       * @param _time time to calculate for
+       */
+  function getTransferableTokensForHolder(string _holderId, uint64 _time) public view returns (uint);
+
 }

@@ -133,11 +133,15 @@ contract ESInvestorLockManagerVersioned is ESLockManagerVersioned {
 
 
   function getTransferableTokens(address _who, uint64 _time) public view returns (uint) {
+    string memory investor = getRegistryService().getInvestor(_who);
+    return getTransferableTokensForHolder(investor,_time);
+  }
+
+  function getTransferableTokensForHolder(string _holderId, uint64 _time) public view returns (uint) {
     require(_time > 0, "time must be greater than zero");
 
-    string memory investor = getRegistryService().getInvestor(_who);
-    uint balanceOfHolder = getToken().balanceOfInvestor(investor);
-    uint holderLockCount = getUint(LOCK_COUNT, investor);
+    uint balanceOfHolder = getToken().balanceOfInvestor(_holderId);
+    uint holderLockCount = getUint(LOCK_COUNT, _holderId);
 
     //No locks, go to base class implementation
     if (holderLockCount == 0) {
@@ -147,10 +151,10 @@ contract ESInvestorLockManagerVersioned is ESLockManagerVersioned {
     uint totalLockedTokens = 0;
     for (uint i = 0; i < holderLockCount; i ++) {
 
-      uint autoReleaseTime = getUint(LOCKS_RELEASE_TIME, investor, i);
+      uint autoReleaseTime = getUint(LOCKS_RELEASE_TIME, _holderId, i);
 
       if (autoReleaseTime == 0 || autoReleaseTime > _time) {
-        totalLockedTokens = totalLockedTokens.add(getUint(LOCKS_VALUE, investor, i));
+        totalLockedTokens = totalLockedTokens.add(getUint(LOCKS_VALUE, _holderId, i));
       }
     }
 
