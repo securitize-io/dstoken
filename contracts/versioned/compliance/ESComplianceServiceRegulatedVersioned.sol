@@ -21,6 +21,7 @@ library ESComplianceServiceLibrary {
   string internal constant DESTINATION_RESTRICTED = "Destination restricted";
   string internal constant MAX_INVESTORS_IN_CATEGORY = "Max Investors in category";
   string internal constant ONLY_ACCREDITED = "Only accredited";
+  string internal constant ONLY_US_ACCREDITED = "Only us accredited";
   string internal constant NOT_ENOUGH_INVESTORS = "Not enough investors";
 
   using SafeMath for uint256;
@@ -30,7 +31,7 @@ library ESComplianceServiceLibrary {
   }
 
   function isAccredited(ESComplianceServiceRegulatedVersioned _complianceService, address _wallet) internal view returns (bool) {
-    return getRegistryService(_complianceService).getAttributeValue(getRegistryService(_complianceService).getInvestor(_wallet), getRegistryService(_complianceService).ACCREDITED()) != getRegistryService(_complianceService).APPROVED();
+    return getRegistryService(_complianceService).getAttributeValue(getRegistryService(_complianceService).getInvestor(_wallet), getRegistryService(_complianceService).ACCREDITED()) == getRegistryService(_complianceService).APPROVED();
   }
 
   function balanceOfInvestor(ESComplianceServiceRegulatedVersioned _complianceService, address _wallet) internal view returns (uint) {
@@ -98,7 +99,7 @@ library ESComplianceServiceLibrary {
     uint toRegion = getCountryCompliance(_complianceService, _to);
 
     if (fromRegion == US) {
-        if (_complianceService.getComplianceTransferableTokens(_from, uint64(now), uint64(365 days)) < _value) {
+        if (_complianceService.getComplianceTransferableTokens(_from, uint64(now), uint64(getComplianceConfigurationService(_complianceService).getUsLockPeriod())) < _value) {
             return (32, HOLD_UP_1Y);
         }
 
@@ -146,12 +147,17 @@ library ESComplianceServiceLibrary {
         }
     }
 
+    if (getComplianceConfigurationService(_complianceService).getForceAccredited() && !isAccredited(_complianceService, _to)) {
+        return (61, ONLY_ACCREDITED);
+    }
+
     if (toRegion == US) {
-        if (getComplianceConfigurationService(_complianceService).getForceAccredited() && !isAccredited(_complianceService, _to)) {
-            return (61, ONLY_ACCREDITED);
+        if(getComplianceConfigurationService(_complianceService).getForceAccreditedUS() && !isAccredited(_complianceService, _to)) {
+            return (61,ONLY_US_ACCREDITED);
         }
 
-        if (fromInvestorBalance > _value && _complianceService.getUSInvestorsCount() >= getUsInvestorsLimit(_complianceService) &&
+        uint usInvestorsLimit = getUsInvestorsLimit(_complianceService);
+        if (usInvestorsLimit != 0 && fromInvestorBalance > _value && _complianceService.getUSInvestorsCount() >= usInvestorsLimit &&
             isNewInvestor(_complianceService, _to)) {
             return (41, ONLY_FULL_TRANSFER);
         }
@@ -167,10 +173,10 @@ library ESComplianceServiceLibrary {
         }
     }
 
-    if (toRegion != US || !isAccredited(_complianceService, _to)) {
-        if (getComplianceConfigurationService(_complianceService).getNonUsNonAccreditedInvestorsLimit() != 0 && _complianceService.getTotalInvestorsCount().sub(_complianceService.getUSAccreditedInvestorsCount()) >= getComplianceConfigurationService(_complianceService).getNonUsNonAccreditedInvestorsLimit() &&
+    if (!isAccredited(_complianceService, _to)) {
+        if (getComplianceConfigurationService(_complianceService).getNonAccreditedInvestorsLimit() != 0 && _complianceService.getTotalInvestorsCount().sub(_complianceService.getAccreditedInvestorsCount()) >= getComplianceConfigurationService(_complianceService).getNonAccreditedInvestorsLimit() &&
             isNewInvestor(_complianceService, _to) &&
-            ((fromRegion == US && isAccredited(_complianceService, _from)) || fromInvestorBalance > _value)) {
+            (isAccredited(_complianceService, _from) || fromInvestorBalance > _value)) {
             return (40, MAX_INVESTORS_IN_CATEGORY);
         }
     }
@@ -246,7 +252,7 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
     using SafeMath for uint256;
 
     constructor(address _address, string _namespace) public ESComplianceServiceWhitelistedVersioned(_address, _namespace) {
-        VERSIONS.push(1);
+        VERSIONS.push(3);
     }
 
     function recordBurn(address _who, uint _value) internal returns (bool) {
@@ -265,13 +271,15 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
         return true;
     }
 
-    function adjustInvestorCountsAfterCountryChange(string _id,string _country,string _prevCountry) public onlyRegistry {
+    function adjustInvestorCountsAfterCountryChange(string _id,string _country,string _prevCountry) public onlyRegistry returns (bool) {
         if(getToken().balanceOfInvestor(_id) == 0) {
             return;
         }
 
         adjustInvestorsCountsByCountry(_prevCountry,_id,false);
         adjustInvestorsCountsByCountry(_country,_id,true);
+
+        return true;
     }
 
     function adjustTotalInvestorsCounts(address _wallet, bool _increase) internal {
@@ -287,13 +295,18 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
 
     function adjustInvestorsCountsByCountry(string _country,string _id, bool _increase) internal {
         uint countryCompliance = getComplianceConfigurationService().getCountryCompliance(_country);
+
+        if (getRegistryService().getAttributeValue(_id, getRegistryService().ACCREDITED()) == getRegistryService().APPROVED()) {
+          setUint(ACCREDITED_INVESTORS_COUNT, _increase ? getUint(ACCREDITED_INVESTORS_COUNT).add(1) : getUint(ACCREDITED_INVESTORS_COUNT).sub(1));
+          if (countryCompliance == US) {
+            setUint(US_ACCREDITED_INVESTORS_COUNT, _increase ? getUint(US_ACCREDITED_INVESTORS_COUNT).add(1) : getUint(US_ACCREDITED_INVESTORS_COUNT).sub(1));
+          }
+        }
+
         if (countryCompliance == US) {
-            setUint(US_INVESTORS_COUNT, _increase ? getUint(US_INVESTORS_COUNT).add(1) : getUint(US_INVESTORS_COUNT).sub(1));
-            if (getRegistryService().getAttributeValue(_id, getRegistryService().ACCREDITED()) != getRegistryService().APPROVED()) {
-                setUint(US_ACCREDITED_INVESTORS_COUNT, _increase ? getUint(US_ACCREDITED_INVESTORS_COUNT).add(1) : getUint(US_ACCREDITED_INVESTORS_COUNT).sub(1));
-            }
+          setUint(US_INVESTORS_COUNT, _increase ? getUint(US_INVESTORS_COUNT).add(1) : getUint(US_INVESTORS_COUNT).sub(1));
         } else if (countryCompliance == EU && getRegistryService().getAttributeValue(_id, getRegistryService().QUALIFIED()) != getRegistryService().APPROVED()) {
-            setUint(EU_RETAIL_INVESTORS_COUNT, _country, _increase ? getUint(EU_RETAIL_INVESTORS_COUNT, _country).add(1) : getUint(EU_RETAIL_INVESTORS_COUNT, _country).sub(1));
+          setUint(EU_RETAIL_INVESTORS_COUNT, _country, _increase ? getUint(EU_RETAIL_INVESTORS_COUNT, _country).add(1) : getUint(EU_RETAIL_INVESTORS_COUNT, _country).sub(1));
         }
     }
 
@@ -404,6 +417,10 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
         return getUint(US_ACCREDITED_INVESTORS_COUNT);
     }
 
+    function getAccreditedInvestorsCount() public view returns (uint) {
+        return getUint(ACCREDITED_INVESTORS_COUNT);
+    }
+
     function getEURetailInvestorsCount(string _country) public view returns (uint){
         return getUint(EU_RETAIL_INVESTORS_COUNT, _country);
     }
@@ -414,7 +431,7 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
         return true;
     }
 
-    function setUsInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+    function setUSInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
         setUint(US_INVESTORS_COUNT, _value);
 
         return true;
@@ -424,6 +441,12 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
          setUint(US_ACCREDITED_INVESTORS_COUNT, _value);
 
          return true;
+    }
+
+    function setAccreditedInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+        setUint(ACCREDITED_INVESTORS_COUNT, _value);
+
+        return true;
     }
 
     function setEuRetailInvestorsCount(string _country, uint256 _value) public onlyMaster returns (bool) {

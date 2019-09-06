@@ -22,7 +22,7 @@ import "./ESIssuanceInformationManagerVersioned.sol";
 contract ESComplianceServiceVersioned is DSComplianceServiceInterfaceVersioned, ESServiceConsumerVersioned {
 
   constructor(address _address, string _namespace) public ESServiceConsumerVersioned(_address, _namespace) {
-    VERSIONS.push(1);
+    VERSIONS.push(2);
   }
 
   using SafeMath for uint256;
@@ -85,6 +85,10 @@ contract ESComplianceServiceVersioned is DSComplianceServiceInterfaceVersioned, 
 
     return (0, VALID);
   }
+
+    function adjustInvestorCountsAfterCountryChange(string /*_id*/,string /*_country*/,string /*_prevCountry*/) public returns (bool) {
+        return true;
+    }
 
   // These functions should be implemented by the concrete compliance manager
 

@@ -1,4 +1,4 @@
-const assertRevert = require('../../helpers/assertRevert');
+const assertRevert = require('../../utils/assertRevert');
 const EternalStorage = artifacts.require('DSEternalStorageVersioned');
 const ESTrustService = artifacts.require('ESTrustServiceVersioned');
 const ESComplianceServiceNotRegulated = artifacts.require(
@@ -28,7 +28,7 @@ contract.skip('ESPausableToken', function([
   _,
   owner,
   recipient,
-  anotherAccount
+  anotherAccount,
 ]) {
   beforeEach(async function() {
     this.storage = await EternalStorage.new();
@@ -53,7 +53,7 @@ contract.skip('ESPausableToken', function([
       'DSTokenTestRegistryService'
     );
     this.token = await ESPausableToken.new(this.storage.address, {
-      from: owner
+      from: owner,
     });
     await this.storage.adminAddRole(this.trustService.address, 'write');
     await this.storage.adminAddRole(this.complianceService.address, 'write');
@@ -80,41 +80,41 @@ contract.skip('ESPausableToken', function([
       this.trustService.address
     );
     await this.token.setDSService(TRUST_SERVICE, this.trustService.address, {
-      from: owner
+      from: owner,
     });
     await this.complianceService.setDSService(
       LOCK_MANAGER,
       this.lockManager.address,
-      { from: owner }
+      {from: owner}
     );
     await this.complianceService.setDSService(
       WALLET_MANAGER,
       this.walletManager.address,
-      { from: owner }
+      {from: owner}
     );
     await this.token.setDSService(
       COMPLIANCE_SERVICE,
       this.complianceService.address,
-      { from: owner }
+      {from: owner}
     );
     await this.token.setDSService(LOCK_MANAGER, this.lockManager.address, {
-      from: owner
+      from: owner,
     });
     await this.token.setDSService(WALLET_MANAGER, this.walletManager.address, {
-      from: owner
+      from: owner,
     });
     await this.token.setDSService(
       REGISTRY_SERVICE,
       this.registryService.address,
-      { from: owner }
+      {from: owner}
     );
     await this.complianceService.setDSService(DS_TOKEN, this.token.address, {
-      from: owner
+      from: owner,
     });
     await this.lockManager.setDSService(DS_TOKEN, this.token.address, {
-      from: owner
+      from: owner,
     });
-    await this.token.initialize(owner, 100, { from: owner });
+    await this.token.initialize(owner, 100, {from: owner});
   });
 
   describe('pause', function() {
@@ -123,14 +123,14 @@ contract.skip('ESPausableToken', function([
 
       describe('when the token is unpaused', function() {
         it('pauses the token', async function() {
-          await this.token.pause({ from });
+          await this.token.pause({from});
 
           const paused = await this.token.paused();
           assert.equal(paused, true);
         });
 
         it('emits a Pause event', async function() {
-          const { logs } = await this.token.pause({ from });
+          const {logs} = await this.token.pause({from});
 
           assert.equal(logs.length, 1);
           assert.equal(logs[0].event, 'Pause');
@@ -139,11 +139,11 @@ contract.skip('ESPausableToken', function([
 
       describe('when the token is paused', function() {
         beforeEach(async function() {
-          await this.token.pause({ from });
+          await this.token.pause({from});
         });
 
         it('reverts', async function() {
-          await assertRevert(this.token.pause({ from }));
+          await assertRevert(this.token.pause({from}));
         });
       });
     });
@@ -152,7 +152,7 @@ contract.skip('ESPausableToken', function([
       const from = anotherAccount;
 
       it('reverts', async function() {
-        await assertRevert(this.token.pause({ from }));
+        await assertRevert(this.token.pause({from}));
       });
     });
   });
@@ -163,18 +163,18 @@ contract.skip('ESPausableToken', function([
 
       describe('when the token is paused', function() {
         beforeEach(async function() {
-          await this.token.pause({ from });
+          await this.token.pause({from});
         });
 
         it('unpauses the token', async function() {
-          await this.token.unpause({ from });
+          await this.token.unpause({from});
 
           const paused = await this.token.paused();
           assert.equal(paused, false);
         });
 
         it('emits an Unpause event', async function() {
-          const { logs } = await this.token.unpause({ from });
+          const {logs} = await this.token.unpause({from});
 
           assert.equal(logs.length, 1);
           assert.equal(logs[0].event, 'Unpause');
@@ -183,7 +183,7 @@ contract.skip('ESPausableToken', function([
 
       describe('when the token is unpaused', function() {
         it('reverts', async function() {
-          await assertRevert(this.token.unpause({ from }));
+          await assertRevert(this.token.unpause({from}));
         });
       });
     });
@@ -192,7 +192,7 @@ contract.skip('ESPausableToken', function([
       const from = anotherAccount;
 
       it('reverts', async function() {
-        await assertRevert(this.token.unpause({ from }));
+        await assertRevert(this.token.unpause({from}));
       });
     });
   });
@@ -202,21 +202,21 @@ contract.skip('ESPausableToken', function([
 
     describe('paused', function() {
       it('is not paused by default', async function() {
-        const paused = await this.token.paused({ from });
+        const paused = await this.token.paused({from});
 
         assert.equal(paused, false);
       });
 
       it('is paused after being paused', async function() {
-        await this.token.pause({ from });
-        const paused = await this.token.paused({ from });
+        await this.token.pause({from});
+        const paused = await this.token.paused({from});
 
         assert.equal(paused, true);
       });
 
       it('is not paused after being paused and then unpaused', async function() {
-        await this.token.pause({ from });
-        await this.token.unpause({ from });
+        await this.token.pause({from});
+        await this.token.unpause({from});
         const paused = await this.token.paused();
 
         assert.equal(paused, false);
@@ -225,7 +225,7 @@ contract.skip('ESPausableToken', function([
 
     describe('transfer', function() {
       it('allows to transfer when unpaused', async function() {
-        await this.token.transfer(recipient, 100, { from: owner });
+        await this.token.transfer(recipient, 100, {from: owner});
 
         const senderBalance = await this.token.balanceOf(owner);
         assert.equal(senderBalance, 0);
@@ -235,10 +235,10 @@ contract.skip('ESPausableToken', function([
       });
 
       it('allows to transfer when paused and then unpaused', async function() {
-        await this.token.pause({ from: owner });
-        await this.token.unpause({ from: owner });
+        await this.token.pause({from: owner});
+        await this.token.unpause({from: owner});
 
-        await this.token.transfer(recipient, 100, { from: owner });
+        await this.token.transfer(recipient, 100, {from: owner});
 
         const senderBalance = await this.token.balanceOf(owner);
         assert.equal(senderBalance, 0);
@@ -248,49 +248,47 @@ contract.skip('ESPausableToken', function([
       });
 
       it('reverts when trying to transfer when paused', async function() {
-        await this.token.pause({ from: owner });
+        await this.token.pause({from: owner});
 
-        await assertRevert(
-          this.token.transfer(recipient, 100, { from: owner })
-        );
+        await assertRevert(this.token.transfer(recipient, 100, {from: owner}));
       });
     });
 
     describe('approve', function() {
       it('allows to approve when unpaused', async function() {
-        await this.token.approve(anotherAccount, 40, { from: owner });
+        await this.token.approve(anotherAccount, 40, {from: owner});
 
         const allowance = await this.token.allowance(owner, anotherAccount);
         assert.equal(allowance, 40);
       });
 
       it('allows to transfer when paused and then unpaused', async function() {
-        await this.token.pause({ from: owner });
-        await this.token.unpause({ from: owner });
+        await this.token.pause({from: owner});
+        await this.token.unpause({from: owner});
 
-        await this.token.approve(anotherAccount, 40, { from: owner });
+        await this.token.approve(anotherAccount, 40, {from: owner});
 
         const allowance = await this.token.allowance(owner, anotherAccount);
         assert.equal(allowance, 40);
       });
 
       it('reverts when trying to transfer when paused', async function() {
-        await this.token.pause({ from: owner });
+        await this.token.pause({from: owner});
 
         await assertRevert(
-          this.token.approve(anotherAccount, 40, { from: owner })
+          this.token.approve(anotherAccount, 40, {from: owner})
         );
       });
     });
 
     describe('transfer from', function() {
       beforeEach(async function() {
-        await this.token.approve(anotherAccount, 50, { from: owner });
+        await this.token.approve(anotherAccount, 50, {from: owner});
       });
 
       it('allows to transfer from when unpaused', async function() {
         await this.token.transferFrom(owner, recipient, 40, {
-          from: anotherAccount
+          from: anotherAccount,
         });
 
         const senderBalance = await this.token.balanceOf(owner);
@@ -301,11 +299,11 @@ contract.skip('ESPausableToken', function([
       });
 
       it('allows to transfer when paused and then unpaused', async function() {
-        await this.token.pause({ from: owner });
-        await this.token.unpause({ from: owner });
+        await this.token.pause({from: owner});
+        await this.token.unpause({from: owner});
 
         await this.token.transferFrom(owner, recipient, 40, {
-          from: anotherAccount
+          from: anotherAccount,
         });
 
         const senderBalance = await this.token.balanceOf(owner);
@@ -316,11 +314,11 @@ contract.skip('ESPausableToken', function([
       });
 
       it('reverts when trying to transfer from when paused', async function() {
-        await this.token.pause({ from: owner });
+        await this.token.pause({from: owner});
 
         await assertRevert(
           this.token.transferFrom(owner, recipient, 40, {
-            from: anotherAccount
+            from: anotherAccount,
           })
         );
       });
@@ -328,62 +326,62 @@ contract.skip('ESPausableToken', function([
 
     describe('decrease approval', function() {
       beforeEach(async function() {
-        await this.token.approve(anotherAccount, 100, { from: owner });
+        await this.token.approve(anotherAccount, 100, {from: owner});
       });
 
       it('allows to decrease approval when unpaused', async function() {
-        await this.token.decreaseApproval(anotherAccount, 40, { from: owner });
+        await this.token.decreaseApproval(anotherAccount, 40, {from: owner});
 
         const allowance = await this.token.allowance(owner, anotherAccount);
         assert.equal(allowance, 60);
       });
 
       it('allows to decrease approval when paused and then unpaused', async function() {
-        await this.token.pause({ from: owner });
-        await this.token.unpause({ from: owner });
+        await this.token.pause({from: owner});
+        await this.token.unpause({from: owner});
 
-        await this.token.decreaseApproval(anotherAccount, 40, { from: owner });
+        await this.token.decreaseApproval(anotherAccount, 40, {from: owner});
 
         const allowance = await this.token.allowance(owner, anotherAccount);
         assert.equal(allowance, 60);
       });
 
       it('reverts when trying to transfer when paused', async function() {
-        await this.token.pause({ from: owner });
+        await this.token.pause({from: owner});
 
         await assertRevert(
-          this.token.decreaseApproval(anotherAccount, 40, { from: owner })
+          this.token.decreaseApproval(anotherAccount, 40, {from: owner})
         );
       });
     });
 
     describe('increase approval', function() {
       beforeEach(async function() {
-        await this.token.approve(anotherAccount, 100, { from: owner });
+        await this.token.approve(anotherAccount, 100, {from: owner});
       });
 
       it('allows to increase approval when unpaused', async function() {
-        await this.token.increaseApproval(anotherAccount, 40, { from: owner });
+        await this.token.increaseApproval(anotherAccount, 40, {from: owner});
 
         const allowance = await this.token.allowance(owner, anotherAccount);
         assert.equal(allowance, 140);
       });
 
       it('allows to increase approval when paused and then unpaused', async function() {
-        await this.token.pause({ from: owner });
-        await this.token.unpause({ from: owner });
+        await this.token.pause({from: owner});
+        await this.token.unpause({from: owner});
 
-        await this.token.increaseApproval(anotherAccount, 40, { from: owner });
+        await this.token.increaseApproval(anotherAccount, 40, {from: owner});
 
         const allowance = await this.token.allowance(owner, anotherAccount);
         assert.equal(allowance, 140);
       });
 
       it('reverts when trying to increase approval when paused', async function() {
-        await this.token.pause({ from: owner });
+        await this.token.pause({from: owner});
 
         await assertRevert(
-          this.token.increaseApproval(anotherAccount, 40, { from: owner })
+          this.token.increaseApproval(anotherAccount, 40, {from: owner})
         );
       });
     });

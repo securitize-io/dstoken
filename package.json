@@ -7,10 +7,12 @@
     "test": "test"
   },
   "scripts": {
-    "test": "truffle compile && ./scripts/test.sh",
+    "test": "npm run test:unitests && npm run test:integration",
+    "test:unitests": "cross-env TEST_MODE=TRUE ./scripts/test.sh ./test/unitests/**",
+    "test:integration": "cross-env TEST_MODE=TRUE ./scripts/test.sh ./test/integration/**",
     "coverage": "truffle compile && ./node_modules/.bin/solidity-coverage",
     "compile": "truffle compile",
-    "migrate": "truffle compile && truffle migrate",
+    "migrate": "truffle migrate",
     "generate": "node ./generators/EternalStorageClientGenerator.js"
   },
   "contributors": [
@@ -25,6 +27,10 @@
     {
       "name": "Jorge Serna",
       "email": "jorge@securitize.io"
+    },
+    {
+      "name": "Omri Perl",
+      "email": "omri@securitize.io"
     }
   ],
   "license": "ISC",
@@ -33,6 +39,7 @@
     "chai-as-promised": "^7.0.0",
     "chai-bignumber": "^2.0.0",
     "coveralls": "^2.13.1",
+    "cross-env": "^5.2.0",
     "dotenv": "^4.0.0",
     "ejs": "^2.6.1",
     "eslint": "^4.11.0",
@@ -44,16 +51,12 @@
     "ethereumjs-util": "^5.1.2",
     "ethjs-abi": "^0.2.1",
     "ganache-cli": "6.1.0",
+    "js-yaml": "^3.12.0",
     "minimist": "^1.2.0",
     "solidity-coverage": "^0.5.0",
     "solium": "^1.1.7",
-    "truffle": "^4.1.8",
-    "truffle-hdwallet-provider": "0.0.3"
+    "truffle": "^5.0.22",
+    "truffle-hdwallet-provider": "^1.0.10"
   },
-  "dependencies": {
-    "ethereumjs-wallet": "^0.6.0",
-    "js-yaml": "^3.12.0",
-    "node-yaml": "^3.1.1",
-    "truffle-wallet-provider": "0.0.5"
-  }
+  "dependencies": {}
 }

@@ -4,7 +4,7 @@ import "../service/DSServiceConsumerInterfaceVersioned.sol";
 
 contract DSComplianceConfigurationServiceInterfaceVersioned is DSServiceConsumerInterfaceVersioned {
   constructor() internal {
-    VERSIONS.push(1);
+    VERSIONS.push(3);
   }
 
   function getCountryCompliance(string _country) view public returns (uint);
@@ -19,8 +19,8 @@ contract DSComplianceConfigurationServiceInterfaceVersioned is DSServiceConsumer
   function setUsInvestorsLimit(uint _value) public /*onlyIssuerOrAbove*/;
   function getUsAccreditedInvestorsLimit() public view returns (uint);
   function setUsAccreditedInvestorsLimit(uint _value) public /*onlyIssuerOrAbove*/;
-  function getNonUsNonAccreditedInvestorsLimit() public view returns (uint);
-  function setNonUsNonAccreditedInvestorsLimit(uint _value) public /*onlyIssuerOrAbove*/;
+  function getNonAccreditedInvestorsLimit() public view returns (uint);
+  function setNonAccreditedInvestorsLimit(uint _value) public /*onlyIssuerOrAbove*/;
   function getMaxUsInvestorsPercentage() public view returns (uint);
   function setMaxUsInvestorsPercentage(uint _value) public /*onlyIssuerOrAbove*/;
   function getBlockFlowbackEndTime() public view returns (uint);
@@ -35,10 +35,14 @@ contract DSComplianceConfigurationServiceInterfaceVersioned is DSServiceConsumer
   function setMaximumHoldingsPerInvestor(uint _value) public /*onlyIssuerOrAbove*/;
   function getEuRetailLimit() public view returns (uint);
   function setEuRetailLimit(uint _value) public /*onlyIssuerOrAbove*/;
+  function getUsLockPeriod() public view returns (uint);
+  function setUsLockPeriod(uint _value) public /*onlyIssuerOrAbove*/;
   function getForceFullTransfer() public view returns (bool);
   function setForceFullTransfer(bool _value) public /*onlyIssuerOrAbove*/;
   function getForceAccredited() public view returns (bool);
   function setForceAccredited(bool _value) public /*onlyIssuerOrAbove*/;
+  function setForceAccreditedUS(bool _value) public /*onlyIssuerOrAbove*/;
+  function getForceAccreditedUS() public view returns (bool);
   function setAll(uint[] _uint_values, bool[] _bool_values) public /*onlyIssuerOrAbove*/;
   function getAll() public view returns (uint[],bool[]);
   }

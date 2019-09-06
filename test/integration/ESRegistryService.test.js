@@ -1,6 +1,6 @@
-const assertRevert = require('./helpers/assertRevert');
-const utils = require('./utils');
-const services = require('./utils/globals').services;
+const assertRevert = require('../utils/assertRevert');
+const utils = require('../utils');
+const services = require('../../utils/globals').services;
 const EternalStorage = artifacts.require('DSEternalStorageVersioned');
 const crypto = require('crypto');
 const ESTrustService = artifacts.require('ESTrustServiceVersioned');
@@ -93,7 +93,7 @@ contract('ESRegistryService', function([
     this.tokenImpl = await DSToken.new();
     this.proxy = await Proxy.new();
     await this.proxy.setTarget(this.tokenImpl.address);
-    this.token = DSToken.at(this.proxy.address);
+    this.token = await DSToken.at(this.proxy.address);
     await this.token.initialize(
       'DSTokenMock',
       'DST',
@@ -192,7 +192,7 @@ contract('ESRegistryService', function([
       it(`Checking the role for the creator account - ${owner} - should be MASTER - ${MASTER}`, async function() {
         const role = await this.trustService.getRole(owner);
 
-        assert.equal(role.c[0], MASTER);
+        assert.equal(role.words[0], MASTER);
       });
 
       it('Trying to register the new investor', async function() {
@@ -221,7 +221,7 @@ contract('ESRegistryService', function([
           const newInvestorId = generateRandomInvestorId();
           const role = await this.trustService.getRole(account1);
 
-          assert.equal(role.c[0], NONE);
+          assert.equal(role.words[0], NONE);
           await assertRevert(
             this.registryService.registerInvestor(
               newInvestorId,
@@ -257,7 +257,7 @@ contract('ESRegistryService', function([
           const newInvestorId = generateRandomInvestorId();
           const role = await this.trustService.getRole(account1);
 
-          assert.equal(role.c[0], NONE);
+          assert.equal(role.words[0], NONE);
           await assertRevert(
             this.registryService.setCountry(newInvestorId, investorCountry, {
               from: account1,
@@ -330,7 +330,7 @@ contract('ESRegistryService', function([
               attributeTypes[i]
             );
 
-            assert.equal(attributeValue.c[0], attributeStatuses[j]);
+            assert.equal(attributeValue.words[0], attributeStatuses[j]);
           }
         }
       });
@@ -357,7 +357,7 @@ contract('ESRegistryService', function([
         it(`Trying to set the attribute using the account with NONE - ${NONE} permissions - should be the error`, async function() {
           const role = await this.trustService.getRole(account1);
 
-          assert.equal(role.c[0], NONE);
+          assert.equal(role.words[0], NONE);
           await assertRevert(
             this.registryService.setAttribute(
               investorId,
@@ -455,7 +455,7 @@ contract('ESRegistryService', function([
       it(`Trying to remove the wallet with ISSUER - ${ISSUER} permissions`, async function() {
         const role = await this.trustService.getRole(issuerAccount);
 
-        assert.equal(role.c[0], ISSUER);
+        assert.equal(role.words[0], ISSUER);
 
         const {logs} = await this.registryService.removeWallet(
           issuerWallet,
@@ -470,7 +470,7 @@ contract('ESRegistryService', function([
       it(`Trying to remove the wallet with EXCHANGE - ${EXCHANGE} permissions (same one that created the wallet)`, async function() {
         const role = await this.trustService.getRole(exchangeAccount);
 
-        assert.equal(role.c[0], EXCHANGE);
+        assert.equal(role.words[0], EXCHANGE);
 
         const {logs} = await this.registryService.removeWallet(
           exchangeWallet,
@@ -493,7 +493,7 @@ contract('ESRegistryService', function([
         it(`Trying to add the wallet with NONE permissions`, async function() {
           const role = await this.trustService.getRole(account1);
 
-          assert.equal(role.c[0], NONE);
+          assert.equal(role.words[0], NONE);
           await assertRevert(
             this.registryService.addWallet(wallet2, investorId, {
               from: account1,
@@ -584,7 +584,7 @@ contract('ESRegistryService', function([
             additionalWallet
           );
 
-          assert.deepEqual(investorDetails, ['', '']);
+          assert.deepEqual(investorDetails, {0: '', 1: ''});
         });
       });
     });

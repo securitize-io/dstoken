@@ -5,7 +5,7 @@ import "../service/ESServiceConsumerVersioned.sol";
 
 contract ESComplianceConfigurationServiceVersioned is DSComplianceConfigurationServiceInterfaceVersioned, ESServiceConsumerVersioned {
   constructor(address _address, string _namespace) public ESServiceConsumerVersioned(_address, _namespace) {
-    VERSIONS.push(1);
+    VERSIONS.push(3);
   }
 
   string internal constant COUNTRIES = "countries";
@@ -15,7 +15,7 @@ contract ESComplianceConfigurationServiceVersioned is DSComplianceConfigurationS
   string internal constant TOTAL_INVESTORS_LIMIT = "total_investors_limit";
   string internal constant US_INVESTORS_LIMIT = "us_investors_limit";
   string internal constant US_ACCREDITED_INVESTORS_LIMIT = "us_accredited_investors_limit";
-  string internal constant NON_US_NON_ACCREDITED_INVESTORS_LIMIT = "non_us_non_accredited_investors_limit";
+  string internal constant NON_ACCREDITED_INVESTORS_LIMIT = "non_accredited_investors_limit";
   string internal constant MAX_US_INVESTORS_PERCENTAGE = "max_us_investors_percentage";
   string internal constant BLOCK_FLOWBACK_END_TIME = "block_flowback_end_time";
   string internal constant NON_US_LOCK_PERIOD = "non_us_lock_period";
@@ -23,7 +23,9 @@ contract ESComplianceConfigurationServiceVersioned is DSComplianceConfigurationS
   string internal constant MINIMUM_HOLDINGS_PER_INVESTOR = "minimum_holdings_per_investor";
   string internal constant MAXIMUM_HOLDINGS_PER_INVESTOR = "maximum_holdings_per_investor";
   string internal constant FORCE_ACCREDITED = "force_accredited";
+  string internal constant FORCE_ACCREDITED_US = "force_accredited_us";
   string internal constant EU_RETAIL_LIMIT = "eu_retail_limit";
+  string internal constant US_LOCK_PERIOD = "us_lock_period";
 
   function setCountryCompliance(string _country, uint _value) onlyIssuerOrAbove public {
       setUint(COUNTRIES, _country, _value);
@@ -73,12 +75,12 @@ contract ESComplianceConfigurationServiceVersioned is DSComplianceConfigurationS
     setUint(US_ACCREDITED_INVESTORS_LIMIT, _value);
   }
 
-  function getNonUsNonAccreditedInvestorsLimit() public view returns (uint) {
-    return getUint(NON_US_NON_ACCREDITED_INVESTORS_LIMIT);
+  function getNonAccreditedInvestorsLimit() public view returns (uint) {
+    return getUint(NON_ACCREDITED_INVESTORS_LIMIT);
   }
 
-  function setNonUsNonAccreditedInvestorsLimit(uint _value) public onlyIssuerOrAbove {
-    setUint(NON_US_NON_ACCREDITED_INVESTORS_LIMIT, _value);
+  function setNonAccreditedInvestorsLimit(uint _value) public onlyIssuerOrAbove {
+    setUint(NON_ACCREDITED_INVESTORS_LIMIT, _value);
   }
 
   function getMaxUsInvestorsPercentage() public view returns (uint) {
@@ -138,12 +140,28 @@ contract ESComplianceConfigurationServiceVersioned is DSComplianceConfigurationS
     setUint(EU_RETAIL_LIMIT, _value);
   }
 
+  function getUsLockPeriod() public view returns (uint) {
+    return getUint(US_LOCK_PERIOD);
+  }
+
+  function setUsLockPeriod(uint _value) public onlyIssuerOrAbove {
+    setUint(US_LOCK_PERIOD, _value);
+  }
+
   function getForceFullTransfer() public view returns (bool) {
     return getBoolean(FORCE_FULL_TRANSFER);
   }
 
   function setForceFullTransfer(bool _value) public onlyIssuerOrAbove {
     setBoolean(FORCE_FULL_TRANSFER, _value);
+  }
+
+  function getForceAccreditedUS() public view returns (bool) {
+    return getBoolean(FORCE_ACCREDITED_US);
+  }
+
+  function setForceAccreditedUS(bool _value) public onlyIssuerOrAbove {
+    setBoolean(FORCE_ACCREDITED_US, _value);
   }
 
   function getForceAccredited() public view returns (bool) {
@@ -155,14 +173,14 @@ contract ESComplianceConfigurationServiceVersioned is DSComplianceConfigurationS
   }
 
   function setAll(uint[] _uint_values, bool[] _bool_values) public onlyIssuerOrAbove {
-    require(_uint_values.length == 13);
-    require(_bool_values.length == 2);
+    require(_uint_values.length == 14);
+    require(_bool_values.length == 3);
     setTotalInvestorsLimit(_uint_values[0]);
     setMinUsTokens(_uint_values[1]);
     setMinEuTokens(_uint_values[2]);
     setUsInvestorsLimit(_uint_values[3]);
     setUsAccreditedInvestorsLimit(_uint_values[4]);
-    setNonUsNonAccreditedInvestorsLimit(_uint_values[5]);
+    setNonAccreditedInvestorsLimit(_uint_values[5]);
     setMaxUsInvestorsPercentage(_uint_values[6]);
     setBlockFlowbackEndTime(_uint_values[7]);
     setNonUsLockPeriod(_uint_values[8]);
@@ -170,8 +188,10 @@ contract ESComplianceConfigurationServiceVersioned is DSComplianceConfigurationS
     setMinimumHoldingsPerInvestor(_uint_values[10]);
     setMaximumHoldingsPerInvestor(_uint_values[11]);
     setEuRetailLimit(_uint_values[12]);
+    setUsLockPeriod(_uint_values[13]);
     setForceFullTransfer(_bool_values[0]);
     setForceAccredited(_bool_values[1]);
+    setForceAccreditedUS(_bool_values[2]);
   }
 
   function getAll() public view returns (uint[],bool[]){

@@ -1,4 +1,4 @@
-const assertRevert = require('./helpers/assertRevert');
+const assertRevert = require('../utils/assertRevert');
 const EternalStorage = artifacts.require('DSEternalStorageVersioned');
 const ESTrustService = artifacts.require('ESTrustServiceVersioned');
 
@@ -32,7 +32,7 @@ contract('ESTrustService', function([
 
     it(`For the owner\`s account ${owner} - the role should be MASTER - ${MASTER}`, async function() {
       const role = await this.trustService.getRole(owner);
-      assert.equal(role.c[0], MASTER);
+      assert.equal(role.words[0], MASTER);
     });
   });
 
@@ -58,12 +58,12 @@ contract('ESTrustService', function([
 
     it(`The role for the previous owner - ${owner} should be set as NONE - ${NONE}`, async function() {
       const role = await this.trustService.getRole(owner);
-      assert.equal(role.c[0], NONE);
+      assert.equal(role.words[0], NONE);
     });
 
     it(`The role for the new owner - ${newOwner} should be set as MASTER - ${MASTER}`, async function() {
       const role = await this.trustService.getRole(newOwner);
-      assert.equal(role.c[0], MASTER);
+      assert.equal(role.words[0], MASTER);
     });
   });
 
@@ -98,7 +98,7 @@ contract('ESTrustService', function([
     describe(`Check ISSUER role`, function() {
       it(`The role for this account - ${issuerAccount} should be set as ISSUER - ${ISSUER}`, async function() {
         const role = await this.trustService.getRole(issuerAccount);
-        assert.equal(role.c[0], ISSUER);
+        assert.equal(role.words[0], ISSUER);
       });
     });
 
@@ -116,7 +116,7 @@ contract('ESTrustService', function([
     describe(`Check EXCHANGE role`, function() {
       it(`The role for this account - ${exchangeAccount} should be set as EXCHANGE - ${EXCHANGE}`, async function() {
         const role = await this.trustService.getRole(exchangeAccount);
-        assert.equal(role.c[0], EXCHANGE);
+        assert.equal(role.words[0], EXCHANGE);
       });
     });
   });
@@ -142,7 +142,7 @@ contract('ESTrustService', function([
     describe('Remove role using ISSUER account', function() {
       it(`The role before removing - should be ISSUER - ${ISSUER}`, async function() {
         const role = await this.trustService.getRole(account1);
-        assert.equal(role.c[0], ISSUER);
+        assert.equal(role.words[0], ISSUER);
       });
 
       it(`Trying to remove the role using ISSUER account - ${issuerAccount}`, async function() {
@@ -156,14 +156,14 @@ contract('ESTrustService', function([
 
       it(`The role after removing - should be NONE - ${NONE}`, async function() {
         const role = await this.trustService.getRole(account1);
-        assert.equal(role.c[0], NONE);
+        assert.equal(role.words[0], NONE);
       });
     });
 
     describe('Remove role using MASTER account', function() {
       it(`The role before removing - should be EXCHANGE - ${EXCHANGE}`, async function() {
         const role = await this.trustService.getRole(account2);
-        assert.equal(role.c[0], EXCHANGE);
+        assert.equal(role.words[0], EXCHANGE);
       });
 
       it(`Trying to remove the role using MASTER account - ${newOwner}`, async function() {
@@ -177,7 +177,7 @@ contract('ESTrustService', function([
 
       it(`The role after removing - should be NONE - ${NONE}`, async function() {
         const role = await this.trustService.getRole(account2);
-        assert.equal(role.c[0], NONE);
+        assert.equal(role.words[0], NONE);
       });
     });
   });
