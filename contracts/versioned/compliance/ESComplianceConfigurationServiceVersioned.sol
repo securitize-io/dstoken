@@ -195,15 +195,15 @@ contract ESComplianceConfigurationServiceVersioned is DSComplianceConfigurationS
   }
 
   function getAll() public view returns (uint[],bool[]){
-    uint[] memory uintValues = new uint[](13);
-    bool[] memory boolValues = new bool[](2);
+    uint[] memory uintValues = new uint[](14);
+    bool[] memory boolValues = new bool[](3);
 
     uintValues[0] = getTotalInvestorsLimit();
     uintValues[1] = getMinUsTokens();
     uintValues[2] = getMinEuTokens();
     uintValues[3] = getUsInvestorsLimit();
     uintValues[4] = getUsAccreditedInvestorsLimit();
-    uintValues[5] = getNonUsNonAccreditedInvestorsLimit();
+    uintValues[5] = getNonAccreditedInvestorsLimit();
     uintValues[6] = getMaxUsInvestorsPercentage();
     uintValues[7] = getBlockFlowbackEndTime();
     uintValues[8] = getNonUsLockPeriod();
@@ -211,8 +211,10 @@ contract ESComplianceConfigurationServiceVersioned is DSComplianceConfigurationS
     uintValues[10] = getMinimumHoldingsPerInvestor();
     uintValues[11] = getMaximumHoldingsPerInvestor();
     uintValues[12] = getEuRetailLimit();
+    uintValues[13] = getUsLockPeriod();
     boolValues[0] = getForceFullTransfer();
     boolValues[1] = getForceAccredited();
+    boolValues[2] = getForceAccreditedUS();
     return (uintValues,boolValues);
   }
 }

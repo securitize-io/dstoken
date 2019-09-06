@@ -188,9 +188,9 @@ contract ESRegistryServiceVersioned is ESServiceConsumerVersioned, DSRegistrySer
     uint[] memory attributeExpiries = new uint[](4);
     string [] memory attributeProofHashes = new string[](4);
     for (uint8 i = 0 ; i < 4 ; i++){
-      attributeValues[i] = ESRegistryServiceLibrary.getAttributeValue(this,_id,(uint8)(2 ** i));
-      attributeExpiries[i] = ESRegistryServiceLibrary.getAttributeExpiry(this,_id,(uint8)(2 ** i));
-      attributeProofHashes[i] = ESRegistryServiceLibrary.getAttributeProofHash(this,_id,(uint8)(2 ** i));
+      attributeValues[i] = ESRegistryServiceLibrary.getAttributeValue(this,_id,(uint8(2) ** i));
+      attributeExpiries[i] = ESRegistryServiceLibrary.getAttributeExpiry(this,_id,(uint8(2) ** i));
+      attributeProofHashes[i] = ESRegistryServiceLibrary.getAttributeProofHash(this,_id,(uint8(2) ** i));
     }
     return (country,attributeValues,attributeExpiries,attributeProofHashes[0],attributeProofHashes[1],attributeProofHashes[2],attributeProofHashes[3]);
   }
