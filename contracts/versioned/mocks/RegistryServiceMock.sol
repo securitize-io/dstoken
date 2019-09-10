@@ -12,6 +12,11 @@ contract RegistryServiceMock is DSRegistryServiceInterfaceVersioned {
     function registerInvestor(string _id, string) public  returns (bool){
         _investorId = _id;
     }
+
+    function updateInvestor(string _id, string, string, address [], uint8[], uint[], uint[]) public /*onlyIssuerOrAbove*/ returns (bool){
+        _investorId = _id;
+    }
+
     function removeInvestor(string) public  returns (bool){}
     function setCountry(string _id, string _country) public  returns (bool){
         _complianceService.adjustInvestorCountsAfterCountryChange(_id,_country,getCountry(_id));
@@ -35,6 +40,11 @@ contract RegistryServiceMock is DSRegistryServiceInterfaceVersioned {
     function removeWallet(address, string) public  returns (bool){}
     function getInvestor(address) public view returns (string){
         return _investorId;
+    }
+    function getInvestorDetailsFull(string) public view returns (string,uint[],uint[], string,string,string,string) {
+        uint[] memory a = new uint[](0);
+        uint[] memory b = new uint[](0);
+        return (_investorId,a,b,"","","","");
     }
     function getInvestorDetails(address) public view returns (string, string){}
     function isInvestor(string) public view returns (bool){}

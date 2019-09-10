@@ -43,10 +43,14 @@ contract ComplianceConfigurationMock is DSComplianceConfigurationServiceInterfac
     function setForceFullTransfer(bool) public {}
     function getForceAccredited() public view returns (bool){}
     function setForceAccredited(bool) public {}
-    function setForceAccreditedUS(bool _value) public {}
+    function setForceAccreditedUS(bool) public {}
     function getForceAccreditedUS() public view returns (bool) {}
     function setAll(uint[], bool[]) public {}
-
+    function getAll() public view returns (uint[],bool[]){
+        uint[] memory a = new uint[](0);
+        bool[] memory b = new bool[](0);
+        return (a,b);
+    }
     function getDSService(uint) public view returns (address) {}
     function setDSService(uint, address) public returns (bool) {}
 }
