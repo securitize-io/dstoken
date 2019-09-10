@@ -87,7 +87,7 @@ module.exports = async function (deployer) {
     });
 
     console.log('Connecting token to token issuer');
-    await tokenIssuer.setDSService(
+    await token.setDSService(
       services.TOKEN_ISSUER,
       tokenIssuer.address,
       {
