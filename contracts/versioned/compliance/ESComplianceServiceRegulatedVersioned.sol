@@ -210,6 +210,60 @@ library ESComplianceServiceLibrary {
     return (0, VALID);
   }
 
+  function preIssuanceCheck(ESComplianceServiceRegulatedVersioned _complianceService, address _to, uint _value) public view returns (uint code, string reason) {
+    if (isNewInvestor(_complianceService, _to)) {
+      // verify global non accredited limit
+      if (!isAccredited(_complianceService, _to)) {
+        if (getComplianceConfigurationService(_complianceService).getNonAccreditedInvestorsLimit() != 0 && 
+            _complianceService.getTotalInvestorsCount().sub(_complianceService.getAccreditedInvestorsCount()) >= getComplianceConfigurationService(_complianceService).getNonAccreditedInvestorsLimit()) {
+          return (40, MAX_INVESTORS_IN_CATEGORY);
+        }
+      }
+      // verify global investors limit
+      if (getComplianceConfigurationService(_complianceService).getTotalInvestorsLimit() != 0 && 
+          _complianceService.getTotalInvestorsCount() >= getComplianceConfigurationService(_complianceService).getTotalInvestorsLimit()) {
+        return (40, MAX_INVESTORS_IN_CATEGORY);
+      }
+    }
+
+    if (getWalletManager(_complianceService).getWalletType(_to) != getWalletManager(_complianceService).PLATFORM() &&
+      balanceOfInvestor(_complianceService, _to).add(_value) < getComplianceConfigurationService(_complianceService).getMinimumHoldingsPerInvestor()) {
+      return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+    }
+    if (getComplianceConfigurationService(_complianceService).getMaximumHoldingsPerInvestor() != 0 &&
+      balanceOfInvestor(_complianceService, _to).add(_value) > getComplianceConfigurationService(_complianceService).getMaximumHoldingsPerInvestor()) {
+      return (52, AMOUNT_OF_TOKENS_ABOVE_MAX);
+    }
+
+    return (0, VALID);
+  }
+
+  function locationSpecificCheckForIssuance(ESComplianceServiceRegulatedVersioned _complianceService, address _to, uint _toRegion) public view returns (uint code, string reason) {
+    if (isNewInvestor(_complianceService, _to)) {
+      if (_toRegion == US) {
+        // verify US investors limit is not exceeded
+        if (getComplianceConfigurationService(_complianceService).getUsInvestorsLimit() != 0 &&
+            _complianceService.getUSInvestorsCount() >= getComplianceConfigurationService(_complianceService).getUsInvestorsLimit()) {
+          return (40, MAX_INVESTORS_IN_CATEGORY);
+        }
+        // verify accredited US limit is not exceeded
+        if (getComplianceConfigurationService(_complianceService).getUsAccreditedInvestorsLimit() != 0 &&
+            isAccredited(_complianceService, _to) &&
+            _complianceService.getUSAccreditedInvestorsCount() >= getComplianceConfigurationService(_complianceService).getUsAccreditedInvestorsLimit()) {
+          return (40, MAX_INVESTORS_IN_CATEGORY);
+        }
+
+      } else if (_toRegion == EU) {
+        if (isRetail(_complianceService, _to) && 
+          _complianceService.getEURetailInvestorsCount(getCountry(_complianceService, _to)) >= getComplianceConfigurationService(_complianceService).getEuRetailLimit()) {
+          return (40, MAX_INVESTORS_IN_CATEGORY);
+        }
+      }
+
+      return (0, VALID);
+    }
+  }
+
   function getToken(DSServiceConsumerInterfaceVersioned _service) public view returns (DSTokenInterfaceVersioned){
     return DSTokenInterfaceVersioned(_service.getDSService(_service.DS_TOKEN()));
   }
@@ -369,12 +423,14 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
         return transferable;
     }
 
-    function preIssuanceCheck(address _to, uint) view public returns (uint code, string reason) {
+    function preIssuanceCheck(address _to, uint _value) view public returns (uint code, string reason) {
         if (!checkWhitelisted(_to)) {
             return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
         }
 
-        return locationSpecificCheckForIssuance(_to);
+        (code, reason) = locationSpecificCheckForIssuance(_to);
+        require(code == 0, reason);
+        return ESComplianceServiceLibrary.preIssuanceCheck(this, _to, _value);
     }
 
     function locationSpecificCheckForIssuance(address _to) view internal returns (uint code, string reason) {
@@ -384,9 +440,9 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
 
         if (toRegion == FORBIDDEN) {
             return (26, DESTINATION_RESTRICTED);
-        }
+        } 
 
-        return (0, VALID);
+        return ESComplianceServiceLibrary.locationSpecificCheckForIssuance(this, _to, toRegion);
     }
 
     function recordTransfer(address _from, address _to, uint _value) internal returns (bool) {
