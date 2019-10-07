@@ -3,6 +3,12 @@ pragma solidity ^0.4.23;
 import "./ESComplianceServiceWhitelistedVersioned.sol";
 
 library ESComplianceServiceLibrary {
+  uint internal constant DS_TOKEN = 0;
+  uint internal constant REGISTRY_SERVICE = 1;
+  uint internal constant WALLET_MANAGER = 2;
+  uint internal constant COMPLIANCE_CONFIGURATION_SERVICE = 3;
+  uint internal constant LOCK_MANAGER = 4;
+  uint internal constant COMPLIANCE_SERVICE = 5;
   uint internal constant NONE = 0;
   uint internal constant US = 1;
   uint internal constant EU = 2;
@@ -26,99 +32,113 @@ library ESComplianceServiceLibrary {
 
   using SafeMath for uint256;
 
-  function isRetail(ESComplianceServiceRegulatedVersioned _complianceService, address _wallet) internal view returns (bool) {
-    return getRegistryService(_complianceService).getAttributeValue(getRegistryService(_complianceService).getInvestor(_wallet), getRegistryService(_complianceService).QUALIFIED()) != getRegistryService(_complianceService).APPROVED();
+  function isRetail(address[] services, address _wallet) internal view returns (bool) {
+    DSRegistryServiceInterfaceVersioned registry = DSRegistryServiceInterfaceVersioned(services[REGISTRY_SERVICE]);
+
+    return registry.getAttributeValue(registry.getInvestor(_wallet), registry.QUALIFIED()) != registry.APPROVED();
   }
 
-  function isAccredited(ESComplianceServiceRegulatedVersioned _complianceService, address _wallet) internal view returns (bool) {
-    return getRegistryService(_complianceService).getAttributeValue(getRegistryService(_complianceService).getInvestor(_wallet), getRegistryService(_complianceService).ACCREDITED()) == getRegistryService(_complianceService).APPROVED();
+  function isAccredited(address[] services, address _wallet) internal view returns (bool) {
+    DSRegistryServiceInterfaceVersioned registry = DSRegistryServiceInterfaceVersioned(services[REGISTRY_SERVICE]);
+
+    return registry.getAttributeValue(registry.getInvestor(_wallet), registry.ACCREDITED()) == registry.APPROVED();
   }
 
-  function balanceOfInvestor(ESComplianceServiceRegulatedVersioned _complianceService, address _wallet) internal view returns (uint) {
-    return getToken(_complianceService).balanceOfInvestor(getRegistryService(_complianceService).getInvestor(_wallet));
+  function balanceOfInvestor(address[] services, address _wallet) internal view returns (uint) {
+    DSRegistryServiceInterfaceVersioned registry = DSRegistryServiceInterfaceVersioned(services[REGISTRY_SERVICE]);
+    DSTokenInterfaceVersioned token = DSTokenInterfaceVersioned(services[DS_TOKEN]);
+
+    return token.balanceOfInvestor(registry.getInvestor(_wallet));
   }
 
-  function isNewInvestor(ESComplianceServiceRegulatedVersioned _complianceService, address _wallet) internal view returns (bool) {
-    return balanceOfInvestor(_complianceService, _wallet) == 0;
+  function isNewInvestor(address[] services, address _wallet) internal view returns (bool) {
+    return balanceOfInvestor(services, _wallet) == 0;
   }
 
-  function getCountry(ESComplianceServiceRegulatedVersioned _complianceService, address _wallet) internal view returns (string) {
-    return getRegistryService(_complianceService).getCountry(getRegistryService(_complianceService).getInvestor(_wallet));
+  function getCountry(address[] services, address _wallet) internal view returns (string) {
+    DSRegistryServiceInterfaceVersioned registry = DSRegistryServiceInterfaceVersioned(services[REGISTRY_SERVICE]);
+
+    return registry.getCountry(registry.getInvestor(_wallet));
   }
 
-  function getCountryCompliance(ESComplianceServiceRegulatedVersioned _complianceService, address _wallet) internal view returns (uint) {
-    return getComplianceConfigurationService(_complianceService).getCountryCompliance(getCountry(_complianceService, _wallet));
+  function getCountryCompliance(address[] services, address _wallet) internal view returns (uint) {
+    return DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getCountryCompliance(getCountry(services, _wallet));
   }
 
-  function getUsInvestorsLimit(ESComplianceServiceRegulatedVersioned _complianceService) public view returns (uint) {
-    if (getComplianceConfigurationService(_complianceService).getMaxUsInvestorsPercentage() == 0) {
-        return getComplianceConfigurationService(_complianceService).getUsInvestorsLimit();
+  function getUsInvestorsLimit(address[] services) public view returns (uint) {
+    ESComplianceServiceRegulatedVersioned complianceService = ESComplianceServiceRegulatedVersioned(services[COMPLIANCE_SERVICE]);
+    DSComplianceConfigurationServiceInterfaceVersioned compConfService = DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]);
+
+    if (compConfService.getMaxUsInvestorsPercentage() == 0) {
+        return compConfService.getUsInvestorsLimit();
     }
 
-    if (getComplianceConfigurationService(_complianceService).getUsInvestorsLimit() == 0) {
-        return getComplianceConfigurationService(_complianceService).getMaxUsInvestorsPercentage().mul(_complianceService.getTotalInvestorsCount()).div(100);
+    if (compConfService.getUsInvestorsLimit() == 0) {
+        return compConfService.getMaxUsInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100);
     }
 
-    return Math.min256(getComplianceConfigurationService(_complianceService).getUsInvestorsLimit(), getComplianceConfigurationService(_complianceService).getMaxUsInvestorsPercentage().mul(_complianceService.getTotalInvestorsCount()).div(100));
+    return Math.min256(compConfService.getUsInvestorsLimit(), compConfService.getMaxUsInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100));
   }
 
-  function preTransferCheck(ESComplianceServiceRegulatedVersioned _complianceService, address _from, address _to, uint _value) public view returns (uint code, string reason) {
-    if (getToken(_complianceService).isPaused()) {
+  function preTransferCheck(address[] services, address _from, address _to, uint _value) public view returns (uint code, string reason) {
+    ESComplianceServiceRegulatedVersioned complianceService = ESComplianceServiceRegulatedVersioned(services[COMPLIANCE_SERVICE]);
+
+    if (DSTokenInterfaceVersioned(services[DS_TOKEN]).isPaused()) {
       return (10, TOKEN_PAUSED);
     }
 
-    if (getToken(_complianceService).balanceOf(_from) < _value) {
+    if (DSTokenInterfaceVersioned(services[DS_TOKEN]).balanceOf(_from) < _value) {
       return (15, NOT_ENOUGH_TOKENS);
     }
 
-    if (keccak256(abi.encodePacked(getRegistryService(_complianceService).getInvestor(_from))) != keccak256("") &&
-        keccak256(abi.encodePacked(getRegistryService(_complianceService).getInvestor(_from))) == keccak256(abi.encodePacked(getRegistryService(_complianceService).getInvestor(_to)))) {
+    if (keccak256(abi.encodePacked(DSRegistryServiceInterfaceVersioned(services[REGISTRY_SERVICE]).getInvestor(_from))) != keccak256("") &&
+        keccak256(abi.encodePacked(DSRegistryServiceInterfaceVersioned(services[REGISTRY_SERVICE]).getInvestor(_from))) == keccak256(abi.encodePacked(DSRegistryServiceInterfaceVersioned(services[REGISTRY_SERVICE]).getInvestor(_to)))) {
             return (0, VALID);
     }
 
-    uint fromInvestorBalance = balanceOfInvestor(_complianceService, _from);
+    uint fromInvestorBalance = balanceOfInvestor(services, _from);
 
-    if (getWalletManager(_complianceService).getWalletType(_to) == getWalletManager(_complianceService).PLATFORM()) {
-        if (getComplianceConfigurationService(_complianceService).getForceFullTransfer() && fromInvestorBalance > _value) {
+    if (DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).getWalletType(_to) == DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).PLATFORM()) {
+        if (DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() && fromInvestorBalance > _value) {
             return (50, ONLY_FULL_TRANSFER);
         }
 
         return (0, VALID);
     }
 
-    if (getWalletManager(_complianceService).getWalletType(_from) != getWalletManager(_complianceService).PLATFORM() && getLockManager(_complianceService).getTransferableTokens(_from, uint64(now)) < _value) {
+    if (DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).getWalletType(_from) != DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).PLATFORM() && DSLockManagerInterfaceVersioned(services[LOCK_MANAGER]).getTransferableTokens(_from, uint64(now)) < _value) {
         return (16, TOKENS_LOCKED);
     }
 
 
-    if (!_complianceService.checkWhitelisted(_to)) {
+    if (!complianceService.checkWhitelisted(_to)) {
         return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
     }
 
-    uint fromRegion = getCountryCompliance(_complianceService, _from);
-    uint toRegion = getCountryCompliance(_complianceService, _to);
+    uint fromRegion = getCountryCompliance(services, _from);
+    uint toRegion = getCountryCompliance(services, _to);
 
     if (fromRegion == US) {
-        if (_complianceService.getComplianceTransferableTokens(_from, uint64(now), uint64(getComplianceConfigurationService(_complianceService).getUsLockPeriod())) < _value) {
+        if (complianceService.getComplianceTransferableTokens(_from, uint64(now), uint64(DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsLockPeriod())) < _value) {
             return (32, HOLD_UP_1Y);
         }
 
         if (fromInvestorBalance > _value &&
-            fromInvestorBalance.sub(_value) < getComplianceConfigurationService(_complianceService).getMinUsTokens()) {
+            fromInvestorBalance.sub(_value) < DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()) {
            return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
 
-        if (getComplianceConfigurationService(_complianceService).getForceFullTransfer() && fromInvestorBalance > _value) {
+        if (DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() && fromInvestorBalance > _value) {
             return (50, ONLY_FULL_TRANSFER);
         }
     } else {
-        if (getWalletManager(_complianceService).getWalletType(_from) != getWalletManager(_complianceService).PLATFORM() && _complianceService.getComplianceTransferableTokens(_from, uint64(now), uint64(getComplianceConfigurationService(_complianceService).getNonUsLockPeriod())) < _value) {
+        if (DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).getWalletType(_from) != DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).PLATFORM() && complianceService.getComplianceTransferableTokens(_from, uint64(now), uint64(DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUsLockPeriod())) < _value) {
             return (33, HOLD_UP);
         }
 
-        if (toRegion == US && !(getWalletManager(_complianceService).getWalletType(_from) == getWalletManager(_complianceService).PLATFORM()) &&
-               (getComplianceConfigurationService(_complianceService).getBlockFlowbackEndTime() == 0 ||
-                getComplianceConfigurationService(_complianceService).getBlockFlowbackEndTime() > now)) {
+        if (toRegion == US && !(DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).getWalletType(_from) == DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).PLATFORM()) &&
+               (DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() == 0 ||
+                DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() > now)) {
             return (25, FLOWBACK);
         }
     }
@@ -128,82 +148,82 @@ library ESComplianceServiceLibrary {
     }
 
     if (toRegion == EU) {
-        if (isRetail(_complianceService, _to) && _complianceService.getEURetailInvestorsCount(getCountry(_complianceService, _to)) >= getComplianceConfigurationService(_complianceService).getEuRetailLimit() &&
-            isNewInvestor(_complianceService, _to) &&
-            (keccak256(abi.encodePacked(getCountry(_complianceService, _from))) != keccak256(abi.encodePacked(getCountry(_complianceService, _to))) ||
-            (fromInvestorBalance > _value && isRetail(_complianceService, _from)))) {
+        if (isRetail(services, _to) && complianceService.getEURetailInvestorsCount(getCountry(services, _to)) >= DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getEuRetailLimit() &&
+            isNewInvestor(services, _to) &&
+            (keccak256(abi.encodePacked(getCountry(services, _from))) != keccak256(abi.encodePacked(getCountry(services, _to))) ||
+            (fromInvestorBalance > _value && isRetail(services, _from)))) {
             return (40, MAX_INVESTORS_IN_CATEGORY);
         }
 
-        if (balanceOfInvestor(_complianceService, _to).add(_value) < getComplianceConfigurationService(_complianceService).getMinEuTokens()) {
+        if (balanceOfInvestor(services, _to).add(_value) < DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens()) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
     }
 
     if (fromRegion == EU) {
-        if (fromInvestorBalance.sub(_value) < getComplianceConfigurationService(_complianceService).getMinEuTokens() &&
+        if (fromInvestorBalance.sub(_value) < DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens() &&
             fromInvestorBalance > _value) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
     }
 
-    if (getComplianceConfigurationService(_complianceService).getForceAccredited() && !isAccredited(_complianceService, _to)) {
+    if (DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccredited() && !isAccredited(services, _to)) {
         return (61, ONLY_ACCREDITED);
     }
 
     if (toRegion == US) {
-        if(getComplianceConfigurationService(_complianceService).getForceAccreditedUS() && !isAccredited(_complianceService, _to)) {
+        if(DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccreditedUS() && !isAccredited(services, _to)) {
             return (61,ONLY_US_ACCREDITED);
         }
 
-        uint usInvestorsLimit = getUsInvestorsLimit(_complianceService);
-        if (usInvestorsLimit != 0 && fromInvestorBalance > _value && _complianceService.getUSInvestorsCount() >= usInvestorsLimit &&
-            isNewInvestor(_complianceService, _to)) {
+        uint usInvestorsLimit = getUsInvestorsLimit(services);
+        if (usInvestorsLimit != 0 && fromInvestorBalance > _value && complianceService.getUSInvestorsCount() >= usInvestorsLimit &&
+            isNewInvestor(services, _to)) {
             return (41, ONLY_FULL_TRANSFER);
         }
 
-        if (getComplianceConfigurationService(_complianceService).getUsAccreditedInvestorsLimit() != 0 && isAccredited(_complianceService, _to) && _complianceService.getUSAccreditedInvestorsCount() >= getComplianceConfigurationService(_complianceService).getUsAccreditedInvestorsLimit() &&
-            isNewInvestor(_complianceService, _to) &&
-            (fromRegion != US || (fromInvestorBalance > _value && isAccredited(_complianceService, _from)))) {
+        if (DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() != 0 && isAccredited(services, _to) && complianceService.getUSAccreditedInvestorsCount() >= DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() &&
+            isNewInvestor(services, _to) &&
+            (fromRegion != US || (fromInvestorBalance > _value && isAccredited(services, _from)))) {
             return (40, MAX_INVESTORS_IN_CATEGORY);
         }
 
-        if (balanceOfInvestor(_complianceService, _to).add(_value) < getComplianceConfigurationService(_complianceService).getMinUsTokens()) {
+        if (balanceOfInvestor(services, _to).add(_value) < DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
     }
 
-    if (!isAccredited(_complianceService, _to)) {
-        if (getComplianceConfigurationService(_complianceService).getNonAccreditedInvestorsLimit() != 0 && _complianceService.getTotalInvestorsCount().sub(_complianceService.getAccreditedInvestorsCount()) >= getComplianceConfigurationService(_complianceService).getNonAccreditedInvestorsLimit() &&
-            isNewInvestor(_complianceService, _to) &&
-            (isAccredited(_complianceService, _from) || fromInvestorBalance > _value)) {
+    if (!isAccredited(services, _to)) {
+        if (DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit() != 0 && complianceService.getTotalInvestorsCount().sub(complianceService.getAccreditedInvestorsCount()) >= DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit() &&
+            isNewInvestor(services, _to) &&
+            (isAccredited(services, _from) || fromInvestorBalance > _value)) {
             return (40, MAX_INVESTORS_IN_CATEGORY);
         }
     }
 
-    if (getComplianceConfigurationService(_complianceService).getTotalInvestorsLimit() != 0 && fromInvestorBalance > _value &&
-        _complianceService.getTotalInvestorsCount() >= getComplianceConfigurationService(_complianceService).getTotalInvestorsLimit() &&
-        balanceOfInvestor(_complianceService, _to) == 0) {
+    if (DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getTotalInvestorsLimit() != 0 && fromInvestorBalance > _value &&
+        complianceService.getTotalInvestorsCount() >= DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getTotalInvestorsLimit() &&
+        balanceOfInvestor(services, _to) == 0) {
         return (41, ONLY_FULL_TRANSFER);
     }
 
-    if (balanceOfInvestor(_complianceService, _from) == _value && !isNewInvestor(_complianceService, _to) &&
-        _complianceService.getTotalInvestorsCount() <= getComplianceConfigurationService(_complianceService).getMinimumTotalInvestors()) {
+    if (balanceOfInvestor(services, _from) == _value && !isNewInvestor(services, _to) &&
+        complianceService.getTotalInvestorsCount() <= DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumTotalInvestors()) {
         return (71, NOT_ENOUGH_INVESTORS);
     }
 
-    if (getWalletManager(_complianceService).getWalletType(_from) != getWalletManager(_complianceService).PLATFORM() &&
-        fromInvestorBalance.sub(_value) < getComplianceConfigurationService(_complianceService).getMinimumHoldingsPerInvestor()) {
+    if (DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).getWalletType(_from) != DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).PLATFORM() &&
+        fromInvestorBalance.sub(_value) < DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()) {
         return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
     }
 
-    if (getWalletManager(_complianceService).getWalletType(_to) != getWalletManager(_complianceService).PLATFORM() &&
-        balanceOfInvestor(_complianceService, _to).add(_value) < getComplianceConfigurationService(_complianceService).getMinimumHoldingsPerInvestor()) {
+    if (DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).getWalletType(_to) != DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).PLATFORM() &&
+        balanceOfInvestor(services, _to).add(_value) < DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()) {
         return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
     }
 
-    if (getComplianceConfigurationService(_complianceService).getMaximumHoldingsPerInvestor() != 0 &&
-        balanceOfInvestor(_complianceService, _to).add(_value) > getComplianceConfigurationService(_complianceService).getMaximumHoldingsPerInvestor()) {
+    if (DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor() != 0 &&
+        balanceOfInvestor(services, _to).add(_value) > DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor()) {
         return (52, AMOUNT_OF_TOKENS_ABOVE_MAX);
     }
 
@@ -252,7 +272,7 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
     using SafeMath for uint256;
 
     constructor(address _address, string _namespace) public ESComplianceServiceWhitelistedVersioned(_address, _namespace) {
-        VERSIONS.push(3);
+        VERSIONS.push(4);
     }
 
     function recordBurn(address _who, uint _value) internal returns (bool) {
@@ -331,7 +351,16 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
     }
 
     function preTransferCheck(address _from, address _to, uint _value) view public returns (uint code, string reason) {
-        (code, reason) = ESComplianceServiceLibrary.preTransferCheck(this, _from, _to, _value);
+        address[] memory services = new address[](6);
+
+        services[0] = getDSService(DS_TOKEN);
+        services[1] = getDSService(REGISTRY_SERVICE);
+        services[2] = getDSService(WALLET_MANAGER);
+        services[3] = getDSService(COMPLIANCE_CONFIGURATION_SERVICE);
+        services[4] = getDSService(LOCK_MANAGER);
+        services[5] = this;
+
+        (code, reason) = ESComplianceServiceLibrary.preTransferCheck(services,_from, _to, _value);
 
         if (code != 0) {
             return (code, reason);
