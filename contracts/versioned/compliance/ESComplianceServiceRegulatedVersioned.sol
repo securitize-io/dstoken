@@ -474,7 +474,7 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
             return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
         }
 
-        (code, reason) = locationSpecificCheckForIssuance(_to);
+        (code, reason) = locationSpecificCheckForIssuance(services, _to);
         require(code == 0, reason);
         return ESComplianceServiceLibrary.preIssuanceCheck(services, _to, _value);
     }
