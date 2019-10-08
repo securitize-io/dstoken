@@ -176,7 +176,7 @@ library ESComplianceServiceLibrary {
             return (61,ONLY_US_ACCREDITED);
         }
 
-        uint usInvestorsLimit = getUsInvestorsLimit(services); // ?
+        uint usInvestorsLimit = getUsInvestorsLimit(services);
         if (usInvestorsLimit != 0 && fromInvestorBalance > _value && complianceService.getUSInvestorsCount() >= usInvestorsLimit &&
             isNewInvestor(services, _to)) {
             return (41, ONLY_FULL_TRANSFER);
