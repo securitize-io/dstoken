@@ -176,7 +176,7 @@ library ESComplianceServiceLibrary {
             return (61,ONLY_US_ACCREDITED);
         }
 
-        uint usInvestorsLimit = getUsInvestorsLimit(services);
+        uint usInvestorsLimit = getUsInvestorsLimit(services); // ?
         if (usInvestorsLimit != 0 && fromInvestorBalance > _value && complianceService.getUSInvestorsCount() >= usInvestorsLimit &&
             isNewInvestor(services, _to)) {
             return (41, ONLY_FULL_TRANSFER);
@@ -259,8 +259,16 @@ library ESComplianceServiceLibrary {
     return (0, VALID);
   }
 
-  function locationSpecificCheckForIssuance(address[] services, address _to, uint _toRegion) public view returns (uint code, string reason) {
+  function locationSpecificCheckForIssuance(address[] services, address _to) public view returns (uint code, string reason) {
     ESComplianceServiceRegulatedVersioned complianceService = ESComplianceServiceRegulatedVersioned(services[COMPLIANCE_SERVICE]);
+    string memory toInvestor = DSRegistryServiceInterfaceVersioned(services[REGISTRY_SERVICE]).getInvestor(_to);
+    string memory toCountry = DSRegistryServiceInterfaceVersioned(services[REGISTRY_SERVICE]).getCountry(toInvestor);
+    uint toRegion = DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getCountryCompliance(toCountry);
+
+    if (toRegion == FORBIDDEN) {
+      return (26, DESTINATION_RESTRICTED);
+    }
+
     if (isNewInvestor(services, _to)) {
       if (_toRegion == US) {
         // verify US investors limit is not exceeded
@@ -471,23 +479,8 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
         return ESComplianceServiceLibrary.preIssuanceCheck(services, _to, _value);
     }
 
-    function locationSpecificCheckForIssuance(address _to) view internal returns (uint code, string reason) {
-        address[] memory services = new address[](6);
-        services[0] = getDSService(DS_TOKEN);
-        services[1] = getDSService(REGISTRY_SERVICE);
-        services[2] = getDSService(WALLET_MANAGER);
-        services[3] = getDSService(COMPLIANCE_CONFIGURATION_SERVICE);
-        services[4] = getDSService(LOCK_MANAGER);
-        services[5] = this;
-        string memory toInvestor = getRegistryService().getInvestor(_to);
-        string memory toCountry = getRegistryService().getCountry(toInvestor);
-        uint toRegion = getComplianceConfigurationService().getCountryCompliance(toCountry);
-
-        if (toRegion == FORBIDDEN) {
-            return (26, DESTINATION_RESTRICTED);
-        }
-
-        return ESComplianceServiceLibrary.locationSpecificCheckForIssuance(services, _to, toRegion);
+    function locationSpecificCheckForIssuance(address[] services, address _to) view internal returns (uint code, string reason) {
+      return ESComplianceServiceLibrary.locationSpecificCheckForIssuance(services, _to);
     }
 
     function recordTransfer(address _from, address _to, uint _value) internal returns (bool) {
