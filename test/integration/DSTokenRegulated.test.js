@@ -268,47 +268,6 @@ contract('DSToken (regulated)', function([
   });
 
   describe('issuance', function() {
-    it('should not issue tokens below the minimum holdings per investor', async function() {
-      await this.complianceConfiguration.setMinimumHoldingsPerInvestor(50);
-      await assertRevert(this.token.issueTokens(usInvestor, 10));
-    });
-
-    it('should not issue tokens above the maximum holdings per investor', async function() {
-      await this.complianceConfiguration.setMaximumHoldingsPerInvestor(300);
-      await assertRevert(this.token.issueTokens(usInvestor, 310));
-    });
-
-    it('should not issue tokens to a new investor if investor limit is exceeded', async function() {
-      await this.complianceConfiguration.setTotalInvestorsLimit(1);
-      await this.token.issueTokens(usInvestor, 100);
-      await assertRevert(this.token.issueTokens(israelInvestor, 100));
-    });
-
-    it('should not issue tokens to a new investor if non accredited limit is exceeded', async function() {
-      await this.complianceConfiguration.setNonAccreditedInvestorsLimit(1);
-      await this.token.issueTokens(usInvestor, 100);
-      await assertRevert(this.token.issueTokens(israelInvestor, 100));
-    });
-
-    it('should not issue tokens to a new investor if US investors limit is exceeded', async function() {
-      await this.complianceConfiguration.setUsInvestorsLimit(1);
-      await this.token.issueTokens(usInvestor, 100);
-      await assertRevert(this.token.issueTokens(usInvestor2, 100));
-    });
-
-    it('should not issue tokens to a new investor if US Accredited investors limit is exceeded', async function() {
-      await this.complianceConfiguration.setUsAccreditedInvestorsLimit(1);
-      await this.registryService.setAttribute(US_INVESTOR_ID, 2, 1, 0, 'abcde');
-      await this.registryService.setAttribute(US_INVESTOR_ID_2, 2, 1, 0, 'abcdef');
-      await this.token.issueTokens(usInvestor, 100);
-      await assertRevert(this.token.issueTokens(usInvestor2, 100));
-    });
-
-    it('should not issue tokens to a new investor if EU Retail limit is exceeded', async function() {
-      await this.complianceConfiguration.setEuRetailLimit(0);
-      await assertRevert(this.token.issueTokens(germanyInvestor, 100));
-    });
-
     it('should issue tokens to a us wallet', async function() {
       await this.token.issueTokens(usInvestor, 100);
       const balance = await this.token.balanceOf(usInvestor);
