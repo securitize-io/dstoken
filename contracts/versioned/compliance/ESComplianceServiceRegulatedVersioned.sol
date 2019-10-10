@@ -270,7 +270,7 @@ library ESComplianceServiceLibrary {
     }
 
     if (isNewInvestor(services, _to)) {
-      if (_toRegion == US) {
+      if (toRegion == US) {
         // verify US investors limit is not exceeded
         if (DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsInvestorsLimit() != 0 &&
             complianceService.getUSInvestorsCount() >= DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsInvestorsLimit()) {
@@ -283,7 +283,7 @@ library ESComplianceServiceLibrary {
           return (40, MAX_INVESTORS_IN_CATEGORY);
         }
 
-      } else if (_toRegion == EU) {
+      } else if (toRegion == EU) {
         if (isRetail(services, _to) &&
           complianceService.getEURetailInvestorsCount(getCountry(services, _to)) >= DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getEuRetailLimit()) {
           return (40, MAX_INVESTORS_IN_CATEGORY);

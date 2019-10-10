@@ -43,7 +43,7 @@ contract ComplianceConfigurationMock is DSComplianceConfigurationServiceInterfac
     function setForceFullTransfer(bool) public {}
     function getForceAccredited() public view returns (bool){}
     function setForceAccredited(bool) public {}
-    function setForceAccreditedUS(bool _value) public {}
+    function setForceAccreditedUS(bool) public {}
     function getForceAccreditedUS() public view returns (bool) {}
     function setAll(uint[], bool[]) public {}
 
