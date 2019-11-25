@@ -458,9 +458,12 @@ contract('Integration', function([
         'TEST2',
         (await latestTime()) + 8 * WEEKS
       );
-      assert.equal(tx.logs[0].event, 'Locked');
-      assert.equal(tx.logs[0].args.who.valueOf(), germanyInvestor);
+      assert.equal(tx.logs[0].event, 'HolderLocked');
+      assert.equal(tx.logs[0].args.holderId, GERMANY_INVESTOR_ID);
       assert.equal(tx.logs[0].args.value.valueOf(), 100);
+      assert.equal(tx.logs[1].event, 'Locked');
+      assert.equal(tx.logs[1].args.who.valueOf(), germanyInvestor);
+      assert.equal(tx.logs[1].args.value.valueOf(), 100);
 
       tt = await lockManager.getTransferableTokens(germanyInvestor, await latestTime());
       assert.equal(tt.toNumber(), 1150);
