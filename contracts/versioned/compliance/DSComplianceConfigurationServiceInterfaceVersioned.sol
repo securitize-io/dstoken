@@ -44,4 +44,5 @@ contract DSComplianceConfigurationServiceInterfaceVersioned is DSServiceConsumer
   function setForceAccreditedUS(bool _value) public /*onlyIssuerOrAbove*/;
   function getForceAccreditedUS() public view returns (bool);
   function setAll(uint[] _uint_values, bool[] _bool_values) public /*onlyIssuerOrAbove*/;
-}
+  function getAll() public view returns (uint[],bool[]);
+  }

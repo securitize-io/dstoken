@@ -149,4 +149,26 @@ contract ESLockManagerVersioned is ESServiceConsumerVersioned, DSLockManagerInte
 
     return transferable;
   }
+
+
+  function getTransferableTokensForHolder(string , uint64 ) public view returns (uint) {
+    return 0;
+  }
+
+  function lockInfoForHolder(string , uint ) public view returns (uint reasonCode, string reasonString, uint value, uint autoReleaseTime){
+    return (0,"",0,0);
+  }
+
+  function lockCountForHolder(string ) public view returns (uint){
+    return 0;
+  }
+
+  function createLockForHolder(string , uint ,uint , string ,uint ) onlyIssuerOrAboveOrToken public {
+    revert("lock manager supports only wallet locks");
+  }
+
+  function removeLockRecordForHolder(string , uint ) onlyIssuerOrAbove public returns (bool){
+    revert("lock manager supports only wallet locks");
+
+  }
 }

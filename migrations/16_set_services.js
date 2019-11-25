@@ -14,7 +14,7 @@ const MultiSigWallet = artifacts.require('MultiSigWalletVersioned');
 const configurationManager = require('./utils/configurationManager');
 const services = require('../utils/globals').services;
 
-module.exports = async function(deployer) {
+module.exports = async function (deployer) {
   if (configurationManager.isTestMode()) {
     return;
   }
@@ -85,6 +85,16 @@ module.exports = async function(deployer) {
     await token.setDSService(services.REGISTRY_SERVICE, registry.address, {
       gas: 1e6,
     });
+
+    console.log('Connecting token to token issuer');
+    await token.setDSService(
+      services.TOKEN_ISSUER,
+      tokenIssuer.address,
+      {
+        gas: 1e6,
+      }
+    );
+
     console.log('Connecting token issuer to registry');
     await tokenIssuer.setDSService(
       services.REGISTRY_SERVICE,

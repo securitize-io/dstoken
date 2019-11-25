@@ -9,6 +9,7 @@ module.exports = {
     LOCK_MANAGER: 64,
     ISSUANCE_INFORMATION_MANAGER: 128,
     COMPLIANCE_CONFIGURATION_SERVICE: 256,
+    TOKEN_ISSUER: 512
   },
   roles: {
     NONE: 0,

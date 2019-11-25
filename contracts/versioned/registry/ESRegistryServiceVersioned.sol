@@ -154,6 +154,47 @@ contract ESRegistryServiceVersioned is ESServiceConsumerVersioned, DSRegistrySer
     return true;
   }
 
+  function updateInvestor(string _id, string _collisionHash, string _country, address [] _wallets, uint8[] _attributeIds, uint[] _attributeValues, uint[] _attributeExpirations) public onlyIssuerOrAbove returns (bool) {
+    require(_attributeValues.length == _attributeIds.length);
+    require(_attributeIds.length == _attributeValues.length);
+
+    if (!isInvestor(_id)) {
+      registerInvestor(_id, _collisionHash);
+    }
+
+    if (bytes(_country).length > 0){
+      setCountry(_id,_country);
+    }
+
+    for (uint i = 0; i < _wallets.length; i++) {
+      if (isWallet(_wallets[i])) {
+        require(keccak256(abi.encodePacked(getInvestor(_wallets[i]))) == keccak256(abi.encodePacked(_id)), "Wallet belongs to a different investor");
+      } else {
+        addWallet(_wallets[i], _id);
+      }
+    }
+
+    for (i = 0 ; i < _attributeIds.length ; i++){
+      setAttribute(_id, _attributeIds[i] ,_attributeValues[i], _attributeExpirations[i], "");
+    }
+
+
+    return true;
+  }
+
+  function getInvestorDetailsFull(string _id) public view returns (string,uint[],uint[], string,string,string,string) {
+    string memory country = ESRegistryServiceLibrary.getCountry(this, _id);
+    uint[] memory attributeValues = new uint[](4);
+    uint[] memory attributeExpiries = new uint[](4);
+    string [] memory attributeProofHashes = new string[](4);
+    for (uint8 i = 0 ; i < 4 ; i++){
+      attributeValues[i] = ESRegistryServiceLibrary.getAttributeValue(this,_id,(uint8(2) ** i));
+      attributeExpiries[i] = ESRegistryServiceLibrary.getAttributeExpiry(this,_id,(uint8(2) ** i));
+      attributeProofHashes[i] = ESRegistryServiceLibrary.getAttributeProofHash(this,_id,(uint8(2) ** i));
+    }
+    return (country,attributeValues,attributeExpiries,attributeProofHashes[0],attributeProofHashes[1],attributeProofHashes[2],attributeProofHashes[3]);
+  }
+
   function setCountry(string _id, string _country) public onlyExchangeOrAbove investorExists(_id) returns (bool) {
     string memory prevCountry = getCountry(_id);
 
