@@ -14,9 +14,10 @@ contract DSTokenVersioned is ProxyTargetVersioned, DSTokenInterfaceVersioned, ES
   string public name;
   string public symbol;
   uint8 public decimals;
+  uint256 public supportedFeatures;
 
   constructor() ESServiceConsumerVersioned(address(0x0), "") public {
-    VERSIONS.push(1);
+    VERSIONS.push(2);
   }
 
   function initialize(string _name,
@@ -39,6 +40,23 @@ contract DSTokenVersioned is ProxyTargetVersioned, DSTokenInterfaceVersioned, ES
   /******************************
        TOKEN CONFIGURATION
    *******************************/
+
+  function setFeature(uint8 featureIndex,bool enable) public onlyMaster {
+    uint256 base = 2;
+    uint256 mask = base ** featureIndex;
+
+    // Enable only if the feature is turned off and disable only if the feature is turned on
+    if(enable && (supportedFeatures & mask == 0)) {
+      supportedFeatures = supportedFeatures ^ mask;
+    }
+    else if(!enable && (supportedFeatures & mask >= 1)) {
+      supportedFeatures = supportedFeatures ^ mask;
+    }
+  }
+
+  function setFeatures(uint256 features) public onlyMaster {
+    supportedFeatures = features;
+  }
 
   function setCap(uint256 _cap) public onlyMaster {
     uint cap = getUint(CAP);

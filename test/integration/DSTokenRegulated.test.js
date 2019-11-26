@@ -247,6 +247,54 @@ contract('DSToken (regulated)', function([
     });
   });
 
+  describe('Features flag', function() {
+    it('Should enable/disable features correctly', async function() {
+      let supportedFeatures = await this.token.supportedFeatures.call();
+
+      assert.equal(supportedFeatures.toNumber(), 0);
+
+      await this.token.setFeature(20, true);
+      supportedFeatures = await this.token.supportedFeatures.call();
+      assert.equal(supportedFeatures.toNumber(), Math.pow(2, 20));
+
+      await this.token.setFeature(20, false);
+      supportedFeatures = await this.token.supportedFeatures.call();
+      assert.equal(supportedFeatures.toNumber(), 0);
+
+      await this.token.setFeature(31, true);
+      await this.token.setFeature(32, true);
+      supportedFeatures = await this.token.supportedFeatures.call();
+      assert.equal(supportedFeatures.toNumber(), Math.pow(2, 31) + Math.pow(2, 32));
+
+      await this.token.setFeature(31, false);
+      await this.token.setFeature(32, false);
+      supportedFeatures = await this.token.supportedFeatures.call();
+      assert.equal(supportedFeatures.toNumber(), 0);
+
+      // Should be the same when setting twice
+      await this.token.setFeature(31, true);
+      await this.token.setFeature(31, true);
+      supportedFeatures = await this.token.supportedFeatures.call();
+      assert.equal(supportedFeatures.toNumber(), Math.pow(2, 31));
+
+      await this.token.setFeature(31, false);
+      await this.token.setFeature(31, false);
+      supportedFeatures = await this.token.supportedFeatures.call();
+      assert.equal(supportedFeatures.toNumber(), 0);
+    });
+
+    it('Should set features member correctly', async function() {
+      let supportedFeatures = await this.token.supportedFeatures.call();
+
+      assert.equal(supportedFeatures.toNumber(), 0);
+
+      await this.token.setFeatures(Math.pow(2, 31));
+      supportedFeatures = await this.token.supportedFeatures.call();
+
+      assert.equal(supportedFeatures.toNumber(), Math.pow(2, 31));
+    });
+  });
+
   describe('cap', function() {
     beforeEach(async function() {
       await this.token.setCap(1000);
