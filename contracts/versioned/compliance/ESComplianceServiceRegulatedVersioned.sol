@@ -230,6 +230,65 @@ library ESComplianceServiceLibrary {
     return (0, VALID);
   }
 
+  function preIssuanceCheck(address[] services, address _to, uint _value) public view returns (uint code, string reason) {
+    ESComplianceServiceRegulatedVersioned complianceService = ESComplianceServiceRegulatedVersioned(services[COMPLIANCE_SERVICE]);
+    DSComplianceConfigurationServiceInterfaceVersioned complianceConfigurationService = DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]);
+    DSWalletManagerInterfaceVersioned walletManager = DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]);
+    string memory toInvestor = DSRegistryServiceInterfaceVersioned(services[REGISTRY_SERVICE]).getInvestor(_to);
+    string memory toCountry = DSRegistryServiceInterfaceVersioned(services[REGISTRY_SERVICE]).getCountry(toInvestor);
+    uint toRegion = complianceConfigurationService.getCountryCompliance(toCountry);
+
+    if (toRegion == FORBIDDEN) {
+      return (26, DESTINATION_RESTRICTED);
+    }
+
+    if (isNewInvestor(services, _to)) {
+      // verify global non accredited limit
+      if (!isAccredited(services, _to)) {
+        if (complianceConfigurationService.getNonAccreditedInvestorsLimit() != 0 &&
+            complianceService.getTotalInvestorsCount().sub(complianceService.getAccreditedInvestorsCount()) >= complianceConfigurationService.getNonAccreditedInvestorsLimit()) {
+          return (40, MAX_INVESTORS_IN_CATEGORY);
+        }
+      }
+      // verify global investors limit
+      if (complianceConfigurationService.getTotalInvestorsLimit() != 0 &&
+          complianceService.getTotalInvestorsCount() >= complianceConfigurationService.getTotalInvestorsLimit()) {
+        return (40, MAX_INVESTORS_IN_CATEGORY);
+      }
+
+      if (toRegion == US) {
+        // verify US investors limit is not exceeded
+        if (complianceConfigurationService.getUsInvestorsLimit() != 0 &&
+            complianceService.getUSInvestorsCount() >= complianceConfigurationService.getUsInvestorsLimit()) {
+          return (40, MAX_INVESTORS_IN_CATEGORY);
+        }
+        // verify accredited US limit is not exceeded
+        if (complianceConfigurationService.getUsAccreditedInvestorsLimit() != 0 &&
+            isAccredited(services, _to) &&
+            complianceService.getUSAccreditedInvestorsCount() >= complianceConfigurationService.getUsAccreditedInvestorsLimit()) {
+          return (40, MAX_INVESTORS_IN_CATEGORY);
+        }
+
+      } else if (toRegion == EU) {
+        if (isRetail(services, _to) &&
+          complianceService.getEURetailInvestorsCount(getCountry(services, _to)) >= complianceConfigurationService.getEuRetailLimit()) {
+          return (40, MAX_INVESTORS_IN_CATEGORY);
+        }
+      }
+    }
+
+    if (walletManager.getWalletType(_to) != walletManager.PLATFORM() &&
+      balanceOfInvestor(services, _to).add(_value) < complianceConfigurationService.getMinimumHoldingsPerInvestor()) {
+      return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+    }
+    if (complianceConfigurationService.getMaximumHoldingsPerInvestor() != 0 &&
+      balanceOfInvestor(services, _to).add(_value) > complianceConfigurationService.getMaximumHoldingsPerInvestor()) {
+      return (52, AMOUNT_OF_TOKENS_ABOVE_MAX);
+    }
+
+    return (0, VALID);
+  }
+
   function getToken(DSServiceConsumerInterfaceVersioned _service) public view returns (DSTokenInterfaceVersioned){
     return DSTokenInterfaceVersioned(_service.getDSService(_service.DS_TOKEN()));
   }
@@ -398,24 +457,20 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
         return transferable;
     }
 
-    function preIssuanceCheck(address _to, uint) view public returns (uint code, string reason) {
+    function preIssuanceCheck(address _to, uint _value) view public returns (uint code, string reason) {
+        address[] memory services = new address[](6);
+        services[0] = getDSService(DS_TOKEN);
+        services[1] = getDSService(REGISTRY_SERVICE);
+        services[2] = getDSService(WALLET_MANAGER);
+        services[3] = getDSService(COMPLIANCE_CONFIGURATION_SERVICE);
+        services[4] = getDSService(LOCK_MANAGER);
+        services[5] = this;
+
         if (!checkWhitelisted(_to)) {
             return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
         }
 
-        return locationSpecificCheckForIssuance(_to);
-    }
-
-    function locationSpecificCheckForIssuance(address _to) view internal returns (uint code, string reason) {
-        string memory toInvestor = getRegistryService().getInvestor(_to);
-        string memory toCountry = getRegistryService().getCountry(toInvestor);
-        uint toRegion = getComplianceConfigurationService().getCountryCompliance(toCountry);
-
-        if (toRegion == FORBIDDEN) {
-            return (26, DESTINATION_RESTRICTED);
-        }
-
-        return (0, VALID);
+        return ESComplianceServiceLibrary.preIssuanceCheck(services, _to, _value);
     }
 
     function recordTransfer(address _from, address _to, uint _value) internal returns (bool) {
@@ -430,7 +485,7 @@ contract ESComplianceServiceRegulatedVersioned is ESComplianceServiceWhitelisted
         return true;
     }
 
-    function checkTransfer(address, address, uint) view internal returns (uint, string){
+    function checkTransfer(address, address, uint) view internal returns (uint, string) {
         return (0, VALID);
     }
 

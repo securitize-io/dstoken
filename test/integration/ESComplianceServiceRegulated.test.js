@@ -614,4 +614,77 @@ contract('ESComplianceServiceRegulated', function([
       assert.equal('Valid', res[1]);
     });
   });
+
+  describe('Pre issuance check', function() {
+    it('should not issue tokens below the minimum holdings per investor', async function() {
+      await this.complianceConfiguration.setMinimumHoldingsPerInvestor(50);
+      await this.registryService.registerInvestor(walletID, 'wallet');
+      await this.registryService.addWallet(owner, walletID);
+      await this.registryService.setCountry(walletID, 'US');
+      await assertRevert(this.token.issueTokens(owner, 10));
+    });
+
+    it('should not issue tokens above the maximum holdings per investor', async function() {
+      await this.complianceConfiguration.setMaximumHoldingsPerInvestor(300);
+      await this.registryService.registerInvestor(walletID, 'wallet');
+      await this.registryService.addWallet(owner, walletID);
+      await this.registryService.setCountry(walletID, 'US');
+      await assertRevert(this.token.issueTokens(owner, 310));
+    });
+
+    it('should not issue tokens to a new investor if investor limit is exceeded', async function() {
+      await this.complianceConfiguration.setTotalInvestorsLimit(1);
+      await this.registryService.registerInvestor(walletID, 'wallet');
+      await this.registryService.addWallet(owner, walletID);
+      await this.registryService.setCountry(walletID, 'US');
+      await this.token.issueTokens(owner, 100);
+      await assertRevert(this.token.issueTokens(owner, 100));
+    });
+
+    it('should not issue tokens to a new investor if non accredited limit is exceeded', async function() {
+      await this.complianceConfiguration.setNonAccreditedInvestorsLimit(1);
+      await this.registryService.registerInvestor(walletID, walletID);
+      await this.registryService.registerInvestor(walletID2, walletID2);
+      await this.registryService.addWallet(owner, walletID);
+      await this.registryService.addWallet(wallet, walletID2);
+      await this.registryService.setCountry(walletID, 'EU');
+      await this.registryService.setCountry(walletID2, 'EU');
+      await this.token.issueTokens(owner, 100);
+      await assertRevert(this.token.issueTokens(wallet, 100));
+    });
+
+    it('should not issue tokens to a new investor if US investors limit is exceeded', async function() {
+      await this.complianceConfiguration.setUsInvestorsLimit(1);
+      await this.registryService.registerInvestor(walletID, walletID);
+      await this.registryService.registerInvestor(walletID2, walletID2);
+      await this.registryService.addWallet(owner, walletID);
+      await this.registryService.addWallet(wallet, walletID2);
+      await this.registryService.setCountry(walletID, 'US');
+      await this.registryService.setCountry(walletID2, 'US');
+      await this.token.issueTokens(owner, 100);
+      await assertRevert(this.token.issueTokens(wallet, 100));
+    });
+
+    it('should not issue tokens to a new investor if US Accredited investors limit is exceeded', async function() {
+      await this.complianceConfiguration.setUsAccreditedInvestorsLimit(1);
+      await this.registryService.registerInvestor(walletID, walletID);
+      await this.registryService.registerInvestor(walletID2, walletID2);
+      await this.registryService.addWallet(owner, walletID);
+      await this.registryService.addWallet(wallet, walletID2);
+      await this.registryService.setCountry(walletID, 'US');
+      await this.registryService.setCountry(walletID2, 'US');
+      await this.registryService.setAttribute(walletID, 2, 1, 0, 'abcde');
+      await this.registryService.setAttribute(walletID2, 2, 1, 0, 'abcdef');
+      await this.token.issueTokens(owner, 100);
+      await assertRevert(this.token.issueTokens(wallet, 100));
+    });
+
+    it('should not issue tokens to a new investor if EU Retail limit is exceeded', async function() {
+      await this.complianceConfiguration.setEuRetailLimit(0);
+      await this.registryService.registerInvestor(walletID, walletID);
+      await this.registryService.addWallet(owner, walletID);
+      await this.registryService.setCountry(walletID, 'EU');
+      await assertRevert(this.token.issueTokens(owner, 100));
+    });
+  });
 });
