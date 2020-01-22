@@ -1,20 +1,20 @@
 /* eslint-disable camelcase */
-require('dotenv').config();
+require("dotenv").config();
 
-const HDWalletProvider = require('truffle-hdwallet-provider');
+const HDWalletProvider = require("truffle-hdwallet-provider");
 
 const timeoutBlocks = 10000000;
 
 const privateKey =
   process.env.PRIVATE_KEY ||
-  '28650A9B011C98C6F2D789F22CB7D7FE04CD45BA91260EF6193BBFAFC66BEA51';
+  "28650A9B011C98C6F2D789F22CB7D7FE04CD45BA91260EF6193BBFAFC66BEA51";
 
 module.exports = {
   networks: {
     development: {
-      host: 'localhost',
+      host: "localhost",
       port: 7545,
-      network_id: '*', // eslint-disable-line camelcase
+      network_id: "*" // eslint-disable-line camelcase
     },
     ropsten: {
       provider: new HDWalletProvider(
@@ -22,19 +22,19 @@ module.exports = {
         `https://ropsten.infura.io/${process.env.INFURA_API_KEY}`
       ),
       network_id: 3, // eslint-disable-line camelcase
-      timeoutBlocks,
+      timeoutBlocks
     },
     coverage: {
-      host: 'localhost',
-      network_id: '*', // eslint-disable-line camelcase
+      host: "localhost",
+      network_id: "*", // eslint-disable-line camelcase
       port: 8555,
       gas: 0xfffffffffff,
-      gasPrice: 0x01,
+      gasPrice: 0x01
     },
     ganache: {
-      host: 'localhost',
-      port: 8545,
-      network_id: '*', // eslint-disable-line camelcase
+      host: "localhost",
+      port: 7545,
+      network_id: "*" // eslint-disable-line camelcase
     },
     rinkeby: {
       gasPrice: 4000000000,
@@ -42,8 +42,8 @@ module.exports = {
         privateKey,
         `https://rinkeby.infura.io/${process.env.INFURA_API_KEY}`
       ),
-      network_id: '4',
-      timeoutBlocks,
+      network_id: "4",
+      timeoutBlocks
     },
     quorum: {
       host: "127.0.0.1",
@@ -58,19 +58,19 @@ module.exports = {
         privateKey,
         `https://mainnet.infura.io/${process.env.INFURA_API_KEY}`
       ),
-      network_id: '1',
-      timeoutBlocks,
-    },
+      network_id: "1",
+      timeoutBlocks
+    }
   },
   compilers: {
     solc: {
-      version: '^0.4.23',
+      version: "^0.5.0",
       settings: {
         optimizer: {
           enabled: true,
-          runs: 200,
-        },
-      },
-    },
-  },
+          runs: 200
+        }
+      }
+    }
+  }
 };

@@ -1,0 +1,23 @@
+pragma solidity ^0.5.0;
+
+contract ComplianceConfigurationDataStore {
+    mapping(string => uint256) public countriesCompliances;
+    uint256 public totalInvestorLimit;
+    uint256 public minUsTokens;
+    uint256 public minEuTokens;
+    uint256 public usInvestorsLimit;
+    uint256 public usAccreditedInvestorsLimit;
+    uint256 public nonAccreditedInvestorsLimit;
+    uint256 public maxUsInvestorsPercentage;
+    uint256 public blockFlowbackEndTime;
+    uint256 public nonUsLockPeriod;
+    uint256 public minimumTotalInvestors;
+    uint256 public minimumHoldingsPerInvestor;
+    uint256 public maximumHoldingsPerInvestor;
+    uint256 public euRetailLimit;
+    uint256 public usLockPeriod;
+    bool public forceFullTransfer;
+    bool public forceAccreditedUS;
+    bool public forceAccredited;
+
+}

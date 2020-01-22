@@ -1,0 +1,184 @@
+pragma solidity ^0.5.0;
+
+import "../zeppelin/math/SafeMath.sol";
+import "./IDSRegistryService.sol";
+import "../service/ServiceConsumer.sol";
+import "../data-stores/RegistryServiceDataStore.sol";
+import "../utils/ProxyTarget.sol";
+import "../utils/Initializable.sol";
+
+contract RegistryService is ProxyTarget, Initializable, RegistryServiceDataStore, ServiceConsumer, IDSRegistryService {
+    function initialize() public initializer onlyFromProxy {
+        VERSIONS.push(2);
+    }
+
+    function registerInvestor(string memory _id, string memory _collisionHash) public onlyExchangeOrAbove newInvestor(_id) returns (bool) {
+        investors[_id] = Investor(_id, _collisionHash, msg.sender, msg.sender, "", 0);
+
+        emit DSRegistryServiceInvestorAdded(_id, msg.sender);
+
+        return true;
+    }
+
+    function removeInvestor(string memory _id) public onlyExchangeOrAbove investorExists(_id) returns (bool) {
+        IDSTrustService trustManager = getTrustService();
+        require(trustManager.getRole(msg.sender) != trustManager.EXCHANGE() || investors[_id].creator == msg.sender);
+        require(investors[_id].walletCount == 0);
+
+        for (uint8 index = 0; index < 16; index++) {
+            delete investors[_id].attributes[index];
+        }
+
+        delete investors[_id];
+
+        emit DSRegistryServiceInvestorRemoved(_id, msg.sender);
+
+        return true;
+    }
+
+    function updateInvestor(
+        string memory _id,
+        string memory _collisionHash,
+        string memory _country,
+        address[] memory _wallets,
+        uint8[] memory _attributeIds,
+        uint256[] memory _attributeValues,
+        uint256[] memory _attributeExpirations
+    ) public onlyIssuerOrAbove returns (bool) {
+        require(_attributeValues.length == _attributeIds.length);
+        require(_attributeIds.length == _attributeValues.length);
+
+        if (!isInvestor(_id)) {
+            registerInvestor(_id, _collisionHash);
+        }
+
+        if (bytes(_country).length > 0) {
+            setCountry(_id, _country);
+        }
+
+        for (uint256 i = 0; i < _wallets.length; i++) {
+            if (isWallet(_wallets[i])) {
+                require(keccak256(abi.encodePacked(getInvestor(_wallets[i]))) == keccak256(abi.encodePacked(_id)), "Wallet belongs to a different investor");
+            } else {
+                addWallet(_wallets[i], _id);
+            }
+        }
+
+        for (uint256 i = 0; i < _attributeIds.length; i++) {
+            setAttribute(_id, _attributeIds[i], _attributeValues[i], _attributeExpirations[i], "");
+        }
+
+        return true;
+    }
+
+    function getInvestorDetailsFull(string memory _id)
+        public
+        view
+        returns (string memory, uint256[] memory, uint256[] memory, string memory, string memory, string memory, string memory)
+    {
+        string memory country = investors[_id].country;
+        uint256[] memory attributeValues = new uint256[](4);
+        uint256[] memory attributeExpiries = new uint256[](4);
+        string[] memory attributeProofHashes = new string[](4);
+        for (uint8 i = 0; i < 4; i++) {
+            attributeValues[i] = getAttributeValue(_id, (uint8(2)**i));
+            attributeExpiries[i] = getAttributeExpiry(_id, (uint8(2)**i));
+            attributeProofHashes[i] = getAttributeProofHash(_id, (uint8(2)**i));
+        }
+        return (country, attributeValues, attributeExpiries, attributeProofHashes[0], attributeProofHashes[1], attributeProofHashes[2], attributeProofHashes[3]);
+    }
+
+    function setCountry(string memory _id, string memory _country) public onlyExchangeOrAbove investorExists(_id) returns (bool) {
+        string memory prevCountry = getCountry(_id);
+
+        getComplianceService().adjustInvestorCountsAfterCountryChange(_id, _country, prevCountry);
+
+        investors[_id].country = _country;
+        investors[_id].lastUpdatedBy = msg.sender;
+
+        emit DSRegistryServiceInvestorCountryChanged(_id, _country, msg.sender);
+
+        return true;
+    }
+
+    function getCountry(string memory _id) public view returns (string memory) {
+        return investors[_id].country;
+    }
+
+    function getCollisionHash(string memory _id) public view returns (string memory) {
+        return investors[_id].collisionHash;
+    }
+
+    function setAttribute(string memory _id, uint8 _attributeId, uint256 _value, uint256 _expiry, string memory _proofHash)
+        public
+        onlyExchangeOrAbove
+        investorExists(_id)
+        returns (bool)
+    {
+        require(_attributeId < 16);
+
+        investors[_id].attributes[_attributeId].value = _value;
+        investors[_id].attributes[_attributeId].expiry = _expiry;
+        investors[_id].attributes[_attributeId].proofHash = _proofHash;
+        investors[_id].lastUpdatedBy = msg.sender;
+
+        emit DSRegistryServiceInvestorAttributeChanged(_id, _attributeId, _value, _expiry, _proofHash, msg.sender);
+
+        return true;
+    }
+
+    function getAttributeValue(string memory _id, uint8 _attributeId) public view returns (uint256) {
+        return investors[_id].attributes[_attributeId].value;
+    }
+
+    function getAttributeExpiry(string memory _id, uint8 _attributeId) public view returns (uint256) {
+        return investors[_id].attributes[_attributeId].expiry;
+    }
+
+    function getAttributeProofHash(string memory _id, uint8 _attributeId) public view returns (string memory) {
+        return investors[_id].attributes[_attributeId].proofHash;
+    }
+
+    function addWallet(address _address, string memory _id) public onlyExchangeOrAbove investorExists(_id) newWallet(_address) returns (bool) {
+        require(!isSpecialWallet(_address));
+
+        investorsWallets[_address] = Wallet(_id, msg.sender, msg.sender);
+        investors[_id].walletCount = investors[_id].walletCount.add(1);
+
+        emit DSRegistryServiceWalletAdded(_address, _id, msg.sender);
+
+        return true;
+    }
+
+    function removeWallet(address _address, string memory _id) public onlyExchangeOrAbove walletExists(_address) walletBelongsToInvestor(_address, _id) returns (bool) {
+        IDSTrustService trustManager = getTrustService();
+        require(trustManager.getRole(msg.sender) != trustManager.EXCHANGE() || investorsWallets[_address].creator == msg.sender);
+
+        delete investorsWallets[_address];
+        investors[_id].walletCount = investors[_id].walletCount.sub(1);
+
+        emit DSRegistryServiceWalletRemoved(_address, _id, msg.sender);
+
+        return true;
+    }
+
+    function getInvestor(address _address) public view returns (string memory) {
+        return investorsWallets[_address].owner;
+    }
+
+    function getInvestorDetails(address _address) public view returns (string memory, string memory) {
+        return (getInvestor(_address), getCountry(getInvestor(_address)));
+    }
+
+    function isInvestor(string memory _id) public view returns (bool) {
+        return keccak256(abi.encodePacked(investors[_id].id)) != keccak256(abi.encodePacked(""));
+    }
+
+    function isWallet(address _address) public view returns (bool) {
+        return keccak256(abi.encodePacked(getInvestor(_address))) != keccak256("");
+    }
+
+    function isSpecialWallet(address _address) internal view returns (bool) {
+        return getWalletManager().getWalletType(_address) != getWalletManager().NONE();
+    }
+}

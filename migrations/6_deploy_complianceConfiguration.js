@@ -1,0 +1,16 @@
+const deployContractBehindProxy = require("./utils").deployContractBehindProxy;
+const configurationManager = require("./utils/configurationManager");
+
+module.exports = async function(deployer) {
+  if (configurationManager.isTestMode()) {
+    return;
+  }
+
+  console.log("Deploying compliance configuration service");
+  await deployContractBehindProxy(
+    artifacts.require("Proxy"),
+    configurationManager,
+    deployer,
+    artifacts.require("ComplianceConfigurationService")
+  );
+};
