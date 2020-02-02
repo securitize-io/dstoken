@@ -17,6 +17,7 @@ contract DSServiceConsumerInterfaceVersioned is VersionedContract {
   uint public constant ISSUANCE_INFORMATION_MANAGER = 128;
   uint public constant COMPLIANCE_CONFIGURATION_SERVICE = 256;
   uint public constant TOKEN_ISSUER = 512;
+  uint public constant WALLET_REGISTRAR = 1024;
 
 
   modifier onlyMaster {
