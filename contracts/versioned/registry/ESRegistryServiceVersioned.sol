@@ -156,7 +156,7 @@ contract ESRegistryServiceVersioned is ESServiceConsumerVersioned, DSRegistrySer
 
   function updateInvestor(string _id, string _collisionHash, string _country, address [] _wallets, uint8[] _attributeIds, uint[] _attributeValues, uint[] _attributeExpirations) public onlyIssuerOrAbove returns (bool) {
     require(_attributeValues.length == _attributeIds.length);
-    require(_attributeIds.length == _attributeValues.length);
+    require(_attributeIds.length == _attributeExpirations.length);
 
     if (!isInvestor(_id)) {
       registerInvestor(_id, _collisionHash);
