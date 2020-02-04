@@ -6,7 +6,6 @@ module.exports = async function(deployer) {
     return;
   }
 
-  console.log("Deploying compliance configuration service");
   await deployContractBehindProxy(
     artifacts.require("Proxy"),
     configurationManager,

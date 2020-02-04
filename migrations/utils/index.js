@@ -17,8 +17,8 @@ async function deployContractBehindProxy(
     deployedProxy.address
   );
 
-  const proxyContract = await abstractContract.at(deployedProxy.address);
-  await proxyContract.initialize(...initializeParams);
+  const proxifiedContract = await abstractContract.at(deployedProxy.address);
+  await proxifiedContract.initialize(...initializeParams);
 }
 
 module.exports = {

@@ -1,14 +1,16 @@
 pragma solidity ^0.5.0;
 
 import "./StandardToken.sol";
-import "../zeppelin/ownership/Ownable.sol";
 
-contract PausableToken is StandardToken, Ownable {
+contract PausableToken is StandardToken {
     event Pause();
     event Unpause();
 
-    constructor() internal {
-        VERSIONS.push(1);
+    constructor() internal {}
+
+    function initialize() public isNotInitialized {
+        StandardToken.initialize();
+        VERSIONS.push(2);
     }
 
     modifier whenNotPaused() {

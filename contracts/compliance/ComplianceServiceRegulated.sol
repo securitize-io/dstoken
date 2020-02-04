@@ -368,10 +368,6 @@ library ComplianceServiceLibrary {
         return IDSRegistryService(_service.getDSService(_service.REGISTRY_SERVICE()));
     }
 
-    function getIssuanceInformationManager(IDSServiceConsumer _service) public view returns (IDSIssuanceInformationManager) {
-        return IDSIssuanceInformationManager(_service.getDSService(_service.ISSUANCE_INFORMATION_MANAGER()));
-    }
-
     function getComplianceConfigurationService(IDSServiceConsumer _service) public view returns (IDSComplianceConfigurationService) {
         return IDSComplianceConfigurationService(_service.getDSService(_service.COMPLIANCE_CONFIGURATION_SERVICE()));
     }
@@ -385,7 +381,7 @@ library ComplianceServiceLibrary {
 contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     function initialize() public initializer onlyFromProxy {
         super.initialize();
-        VERSIONS.push(4);
+        VERSIONS.push(5);
     }
 
     function recordBurn(address _who, uint256 _value) internal returns (bool) {

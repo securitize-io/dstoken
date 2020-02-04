@@ -10,7 +10,8 @@ import "./ComplianceService.sol";
 
 contract ComplianceServiceNotRegulated is ComplianceService {
     function initialize() public initializer onlyFromProxy {
-        VERSIONS.push(1);
+        ComplianceService.initialize();
+        VERSIONS.push(2);
     }
 
     function recordIssuance(address, uint256, uint256) internal returns (bool) {

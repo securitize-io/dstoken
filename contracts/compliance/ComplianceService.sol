@@ -1,7 +1,6 @@
 pragma solidity ^0.5.0;
 
 import "../utils/ProxyTarget.sol";
-import "../utils/Initializable.sol";
 import "./IDSComplianceService.sol";
 import "../service/ServiceConsumer.sol";
 import "../data-stores/ComplianceServiceDataStore.sol";
@@ -17,8 +16,10 @@ import "../data-stores/ComplianceServiceDataStore.sol";
 *   The rest of the functions should only be overridden in rare circumstances.
 */
 contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, ServiceConsumer, ComplianceServiceDataStore {
-    constructor() public {
-        VERSIONS.push(2);
+    function initialize() public isNotInitialized onlyFromProxy {
+        IDSComplianceService.initialize();
+        ServiceConsumer.initialize();
+        VERSIONS.push(3);
     }
 
     function validateIssuance(address _to, uint256 _value, uint256 _issuanceTime) public onlyToken returns (bool) {

@@ -1,10 +1,13 @@
 pragma solidity ^0.5.0;
 
-import "../service/IDSServiceConsumer.sol";
+import "../utils/VersionedContract.sol";
+import "../utils/Initializable.sol";
 
-contract IDSTokenIssuer is IDSServiceConsumer {
-    constructor() internal {
-        VERSIONS.push(1);
+contract IDSTokenIssuer is Initializable, VersionedContract {
+    constructor() internal {}
+
+    function initialize() public isNotInitialized {
+        VERSIONS.push(2);
     }
 
     function issueTokens(

@@ -5,18 +5,19 @@ import "./IDSLockManager.sol";
 import "../zeppelin/math/Math.sol";
 import "../zeppelin/math/SafeMath.sol";
 import "../utils/ProxyTarget.sol";
-import "../utils/Initializable.sol";
 import "../data-stores/LockManagerDataStore.sol";
 
 /**
  * @title LockManager
  * @dev An interface for controlling and getting information about locked funds in a compliance manager
  */
-contract LockManager is ProxyTarget, Initializable, ServiceConsumer, LockManagerDataStore, IDSLockManager {
+contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsumer, LockManagerDataStore {
     using SafeMath for uint256;
 
     function initialize() public initializer onlyFromProxy {
-        VERSIONS.push(1);
+        IDSLockManager.initialize();
+        ServiceConsumer.initialize();
+        VERSIONS.push(2);
     }
 
     uint256 constant MAX_LOCKS_PER_ADDRESS = 30;

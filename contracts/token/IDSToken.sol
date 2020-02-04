@@ -2,14 +2,21 @@ pragma solidity ^0.5.0;
 
 import "../zeppelin/token/ERC20/IERC20.sol";
 import "../utils/VersionedContract.sol";
+import "../utils/Initializable.sol";
 
-contract IDSToken is IERC20, VersionedContract {
+contract IDSToken is IERC20, Initializable, VersionedContract {
     event Issue(address indexed to, uint256 value, uint256 valueLocked);
     event Burn(address indexed burner, uint256 value, string reason);
     event Seize(address indexed from, address indexed to, uint256 value, string reason);
 
     event WalletAdded(address wallet);
     event WalletRemoved(address wallet);
+
+    constructor() internal {}
+
+    function initialize() public isNotInitialized {
+        VERSIONS.push(2);
+    }
 
     /******************************
        CONFIGURATION

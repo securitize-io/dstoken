@@ -1,14 +1,17 @@
 pragma solidity ^0.5.0;
 
 import "../utils/VersionedContract.sol";
+import "../utils/Initializable.sol";
 
 /**
  * @title IDSTrustService
  * @dev An interface for a trust service which allows role-based access control for other contracts.
  */
-contract IDSTrustService is VersionedContract {
-    constructor() internal {
-        VERSIONS.push(1);
+contract IDSTrustService is Initializable, VersionedContract {
+    constructor() internal {}
+
+    function initialize() public isNotInitialized {
+        VERSIONS.push(2);
     }
     /**
    * @dev Should be emitted when a role is set for a user.
@@ -55,12 +58,12 @@ contract IDSTrustService is VersionedContract {
    * @param _address The address which the ownership needs to be transferred to.
    * @return A boolean that indicates if the operation was successful.
    */
-    function setOwner(
+    function setServiceOwner(
         address _address /*onlyMaster*/
     ) public returns (bool);
     /**
    * @dev Sets a role for a wallet.
-   * @dev Should not be used for setting MASTER (use setOwner) or role removal (use removeRole).
+   * @dev Should not be used for setting MASTER (use setServiceOwner) or role removal (use removeRole).
    * @param _address The wallet whose role needs to be set.
    * @param _role The role to be set.
    * @return A boolean that indicates if the operation was successful.
@@ -71,7 +74,7 @@ contract IDSTrustService is VersionedContract {
     ) public returns (bool);
     /**
    * @dev Removes the role for a wallet.
-   * @dev Should not be used to remove MASTER (use setOwner).
+   * @dev Should not be used to remove MASTER (use setServiceOwner).
    * @param _address The wallet whose role needs to be removed.
    * @return A boolean that indicates if the operation was successful.
    */

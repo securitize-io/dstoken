@@ -3,11 +3,12 @@ pragma solidity ^0.5.0;
 import "./IDSTokenIssuer.sol";
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
-import "../utils/Initializable.sol";
 
 contract TokenIssuer is ProxyTarget, Initializable, IDSTokenIssuer, ServiceConsumer {
     function initialize() public initializer onlyFromProxy {
-        VERSIONS.push(1);
+        IDSTokenIssuer.initialize();
+        ServiceConsumer.initialize();
+        VERSIONS.push(2);
     }
 
     function issueTokens(

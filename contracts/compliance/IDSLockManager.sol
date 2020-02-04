@@ -1,10 +1,13 @@
 pragma solidity ^0.5.0;
 
-import "../service/IDSServiceConsumer.sol";
+import "../utils/VersionedContract.sol";
+import "../utils/Initializable.sol";
 
-contract IDSLockManager is IDSServiceConsumer {
-    constructor() internal {
-        VERSIONS.push(1);
+contract IDSLockManager is Initializable, VersionedContract {
+    constructor() internal {}
+
+    function initialize() public isNotInitialized {
+        VERSIONS.push(2);
     }
 
     string internal constant LOCKS_VALUE = "locks_value";

@@ -3,7 +3,6 @@ pragma solidity ^0.5.0;
 import "../service/ServiceConsumer.sol";
 import "./IDSWalletManager.sol";
 import "../utils/ProxyTarget.sol";
-import "../utils/Initializable.sol";
 import "../data-stores/WalletManagerDataStore.sol";
 
 /**
@@ -13,7 +12,9 @@ import "../data-stores/WalletManagerDataStore.sol";
  */
 contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceConsumer, WalletManagerDataStore {
     function initialize() public initializer onlyFromProxy {
-        VERSIONS.push(1);
+        IDSWalletManager.initialize();
+        ServiceConsumer.initialize();
+        VERSIONS.push(2);
     }
 
     /**

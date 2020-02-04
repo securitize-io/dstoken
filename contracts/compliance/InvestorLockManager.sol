@@ -3,15 +3,17 @@ pragma solidity ^0.5.0;
 import "./IDSLockManager.sol";
 import "../data-stores/InvestorLockManagerDataStore.sol";
 import "../utils/ProxyTarget.sol";
-import "../utils/Initializable.sol";
 import "../service/ServiceConsumer.sol";
 import "../zeppelin/math/Math.sol";
 
-contract InvestorLockManager is ProxyTarget, Initializable, ServiceConsumer, InvestorLockManagerDataStore, IDSLockManager {
+contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsumer, InvestorLockManagerDataStore {
     uint256 constant MAX_LOCKS_PER_INVESTOR = 30;
 
     function initialize() public initializer onlyFromProxy {
-        VERSIONS.push(1);
+        IDSLockManager.initialize();
+        ServiceConsumer.initialize();
+
+        VERSIONS.push(2);
     }
 
     function setLockInfoImpl(string memory _investor, uint256 _lockIndex, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime) internal {

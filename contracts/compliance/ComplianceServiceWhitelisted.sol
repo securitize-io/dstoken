@@ -11,7 +11,8 @@ import "../registry/IDSRegistryService.sol";
 
 contract ComplianceServiceWhitelisted is ComplianceService {
     function initialize() public initializer onlyFromProxy {
-        VERSIONS.push(1);
+        ComplianceService.initialize();
+        VERSIONS.push(2);
     }
 
     function checkWhitelisted(address _who) public view returns (bool) {

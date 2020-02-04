@@ -51,7 +51,7 @@
     "eslint-plugin-standard": "^3.0.1",
     "ethereumjs-util": "^5.1.2",
     "ethjs-abi": "^0.2.1",
-    "ganache-cli": "6.1.0",
+    "ganache-cli": "^6.8.2",
     "js-yaml": "^3.12.0",
     "minimist": "^1.2.0",
     "prettier": "^1.19.1",

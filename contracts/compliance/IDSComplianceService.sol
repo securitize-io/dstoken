@@ -1,10 +1,13 @@
 pragma solidity ^0.5.0;
 
-import "../service/IDSServiceConsumer.sol";
+import "../utils/VersionedContract.sol";
+import "../utils/Initializable.sol";
 
-contract IDSComplianceService is IDSServiceConsumer {
-    constructor() internal {
-        VERSIONS.push(3);
+contract IDSComplianceService is Initializable, VersionedContract {
+    constructor() internal {}
+
+    function initialize() public isNotInitialized {
+        VERSIONS.push(4);
     }
 
     uint256 internal constant NONE = 0;

@@ -3,13 +3,13 @@ pragma solidity ^0.5.0;
 import "./IDSToken.sol";
 import "../utils/ProxyTarget.sol";
 import "./PausableToken.sol";
-import "../service/ServiceConsumer.sol";
-import "../data-stores/TokenDataStore.sol";
-import "../utils/Initializable.sol";
 
-contract DSToken is ProxyTarget, IDSToken, Initializable, PausableToken, ServiceConsumer {
+contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
     function initialize(string memory _name, string memory _symbol, uint8 _decimals) public initializer onlyFromProxy {
-        VERSIONS.push(1);
+        IDSToken.initialize();
+        PausableToken.initialize();
+
+        VERSIONS.push(3);
         name = _name;
         symbol = _symbol;
         decimals = _decimals;

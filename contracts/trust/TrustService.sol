@@ -2,7 +2,6 @@ pragma solidity ^0.5.0;
 
 import "../utils/ProxyTarget.sol";
 import "./IDSTrustService.sol";
-import "../utils/Initializable.sol";
 import "../data-stores/TrustServiceDataStore.sol";
 
 /**
@@ -12,7 +11,8 @@ import "../data-stores/TrustServiceDataStore.sol";
  */
 contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServiceDataStore {
     function initialize() public initializer onlyFromProxy {
-        VERSIONS.push(1);
+        IDSTrustService.initialize();
+        VERSIONS.push(2);
         owner = msg.sender;
         roles[msg.sender] = MASTER;
     }
@@ -60,7 +60,7 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
    * @param _address The address which the ownership needs to be transferred to.
    * @return A boolean that indicates if the operation was successful.
    */
-    function setOwner(address _address) public onlyMaster returns (bool) {
+    function setServiceOwner(address _address) public onlyMaster returns (bool) {
         require(setRoleImpl(owner, NONE));
         owner = _address;
         require(setRoleImpl(_address, MASTER));
@@ -69,7 +69,7 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
 
     /**
    * @dev Sets a role for a wallet.
-   * @dev Should not be used for setting MASTER (use setOwner) or role removal (use removeRole).
+   * @dev Should not be used for setting MASTER (use setServiceOwner) or role removal (use removeRole).
    * @param _address The wallet whose role needs to be set.
    * @param _role The role to be set.
    * @return A boolean that indicates if the operation was successful.
@@ -82,7 +82,7 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
 
     /**
    * @dev Removes the role for a wallet.
-   * @dev Should not be used to remove MASTER (use setOwner).
+   * @dev Should not be used to remove MASTER (use setServiceOwner).
    * @param _address The wallet whose role needs to be removed.
    * @return A boolean that indicates if the operation was successful.
    */

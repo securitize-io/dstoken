@@ -1,10 +1,13 @@
 pragma solidity ^0.5.0;
 
-import "../service/IDSServiceConsumer.sol";
+import "../utils/VersionedContract.sol";
+import "../utils/Initializable.sol";
 
-contract IDSRegistryService is IDSServiceConsumer {
-    constructor() internal {
-        VERSIONS.push(2);
+contract IDSRegistryService is Initializable, VersionedContract {
+    constructor() internal {}
+
+    function initialize() public isNotInitialized {
+        VERSIONS.push(3);
     }
 
     event DSRegistryServiceInvestorAdded(string _investorId, address _sender);

@@ -5,11 +5,12 @@ import "./IDSRegistryService.sol";
 import "../service/ServiceConsumer.sol";
 import "../data-stores/RegistryServiceDataStore.sol";
 import "../utils/ProxyTarget.sol";
-import "../utils/Initializable.sol";
 
-contract RegistryService is ProxyTarget, Initializable, RegistryServiceDataStore, ServiceConsumer, IDSRegistryService {
+contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, ServiceConsumer, RegistryServiceDataStore {
     function initialize() public initializer onlyFromProxy {
-        VERSIONS.push(2);
+        IDSRegistryService.initialize();
+        ServiceConsumer.initialize();
+        VERSIONS.push(3);
     }
 
     function registerInvestor(string memory _id, string memory _collisionHash) public onlyExchangeOrAbove newInvestor(_id) returns (bool) {

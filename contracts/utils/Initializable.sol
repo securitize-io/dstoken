@@ -7,6 +7,13 @@ contract Initializable {
         require(!initialized, "Contract instance has already been initialized");
 
         _;
+
         initialized = true;
+    }
+
+    modifier isNotInitialized() {
+        require(!initialized, "Contract instance has already been initialized");
+
+        _;
     }
 }

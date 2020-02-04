@@ -1,20 +1,23 @@
 pragma solidity ^0.5.0;
 
-import "../trust/IDSTrustService.sol";
+import "../utils/VersionedContract.sol";
+import "../utils/Initializable.sol";
 
-contract IDSServiceConsumer is VersionedContract {
-    constructor() internal {
-        VERSIONS.push(2);
+contract IDSServiceConsumer is Initializable, VersionedContract {
+    constructor() internal {}
+
+    function initialize() public isNotInitialized {
+        VERSIONS.push(3);
     }
 
     uint256 public constant TRUST_SERVICE = 1;
     uint256 public constant DS_TOKEN = 2;
     uint256 public constant REGISTRY_SERVICE = 4;
     uint256 public constant COMPLIANCE_SERVICE = 8;
-    uint256 public constant COMMS_SERVICE = 16;
+    uint256 public constant UNUSED_1 = 16;
     uint256 public constant WALLET_MANAGER = 32;
     uint256 public constant LOCK_MANAGER = 64;
-    uint256 public constant ISSUANCE_INFORMATION_MANAGER = 128;
+    uint256 public constant UNUSED_2 = 128;
     uint256 public constant COMPLIANCE_CONFIGURATION_SERVICE = 256;
     uint256 public constant TOKEN_ISSUER = 512;
 

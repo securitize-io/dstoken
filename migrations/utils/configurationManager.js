@@ -42,8 +42,9 @@ class ConfigurationManager {
     this.decimals = decimals;
     this.name = argv.name;
     this.symbol = argv.symbol;
+    this.owners = argv.owners;
     // Get multisig wallet owners as an array
-    this.owners = argv.owners.split(" ");
+    this.owners = this.owners.split(" ");
     this.requiredConfirmations = argv.required_confirmations || 2;
     this.complianceManagerType = argv.compliance || "NORMAL";
     this.lockManagerType = argv.lock_manager || "INVESTOR";

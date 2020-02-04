@@ -6,14 +6,19 @@ import "../token/IDSToken.sol";
 import "../compliance/IDSWalletManager.sol";
 import "../compliance/IDSLockManager.sol";
 import "../compliance/IDSComplianceService.sol";
-import "../compliance/IDSIssuanceInformationManager.sol";
 import "../compliance/IDSComplianceConfigurationService.sol";
 import "../registry/IDSRegistryService.sol";
-import "../zeppelin/ownership/Ownable.sol";
+import "../trust/IDSTrustService.sol";
+import "../utils/Ownable.sol";
 
-contract ServiceConsumer is IDSServiceConsumer, ServiceConsumerDataStore, Ownable {
-    constructor() public {
-        VERSIONS.push(2);
+contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStore {
+    constructor() internal {}
+
+    function initialize() public isNotInitialized {
+        IDSServiceConsumer.initialize();
+        Ownable.initialize();
+
+        VERSIONS.push(3);
     }
 
     modifier onlyMaster {
@@ -89,10 +94,6 @@ contract ServiceConsumer is IDSServiceConsumer, ServiceConsumerDataStore, Ownabl
 
     function getRegistryService() internal view returns (IDSRegistryService) {
         return IDSRegistryService(getDSService(REGISTRY_SERVICE));
-    }
-
-    function getIssuanceInformationManager() internal view returns (IDSIssuanceInformationManager) {
-        return IDSIssuanceInformationManager(getDSService(ISSUANCE_INFORMATION_MANAGER));
     }
 
     function getComplianceConfigurationService() internal view returns (IDSComplianceConfigurationService) {

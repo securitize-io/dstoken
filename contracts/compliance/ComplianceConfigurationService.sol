@@ -4,11 +4,12 @@ import "./IDSComplianceConfigurationService.sol";
 import "../data-stores/ComplianceConfigurationDataStore.sol";
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
-import "../utils/Initializable.sol";
 
-contract ComplianceConfigurationService is ProxyTarget, Initializable, IDSComplianceConfigurationService, ServiceConsumer, ComplianceConfigurationDataStore {
+contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurationService, ServiceConsumer, ComplianceConfigurationDataStore {
     function initialize() public initializer onlyFromProxy {
-        VERSIONS.push(3);
+        IDSComplianceConfigurationService.initialize();
+        ServiceConsumer.initialize();
+        VERSIONS.push(4);
     }
 
     string internal constant COUNTRIES = "countries";

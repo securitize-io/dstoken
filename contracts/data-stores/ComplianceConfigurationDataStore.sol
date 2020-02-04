@@ -1,6 +1,8 @@
 pragma solidity ^0.5.0;
 
-contract ComplianceConfigurationDataStore {
+import "./ServiceConsumerDataStore.sol";
+
+contract ComplianceConfigurationDataStore is ServiceConsumerDataStore {
     mapping(string => uint256) public countriesCompliances;
     uint256 public totalInvestorLimit;
     uint256 public minUsTokens;

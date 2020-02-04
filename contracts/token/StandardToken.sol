@@ -3,8 +3,11 @@ pragma solidity ^0.5.0;
 import "./BasicToken.sol";
 
 contract StandardToken is BasicToken {
-    constructor() internal {
-        VERSIONS.push(1);
+    constructor() internal {}
+
+    function initialize() public isNotInitialized {
+        BasicToken.initialize();
+        VERSIONS.push(2);
     }
 
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
