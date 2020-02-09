@@ -8,24 +8,29 @@ contract ESWalletRegistrarVersioned is DSWalletRegistrarInterfaceVersioned, ESSe
     VERSIONS.push(1);
   }
 
-  function registerWallet(string _id, address _wallet, string _collisionHash, string _country, uint[] _attributeValues, uint[] _attributeExpirations) public onlyOwner returns (bool) {
-    require(_attributeValues.length == 3);
-    require(_attributeExpirations.length == 3);
+  function registerWallet(string _id, address[] _wallets, string _collisionHash, string _country,uint8[] _attributeIds, uint[] _attributeValues, uint[] _attributeExpirations) public onlyOwner returns (bool) {
+    require(_attributeValues.length == _attributeIds.length);
+    require(_attributeIds.length == _attributeExpirations.length);
 
-    if (getRegistryService().isWallet(_wallet)) {
-      require(keccak256(abi.encodePacked(getRegistryService().getInvestor(_wallet))) == keccak256(abi.encodePacked(_id)), "Wallet does not belong to investor");
-    } else {
-      if (!getRegistryService().isInvestor(_id)) {
-        getRegistryService().registerInvestor(_id, _collisionHash);
+    if (!getRegistryService().isInvestor(_id)) {
+      getRegistryService().registerInvestor(_id, _collisionHash);
+
+      if (bytes(_country).length > 0){
         getRegistryService().setCountry(_id, _country);
       }
-
-      getRegistryService().addWallet(_wallet, _id);
     }
 
-    getRegistryService().setAttribute(_id, getRegistryService().KYC_APPROVED(), _attributeValues[0], _attributeExpirations[0], "");
-    getRegistryService().setAttribute(_id, getRegistryService().ACCREDITED(), _attributeValues[1], _attributeExpirations[1], "");
-    getRegistryService().setAttribute(_id, getRegistryService().QUALIFIED(), _attributeValues[2], _attributeExpirations[2], "");
+    for (uint i = 0; i < _wallets.length; i++) {
+      if (getRegistryService().isWallet(_wallets[i])) {
+        require(keccak256(abi.encodePacked(getRegistryService().getInvestor(_wallets[i]))) == keccak256(abi.encodePacked(_id)), "Wallet does not belong to investor");
+      } else {
+        getRegistryService().addWallet(_wallets[i], _id);
+      }
+    }
+
+    for (i = 0 ; i < _attributeIds.length ; i++){
+      getRegistryService().setAttribute(_id, _attributeIds[i] ,_attributeValues[i], _attributeExpirations[i], "");
+    }
 
     return true;
   }
