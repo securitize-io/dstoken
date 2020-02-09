@@ -12,25 +12,6 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         VERSIONS.push(4);
     }
 
-    string internal constant COUNTRIES = "countries";
-    string internal constant FORCE_FULL_TRANSFER = "force_full_transfer";
-    string internal constant MIN_US_TOKENS = "min_us_tokens";
-    string internal constant MIN_EU_TOKENS = "min_eu_tokens";
-    string internal constant TOTAL_INVESTORS_LIMIT = "total_investors_limit";
-    string internal constant US_INVESTORS_LIMIT = "us_investors_limit";
-    string internal constant US_ACCREDITED_INVESTORS_LIMIT = "us_accredited_investors_limit";
-    string internal constant NON_ACCREDITED_INVESTORS_LIMIT = "non_accredited_investors_limit";
-    string internal constant MAX_US_INVESTORS_PERCENTAGE = "max_us_investors_percentage";
-    string internal constant BLOCK_FLOWBACK_END_TIME = "block_flowback_end_time";
-    string internal constant NON_US_LOCK_PERIOD = "non_us_lock_period";
-    string internal constant MINIMUM_TOTAL_INVESTORS = "minimum_total_investors";
-    string internal constant MINIMUM_HOLDINGS_PER_INVESTOR = "minimum_holdings_per_investor";
-    string internal constant MAXIMUM_HOLDINGS_PER_INVESTOR = "maximum_holdings_per_investor";
-    string internal constant FORCE_ACCREDITED = "force_accredited";
-    string internal constant FORCE_ACCREDITED_US = "force_accredited_us";
-    string internal constant EU_RETAIL_LIMIT = "eu_retail_limit";
-    string internal constant US_LOCK_PERIOD = "us_lock_period";
-
     function setCountryCompliance(string memory _country, uint256 _value) public onlyIssuerOrAbove {
         countriesCompliances[_country] = _value;
     }

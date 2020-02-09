@@ -27,8 +27,6 @@ contract IDSTrustService is Initializable, VersionedContract {
     uint8 public constant MASTER = 1;
     uint8 public constant ISSUER = 2;
     uint8 public constant EXCHANGE = 4;
-    string internal constant OWNER = "owner";
-    string internal constant ROLES = "roles";
 
     /**
    * @dev Allow invoking of functions only by the user who has the MASTER role.

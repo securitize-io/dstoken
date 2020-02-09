@@ -5,7 +5,7 @@ import "./VersionedContract.sol";
 contract Migrations is VersionedContract {
     constructor() public {
         owner = msg.sender;
-        VERSIONS.push(1);
+        VERSIONS.push(2);
     }
 
     address public owner;

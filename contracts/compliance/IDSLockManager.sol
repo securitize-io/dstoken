@@ -10,12 +10,6 @@ contract IDSLockManager is Initializable, VersionedContract {
         VERSIONS.push(2);
     }
 
-    string internal constant LOCKS_VALUE = "locks_value";
-    string internal constant LOCKS_REASON = "locks_reason";
-    string internal constant LOCKS_REASON_STRING = "locks_reasonString";
-    string internal constant LOCKS_RELEASE_TIME = "locks_releaseTime";
-    string internal constant LOCK_COUNT = "lockCount";
-
     event Locked(address indexed who, uint256 value, uint256 indexed reason, string reasonString, uint256 releaseTime);
     event Unlocked(address indexed who, uint256 value, uint256 indexed reason, string reasonString, uint256 releaseTime);
 

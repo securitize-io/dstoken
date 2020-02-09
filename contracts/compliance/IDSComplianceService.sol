@@ -20,14 +20,6 @@ contract IDSComplianceService is Initializable, VersionedContract {
     string internal constant WALLET_NOT_IN_REGISTRY_SERVICE = "Wallet not in registry Service";
     string internal constant DESTINATION_RESTRICTED = "Destination restricted";
     string internal constant VALID = "Valid";
-    string internal constant TOTAL_INVESTORS = "totalInvestors";
-    string internal constant US_INVESTORS_COUNT = "usInvestorsCount";
-    string internal constant US_ACCREDITED_INVESTORS_COUNT = "usAccreditedInvestorsCount";
-    string internal constant ACCREDITED_INVESTORS_COUNT = "accreditedInvestorsCount";
-    string internal constant EU_RETAIL_INVESTORS_COUNT = "euRetailInvestorsCount";
-    string internal constant ISSUANCES_COUNT = "issuancesCount";
-    string internal constant ISSUANCE_VALUE = "issuanceValue";
-    string internal constant ISSUANCE_TIMESTAMP = "issuanceTimestamp";
     string internal constant HOLD_UP = "Hold-up";
     string internal constant HOLD_UP_1Y = "Hold-up 1y";
     string internal constant ONLY_FULL_TRANSFER = "Only Full Transfer";
@@ -36,6 +28,7 @@ contract IDSComplianceService is Initializable, VersionedContract {
     string internal constant AMOUNT_OF_TOKENS_UNDER_MIN = "Amount of tokens under min";
     string internal constant AMOUNT_OF_TOKENS_ABOVE_MAX = "Amount of tokens above max";
     string internal constant ONLY_ACCREDITED = "Only accredited";
+    string internal constant ONLY_US_ACCREDITED = "Only us accredited";
     string internal constant NOT_ENOUGH_INVESTORS = "Not enough investors";
 
     function adjustInvestorCountsAfterCountryChange(string memory _id, string memory _country, string memory _prevCountry) public returns (bool);
