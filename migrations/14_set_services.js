@@ -111,6 +111,11 @@ module.exports = async function(deployer) {
       gas: 1e6
     });
 
+    console.log("Connecting token to wallet registrar");
+    await token.setDSService(services.WALLET_REGISTRAR, walletRegistrar.address, {
+      gas: 1e6
+    });
+
     console.log("Connecting token issuer to registry");
     await tokenIssuer.setDSService(
       services.REGISTRY_SERVICE,
