@@ -15,6 +15,7 @@ contract IDSWalletManager is Initializable, VersionedContract {
     uint8 public constant ISSUER = 1;
     uint8 public constant PLATFORM = 2;
     uint8 public constant EXCHANGE = 4;
+    uint8 public constant OMNIBUS = 8;
 
     /**
    * @dev should be emitted when a special wallet is added.
@@ -63,9 +64,14 @@ contract IDSWalletManager is Initializable, VersionedContract {
    * @param _owner The address of the owner.
    * @return A boolean that indicates if the operation was successful.
    */
-    function addExchangeWallet(
-        address _wallet,
-        address _owner /*onlyIssuerOrAbove*/
+    function addExchangeWallet(address _wallet, address _owner) public returns (bool);
+    /**
+   * @dev Sets a wallet to be an omnibus wallet.
+   * @param _wallet The address of the wallet.
+   * @return A boolean that indicates if the operation was successful.
+   */
+    function addOmnibusWallet(
+        address _wallet /*onlyIssuerOrAbove*/
     ) public returns (bool);
     /**
    * @dev Removes a special wallet.
