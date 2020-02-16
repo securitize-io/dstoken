@@ -158,6 +158,10 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         if (result) {
             if (getWalletManager().getWalletType(_to) != getWalletManager().OMNIBUS()) {
                 updateInvestorBalance(msg.sender, _value, false);
+
+                if (getWalletManager().getWalletType(msg.sender) == getWalletManager().OMNIBUS()) {
+                    getOmnibusWalletService().withdraw(msg.sender, getRegistryService().getInvestor(_to), _value);
+                }
             } else {
                 getOmnibusWalletService().deposit(_to, getRegistryService().getInvestor(msg.sender), _value);
             }

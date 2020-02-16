@@ -27,4 +27,11 @@ contract OmnibusWalletService is ProxyTarget, Initializable, IDSOmnibusWalletSer
     function deposit(address _omnibusWallet, string memory _investorId, uint256 _value) public onlyToken {
         wallets[_omnibusWallet].balances[_investorId] = wallets[_omnibusWallet].balances[_investorId].add(_value);
     }
+
+    function withdraw(address _omnibusWallet, string memory _investorId, uint256 _value) public onlyToken {
+        //TODO: Do this check in the compliance service?
+        require(wallets[_omnibusWallet].balances[_investorId] >= _value, "Omnibus wallet withdraw: not enough tokens");
+
+        wallets[_omnibusWallet].balances[_investorId] = wallets[_omnibusWallet].balances[_investorId].sub(_value);
+    }
 }

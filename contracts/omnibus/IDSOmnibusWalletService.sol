@@ -20,4 +20,10 @@ contract IDSOmnibusWalletService is Initializable, VersionedContract {
         string memory _investorId,
         uint256 _value /*onlyToken*/
     ) public;
+
+    function withdraw(
+        address _omnibusWallet,
+        string memory _investorId,
+        uint256 _value /*onlyToken*/
+    ) public;
 }

@@ -101,18 +101,15 @@ library ComplianceServiceLibrary {
             return (0, VALID);
         }
 
-        if (
-            IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) == IDSWalletManager(_services[WALLET_MANAGER]).OMNIBUS() &&
-            IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) == IDSWalletManager(_services[WALLET_MANAGER]).OMNIBUS()
-        ) {
-            return (81, OMNIBUS_TO_OMNIBUS_TRANSFER);
-        }
-        // Omnibus wallet deposit
-        if (
-            IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) != IDSWalletManager(_services[WALLET_MANAGER]).OMNIBUS() &&
-            IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) == IDSWalletManager(_services[WALLET_MANAGER]).OMNIBUS()
-        ) {
-            return omnibusWalletPreTransferCheck(_services, _from, _to, _value);
+        if (IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) == IDSWalletManager(_services[WALLET_MANAGER]).OMNIBUS()) {
+            if (IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) == IDSWalletManager(_services[WALLET_MANAGER]).OMNIBUS()) {
+                return (81, OMNIBUS_TO_OMNIBUS_TRANSFER);
+            }
+
+            return omnibusWalletPreTransferCheck(_services, _from, _to, _value, false);
+
+        } else if (IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) == IDSWalletManager(_services[WALLET_MANAGER]).OMNIBUS()) {
+            return omnibusWalletPreTransferCheck(_services, _from, _to, _value, true);
         }
 
         uint256 fromInvestorBalance = balanceOfInvestor(_services, _from);
@@ -359,11 +356,20 @@ library ComplianceServiceLibrary {
         return (0, VALID);
     }
 
-    function omnibusWalletPreTransferCheck(address[] memory _services, address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
+    function omnibusWalletPreTransferCheck(address[] memory _services, address _from, address _to, uint256 _value, bool _isDeposit)
+        public
+        view
+        returns (uint256 code, string memory reason)
+    {
         ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
 
         if (!complianceService.checkWhitelisted(_to)) {
             return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
+        }
+
+        // No need to further check conditions when withdrawing funds
+        if (!_isDeposit) {
+            return (0, VALID);
         }
 
         if (
@@ -397,6 +403,8 @@ library ComplianceServiceLibrary {
                 return (33, HOLD_UP);
             }
         }
+
+        return (0, VALID);
     }
 
     function getToken(IDSServiceConsumer _service) public view returns (IDSToken) {
@@ -593,6 +601,10 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
             if (getWalletManager().getWalletType(_to) == getWalletManager().OMNIBUS()) {
                 if (getOmnibusWalletService().getWalletAssetTrackingMode(_to) == getOmnibusWalletService().HOLDER_OF_RECORD()) {
                     adjustTotalInvestorsCounts(_from, false);
+                }
+            } else if (getWalletManager().getWalletType(_from) == getWalletManager().OMNIBUS()) {
+                if (getOmnibusWalletService().getWalletAssetTrackingMode(_from) == getOmnibusWalletService().HOLDER_OF_RECORD()) {
+                    adjustOmnibusCounts(false);
                 }
             } else {
                 adjustTotalInvestorsCounts(_from, false);

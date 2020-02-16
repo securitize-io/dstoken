@@ -16,7 +16,11 @@ contract ComplianceServiceWhitelisted is ComplianceService {
     }
 
     function checkWhitelisted(address _who) public view returns (bool) {
-        return getWalletManager().getWalletType(_who) != getWalletManager().NONE() || keccak256(abi.encodePacked(getRegistryService().getInvestor(_who))) != keccak256("");
+        uint8 walletType = getWalletManager().getWalletType(_who);
+
+        return
+            (walletType != getWalletManager().NONE() && walletType != getWalletManager().OMNIBUS()) ||
+            keccak256(abi.encodePacked(getRegistryService().getInvestor(_who))) != keccak256("");
     }
 
     function recordIssuance(address, uint256, uint256) internal returns (bool) {
