@@ -177,8 +177,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         bool result = super.transferFrom(_from, _to, _value);
 
         if (result) {
-            updateInvestorBalance(_from, _value, false);
-            updateInvestorBalance(_to, _value, true);
+            updateInvestorsBalances(_from, _to, _value);
         }
 
         checkWalletsForList(_from, _to);
