@@ -106,10 +106,10 @@ library ComplianceServiceLibrary {
                 return (81, OMNIBUS_TO_OMNIBUS_TRANSFER);
             }
 
-            return omnibusWalletPreTransferCheck(_services, _from, _to, _value, false);
+            return omnibusWalletAdditionalTrasferChecks(_services, _from, _to, _value, false);
 
         } else if (IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) == IDSWalletManager(_services[WALLET_MANAGER]).OMNIBUS()) {
-            return omnibusWalletPreTransferCheck(_services, _from, _to, _value, true);
+            return omnibusWalletAdditionalTrasferChecks(_services, _from, _to, _value, true);
         }
 
         uint256 fromInvestorBalance = balanceOfInvestor(_services, _from);
@@ -356,7 +356,7 @@ library ComplianceServiceLibrary {
         return (0, VALID);
     }
 
-    function omnibusWalletPreTransferCheck(address[] memory _services, address _from, address _to, uint256 _value, bool _isDeposit)
+    function omnibusWalletAdditionalTrasferChecks(address[] memory _services, address _from, address _to, uint256 _value, bool _isDeposit)
         public
         view
         returns (uint256 code, string memory reason)
