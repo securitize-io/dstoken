@@ -57,6 +57,13 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         return true;
     }
 
+    function validateOmnibusSeize(address _omnibusWallet, string _fromInvestorId, address _to, uint256 _value) public onlyToken returns (bool) {
+        require(getWalletManager().getWalletType(_to) == getWalletManager().ISSUER());
+        require(recordOmnibusSeize(_omnibusWallet, _fromInvestorId, _value));
+
+        return true;
+    }
+
     function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
         if (getToken().isPaused()) {
             return (10, TOKEN_PAUSED);
@@ -98,5 +105,6 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
     function recordTransfer(address _from, address _to, uint256 _value) internal returns (bool);
     function recordBurn(address _who, uint256 _value) internal returns (bool);
     function recordSeize(address _from, address _to, uint256 _value) internal returns (bool);
+    function recordOmnibusSeize(address _omnibusWallet, string _fromInvestorId, address _to, uint256 _value) internal returns (bool);
     function checkTransfer(address _from, address _to, uint256 _value) internal view returns (uint256, string memory);
 }

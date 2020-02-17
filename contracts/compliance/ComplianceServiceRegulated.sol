@@ -481,6 +481,28 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return true;
     }
 
+    function recordOmnibusSeize(
+        address _omnibusWallet,
+        string _fromInvestorId,
+        address,
+        /*_to*/
+        uint256 _value
+    ) internal returns (bool) {
+        if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_omnibusWallet)) == _value) {
+            adjustTotalInvestorsCounts(_omnibusWallet, false);
+        }
+
+        if (
+            _value != 0 &&
+            getToken().balanceOfInvestor(_fromInvestorId) == _value &&
+            getOmnibusWalletService().getWalletAssetTrackingMode(_omnibusWallet) == getOmnibusWalletService().BENEFICIAL()
+        ) {
+            adjustTotalInvestorsCountsWithInvestorId(_fromInvestorId, false);
+        }
+
+        return true;
+    }
+
     function adjustInvestorCountsAfterCountryChange(string memory _id, string memory _country, string memory _prevCountry) public onlyRegistry returns (bool) {
         if (getToken().balanceOfInvestor(_id) == 0) {
             return false;
@@ -503,6 +525,15 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
             adjustInvestorsCountsByCountry(country, id, _increase);
         }
+    }
+
+    function adjustTotalInvestorsCountsWithInvestorId(string _investorId, bool _increase) internal {
+        totalInvestors = _increase ? totalInvestors.add(1) : totalInvestors.sub(1);
+
+        string memory country = getRegistryService().getCountry(_investorId);
+
+        adjustInvestorsCountsByCountry(country, _investorId, _increase);
+
     }
 
     function adjustInvestorsCountsByCountry(string memory _country, string memory _id, bool _increase) internal {
