@@ -1,4 +1,4 @@
-const MultiSigWallet = artifacts.require("MultiSigWallet");
+const deployContractBehindProxy = require("./utils").deployContractBehindProxy;
 const configurationManager = require("./utils/configurationManager");
 
 module.exports = async function(deployer) {
@@ -6,9 +6,10 @@ module.exports = async function(deployer) {
     return;
   }
 
-  deployer.deploy(
-    MultiSigWallet,
-    configurationManager.owners,
-    configurationManager.requiredConfirmations
+  await deployContractBehindProxy(
+    artifacts.require("Proxy"),
+    configurationManager,
+    deployer,
+    artifacts.require("OmnibusWalletService")
   );
 };
