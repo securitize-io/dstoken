@@ -106,10 +106,10 @@ library ComplianceServiceLibrary {
                 return (81, OMNIBUS_TO_OMNIBUS_TRANSFER);
             }
 
-            return omnibusWalletAdditionalTrasferChecks(_services, _from, _to, _value, false);
+            return omnibusWalletAdditionalPreTransferChecks(_services, _from, _to, _value, false);
 
         } else if (IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) == IDSWalletManager(_services[WALLET_MANAGER]).OMNIBUS()) {
-            return omnibusWalletAdditionalTrasferChecks(_services, _from, _to, _value, true);
+            return omnibusWalletAdditionalPreTransferChecks(_services, _from, _to, _value, true);
         }
 
         uint256 fromInvestorBalance = balanceOfInvestor(_services, _from);
@@ -356,7 +356,7 @@ library ComplianceServiceLibrary {
         return (0, VALID);
     }
 
-    function omnibusWalletAdditionalTrasferChecks(address[] memory _services, address _from, address _to, uint256 _value, bool _isDeposit)
+    function omnibusWalletAdditionalPreTransferChecks(address[] memory _services, address _from, address _to, uint256 _value, bool _isDeposit)
         public
         view
         returns (uint256 code, string memory reason)
@@ -379,7 +379,10 @@ library ComplianceServiceLibrary {
             return (16, TOKENS_LOCKED);
         }
 
-        if (getCountryCompliance(_services, _from) == US) {
+        uint256 fromRegion = getCountryCompliance(_services, _from);
+        uint256 toRegion = getCountryCompliance(_services, _to);
+
+        if (fromRegion == US) {
             if (
                 complianceService.getComplianceTransferableTokens(
                     _from,
@@ -402,6 +405,17 @@ library ComplianceServiceLibrary {
             ) {
                 return (33, HOLD_UP);
             }
+        }
+
+        if (
+            toRegion == US &&
+            IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() != 0 &&
+            isAccredited(_services, _to) &&
+            complianceService.getUSAccreditedInvestorsCount() >= IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() &&
+            isNewInvestor(_services, _to) &&
+            (fromRegion != US || (balanceOfInvestor(_services, _from) > _value && isAccredited(_services, _from)))
+        ) {
+            return (40, MAX_INVESTORS_IN_CATEGORY);
         }
 
         return (0, VALID);
