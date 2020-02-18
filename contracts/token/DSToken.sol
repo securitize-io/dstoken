@@ -114,6 +114,20 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         checkWalletsForList(_who, address(0));
     }
 
+    function omnibusBurn(address _omnibusWallet, address _who, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
+        require(_value <= walletsBalances[_who]);
+
+        getComplianceService().validateOmnibusBurn(_omnibusWallet, _who, _value);
+
+        walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].sub(_value);
+        walletsBalances[_who] = walletsBalances[_who].sub(_value);
+        updateInvestorBalance(_who, _value, false);
+        totalSupply = totalSupply.sub(_value);
+        emit Burn(_who, _value, _reason);
+        emit Transfer(_who, address(0), _value);
+        checkWalletsForList(_who, address(0));
+    }
+
     //*********************
     // TOKEN SEIZING
     //*********************
