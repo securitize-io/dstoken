@@ -118,11 +118,15 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
     // TOKEN SEIZING
     //*********************
 
-    function seize(address _from, address _to, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
+    modifier validateSeizeParameters(address _from, address _to, uint256 _value) {
         require(_from != address(0));
         require(_to != address(0));
         require(_value <= walletsBalances[_from]);
 
+        _;
+    }
+
+    function seize(address _from, address _to, uint256 _value, string memory _reason) public onlyIssuerOrAbove validateSeizeParameters(_from, _to, _value) {
         getComplianceService().validateSeize(_from, _to, _value);
         walletsBalances[_from] = walletsBalances[_from].sub(_value);
         walletsBalances[_to] = walletsBalances[_to].add(_value);
@@ -133,11 +137,11 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         checkWalletsForList(_from, _to);
     }
 
-    function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
-        require(_from != address(0));
-        require(_to != address(0));
-        require(_value <= walletsBalances[_omnibusWallet]);
-
+    function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string memory _reason)
+        public
+        onlyIssuerOrAbove
+        validateSeizeParameters(_from, _to, _value)
+    {
         getComplianceService().validateOmnibusSeize(_omnibusWallet, _from, _to, _value);
         walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].sub(_value);
         walletsBalances[_to] = walletsBalances[_to].add(_value);
