@@ -140,7 +140,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
     function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string memory _reason)
         public
         onlyIssuerOrAbove
-        validateSeizeParameters(_from, _to, _value)
+        validateSeizeParameters(_omnibusWallet, _to, _value)
     {
         getComplianceService().validateOmnibusSeize(_omnibusWallet, _from, _to, _value);
         walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].sub(_value);
