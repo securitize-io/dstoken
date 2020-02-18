@@ -39,7 +39,7 @@ contract ComplianceServiceWhitelisted is ComplianceService {
         return (0, VALID);
     }
 
-    function preIssuanceCheck(address _to, uint256) public view returns (uint256, string memory) {
+    function preIssuanceCheck(address _to, uint256, bool) public view returns (uint256, string memory) {
         if (!checkWhitelisted(_to)) {
             return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
         }

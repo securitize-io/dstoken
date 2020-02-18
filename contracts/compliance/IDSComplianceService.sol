@@ -80,7 +80,7 @@ contract IDSComplianceService is Initializable, VersionedContract {
         uint256 _value /*onlyToken*/
     ) public returns (bool);
 
-    function preIssuanceCheck(address _to, uint256 _value) public view returns (uint256 code, string memory reason);
+    function preIssuanceCheck(address _to, uint256 _value, bool _isOmnibusIssuance) public view returns (uint256 code, string memory reason);
 
     function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason);
 }

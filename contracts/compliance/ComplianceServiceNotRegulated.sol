@@ -26,7 +26,7 @@ contract ComplianceServiceNotRegulated is ComplianceService {
         return (0, VALID);
     }
 
-    function preIssuanceCheck(address, uint256) public view returns (uint256 code, string memory reason) {
+    function preIssuanceCheck(address, uint256, bool) public view returns (uint256 code, string memory reason) {
         code = 0;
         reason = VALID;
     }

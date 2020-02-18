@@ -23,12 +23,37 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
     }
 
     function validateIssuance(address _to, uint256 _value, uint256 _issuanceTime) public onlyToken returns (bool) {
+        require(getWalletManager().getWalletType(_to) != getWalletManager().OMNIBUS());
+
         uint256 code;
         string memory reason;
 
-        (code, reason) = preIssuanceCheck(_to, _value);
+        (code, reason) = preIssuanceCheck(_to, _value, false);
         require(code == 0, reason);
         require(recordIssuance(_to, _value, _issuanceTime));
+
+        return true;
+    }
+
+    function validateOmnibusIssuance(
+        address _omnibusWallet,
+        address _to,
+        uint256 _value,
+        uint256 _issuanceTime /*onlyToken*/
+    ) public returns (bool) {
+        require(getWalletManager().getWalletType(_omnibusWallet) == getWalletManager().OMNIBUS());
+        require(getWalletManager().getWalletType(_to) != getWalletManager().OMNIBUS());
+
+        uint256 code;
+        string memory reason;
+
+        (code, reason) = preIssuanceCheck(_omnibusWallet, _value, true);
+        require(code == 0, reason);
+
+        (code, reason) = preIssuanceCheck(_to, _value, true);
+        require(code == 0, reason);
+
+        require(recordOmnibusIssuance(_omnibusWallet, _to, _value, _issuanceTime));
 
         return true;
     }
@@ -115,8 +140,8 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
     }
 
     // These functions should be implemented by the concrete compliance manager
-
     function recordIssuance(address _to, uint256 _value, uint256 _issuanceTime) internal returns (bool);
+    function recordOmnibusIssuance(address _omnibusWallet, address _to, uint256 _value, uint256 _issuanceTime) internal returns (bool);
     function recordTransfer(address _from, address _to, uint256 _value) internal returns (bool);
     function recordBurn(address _who, uint256 _value) internal returns (bool);
     function recordOmnibusBurn(address _omnibusWallet, address _who, uint256 _value) internal returns (bool);
