@@ -483,7 +483,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
     function recordOmnibusSeize(
         address _omnibusWallet,
-        string _fromInvestorId,
+        address _from,
         address,
         /*_to*/
         uint256 _value
@@ -494,10 +494,10 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
         if (
             _value != 0 &&
-            getToken().balanceOfInvestor(_fromInvestorId) == _value &&
+            getToken().balanceOfInvestor(getRegistryService().getInvestor(_from)) == _value &&
             getOmnibusWalletService().getWalletAssetTrackingMode(_omnibusWallet) == getOmnibusWalletService().BENEFICIAL()
         ) {
-            adjustTotalInvestorsCountsWithInvestorId(_fromInvestorId, false);
+            adjustTotalInvestorsCounts(_from, false);
         }
 
         return true;
@@ -525,15 +525,6 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
             adjustInvestorsCountsByCountry(country, id, _increase);
         }
-    }
-
-    function adjustTotalInvestorsCountsWithInvestorId(string _investorId, bool _increase) internal {
-        totalInvestors = _increase ? totalInvestors.add(1) : totalInvestors.sub(1);
-
-        string memory country = getRegistryService().getCountry(_investorId);
-
-        adjustInvestorsCountsByCountry(country, _investorId, _increase);
-
     }
 
     function adjustInvestorsCountsByCountry(string memory _country, string memory _id, bool _increase) internal {

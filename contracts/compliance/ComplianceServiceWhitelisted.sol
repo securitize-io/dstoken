@@ -55,7 +55,7 @@ contract ComplianceServiceWhitelisted is ComplianceService {
         return true;
     }
 
-    function recordOmnibusSeize(address _omnibusWallet, string _fromInvestorId, address _to, uint256 _value) internal returns (bool) {
+    function recordOmnibusSeize(address, address, address, uint256) internal returns (bool) {
         return true;
     }
 }

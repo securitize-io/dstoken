@@ -133,18 +133,22 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         checkWalletsForList(_from, _to);
     }
 
-    function omnibusSeize(address _omnibusWallet, string _fromInvestorId, address _to, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
+    function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
+        require(_from != address(0));
         require(_to != address(0));
         require(_value <= walletsBalances[_omnibusWallet]);
 
-        getComplianceService().validateOmnibusSeize(_omnibusWallet,_fromInvestorId _to, _value);
+        getComplianceService().validateOmnibusSeize(_omnibusWallet, _from, _to, _value);
         walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].sub(_value);
         walletsBalances[_to] = walletsBalances[_to].add(_value);
-        updateInvestorsBalances(_omnibusWallet,_fromInvestorId, _to, _value);
+        getOmnibusWalletService().seize(_omnibusWallet, _from, _value, _reason);
+        updateInvestorBalance(_omnibusWallet, _value, false);
+        updateInvestorBalance(_from, _value, false);
+        updateInvestorBalance(_to, _value, true);
 
         emit Seize(_omnibusWallet, _to, _value, _reason);
         emit Transfer(_omnibusWallet, _to, _value);
-        checkWalletsForList(_omnibusWallet,_fromInvestorId, _to);
+        checkWalletsForList(_omnibusWallet, _to);
     }
 
     //*********************
@@ -265,10 +269,10 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
             updateInvestorBalance(_from, _value, false);
 
             if (getWalletManager().getWalletType(_from) == getWalletManager().OMNIBUS()) {
-                getOmnibusWalletService().withdraw(_from, getRegistryService().getInvestor(_to), _value);
+                getOmnibusWalletService().withdraw(_from, _to, _value);
             }
         } else {
-            getOmnibusWalletService().deposit(_to, getRegistryService().getInvestor(_from), _value);
+            getOmnibusWalletService().deposit(_to, _from, _value);
         }
 
         updateInvestorBalance(_to, _value, true);

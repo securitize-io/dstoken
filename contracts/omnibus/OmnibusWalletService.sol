@@ -8,6 +8,11 @@ import "../utils/ProxyTarget.sol";
 contract OmnibusWalletService is ProxyTarget, Initializable, IDSOmnibusWalletService, ServiceConsumer, OmnibusServiceDataStore {
     using SafeMath for uint256;
 
+    modifier enoughBalance(address _omnibusWallet, address _from, uint256 _value) {
+        require(wallets[_omnibusWallet].balances[_from] >= _value, "Omnibus wallet withdraw: not enough tokens");
+        _;
+    }
+
     function initialize() public initializer onlyFromProxy {
         IDSOmnibusWalletService.initialize();
         ServiceConsumer.initialize();
@@ -24,14 +29,18 @@ contract OmnibusWalletService is ProxyTarget, Initializable, IDSOmnibusWalletSer
         return wallets[_omnibusWallet].assetTrackingMode;
     }
 
-    function deposit(address _omnibusWallet, string memory _investorId, uint256 _value) public onlyToken {
-        wallets[_omnibusWallet].balances[_investorId] = wallets[_omnibusWallet].balances[_investorId].add(_value);
+    function deposit(address _omnibusWallet, address _to, uint256 _value) public onlyToken {
+        wallets[_omnibusWallet].balances[_to] = wallets[_omnibusWallet].balances[_to].add(_value);
+        emit OmnibusDeposit(_omnibusWallet, _to, _value);
     }
 
-    function withdraw(address _omnibusWallet, string memory _investorId, uint256 _value) public onlyToken {
-        //TODO: Do this check in the compliance service?
-        require(wallets[_omnibusWallet].balances[_investorId] >= _value, "Omnibus wallet withdraw: not enough tokens");
+    function withdraw(address _omnibusWallet, address _from, uint256 _value) public enoughBalance(_omnibusWallet, _from, _value) onlyToken {
+        wallets[_omnibusWallet].balances[_from] = wallets[_omnibusWallet].balances[_from].sub(_value);
+        emit OmnibusWithdraw(_omnibusWallet, _from, _value);
+    }
 
-        wallets[_omnibusWallet].balances[_investorId] = wallets[_omnibusWallet].balances[_investorId].sub(_value);
+    function seize(address _omnibusWallet, address _from, uint256 _value, string memory _reason) public enoughBalance(_omnibusWallet, _from, _value) onlyToken {
+        wallets[_omnibusWallet].balances[_from] = wallets[_omnibusWallet].balances[_from].sub(_value);
+        emit OmnibusSeize(_omnibusWallet, _from, _value, _reason);
     }
 }
