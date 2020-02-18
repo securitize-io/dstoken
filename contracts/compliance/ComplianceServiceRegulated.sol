@@ -481,16 +481,8 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return true;
     }
 
-    function recordOmnibusSeize(
-        address _omnibusWallet,
-        address _from,
-        address,
-        /*_to*/
-        uint256 _value
-    ) internal returns (bool) {
-        if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_omnibusWallet)) == _value) {
-            adjustTotalInvestorsCounts(_omnibusWallet, false);
-        }
+    function recordOmnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value) internal returns (bool) {
+        recordSeize(_omnibusWallet, _to, _value);
 
         if (
             _value != 0 &&
