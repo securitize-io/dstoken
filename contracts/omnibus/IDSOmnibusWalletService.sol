@@ -7,6 +7,7 @@ contract IDSOmnibusWalletService is Initializable, VersionedContract {
     event OmnibusDeposit(address indexed omnibusWallet, address indexed to, uint256 value);
     event OmnibusWithdraw(address indexed omnibusWallet, address indexed from, uint256 value);
     event OmnibusSeize(address indexed omnibusWallet, address indexed from, uint256 value, string reason);
+    event OmnibusBurn(address indexed omnibusWallet, address indexed who, uint256 value, string reason);
 
     uint8 public constant BENEFICIAL = 0;
     uint8 public constant HOLDER_OF_RECORD = 1;
@@ -32,6 +33,13 @@ contract IDSOmnibusWalletService is Initializable, VersionedContract {
     ) public;
 
     function seize(
+        address _omnibusWallet,
+        address _from,
+        uint256 _value, /*onlyToken*/
+        string memory _reason
+    ) public;
+
+    function burn(
         address _omnibusWallet,
         address _from,
         uint256 _value, /*onlyToken*/

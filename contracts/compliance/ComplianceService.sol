@@ -45,6 +45,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
     }
 
     function validateBurn(address _who, uint256 _value) public onlyToken returns (bool) {
+        require(getWalletManager().getWalletType(_who) != getWalletManager().OMNIBUS());
         require(recordBurn(_who, _value));
 
         return true;
@@ -55,7 +56,8 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         address _who,
         uint256 _value /*onlyToken*/
     ) public returns (bool) {
-        require(recordOmnibusBurn(_who, _value));
+        require(getWalletManager().getWalletType(_omnibusWallet) == getWalletManager().OMNIBUS());
+        require(recordOmnibusBurn(_omnibusWallet, _who, _value));
 
         return true;
     }

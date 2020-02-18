@@ -121,7 +121,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
 
         walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].sub(_value);
         walletsBalances[_who] = walletsBalances[_who].sub(_value);
-        getOmnibusWalletService().burn(_omnibusWallet, _from, _value, _reason);
+        getOmnibusWalletService().burn(_omnibusWallet, _who, _value, _reason);
         updateInvestorBalance(_omnibusWallet, _value, false);
         updateInvestorBalance(_who, _value, false);
         totalSupply = totalSupply.sub(_value);

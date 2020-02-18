@@ -469,7 +469,12 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return true;
     }
 
-    function recordOmnibusBurn(address _omnibusWallet, address _who, uint256 _value) internal returns (bool) {}
+    function recordOmnibusBurn(address _omnibusWallet, address _who, uint256 _value) internal returns (bool) {
+        recordBurn(_omnibusWallet, _value);
+        recordOmnibusOperationShared(_omnibusWallet, _who, _value);
+
+        return true;
+    }
 
     function recordSeize(
         address _from,
@@ -483,17 +488,14 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return true;
     }
 
-    function recordOmnibusSeize(
-        address _omnibusWallet,
-        address _from,
-        address,
-        /*_to*/
-        uint256 _value
-    ) internal returns (bool) {
-        if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_omnibusWallet)) == _value) {
-            adjustTotalInvestorsCounts(_omnibusWallet, false);
-        }
+    function recordOmnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value) internal returns (bool) {
+        recordSeize(_omnibusWallet, _to, _value);
+        recordOmnibusOperationShared(_omnibusWallet, _from, _value);
 
+        return true;
+    }
+
+    function recordOmnibusOperationShared(address _omnibusWallet, address _from, uint256 _value) internal {
         if (
             _value != 0 &&
             getToken().balanceOfInvestor(getRegistryService().getInvestor(_from)) == _value &&
@@ -501,8 +503,6 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         ) {
             adjustTotalInvestorsCounts(_from, false);
         }
-
-        return true;
     }
 
     function adjustInvestorCountsAfterCountryChange(string memory _id, string memory _country, string memory _prevCountry) public onlyRegistry returns (bool) {
