@@ -472,9 +472,9 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     function recordOmnibusBurn(address _omnibusWallet, address _who, uint256 _value) internal returns (bool) {
         if (getOmnibusWalletService().getWalletAssetTrackingMode(_omnibusWallet) == getOmnibusWalletService().HOLDER_OF_RECORD()) {
             recordBurn(_omnibusWallet, _value);
+        } else {
+            recordOmnibusOperationShared(_who, _value);
         }
-
-        recordOmnibusOperationShared(_omnibusWallet, _who, _value);
 
         return true;
     }
@@ -494,18 +494,15 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     function recordOmnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value) internal returns (bool) {
         if (getOmnibusWalletService().getWalletAssetTrackingMode(_omnibusWallet) == getOmnibusWalletService().HOLDER_OF_RECORD()) {
             recordSeize(_omnibusWallet, _to, _value);
+        } else {
+            recordOmnibusOperationShared(_from, _value);
         }
-        recordOmnibusOperationShared(_omnibusWallet, _from, _value);
 
         return true;
     }
 
-    function recordOmnibusOperationShared(address _omnibusWallet, address _from, uint256 _value) internal {
-        if (
-            _value != 0 &&
-            getToken().balanceOfInvestor(getRegistryService().getInvestor(_from)) == _value &&
-            getOmnibusWalletService().getWalletAssetTrackingMode(_omnibusWallet) == getOmnibusWalletService().BENEFICIAL()
-        ) {
+    function recordOmnibusOperationShared(address _from, uint256 _value) internal {
+        if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_from)) == _value) {
             adjustTotalInvestorsCounts(_from, false);
         }
     }

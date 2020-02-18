@@ -57,6 +57,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         uint256 _value /*onlyToken*/
     ) public returns (bool) {
         require(getWalletManager().getWalletType(_omnibusWallet) == getWalletManager().OMNIBUS());
+        require(getWalletManager().getWalletType(_who) != getWalletManager().OMNIBUS());
         require(recordOmnibusBurn(_omnibusWallet, _who, _value));
 
         return true;
