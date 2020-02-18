@@ -469,6 +469,8 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return true;
     }
 
+    function recordOmnibusBurn(address _omnibusWallet, address _who, uint256 _value) internal returns (bool) {}
+
     function recordSeize(
         address _from,
         address, /*_to*/

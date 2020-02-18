@@ -115,17 +115,19 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
     }
 
     function omnibusBurn(address _omnibusWallet, address _who, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
-        require(_value <= walletsBalances[_who]);
+        require(_value <= walletsBalances[_omnibusWallet]);
 
         getComplianceService().validateOmnibusBurn(_omnibusWallet, _who, _value);
 
         walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].sub(_value);
         walletsBalances[_who] = walletsBalances[_who].sub(_value);
+        getOmnibusWalletService().burn(_omnibusWallet, _from, _value, _reason);
+        updateInvestorBalance(_omnibusWallet, _value, false);
         updateInvestorBalance(_who, _value, false);
         totalSupply = totalSupply.sub(_value);
-        emit Burn(_who, _value, _reason);
-        emit Transfer(_who, address(0), _value);
-        checkWalletsForList(_who, address(0));
+        emit Burn(_omnibusWallet, _value, _reason);
+        emit Transfer(_omnibusWallet, address(0), _value);
+        checkWalletsForList(_omnibusWallet, address(0));
     }
 
     //*********************
@@ -154,7 +156,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
     function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string memory _reason)
         public
         onlyIssuerOrAbove
-        validateSeizeParameters(_from, _to, _value)
+        validateSeizeParameters(_omnibusWallet, _to, _value)
     {
         getComplianceService().validateOmnibusSeize(_omnibusWallet, _from, _to, _value);
         walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].sub(_value);

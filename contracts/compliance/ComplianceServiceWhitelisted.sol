@@ -51,6 +51,10 @@ contract ComplianceServiceWhitelisted is ComplianceService {
         return true;
     }
 
+    function recordOmnibusBurn(address, address, uint256) internal returns (bool) {
+        return true;
+    }
+
     function recordSeize(address, address, uint256) internal returns (bool) {
         return true;
     }
