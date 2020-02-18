@@ -45,6 +45,12 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
        TOKEN ISSUANCE (MINTING)
    *******************************/
 
+    modifier checkValidCap(uint256 _value) {
+        require(cap == 0 || totalIssued.add(_value) <= cap, "Token Cap Hit");
+
+        _;
+    }
+
     /**
   * @dev Issues unlocked tokens
   * @param _to address The address which is going to receive the newly issued tokens
@@ -67,14 +73,13 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
     function issueTokensCustom(address _to, uint256 _value, uint256 _issuanceTime, uint256 _valueLocked, string memory _reason, uint64 _releaseTime)
         public
         onlyIssuerOrAbove
+        checkValidCap(_value)
         returns (bool)
     {
         //Check input values
         require(_to != address(0));
         require(_value > 0);
         require(_valueLocked <= _value, "valueLocked must be smaller than value");
-        //Make sure we are not hitting the cap
-        require(cap == 0 || totalIssued.add(_value) <= cap, "Token Cap Hit");
 
         //Check issuance is allowed (and inform the compliance manager, possibly adding locks)
         getComplianceService().validateIssuance(_to, _value, _issuanceTime);
@@ -93,6 +98,25 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         }
 
         checkWalletsForList(address(0), _to);
+    }
+
+    function omnibusIssueTokens(address _omnibusWallet, address _to, uint256 _value, uint256 _issuanceTime) public onlyIssuerOrAbove checkValidCap(_value) returns (bool) {
+        require(_omnibusWallet != address(0));
+        require(_value > 0);
+
+        getComplianceService().validateOmnibusIssuance(_omnibusWallet, _to, _value, _issuanceTime);
+
+        totalSupply = totalSupply.add(_value);
+        totalIssued = totalIssued.add(_value);
+        walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].add(_value);
+        updateInvestorBalance(_to, _value, true);
+        updateInvestorBalance(_omnibusWallet, _value, true);
+        getOmnibusWalletService().issueTokens(_omnibusWallet, _to, _value, _issuanceTime);
+
+        emit Issue(_omnibusWallet, _value, 0);
+        emit Transfer(address(0), _omnibusWallet, _value);
+
+        checkWalletsForList(address(0), _omnibusWallet);
     }
 
     //*********************

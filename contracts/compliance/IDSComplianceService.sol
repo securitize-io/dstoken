@@ -43,6 +43,13 @@ contract IDSComplianceService is Initializable, VersionedContract {
         uint256 _issuanceTime /*onlyToken*/
     ) public returns (bool);
 
+    function validateOmnibusIssuance(
+        address _omnibusWallet,
+        address _to,
+        uint256 _value,
+        uint256 _issuanceTime /*onlyToken*/
+    ) public returns (bool);
+
     function validateBurn(
         address _who,
         uint256 _value /*onlyToken*/
