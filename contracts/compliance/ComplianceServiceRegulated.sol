@@ -470,7 +470,10 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function recordOmnibusBurn(address _omnibusWallet, address _who, uint256 _value) internal returns (bool) {
-        recordBurn(_omnibusWallet, _value);
+        if (getOmnibusWalletService().getWalletAssetTrackingMode(_omnibusWallet) == getOmnibusWalletService().HOLDER_OF_RECORD()) {
+            recordBurn(_omnibusWallet, _value);
+        }
+
         recordOmnibusOperationShared(_omnibusWallet, _who, _value);
 
         return true;
@@ -489,7 +492,9 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function recordOmnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value) internal returns (bool) {
-        recordSeize(_omnibusWallet, _to, _value);
+        if (getOmnibusWalletService().getWalletAssetTrackingMode(_omnibusWallet) == getOmnibusWalletService().HOLDER_OF_RECORD()) {
+            recordSeize(_omnibusWallet, _to, _value);
+        }
         recordOmnibusOperationShared(_omnibusWallet, _from, _value);
 
         return true;
