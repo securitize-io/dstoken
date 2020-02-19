@@ -22,6 +22,17 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         VERSIONS.push(3);
     }
 
+    function validateTransfer(address _from, address _to, uint256 _value) public onlyToken returns (bool) {
+        uint256 code;
+        string memory reason;
+
+        (code, reason) = preTransferCheck(_from, _to, _value);
+        require(code == 0, reason);
+        require(recordTransfer(_from, _to, _value));
+
+        return true;
+    }
+
     function validateIssuance(address _to, uint256 _value, uint256 _issuanceTime) public onlyToken returns (bool) {
         require(getWalletManager().getWalletType(_to) != getWalletManager().OMNIBUS());
 
@@ -54,17 +65,6 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         require(code == 0, reason);
 
         require(recordOmnibusIssuance(_omnibusWallet, _to, _value, _issuanceTime));
-
-        return true;
-    }
-
-    function validateTransfer(address _from, address _to, uint256 _value) public onlyToken returns (bool) {
-        uint256 code;
-        string memory reason;
-
-        (code, reason) = preTransferCheck(_from, _to, _value);
-        require(code == 0, reason);
-        require(recordTransfer(_from, _to, _value));
 
         return true;
     }

@@ -310,19 +310,14 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
     }
 
     function updateInvestorsBalances(address _from, address _to, uint256 _value) internal {
-        if (getWalletManager().getWalletType(_to) != getWalletManager().OMNIBUS()) {
-            updateInvestorBalance(_from, _value, false);
-
-            if (getWalletManager().getWalletType(_from) == getWalletManager().OMNIBUS()) {
-                getOmnibusWalletService().withdraw(_from, _to, _value);
-                return;
-            }
-        } else {
+        if (getWalletManager().getWalletType(_to) == getWalletManager().OMNIBUS()) {
             getOmnibusWalletService().deposit(_to, _from, _value);
+        } else if (getWalletManager().getWalletType(_from) == getWalletManager().OMNIBUS()) {
+            getOmnibusWalletService().withdraw(_from, _to, _value);
         }
 
+        updateInvestorBalance(_from, _value, false);
         updateInvestorBalance(_to, _value, true);
-
     }
 
     function updateInvestorBalance(address _wallet, uint256 _value, bool _increase) internal returns (bool) {
