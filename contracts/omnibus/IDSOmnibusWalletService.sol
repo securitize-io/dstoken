@@ -19,7 +19,7 @@ contract IDSOmnibusWalletService is Initializable, VersionedContract {
     }
 
     function setAssetTrackingMode(address _omnibusWallet, uint8 _assetTrackingMode) public;
-    function getWalletAssetTrackingMode(address omnibusWallet) public returns (uint8);
+    function getWalletAssetTrackingMode(address omnibusWallet) public view returns (uint8);
     function deposit(
         address _omnibusWallet,
         address _to,

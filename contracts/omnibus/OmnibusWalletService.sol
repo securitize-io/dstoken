@@ -25,7 +25,7 @@ contract OmnibusWalletService is ProxyTarget, Initializable, IDSOmnibusWalletSer
         wallets[_omnibusWallet].assetTrackingMode = _assetTrackingMode;
     }
 
-    function getWalletAssetTrackingMode(address _omnibusWallet) public returns (uint8) {
+    function getWalletAssetTrackingMode(address _omnibusWallet) public view returns (uint8) {
         return wallets[_omnibusWallet].assetTrackingMode;
     }
 

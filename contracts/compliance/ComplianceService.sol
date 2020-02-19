@@ -83,7 +83,12 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
     ) public returns (bool) {
         require(getWalletManager().getWalletType(_omnibusWallet) == getWalletManager().OMNIBUS());
         require(getWalletManager().getWalletType(_who) != getWalletManager().OMNIBUS());
-        require(recordOmnibusBurn(_omnibusWallet, _who, _value));
+
+        if (getOmnibusWalletService().getWalletAssetTrackingMode(_omnibusWallet) == getOmnibusWalletService().HOLDER_OF_RECORD()) {
+            require(recordBurn(_omnibusWallet, _value));
+        } else {
+            require(recordBurn(_who, _value));
+        }
 
         return true;
     }
@@ -99,7 +104,12 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
     function validateOmnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value) public onlyToken returns (bool) {
         require(getWalletManager().getWalletType(_omnibusWallet) == getWalletManager().OMNIBUS());
         require(getWalletManager().getWalletType(_to) == getWalletManager().ISSUER());
-        require(recordOmnibusSeize(_omnibusWallet, _from, _to, _value));
+
+        if (getOmnibusWalletService().getWalletAssetTrackingMode(_omnibusWallet) == getOmnibusWalletService().HOLDER_OF_RECORD()) {
+            require(recordSeize(_omnibusWallet, _to, _value));
+        } else {
+            require(recordSeize(_from, _to, _value));
+        }
 
         return true;
     }
@@ -144,8 +154,6 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
     function recordOmnibusIssuance(address _omnibusWallet, address _to, uint256 _value, uint256 _issuanceTime) internal returns (bool);
     function recordTransfer(address _from, address _to, uint256 _value) internal returns (bool);
     function recordBurn(address _who, uint256 _value) internal returns (bool);
-    function recordOmnibusBurn(address _omnibusWallet, address _who, uint256 _value) internal returns (bool);
     function recordSeize(address _from, address _to, uint256 _value) internal returns (bool);
-    function recordOmnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value) internal returns (bool);
     function checkTransfer(address _from, address _to, uint256 _value) internal view returns (uint256, string memory);
 }
