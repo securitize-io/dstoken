@@ -44,13 +44,13 @@ contract OmnibusWalletService is ProxyTarget, Initializable, IDSOmnibusWalletSer
         emit OmnibusSeize(_omnibusWallet, _from, _value, _reason);
     }
 
-    function burn(
-        address _omnibusWallet,
-        address _who,
-        uint256 _value, /*onlyToken*/
-        string memory _reason
-    ) public enoughBalance(_omnibusWallet, _who, _value) onlyToken {
+    function burn(address _omnibusWallet, address _who, uint256 _value, string memory _reason) public enoughBalance(_omnibusWallet, _who, _value) onlyToken {
         wallets[_omnibusWallet].balances[_who] = wallets[_omnibusWallet].balances[_who].sub(_value);
         emit OmnibusBurn(_omnibusWallet, _who, _value, _reason);
+    }
+
+    function issueTokens(address _omnibusWallet, address _to, uint256 _value) public onlyToken {
+        wallets[_omnibusWallet].balances[_to] = wallets[_omnibusWallet].balances[_to].add(_value);
+        emit OmnibusIssue(_to, _value);
     }
 }

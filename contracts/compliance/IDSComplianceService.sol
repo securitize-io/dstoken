@@ -74,7 +74,7 @@ contract IDSComplianceService is Initializable, VersionedContract {
         uint256 _value /*onlyToken*/
     ) public returns (bool);
 
-    function validate(
+    function validateTransfer(
         address _from,
         address _to,
         uint256 _value /*onlyToken*/

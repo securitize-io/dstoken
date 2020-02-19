@@ -106,7 +106,6 @@ library ComplianceServiceLibrary {
             if (IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) == IDSWalletManager(_services[WALLET_MANAGER]).OMNIBUS()) {
                 return (81, OMNIBUS_TO_OMNIBUS_TRANSFER);
             }
-
             return omnibusWalletAdditionalPreTransferChecks(_services, _from, _to, _value, false);
 
         } else if (IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) == IDSWalletManager(_services[WALLET_MANAGER]).OMNIBUS()) {
@@ -226,7 +225,7 @@ library ComplianceServiceLibrary {
                 complianceService.getUSAccreditedInvestorsCount() >=
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() &&
                 isNewInvestor(_services, _to) &&
-                (fromRegion != US || (fromInvestorBalance > _value && isAccredited(_services, _from)))
+                (fromRegion != US || !isAccredited(_services, _from) || balanceOfInvestor(_services, _from) > _value)
             ) {
                 return (40, MAX_INVESTORS_IN_CATEGORY);
             }
@@ -427,7 +426,7 @@ library ComplianceServiceLibrary {
             isAccredited(_services, _to) &&
             complianceService.getUSAccreditedInvestorsCount() >= IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() &&
             isNewInvestor(_services, _to) &&
-            (fromRegion != US || (balanceOfInvestor(_services, _from) > _value && isAccredited(_services, _from)))
+            (fromRegion != US || !isAccredited(_services, _from) || balanceOfInvestor(_services, _from) > _value)
         ) {
             return (40, MAX_INVESTORS_IN_CATEGORY);
         }
@@ -461,10 +460,6 @@ library ComplianceServiceLibrary {
 
     function getComplianceConfigurationService(IDSServiceConsumer _service) public view returns (IDSComplianceConfigurationService) {
         return IDSComplianceConfigurationService(_service.getDSService(_service.COMPLIANCE_CONFIGURATION_SERVICE()));
-    }
-
-    function getOmnibusWalletService(IDSServiceConsumer _service) public view returns (IDSOmnibusWalletService) {
-        return IDSOmnibusWalletService(_service.getDSService(_service.OMNIBUS_WALLET_SERVICE()));
     }
 }
 
@@ -506,6 +501,24 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     function recordIssuance(address _to, uint256 _value, uint256 _issuanceTime) internal returns (bool) {
         if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_to)) == 0) {
             adjustTotalInvestorsCounts(_to, true);
+        }
+
+        require(createIssuanceInformation(getRegistryService().getInvestor(_to), _value, _issuanceTime));
+
+        return true;
+    }
+
+    function recordOmnibusIssuance(address _omnibusWallet, address _to, uint256 _value, uint256 _issuanceTime) internal returns (bool) {
+        if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_omnibusWallet)) == 0) {
+            if (getOmnibusWalletService().getWalletAssetTrackingMode(_omnibusWallet) == getOmnibusWalletService().HOLDER_OF_RECORD()) {
+                adjustTotalInvestorsCounts(_omnibusWallet, true);
+            }
+        }
+
+        if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_to)) == 0) {
+            if (getOmnibusWalletService().getWalletAssetTrackingMode(_omnibusWallet) == getOmnibusWalletService().BENEFICIAL()) {
+                adjustTotalInvestorsCounts(_to, true);
+            }
         }
 
         require(createIssuanceInformation(getRegistryService().getInvestor(_to), _value, _issuanceTime));

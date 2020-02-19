@@ -58,7 +58,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         return true;
     }
 
-    function validate(address _from, address _to, uint256 _value) public onlyToken returns (bool) {
+    function validateTransfer(address _from, address _to, uint256 _value) public onlyToken returns (bool) {
         uint256 code;
         string memory reason;
 

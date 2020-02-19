@@ -106,17 +106,17 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
 
         getComplianceService().validateOmnibusIssuance(_omnibusWallet, _to, _value, _issuanceTime);
 
-        // totalSupply = totalSupply.add(_value);
-        // totalIssued = totalIssued.add(_value);
-        // walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].add(_value);
-        // updateInvestorBalance(_to, _value, true);
-        // updateInvestorBalance(_omnibusWallet, _value, true);
-        // getOmnibusWalletService().issueTokens(_omnibusWallet, _to, _value, _issuanceTime);
+        totalSupply = totalSupply.add(_value);
+        totalIssued = totalIssued.add(_value);
+        walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].add(_value);
+        updateInvestorBalance(_to, _value, true);
+        updateInvestorBalance(_omnibusWallet, _value, true);
+        getOmnibusWalletService().issueTokens(_omnibusWallet, _to, _value);
 
-        // emit Issue(_omnibusWallet, _value, 0);
-        // emit Transfer(address(0), _omnibusWallet, _value);
+        emit Issue(_omnibusWallet, _value, 0);
+        emit Transfer(address(0), _omnibusWallet, _value);
 
-        // checkWalletsForList(address(0), _omnibusWallet);
+        checkWalletsForList(address(0), _omnibusWallet);
 
     }
 
@@ -204,7 +204,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
   * @dev Checks whether it can transfer with the compliance manager, if not -throws.
   */
     modifier canTransfer(address _sender, address _receiver, uint256 _value) {
-        getComplianceService().validate(_sender, _receiver, _value);
+        getComplianceService().validateTransfer(_sender, _receiver, _value);
         _;
     }
 
