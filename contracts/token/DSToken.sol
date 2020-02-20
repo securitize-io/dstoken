@@ -121,7 +121,9 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].sub(_value);
         walletsBalances[_who] = walletsBalances[_who].sub(_value);
         getOmnibusWalletService().burn(_omnibusWallet, _who, _value, _reason);
-        updateInvestorBalance(_omnibusWallet, _value, false);
+
+        decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_omnibusWallet, _who, _value);
+
         totalSupply = totalSupply.sub(_value);
         emit Burn(_omnibusWallet, _value, _reason);
         emit Transfer(_omnibusWallet, address(0), _value);
@@ -160,7 +162,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].sub(_value);
         walletsBalances[_to] = walletsBalances[_to].add(_value);
         getOmnibusWalletService().seize(_omnibusWallet, _from, _value, _reason);
-        updateInvestorBalance(_omnibusWallet, _value, false);
+        decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_omnibusWallet, _from, _value);
         updateInvestorBalance(_to, _value, true);
 
         emit Seize(_omnibusWallet, _to, _value, _reason);
@@ -282,14 +284,33 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
     }
 
     function updateInvestorsBalances(address _from, address _to, uint256 _value) internal {
-        if (getWalletManager().getWalletType(_to) == getWalletManager().OMNIBUS()) {
+        if (getWalletManager().isOmnibusWallet(_to)) {
             getOmnibusWalletService().deposit(_to, _from, _value);
-        } else if (getWalletManager().getWalletType(_from) == getWalletManager().OMNIBUS()) {
+
+            if (getOmnibusWalletService().isHolderOfRecord(_to)) {
+                updateInvestorBalance(_from, _value, false);
+                updateInvestorBalance(_to, _value, true);
+            }
+        } else if (getWalletManager().isOmnibusWallet(_from)) {
             getOmnibusWalletService().withdraw(_from, _to, _value);
+
+            if (getOmnibusWalletService().isHolderOfRecord(_from)) {
+                updateInvestorBalance(_from, _value, false);
+                updateInvestorBalance(_to, _value, true);
+            }
+        } else {
+            updateInvestorBalance(_from, _value, false);
+            updateInvestorBalance(_to, _value, true);
         }
 
-        updateInvestorBalance(_from, _value, false);
-        updateInvestorBalance(_to, _value, true);
+    }
+
+    function decreaseInvestorBalanceOnOmnibusSeizeOrBurn(address _omnibusWallet, address _from, uint256 _value) internal {
+        if (getOmnibusWalletService().isHolderOfRecord(_omnibusWallet)) {
+            updateInvestorBalance(_omnibusWallet, _value, false);
+        } else {
+            updateInvestorBalance(_from, _value, false);
+        }
     }
 
     function updateInvestorBalance(address _wallet, uint256 _value, bool _increase) internal returns (bool) {

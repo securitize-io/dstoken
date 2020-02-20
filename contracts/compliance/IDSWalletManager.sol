@@ -47,6 +47,7 @@ contract IDSWalletManager is Initializable, VersionedContract {
    * @param _wallet The address of the wallet.
    * @return A boolean that indicates if the operation was successful.
    */
+    function isOmnibusWallet(address _wallet) public view returns (bool);
     function addIssuerWallet(
         address _wallet /*onlyIssuerOrAbove*/
     ) public returns (bool);

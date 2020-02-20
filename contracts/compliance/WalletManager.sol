@@ -85,6 +85,10 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
         return walletsTypes[_wallet];
     }
 
+    function isOmnibusWallet(address _wallet) public view returns (bool) {
+        return walletsTypes[_wallet] == OMNIBUS;
+    }
+
     /**
    * @dev Removes a special wallet.
    * @param _wallet The address of the wallet.
