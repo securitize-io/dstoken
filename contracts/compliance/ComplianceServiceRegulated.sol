@@ -471,11 +471,11 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
     function adjustTransferCounts(address _from, address _to, bool increase) internal {
         if (getWalletManager().getWalletType(_from) == getWalletManager().OMNIBUS()) {
-            if (getOmnibusWalletService().getWalletAssetTrackingMode(_from) == getOmnibusWalletService().HOLDER_OF_RECORD()) {
+            if (getOmnibusWalletService().isHolderOfRecord(_from)) {
                 adjustTotalInvestorsCounts(_from, increase);
             }
         } else if (getWalletManager().getWalletType(_to) == getWalletManager().OMNIBUS()) {
-            if (getOmnibusWalletService().getWalletAssetTrackingMode(_to) == getOmnibusWalletService().HOLDER_OF_RECORD()) {
+            if (getOmnibusWalletService().isHolderOfRecord(_to)) {
                 adjustTotalInvestorsCounts(_from, increase);
             }
         } else {
@@ -502,7 +502,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function recordOmnibusBurn(address _omnibusWallet, address _who, uint256 _value) internal returns (bool) {
-        if (getOmnibusWalletService().getWalletAssetTrackingMode(_omnibusWallet) == getOmnibusWalletService().HOLDER_OF_RECORD()) {
+        if (getOmnibusWalletService().isHolderOfRecord(_omnibusWallet)) {
             recordBurn(_omnibusWallet, _value);
         } else if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_who)) == 0) {
             adjustTotalInvestorsCounts(_who, false);
@@ -524,7 +524,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function recordOmnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value) internal returns (bool) {
-        if (getOmnibusWalletService().getWalletAssetTrackingMode(_omnibusWallet) == getOmnibusWalletService().HOLDER_OF_RECORD()) {
+        if (getOmnibusWalletService().isHolderOfRecord(_omnibusWallet)) {
             recordSeize(_omnibusWallet, _to, _value);
         } else if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_from)) == 0) {
             adjustTotalInvestorsCounts(_from, false);
