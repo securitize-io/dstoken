@@ -76,6 +76,13 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
         string memory _reason /*onlyIssuerOrAbove*/
     ) public;
 
+    function omnibusBurn(
+        address _omnibusWallet,
+        address _who,
+        uint256 _value,
+        string memory _reason /*onlyIssuerOrAbove*/
+    ) public;
+
     //*********************
     // TOKEN SIEZING
     //*********************
@@ -85,6 +92,15 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
         address _to,
         uint256 _value,
         string memory _reason /*onlyIssuerOrAbove*/
+    ) public;
+
+    function omnibusSeize(
+        address _omnibusWallet,
+        address _from,
+        address _to,
+        uint256 _value,
+        string memory _reason
+        /*onlyIssuerOrAbove*/
     ) public;
 
     //*********************

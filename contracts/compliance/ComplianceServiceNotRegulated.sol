@@ -26,7 +26,7 @@ contract ComplianceServiceNotRegulated is ComplianceService {
         return (0, VALID);
     }
 
-    function preIssuanceCheck(address, uint256, bool) public view returns (uint256 code, string memory reason) {
+    function preIssuanceCheck(address, uint256) public view returns (uint256 code, string memory reason) {
         code = 0;
         reason = VALID;
     }
@@ -35,7 +35,15 @@ contract ComplianceServiceNotRegulated is ComplianceService {
         return true;
     }
 
+    function recordOmnibusBurn(address, address, uint256) internal returns (bool) {
+        return true;
+    }
+
     function recordSeize(address, address, uint256) internal returns (bool) {
+        return true;
+    }
+
+    function recordOmnibusSeize(address, address, address, uint256) internal returns (bool) {
         return true;
     }
 }
