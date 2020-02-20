@@ -156,8 +156,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         bool result = super.transfer(_to, _value);
 
         if (result) {
-            updateInvestorBalance(msg.sender, _value, false);
-            updateInvestorBalance(_to, _value, true);
+            updateInvestorsBalances(msg.sender, _to, _value);
         }
 
         checkWalletsForList(msg.sender, _to);
@@ -178,8 +177,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         bool result = super.transferFrom(_from, _to, _value);
 
         if (result) {
-            updateInvestorBalance(_from, _value, false);
-            updateInvestorBalance(_to, _value, true);
+            updateInvestorsBalances(_from, _to, _value);
         }
 
         checkWalletsForList(_from, _to);
@@ -246,6 +244,20 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
 
     function balanceOfInvestor(string memory _id) public view returns (uint256) {
         return investorsBalances[_id];
+    }
+
+    function updateInvestorsBalances(address _from, address _to, uint256 _value) internal {
+        if (getWalletManager().getWalletType(_to) != getWalletManager().OMNIBUS()) {
+            updateInvestorBalance(_from, _value, false);
+
+            if (getWalletManager().getWalletType(_from) == getWalletManager().OMNIBUS()) {
+                getOmnibusWalletService().withdraw(_from, getRegistryService().getInvestor(_to), _value);
+            }
+        } else {
+            getOmnibusWalletService().deposit(_to, getRegistryService().getInvestor(_from), _value);
+        }
+
+        updateInvestorBalance(_to, _value, true);
     }
 
     function updateInvestorBalance(address _wallet, uint256 _value, bool _increase) internal returns (bool) {

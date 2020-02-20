@@ -7,6 +7,7 @@ const WalletRegistrar = artifacts.require("WalletRegistrar");
 const ComplianceConfigurationService = artifacts.require(
   "ComplianceConfigurationService"
 );
+const OmnibusWalletService = artifacts.require("OmnibusWalletService");
 const MultiSigWallet = artifacts.require("MultiSigWallet");
 const configurationManager = require("./utils/configurationManager");
 const services = require("../utils/globals").services;
@@ -31,6 +32,9 @@ module.exports = async function(deployer) {
     configurationManager.getProxyAddressForContractName(
       "ComplianceConfigurationService"
     )
+  );
+  const omnibusWalletService = await OmnibusWalletService.at(
+    configurationManager.getProxyAddressForContractName("OmnibusWalletService")
   );
   const walletManager = await WalletManager.at(
     configurationManager.getProxyAddressForContractName("WalletManager")
@@ -82,6 +86,11 @@ module.exports = async function(deployer) {
     services.LOCK_MANAGER,
     lockManager.address
   );
+  console.log("Connecting compliance manager to omnibus wallet service");
+  await complianceService.setDSService(
+    services.OMNIBUS_WALLET_SERVICE,
+    omnibusWalletService.address
+  );
   console.log("Connecting compliance service to token");
   await complianceService.setDSService(services.DS_TOKEN, token.address);
 
@@ -112,9 +121,13 @@ module.exports = async function(deployer) {
     });
 
     console.log("Connecting token to wallet registrar");
-    await token.setDSService(services.WALLET_REGISTRAR, walletRegistrar.address, {
-      gas: 1e6
-    });
+    await token.setDSService(
+      services.WALLET_REGISTRAR,
+      walletRegistrar.address,
+      {
+        gas: 1e6
+      }
+    );
 
     console.log("Connecting token issuer to registry");
     await tokenIssuer.setDSService(
@@ -163,6 +176,14 @@ module.exports = async function(deployer) {
   await token.setDSService(services.LOCK_MANAGER, lockManager.address, {
     gas: 1e6
   });
+  console.log("Connecting token to omnibus wallet service");
+  await token.setDSService(
+    services.OMNIBUS_WALLET_SERVICE,
+    omnibusWalletService.address,
+    {
+      gas: 1e6
+    }
+  );
   console.log("Connecting wallet manager to trust service");
   await walletManager.setDSService(
     services.TRUST_SERVICE,
@@ -246,6 +267,11 @@ module.exports = async function(deployer) {
   if (!registry) {
     console.log("\nNo investors registry was deployed.");
   }
+  console.log(
+    `Omnibus wallet service is at address: ${
+      omnibusWalletService.address
+    } | Version: ${await omnibusWalletService.getVersion()}`
+  );
   console.log(
     `Multisig wallet is at address: ${
       multisig.address

@@ -24,7 +24,10 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
    * @return A boolean that indicates if the operation was successful.
    */
     function setSpecialWallet(address _wallet, uint8 _type) internal returns (bool) {
-        require(keccak256(abi.encodePacked(getRegistryService().getInvestor(_wallet))) == keccak256(""));
+        if (_type != OMNIBUS) {
+            require(keccak256(abi.encodePacked(getRegistryService().getInvestor(_wallet))) == keccak256(""));
+        }
+
         uint8 oldType = getWalletType(_wallet);
         require(oldType == NONE || _type == NONE);
 
@@ -67,6 +70,15 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
         IDSTrustService trustManager = getTrustService();
         require(trustManager.getRole(_owner) == trustManager.EXCHANGE());
         return setSpecialWallet(_wallet, EXCHANGE);
+    }
+
+    /**
+   * @dev Sets a wallet to be an omnibus wallet.
+   * @param _wallet The address of the wallet.
+   * @return A boolean that indicates if the operation was successful.
+   */
+    function addOmnibusWallet(address _wallet) public onlyIssuerOrAbove returns (bool) {
+        return setSpecialWallet(_wallet, OMNIBUS);
     }
 
     function getWalletType(address _wallet) public view returns (uint8) {
