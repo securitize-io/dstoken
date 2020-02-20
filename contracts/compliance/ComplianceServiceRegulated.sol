@@ -68,12 +68,6 @@ library ComplianceServiceLibrary {
         return IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getCountryCompliance(getCountry(services, _wallet));
     }
 
-    function isHolderOfRecord(address[] memory _services, address _omnibusWallet) internal view returns (bool) {
-        return
-            IDSOmnibusWalletService(_services[OMNIBUS_WALLET_SERVICE]).getWalletAssetTrackingMode(_omnibusWallet) ==
-            IDSOmnibusWalletService(_services[OMNIBUS_WALLET_SERVICE]).HOLDER_OF_RECORD();
-    }
-
     function isOmnibusTransfer(address[] memory _services, address _from, address _to) internal view returns (bool) {
         return
             IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) == IDSWalletManager(_services[WALLET_MANAGER]).OMNIBUS() ||
@@ -211,7 +205,7 @@ library ComplianceServiceLibrary {
                 isNewInvestor(_services, _to)
             ) {
                 if (IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) == IDSWalletManager(_services[WALLET_MANAGER]).OMNIBUS()) {
-                    if (isHolderOfRecord(_services, _from)) {
+                    if (IDSOmnibusWalletService(_services[OMNIBUS_WALLET_SERVICE]).isHolderOfRecord(_from)) {
                         return (40, MAX_INVESTORS_IN_CATEGORY);
                     }
                 } else if (
@@ -268,7 +262,10 @@ library ComplianceServiceLibrary {
                 isNewInvestor(_services, _to)
             ) {
                 if (isOmnibusTransfer(_services, _from, _to)) {
-                    if (isHolderOfRecord(_services, _from) || isHolderOfRecord(_services, _to)) {
+                    if (
+                        IDSOmnibusWalletService(_services[OMNIBUS_WALLET_SERVICE]).isHolderOfRecord(_from) ||
+                        IDSOmnibusWalletService(_services[OMNIBUS_WALLET_SERVICE]).isHolderOfRecord(_to)
+                    ) {
                         return (40, MAX_INVESTORS_IN_CATEGORY);
                     }
                 } else if (fromRegion != US || !isAccredited(_services, _from) || balanceOfInvestor(_services, _from) > _value) {
@@ -292,7 +289,7 @@ library ComplianceServiceLibrary {
                 isNewInvestor(_services, _to)
             ) {
                 if (IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) == IDSWalletManager(_services[WALLET_MANAGER]).OMNIBUS()) {
-                    if (isHolderOfRecord(_services, _from)) {
+                    if (IDSOmnibusWalletService(_services[OMNIBUS_WALLET_SERVICE]).isHolderOfRecord(_from)) {
                         return (40, MAX_INVESTORS_IN_CATEGORY);
                     }
                 } else if (isAccredited(_services, _from) || fromInvestorBalance > _value) {
