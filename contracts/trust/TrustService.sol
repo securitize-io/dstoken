@@ -126,39 +126,6 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
         return true;
     }
 
-    function addEntity(string memory _name, address _owner) public onlyMasterOrIssuer onlyNewEntity(_name) onlyNewEntityOwner(_owner) {
-        entities[_name] = true;
-        ownersEntities[_owner] = _name;
-    }
-
-    function changeEntityOwner(string memory _name, address _oldOwner, address _newOwner) public onlyMasterOrIssuer onlyExistingEntityOwner(_name, _oldOwner) {
-        delete ownersEntities[_oldOwner];
-        ownersEntities[_newOwner] = _name;
-    }
-
-    function addOperator(string memory _name, address _operator) public onlyEntityOwnerOrAbove(_name, msg.sender) onlyNewOperator(_operator) {
-        operatorsEntities[_operator] = _name;
-    }
-
-    function removeOperator(string memory _name, address _operator) public onlyEntityOwnerOrAbove(_name, msg.sender) onlyExistingOperator(_name, _operator) {
-        delete operatorsEntities[_operator];
-    }
-
-    function addResource(string memory _name, address _resource) public onlyMasterOrIssuer onlyExistingEntity(_name) onlyNewResource(_resource) {
-        resourcesEntities[_resource] = _name;
-    }
-
-    function removeResource(string memory _name, address _resource) public onlyMasterOrIssuer onlyExistingResource(_name, _resource) {
-        delete resourcesEntities[_resource];
-    }
-
-    function isResourceOperator(string memory _name, address _resource, address _operator) public view returns (bool) {
-        return
-            keccak256(abi.encodePacked(_name)) != keccak256(abi.encodePacked("")) &&
-            keccak256(abi.encodePacked(resourcesEntities[_resource])) == keccak256(abi.encodePacked(_name)) &&
-            keccak256(abi.encodePacked(operatorsEntities[_operator])) == keccak256(abi.encodePacked(_name));
-    }
-
     /**
    * @dev Transfers the ownership (MASTER role) of the contract.
    * @param _address The address which the ownership needs to be transferred to.
@@ -205,5 +172,38 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
    */
     function getRole(address _address) public view returns (uint8) {
         return roles[_address];
+    }
+
+    function addEntity(string memory _name, address _owner) public onlyMasterOrIssuer onlyNewEntity(_name) onlyNewEntityOwner(_owner) {
+        entities[_name] = true;
+        ownersEntities[_owner] = _name;
+    }
+
+    function changeEntityOwner(string memory _name, address _oldOwner, address _newOwner) public onlyMasterOrIssuer onlyExistingEntityOwner(_name, _oldOwner) {
+        delete ownersEntities[_oldOwner];
+        ownersEntities[_newOwner] = _name;
+    }
+
+    function addOperator(string memory _name, address _operator) public onlyEntityOwnerOrAbove(_name, msg.sender) onlyNewOperator(_operator) {
+        operatorsEntities[_operator] = _name;
+    }
+
+    function removeOperator(string memory _name, address _operator) public onlyEntityOwnerOrAbove(_name, msg.sender) onlyExistingOperator(_name, _operator) {
+        delete operatorsEntities[_operator];
+    }
+
+    function addResource(string memory _name, address _resource) public onlyMasterOrIssuer onlyExistingEntity(_name) onlyNewResource(_resource) {
+        resourcesEntities[_resource] = _name;
+    }
+
+    function removeResource(string memory _name, address _resource) public onlyMasterOrIssuer onlyExistingResource(_name, _resource) {
+        delete resourcesEntities[_resource];
+    }
+
+    function isResourceOperator(string memory _name, address _resource, address _operator) public view returns (bool) {
+        return
+            keccak256(abi.encodePacked(_name)) != keccak256(abi.encodePacked("")) &&
+            keccak256(abi.encodePacked(resourcesEntities[_resource])) == keccak256(abi.encodePacked(_name)) &&
+            keccak256(abi.encodePacked(operatorsEntities[_operator])) == keccak256(abi.encodePacked(_name));
     }
 }
