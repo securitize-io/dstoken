@@ -6,6 +6,7 @@ import "../token/IDSToken.sol";
 import "../compliance/IDSWalletManager.sol";
 import "../compliance/IDSLockManager.sol";
 import "../compliance/IDSComplianceService.sol";
+import "../compliance/IDSPartitionsManager.sol";
 import "../compliance/IDSComplianceConfigurationService.sol";
 import "../registry/IDSRegistryService.sol";
 import "../trust/IDSTrustService.sol";
@@ -94,6 +95,10 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
 
     function getRegistryService() internal view returns (IDSRegistryService) {
         return IDSRegistryService(getDSService(REGISTRY_SERVICE));
+    }
+
+    function getPartitionsManager() internal view returns (IDSPartitionsManager) {
+        return IDSPartitionsManager(getDSService(PARTITIONS_MANAGER));
     }
 
     function getComplianceConfigurationService() internal view returns (IDSComplianceConfigurationService) {
