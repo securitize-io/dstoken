@@ -55,6 +55,54 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
         return true;
     }
 
+    modifier onlyEntityOwnerOrAbove(string memory _name, address _owner) {
+        require(
+            roles[msg.sender] == MASTER ||
+                roles[msg.sender] == ISSUER ||
+                (keccak256(abi.encodePacked(ownersEntities[_owner])) != keccak256(abi.encodePacked("")) &&
+                    keccak256(abi.encodePacked(ownersEntities[_owner])) == keccak256(abi.encodePacked(_name)))
+        );
+
+        _;
+    }
+
+    modifier onlyNewEntity(string memory _name) {
+        require(!entities[_name], "Entity already exists");
+
+        _;
+    }
+
+    modifier onlyNewEntityOwner(address _owner) {
+        require(keccak256(abi.encodePacked(ownersEntities[_owner])) == keccak256(abi.encodePacked("")), "Entity owner already exists");
+
+        _;
+    }
+
+    modifier onlyNewOperator(address _operator) {
+        require(keccak256(abi.encodePacked(operatorsEntities[_operator])) == keccak256(abi.encodePacked("")), "Entity operator already exists");
+
+        _;
+    }
+
+    modifier onlyNewResource(address _resource) {
+        require(keccak256(abi.encodePacked(resourcesEntities[_resource])) == keccak256(abi.encodePacked("")), "Entity resource already exists");
+
+        _;
+    }
+
+    function addEntity(string memory _name, address _owner) public onlyMasterOrIssuer onlyNewEntity(_name) onlyNewEntityOwner(_owner) {
+        entities[_name] = true;
+        ownersEntities[_owner] = _name;
+    }
+
+    function addOperator(string memory _name, address _operator) public onlyEntityOwnerOrAbove(_name, msg.sender) onlyNewOperator(_operator) {
+        operatorsEntities[_operator] = _name;
+    }
+
+    function addResource(string memory _name, address _resource) public onlyMasterOrIssuer onlyNewResource(_resource) {
+        resourcesEntities[_resource] = _name;
+    }
+
     /**
    * @dev Transfers the ownership (MASTER role) of the contract.
    * @param _address The address which the ownership needs to be transferred to.
