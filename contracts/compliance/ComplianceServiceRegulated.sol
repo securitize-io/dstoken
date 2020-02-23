@@ -88,6 +88,12 @@ library ComplianceServiceLibrary {
         return IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getCountryCompliance(getCountry(services, _wallet));
     }
 
+    function isOmnibusTransfer(address[] memory _services, address _from, address _to) internal view returns (bool) {
+        return
+            IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) == IDSWalletManager(_services[WALLET_MANAGER]).OMNIBUS() ||
+            IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) == IDSWalletManager(_services[WALLET_MANAGER]).OMNIBUS();
+    }
+
     function getUsInvestorsLimit(address[] memory services) public view returns (uint256) {
         ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(services[COMPLIANCE_SERVICE]);
         IDSComplianceConfigurationService compConfService = IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]);
@@ -105,6 +111,7 @@ library ComplianceServiceLibrary {
 
     function preTransferCheck(address[] memory _services, address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
         ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
+        uint8 fromWalletType = IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from);
 
         if (IDSToken(_services[DS_TOKEN]).isPaused()) {
             return (10, TOKEN_PAUSED);
@@ -122,6 +129,13 @@ library ComplianceServiceLibrary {
             return (0, VALID);
         }
 
+        if (
+            fromWalletType == IDSWalletManager(_services[WALLET_MANAGER]).OMNIBUS() &&
+            IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) == IDSWalletManager(_services[WALLET_MANAGER]).OMNIBUS()
+        ) {
+            return (81, OMNIBUS_TO_OMNIBUS_TRANSFER);
+        }
+
         uint256 fromInvestorBalance = balanceOfInvestor(_services, _from);
 
         if (IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) == IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM()) {
@@ -133,8 +147,7 @@ library ComplianceServiceLibrary {
         }
 
         if (
-            IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) != IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM() &&
-            IDSLockManager(_services[LOCK_MANAGER]).getTransferableTokens(_from, uint64(now)) < _value
+            fromWalletType != IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM() && IDSLockManager(_services[LOCK_MANAGER]).getTransferableTokens(_from, uint64(now)) < _value
         ) {
             return (16, TOKENS_LOCKED);
         }
@@ -148,6 +161,7 @@ library ComplianceServiceLibrary {
 
         if (fromRegion == US) {
             if (
+                fromWalletType != IDSWalletManager(_services[WALLET_MANAGER]).OMNIBUS() &&
                 complianceService.getComplianceTransferableTokens(
                     _from,
                     uint64(now),
@@ -158,16 +172,25 @@ library ComplianceServiceLibrary {
                 return (32, HOLD_UP_1Y);
             }
 
-            if (fromInvestorBalance > _value && fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()) {
+            if (
+                !isOmnibusTransfer(_services, _from, _to) &&
+                fromInvestorBalance > _value &&
+                fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()
+            ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
 
-            if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() && fromInvestorBalance > _value) {
+            if (
+                !isOmnibusTransfer(_services, _from, _to) &&
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() &&
+                fromInvestorBalance > _value
+            ) {
                 return (50, ONLY_FULL_TRANSFER);
             }
         } else {
             if (
-                IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) != IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM() &&
+                fromWalletType != IDSWalletManager(_services[WALLET_MANAGER]).OMNIBUS() &&
+                fromWalletType != IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM() &&
                 complianceService.getComplianceTransferableTokens(
                     _from,
                     uint64(now),
@@ -179,8 +202,9 @@ library ComplianceServiceLibrary {
             }
 
             if (
+                !isOmnibusTransfer(_services, _from, _to) &&
                 toRegion == US &&
-                !(IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) == IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM()) &&
+                !(fromWalletType == IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM()) &&
                 (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() == 0 ||
                     IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() > now)
             ) {
@@ -202,31 +226,45 @@ library ComplianceServiceLibrary {
                     (fromInvestorBalance > _value && isRetail(_services, _from)))
             ) {
                 return (40, MAX_INVESTORS_IN_CATEGORY);
+
             }
 
-            if (balanceOfInvestor(_services, _to).add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens()) {
+            if (
+                !isOmnibusTransfer(_services, _from, _to) &&
+                balanceOfInvestor(_services, _to).add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens()
+            ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
         }
 
-        if (fromRegion == EU) {
+        if (!isOmnibusTransfer(_services, _from, _to) && fromRegion == EU) {
             if (fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens() && fromInvestorBalance > _value) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
         }
 
-        if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccredited() && !isAccredited(_services, _to)) {
+        if (
+            !isOmnibusTransfer(_services, _from, _to) &&
+            IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccredited() &&
+            !isAccredited(_services, _to)
+        ) {
             return (61, ONLY_ACCREDITED);
         }
 
         if (toRegion == US) {
-            if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccreditedUS() && !isAccredited(_services, _to)) {
+            if (
+                !isOmnibusTransfer(_services, _from, _to) &&
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccreditedUS() &&
+                !isAccredited(_services, _to)
+            ) {
                 return (61, ONLY_US_ACCREDITED);
             }
 
-            uint256 usInvestorsLimit = getUsInvestorsLimit(_services);
-            if (usInvestorsLimit != 0 && fromInvestorBalance > _value && complianceService.getUSInvestorsCount() >= usInvestorsLimit && isNewInvestor(_services, _to)) {
-                return (41, ONLY_FULL_TRANSFER);
+            if (!isOmnibusTransfer(_services, _from, _to)) {
+                uint256 usInvestorsLimit = getUsInvestorsLimit(_services);
+                if (usInvestorsLimit != 0 && fromInvestorBalance > _value && complianceService.getUSInvestorsCount() >= usInvestorsLimit && isNewInvestor(_services, _to)) {
+                    return (41, ONLY_FULL_TRANSFER);
+                }
             }
 
             if (
@@ -234,13 +272,24 @@ library ComplianceServiceLibrary {
                 isAccredited(_services, _to) &&
                 complianceService.getUSAccreditedInvestorsCount() >=
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() &&
-                isNewInvestor(_services, _to) &&
-                (fromRegion != US || (fromInvestorBalance > _value && isAccredited(_services, _from)))
+                isNewInvestor(_services, _to)
             ) {
-                return (40, MAX_INVESTORS_IN_CATEGORY);
+                if (isOmnibusTransfer(_services, _from, _to)) {
+                    if (
+                        IDSOmnibusWalletService(_services[OMNIBUS_WALLET_SERVICE]).isHolderOfRecord(_from) ||
+                        IDSOmnibusWalletService(_services[OMNIBUS_WALLET_SERVICE]).isHolderOfRecord(_to)
+                    ) {
+                        return (40, MAX_INVESTORS_IN_CATEGORY);
+                    }
+                } else if (fromRegion != US || !isAccredited(_services, _from) || balanceOfInvestor(_services, _from) > _value) {
+                    return (40, MAX_INVESTORS_IN_CATEGORY);
+                }
             }
 
-            if (balanceOfInvestor(_services, _to).add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()) {
+            if (
+                !isOmnibusTransfer(_services, _from, _to) &&
+                balanceOfInvestor(_services, _to).add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()
+            ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
         }
@@ -258,6 +307,7 @@ library ComplianceServiceLibrary {
         }
 
         if (
+            !isOmnibusTransfer(_services, _from, _to) &&
             IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getTotalInvestorsLimit() != 0 &&
             fromInvestorBalance > _value &&
             complianceService.getTotalInvestorsCount() >= IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getTotalInvestorsLimit() &&
@@ -267,6 +317,7 @@ library ComplianceServiceLibrary {
         }
 
         if (
+            !isOmnibusTransfer(_services, _from, _to) &&
             balanceOfInvestor(_services, _from) == _value &&
             !isNewInvestor(_services, _to) &&
             complianceService.getTotalInvestorsCount() <= IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumTotalInvestors()
@@ -275,13 +326,15 @@ library ComplianceServiceLibrary {
         }
 
         if (
-            IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) != IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM() &&
+            !isOmnibusTransfer(_services, _from, _to) &&
+            fromWalletType != IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM() &&
             fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
         ) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
 
         if (
+            !isOmnibusTransfer(_services, _from, _to) &&
             IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) != IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM() &&
             balanceOfInvestor(_services, _to).add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
         ) {
@@ -289,6 +342,7 @@ library ComplianceServiceLibrary {
         }
 
         if (
+            !isOmnibusTransfer(_services, _from, _to) &&
             IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor() != 0 &&
             balanceOfInvestor(_services, _to).add(_value) > IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor()
         ) {
@@ -741,28 +795,29 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         }
     }
 
-    // function preTransferInternalCheck(string _fromInvestor,
-    //     string _toInvestor,
-    //     uint256 _value,
-    //     bool _isHolderOfRecord) public view returns (uint256 code, string memory reason) {
-    //     address[] memory services = new address[](7);
+    function preTransferInternalCheck(string memory _fromInvestor, string memory _toInvestor, uint256 _value, bool _isHolderOfRecord)
+        public
+        view
+        returns (uint256 code, string memory reason)
+    {
+        address[] memory services = new address[](7);
 
-    //     services[0] = getDSService(DS_TOKEN);
-    //     services[1] = getDSService(REGISTRY_SERVICE);
-    //     services[2] = getDSService(WALLET_MANAGER);
-    //     services[3] = getDSService(COMPLIANCE_CONFIGURATION_SERVICE);
-    //     services[4] = getDSService(LOCK_MANAGER);
-    //     services[5] = address(this);
-    //     services[6] = getDSService(OMNIBUS_WALLET_SERVICE);
+        services[0] = getDSService(DS_TOKEN);
+        services[1] = getDSService(REGISTRY_SERVICE);
+        services[2] = getDSService(WALLET_MANAGER);
+        services[3] = getDSService(COMPLIANCE_CONFIGURATION_SERVICE);
+        services[4] = getDSService(LOCK_MANAGER);
+        services[5] = address(this);
+        services[6] = getDSService(OMNIBUS_WALLET_SERVICE);
 
-    //     (code, reason) = ComplianceServiceLibrary.preTransferInternalCheck(services, _from, _to, _value,_isHolderOfRecord);
+        (code, reason) = ComplianceServiceLibrary.preTransferInternalCheck(services, _fromInvestor, _toInvestor, _value, _isHolderOfRecord);
 
-    //     if (code != 0) {
-    //         return (code, reason);
-    //     } else {
-    //         return checkTransfer(_from, _to, _value);
-    //     }
-    // }
+        if (code != 0) {
+            return (code, reason);
+        } else {
+            return checkTransfer(address(0), address(0), _value);
+        }
+    }
 
     function getComplianceTransferableTokens(address _who, uint64 _time, uint64 _lockTime) public view returns (uint256) {
         require(_time != 0, "time must be greater than zero");
