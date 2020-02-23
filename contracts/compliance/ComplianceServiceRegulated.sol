@@ -69,7 +69,7 @@ library ComplianceServiceLibrary {
     }
 
     function isNewInvestor(address[] memory services, address _wallet) internal view returns (bool) {
-        return isNewInvestor(services, IDSRegistryService(services[REGISTRY_SERVICE]).getInvestor(_wallet)) == 0;
+        return isNewInvestor(services, IDSRegistryService(services[REGISTRY_SERVICE]).getInvestor(_wallet));
     }
 
     function getCountry(address[] memory services, string memory _investorId) internal view returns (string memory) {
@@ -77,7 +77,7 @@ library ComplianceServiceLibrary {
     }
 
     function getCountry(address[] memory services, address _wallet) internal view returns (string memory) {
-        return getCountry(IDSRegistryService(services[REGISTRY_SERVICE]).getInvestor(_wallet));
+        return getCountry(services, IDSRegistryService(services[REGISTRY_SERVICE]).getInvestor(_wallet));
     }
 
     function getCountryCompliance(address[] memory services, string memory _investorId) internal view returns (uint256) {
@@ -103,262 +103,454 @@ library ComplianceServiceLibrary {
         return Math.min(compConfService.getUsInvestorsLimit(), compConfService.getMaxUsInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100));
     }
 
-    function preTransferCheck(address[] memory services, address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
+    function preTransferCheck(address[] memory _services, address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
+        ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
+
+        if (IDSToken(_services[DS_TOKEN]).isPaused()) {
+            return (10, TOKEN_PAUSED);
+        }
+
+        if (IDSToken(_services[DS_TOKEN]).balanceOf(_from) < _value) {
+            return (15, NOT_ENOUGH_TOKENS);
+        }
+
+        if (
+            keccak256(abi.encodePacked(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_from))) != keccak256("") &&
+            keccak256(abi.encodePacked(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_from))) ==
+            keccak256(abi.encodePacked(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to)))
+        ) {
+            return (0, VALID);
+        }
+
+        uint256 fromInvestorBalance = balanceOfInvestor(_services, _from);
+
+        if (IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) == IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM()) {
+            if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() && fromInvestorBalance > _value) {
+                return (50, ONLY_FULL_TRANSFER);
+            }
+
+            return (0, VALID);
+        }
+
+        if (
+            IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) != IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM() &&
+            IDSLockManager(_services[LOCK_MANAGER]).getTransferableTokens(_from, uint64(now)) < _value
+        ) {
+            return (16, TOKENS_LOCKED);
+        }
+
+        if (!complianceService.checkWhitelisted(_to)) {
+            return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
+        }
+
+        uint256 fromRegion = getCountryCompliance(_services, _from);
+        uint256 toRegion = getCountryCompliance(_services, _to);
+
+        if (fromRegion == US) {
+            if (
+                complianceService.getComplianceTransferableTokens(
+                    _from,
+                    uint64(now),
+                    uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsLockPeriod())
+                ) <
+                _value
+            ) {
+                return (32, HOLD_UP_1Y);
+            }
+
+            if (fromInvestorBalance > _value && fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()) {
+                return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+            }
+
+            if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() && fromInvestorBalance > _value) {
+                return (50, ONLY_FULL_TRANSFER);
+            }
+        } else {
+            if (
+                IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) != IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM() &&
+                complianceService.getComplianceTransferableTokens(
+                    _from,
+                    uint64(now),
+                    uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUsLockPeriod())
+                ) <
+                _value
+            ) {
+                return (33, HOLD_UP);
+            }
+
+            if (
+                toRegion == US &&
+                !(IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) == IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM()) &&
+                (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() == 0 ||
+                    IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() > now)
+            ) {
+                return (25, FLOWBACK);
+            }
+        }
+
+        if (toRegion == FORBIDDEN) {
+            return (26, DESTINATION_RESTRICTED);
+        }
+
+        if (toRegion == EU) {
+            if (
+                isRetail(_services, _to) &&
+                complianceService.getEURetailInvestorsCount(getCountry(_services, _to)) >=
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getEuRetailLimit() &&
+                isNewInvestor(_services, _to) &&
+                (keccak256(abi.encodePacked(getCountry(_services, _from))) != keccak256(abi.encodePacked(getCountry(_services, _to))) ||
+                    (fromInvestorBalance > _value && isRetail(_services, _from)))
+            ) {
+                return (40, MAX_INVESTORS_IN_CATEGORY);
+            }
+
+            if (balanceOfInvestor(_services, _to).add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens()) {
+                return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+            }
+        }
+
+        if (fromRegion == EU) {
+            if (fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens() && fromInvestorBalance > _value) {
+                return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+            }
+        }
+
+        if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccredited() && !isAccredited(_services, _to)) {
+            return (61, ONLY_ACCREDITED);
+        }
+
+        if (toRegion == US) {
+            if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccreditedUS() && !isAccredited(_services, _to)) {
+                return (61, ONLY_US_ACCREDITED);
+            }
+
+            uint256 usInvestorsLimit = getUsInvestorsLimit(_services);
+            if (usInvestorsLimit != 0 && fromInvestorBalance > _value && complianceService.getUSInvestorsCount() >= usInvestorsLimit && isNewInvestor(_services, _to)) {
+                return (41, ONLY_FULL_TRANSFER);
+            }
+
+            if (
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() != 0 &&
+                isAccredited(_services, _to) &&
+                complianceService.getUSAccreditedInvestorsCount() >=
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() &&
+                isNewInvestor(_services, _to) &&
+                (fromRegion != US || (fromInvestorBalance > _value && isAccredited(_services, _from)))
+            ) {
+                return (40, MAX_INVESTORS_IN_CATEGORY);
+            }
+
+            if (balanceOfInvestor(_services, _to).add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()) {
+                return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+            }
+        }
+
+        if (!isAccredited(_services, _to)) {
+            if (
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit() != 0 &&
+                complianceService.getTotalInvestorsCount().sub(complianceService.getAccreditedInvestorsCount()) >=
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit() &&
+                isNewInvestor(_services, _to) &&
+                (isAccredited(_services, _from) || fromInvestorBalance > _value)
+            ) {
+                return (40, MAX_INVESTORS_IN_CATEGORY);
+            }
+        }
+
+        if (
+            IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getTotalInvestorsLimit() != 0 &&
+            fromInvestorBalance > _value &&
+            complianceService.getTotalInvestorsCount() >= IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getTotalInvestorsLimit() &&
+            balanceOfInvestor(_services, _to) == 0
+        ) {
+            return (41, ONLY_FULL_TRANSFER);
+        }
+
+        if (
+            balanceOfInvestor(_services, _from) == _value &&
+            !isNewInvestor(_services, _to) &&
+            complianceService.getTotalInvestorsCount() <= IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumTotalInvestors()
+        ) {
+            return (71, NOT_ENOUGH_INVESTORS);
+        }
+
+        if (
+            IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) != IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM() &&
+            fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
+        ) {
+            return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+        }
+
+        if (
+            IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) != IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM() &&
+            balanceOfInvestor(_services, _to).add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
+        ) {
+            return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+        }
+
+        if (
+            IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor() != 0 &&
+            balanceOfInvestor(_services, _to).add(_value) > IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor()
+        ) {
+            return (52, AMOUNT_OF_TOKENS_ABOVE_MAX);
+        }
+
         return (0, VALID);
     }
 
-    // function preTransferInternalCheck(
-    //     address[] memory _services,
-    //     string _fromInvestor,
-    //     string _toInvestor,
-    //     uint256 _value,
-    //     bool _isHolderOfRecord
-    // ) public view {
-    //     ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
+    function preTransferInternalCheck(address[] memory _services, string memory _fromInvestor, string memory _toInvestor, uint256 _value, bool _isHolderOfRecord)
+        public
+        view
+        returns (uint256 code, string memory reason)
+    {
+        ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
 
-    //     if (IDSToken(_services[DS_TOKEN]).isPaused()) {
-    //         return (10, TOKEN_PAUSED);
-    //     }
+        if (IDSToken(_services[DS_TOKEN]).isPaused()) {
+            return (10, TOKEN_PAUSED);
+        }
 
-    //     if (keccak256(abi.encodePacked(_fromInvestor)) != keccak256("") && keccak256(abi.encodePacked(_fromInvestor)) == keccak256(abi.encodePacked(_toInvestor))) {
-    //         return (0, VALID);
-    //     }
+        if (keccak256(abi.encodePacked(_fromInvestor)) != keccak256("") && keccak256(abi.encodePacked(_fromInvestor)) == keccak256(abi.encodePacked(_toInvestor))) {
+            return (0, VALID);
+        }
 
-    //     uint256 fromInvestorBalance = balanceOfInvestor(_services, _fromInvestor);
+        uint256 fromInvestorBalance = balanceOfInvestor(_services, _fromInvestor);
 
-    //     uint256 fromRegion = getCountryCompliance(_services, _fromInvestor);
-    //     uint256 toRegion = getCountryCompliance(_services, _toInvestor);
+        uint256 fromRegion = getCountryCompliance(_services, _fromInvestor);
+        uint256 toRegion = getCountryCompliance(_services, _toInvestor);
 
-    //     //if (fromRegion == US) {
-    //         // if (
-    //         //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
-    //         //     fromInvestorBalance > _value &&
-    //         //     fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()
-    //         // ) {
-    //         //     return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
-    //         // }
-    //         // if (
-    //         //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
-    //         //     IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() &&
-    //         //     fromInvestorBalance > _value
-    //         // ) {
-    //         //     return (50, ONLY_FULL_TRANSFER);
-    //         // }
-    //     //} else {
-    //         // if (
-    //         //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
-    //         //     toRegion == US &&
-    //         //     !(fromWalletType == IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM()) &&
-    //         //     (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() == 0 ||
-    //         //         IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() > now)
-    //         // ) {
-    //         //     return (25, FLOWBACK);
-    //         // }
-    //     }
-
-    //     if (toRegion == FORBIDDEN) {
-    //         return (26, DESTINATION_RESTRICTED);
-    //     }
-
-    //     if (toRegion == EU) {
-    //         if (
-    //             isRetail(_services, _toInvestor) &&
-    //             complianceService.getEURetailInvestorsCount(getCountry(_services, _toInvestor)) >=
-    //             IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getEuRetailLimit() &&
-    //             isNewInvestor(_services, _toInvestor) &&
-    //             !_isHolderOfRecord &&
-    //             (keccak256(abi.encodePacked(getCountry(_services, _fromInvestor))) != keccak256(abi.encodePacked(getCountry(_services, _toInvestor))) ||
-    //                 (fromInvestorBalance > _value && isRetail(_services, _fromInvestor)))
-    //         ) {
-    //             return (40, MAX_INVESTORS_IN_CATEGORY);
-    //         }
-
-    //         // if (
-    //         //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
-    //         //     balanceOfInvestor(_services, _toInvestor).add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens()
-    //         // ) {
-    //         //     return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
-    //         // }
-
-    //     }
-
-    //     // if (!isOmnibusTransfer(_services, _fromInvestor, _toInvestor) && fromRegion == EU) {
-    //     //     if (fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens() && fromInvestorBalance > _value) {
-    //     //         return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
-    //     //     }
-    //     // }
-
-    //     // if (
-    //     //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
-    //     //     IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccredited() &&
-    //     //     !isAccredited(_services, _toInvestor)
-    //     // ) {
-    //     //     return (61, ONLY_ACCREDITED);
-    //     // }
-
-    //     if (toRegion == US) {
-    //         // if (
-    //         //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
-    //         //     IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccreditedUS() &&
-    //         //     !isAccredited(_services, _toInvestor)
-    //         // ) {
-    //         //     return (61, ONLY_US_ACCREDITED);
-    //         // }
-
-    //         // if (!isOmnibusTransfer(_services, _fromInvestor, _toInvestor)) {
-    //         //     uint256 usInvestorsLimit = getUsInvestorsLimit(_services);
-    //         //     if (usInvestorsLimit != 0 && fromInvestorBalance > _value && complianceService.getUSInvestorsCount() >= usInvestorsLimit && isNewInvestor(_services, _toInvestor)) {
-    //         //         return (41, ONLY_FULL_TRANSFER);
-    //         //     }
-    //         // }
-
-    //         if (
-    //             IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() != 0 &&
-    //             isAccredited(_services, _toInvestor) &&
-    //             complianceService.getUSAccreditedInvestorsCount() >=
-    //             IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() &&
-    //             isNewInvestor(_services, _toInvestor) && !_isHolderOfRecord && (fromRegion != US || !isAccredited(_services, _fromInvestor) || balanceOfInvestor(_services, _fromInvestor) > _value))
-    //         ) {
-    //              return (40, MAX_INVESTORS_IN_CATEGORY);
-    //         }
-
-    //         // if (
-    //         //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
-    //         //     balanceOfInvestor(_services, _toInvestor).add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()
-    //         // ) {
-    //         //     return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
-    //         // }
-    //     }
-
-    //     if (!isAccredited(_services, _toInvestor)) {
-    //         if (
-    //             IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit() != 0 &&
-    //             complianceService.getTotalInvestorsCount().sub(complianceService.getAccreditedInvestorsCount()) >=
-    //             IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit() &&
-    //             isNewInvestor(_services, _toInvestor) && !_isHolderOfRecord && (isAccredited(_services, _fromInvestor) || fromInvestorBalance > _value))
-    //         ) {
-
-    //                 return (40, MAX_INVESTORS_IN_CATEGORY);
-
-    //         }
-    //     }
-
-    //     // if (
-    //     //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
-    //     //     IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getTotalInvestorsLimit() != 0 &&
-    //     //     fromInvestorBalance > _value &&
-    //     //     complianceService.getTotalInvestorsCount() >= IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getTotalInvestorsLimit() &&
-    //     //     balanceOfInvestor(_services, _toInvestor) == 0
-    //     // ) {
-    //     //     return (41, ONLY_FULL_TRANSFER);
-    //     // }
-
-    //     // if (
-    //     //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
-    //     //     balanceOfInvestor(_services, _fromInvestor) == _value &&
-    //     //     !isNewInvestor(_services, _toInvestor) &&
-    //     //     complianceService.getTotalInvestorsCount() <= IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumTotalInvestors()
-    //     // ) {
-    //     //     return (71, NOT_ENOUGH_INVESTORS);
-    //     // }
-
-    //     // if (
-    //     //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
-    //     //     fromWalletType != IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM() &&
-    //     //     fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
-    //     // ) {
-    //     //     return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
-    //     // }
-
-    //     // if (
-    //     //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
-    //     //     toWalletType != IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM() &&
-    //     //     balanceOfInvestor(_services, _toInvestor).add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
-    //     // ) {
-    //     //     return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
-    //     // }
-
-    //     // if (
-    //     //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
-    //     //     IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor() != 0 &&
-    //     //     balanceOfInvestor(_services, _toInvestor).add(_value) > IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor()
-    //     // ) {
-    //     //     return (52, AMOUNT_OF_TOKENS_ABOVE_MAX);
-    //     // }
-
-    //     return (0, VALID);
-    // }
-
-    function preIssuanceCheck(address[] memory _services, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
-        // ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
-        // IDSComplianceConfigurationService complianceConfigurationService = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]);
-        // IDSWalletManager walletManager = IDSWalletManager(_services[WALLET_MANAGER]);
-        // string memory toCountry = IDSRegistryService(_services[REGISTRY_SERVICE]).getCountry(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to));
-        // uint256 toRegion = complianceConfigurationService.getCountryCompliance(toCountry);
-
-        // if (IDSToken(_services[DS_TOKEN]).isPaused()) {
-        //     return (10, TOKEN_PAUSED);
-        // }
-
-        // if (toRegion == FORBIDDEN) {
-        //     return (26, DESTINATION_RESTRICTED);
-        // }
-
-        // if (!complianceService.checkWhitelisted(_to)) {
-        //     return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
-        // }
-
-        // if (isNewInvestor(_services, _to)) {
-        //     // verify global non accredited limit
-        //     if (!isAccredited(_services, _to)) {
-        //         if (
-        //             complianceConfigurationService.getNonAccreditedInvestorsLimit() != 0 &&
-        //             complianceService.getTotalInvestorsCount().sub(complianceService.getAccreditedInvestorsCount()) >=
-        //             complianceConfigurationService.getNonAccreditedInvestorsLimit()
-        //         ) {
-        //             return (40, MAX_INVESTORS_IN_CATEGORY);
-        //         }
-        //     }
-        //     // verify global investors limit
-        //     if (
-        //         complianceConfigurationService.getTotalInvestorsLimit() != 0 &&
-        //         complianceService.getTotalInvestorsCount() >= complianceConfigurationService.getTotalInvestorsLimit()
-        //     ) {
-        //         return (40, MAX_INVESTORS_IN_CATEGORY);
-        //     }
-
-        //     if (toRegion == US) {
-        //         // verify US investors limit is not exceeded
-        //         if (complianceConfigurationService.getUsInvestorsLimit() != 0 && complianceService.getUSInvestorsCount() >= complianceConfigurationService.getUsInvestorsLimit()) {
-        //             return (40, MAX_INVESTORS_IN_CATEGORY);
-        //         }
-        //         // verify accredited US limit is not exceeded
-        //         if (
-        //             complianceConfigurationService.getUsAccreditedInvestorsLimit() != 0 &&
-        //             isAccredited(_services, _to) &&
-        //             complianceService.getUSAccreditedInvestorsCount() >= complianceConfigurationService.getUsAccreditedInvestorsLimit()
-        //         ) {
-        //             return (40, MAX_INVESTORS_IN_CATEGORY);
-        //         }
-        //     } else if (toRegion == EU) {
-        //         if (isRetail(_services, _to) && complianceService.getEURetailInvestorsCount(getCountry(_services, _to)) >= complianceConfigurationService.getEuRetailLimit()) {
-        //             return (40, MAX_INVESTORS_IN_CATEGORY);
-        //         }
-        //     }
-        // }
-
+        //if (fromRegion == US) {
         // if (
-        //     walletManager.getWalletType(_to) != walletManager.PLATFORM() &&
-        //     balanceOfInvestor(_services, _to).add(_value) < complianceConfigurationService.getMinimumHoldingsPerInvestor()
+        //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
+        //     fromInvestorBalance > _value &&
+        //     fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()
         // ) {
         //     return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         // }
         // if (
-        //     complianceConfigurationService.getMaximumHoldingsPerInvestor() != 0 &&
-        //     balanceOfInvestor(_services, _to).add(_value) > complianceConfigurationService.getMaximumHoldingsPerInvestor()
+        //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
+        //     IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() &&
+        //     fromInvestorBalance > _value
+        // ) {
+        //     return (50, ONLY_FULL_TRANSFER);
+        // }
+        //} else {
+        // if (
+        //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
+        //     toRegion == US &&
+        //     !(fromWalletType == IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM()) &&
+        //     (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() == 0 ||
+        //         IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() > now)
+        // ) {
+        //     return (25, FLOWBACK);
+        // }
+        // }
+
+        if (toRegion == FORBIDDEN) {
+            return (26, DESTINATION_RESTRICTED);
+        }
+
+        if (toRegion == EU) {
+            if (
+                isRetail(_services, _toInvestor) &&
+                complianceService.getEURetailInvestorsCount(getCountry(_services, _toInvestor)) >=
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getEuRetailLimit() &&
+                isNewInvestor(_services, _toInvestor) &&
+                !_isHolderOfRecord &&
+                (keccak256(abi.encodePacked(getCountry(_services, _fromInvestor))) != keccak256(abi.encodePacked(getCountry(_services, _toInvestor))) ||
+                    (fromInvestorBalance > _value && isRetail(_services, _fromInvestor)))
+            ) {
+                return (40, MAX_INVESTORS_IN_CATEGORY);
+            }
+
+            // if (
+            //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
+            //     balanceOfInvestor(_services, _toInvestor).add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens()
+            // ) {
+            //     return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+            // }
+
+        }
+
+        // if (!isOmnibusTransfer(_services, _fromInvestor, _toInvestor) && fromRegion == EU) {
+        //     if (fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens() && fromInvestorBalance > _value) {
+        //         return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+        //     }
+        // }
+
+        // if (
+        //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
+        //     IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccredited() &&
+        //     !isAccredited(_services, _toInvestor)
+        // ) {
+        //     return (61, ONLY_ACCREDITED);
+        // }
+
+        if (toRegion == US) {
+            // if (
+            //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
+            //     IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccreditedUS() &&
+            //     !isAccredited(_services, _toInvestor)
+            // ) {
+            //     return (61, ONLY_US_ACCREDITED);
+            // }
+
+            // if (!isOmnibusTransfer(_services, _fromInvestor, _toInvestor)) {
+            //     uint256 usInvestorsLimit = getUsInvestorsLimit(_services);
+            //     if (usInvestorsLimit != 0 && fromInvestorBalance > _value && complianceService.getUSInvestorsCount() >= usInvestorsLimit && isNewInvestor(_services, _toInvestor)) {
+            //         return (41, ONLY_FULL_TRANSFER);
+            //     }
+            // }
+
+            if (
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() != 0 &&
+                isAccredited(_services, _toInvestor) &&
+                complianceService.getUSAccreditedInvestorsCount() >=
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() &&
+                isNewInvestor(_services, _toInvestor) &&
+                !_isHolderOfRecord &&
+                (fromRegion != US || !isAccredited(_services, _fromInvestor) || balanceOfInvestor(_services, _fromInvestor) > _value)
+            ) {
+                return (40, MAX_INVESTORS_IN_CATEGORY);
+            }
+
+            // if (
+            //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
+            //     balanceOfInvestor(_services, _toInvestor).add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()
+            // ) {
+            //     return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+            // }
+
+        }
+
+        if (!isAccredited(_services, _toInvestor)) {
+            if (
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit() != 0 &&
+                complianceService.getTotalInvestorsCount().sub(complianceService.getAccreditedInvestorsCount()) >=
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit() &&
+                isNewInvestor(_services, _toInvestor) &&
+                !_isHolderOfRecord &&
+                (isAccredited(_services, _fromInvestor) || fromInvestorBalance > _value)
+            ) {
+                return (40, MAX_INVESTORS_IN_CATEGORY);
+            }
+        }
+
+        // if (
+        //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
+        //     IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getTotalInvestorsLimit() != 0 &&
+        //     fromInvestorBalance > _value &&
+        //     complianceService.getTotalInvestorsCount() >= IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getTotalInvestorsLimit() &&
+        //     balanceOfInvestor(_services, _toInvestor) == 0
+        // ) {
+        //     return (41, ONLY_FULL_TRANSFER);
+        // }
+
+        // if (
+        //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
+        //     balanceOfInvestor(_services, _fromInvestor) == _value &&
+        //     !isNewInvestor(_services, _toInvestor) &&
+        //     complianceService.getTotalInvestorsCount() <= IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumTotalInvestors()
+        // ) {
+        //     return (71, NOT_ENOUGH_INVESTORS);
+        // }
+
+        // if (
+        //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
+        //     fromWalletType != IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM() &&
+        //     fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
+        // ) {
+        //     return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+        // }
+
+        // if (
+        //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
+        //     toWalletType != IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM() &&
+        //     balanceOfInvestor(_services, _toInvestor).add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
+        // ) {
+        //     return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+        // }
+
+        // if (
+        //     !isOmnibusTransfer(_services, _fromInvestor, _toInvestor) &&
+        //     IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor() != 0 &&
+        //     balanceOfInvestor(_services, _toInvestor).add(_value) > IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor()
         // ) {
         //     return (52, AMOUNT_OF_TOKENS_ABOVE_MAX);
         // }
+
+        return (0, VALID);
+    }
+
+    function preIssuanceCheck(address[] memory _services, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
+        ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
+        IDSComplianceConfigurationService complianceConfigurationService = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]);
+        IDSWalletManager walletManager = IDSWalletManager(_services[WALLET_MANAGER]);
+        string memory toCountry = IDSRegistryService(_services[REGISTRY_SERVICE]).getCountry(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to));
+        uint256 toRegion = complianceConfigurationService.getCountryCompliance(toCountry);
+
+        if (IDSToken(_services[DS_TOKEN]).isPaused()) {
+            return (10, TOKEN_PAUSED);
+        }
+
+        if (toRegion == FORBIDDEN) {
+            return (26, DESTINATION_RESTRICTED);
+        }
+
+        if (!complianceService.checkWhitelisted(_to)) {
+            return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
+        }
+
+        if (isNewInvestor(_services, _to)) {
+            // verify global non accredited limit
+            if (!isAccredited(_services, _to)) {
+                if (
+                    complianceConfigurationService.getNonAccreditedInvestorsLimit() != 0 &&
+                    complianceService.getTotalInvestorsCount().sub(complianceService.getAccreditedInvestorsCount()) >=
+                    complianceConfigurationService.getNonAccreditedInvestorsLimit()
+                ) {
+                    return (40, MAX_INVESTORS_IN_CATEGORY);
+                }
+            }
+            // verify global investors limit
+            if (
+                complianceConfigurationService.getTotalInvestorsLimit() != 0 &&
+                complianceService.getTotalInvestorsCount() >= complianceConfigurationService.getTotalInvestorsLimit()
+            ) {
+                return (40, MAX_INVESTORS_IN_CATEGORY);
+            }
+
+            if (toRegion == US) {
+                // verify US investors limit is not exceeded
+                if (complianceConfigurationService.getUsInvestorsLimit() != 0 && complianceService.getUSInvestorsCount() >= complianceConfigurationService.getUsInvestorsLimit()) {
+                    return (40, MAX_INVESTORS_IN_CATEGORY);
+                }
+                // verify accredited US limit is not exceeded
+                if (
+                    complianceConfigurationService.getUsAccreditedInvestorsLimit() != 0 &&
+                    isAccredited(_services, _to) &&
+                    complianceService.getUSAccreditedInvestorsCount() >= complianceConfigurationService.getUsAccreditedInvestorsLimit()
+                ) {
+                    return (40, MAX_INVESTORS_IN_CATEGORY);
+                }
+            } else if (toRegion == EU) {
+                if (isRetail(_services, _to) && complianceService.getEURetailInvestorsCount(getCountry(_services, _to)) >= complianceConfigurationService.getEuRetailLimit()) {
+                    return (40, MAX_INVESTORS_IN_CATEGORY);
+                }
+            }
+        }
+
+        if (
+            walletManager.getWalletType(_to) != walletManager.PLATFORM() &&
+            balanceOfInvestor(_services, _to).add(_value) < complianceConfigurationService.getMinimumHoldingsPerInvestor()
+        ) {
+            return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+        }
+        if (
+            complianceConfigurationService.getMaximumHoldingsPerInvestor() != 0 &&
+            balanceOfInvestor(_services, _to).add(_value) > complianceConfigurationService.getMaximumHoldingsPerInvestor()
+        ) {
+            return (52, AMOUNT_OF_TOKENS_ABOVE_MAX);
+        }
 
         return (0, VALID);
     }
