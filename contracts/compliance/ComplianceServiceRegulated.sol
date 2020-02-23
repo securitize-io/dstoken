@@ -84,6 +84,156 @@ library ComplianceServiceLibrary {
         return Math.min(compConfService.getUsInvestorsLimit(), compConfService.getMaxUsInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100));
     }
 
+      function preTransferCheck(address[] services, address _from, address _to, uint _value) public view returns (uint code, string reason) {
+    ESComplianceServiceRegulatedVersioned complianceService = ESComplianceServiceRegulatedVersioned(services[COMPLIANCE_SERVICE]);
+
+    if (DSTokenInterfaceVersioned(services[DS_TOKEN]).isPaused()) {
+      return (10, TOKEN_PAUSED);
+    }
+
+    if (DSTokenInterfaceVersioned(services[DS_TOKEN]).balanceOf(_from) < _value) {
+      return (15, NOT_ENOUGH_TOKENS);
+    }
+
+    if (keccak256(abi.encodePacked(DSRegistryServiceInterfaceVersioned(services[REGISTRY_SERVICE]).getInvestor(_from))) != keccak256("") &&
+        keccak256(abi.encodePacked(DSRegistryServiceInterfaceVersioned(services[REGISTRY_SERVICE]).getInvestor(_from))) == keccak256(abi.encodePacked(DSRegistryServiceInterfaceVersioned(services[REGISTRY_SERVICE]).getInvestor(_to)))) {
+            return (0, VALID);
+    }
+
+    uint fromInvestorBalance = balanceOfInvestor(services, _from);
+
+    if (DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).getWalletType(_to) == DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).PLATFORM()) {
+        if (DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() && fromInvestorBalance > _value) {
+            return (50, ONLY_FULL_TRANSFER);
+        }
+
+        return (0, VALID);
+    }
+
+    if (DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).getWalletType(_from) != DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).PLATFORM() && DSLockManagerInterfaceVersioned(services[LOCK_MANAGER]).getTransferableTokens(_from, uint64(now)) < _value) {
+        return (16, TOKENS_LOCKED);
+    }
+
+
+    if (!complianceService.checkWhitelisted(_to)) {
+        return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
+    }
+
+    uint fromRegion = getCountryCompliance(services, _from);
+    uint toRegion = getCountryCompliance(services, _to);
+
+    if (fromRegion == US) {
+        if (complianceService.getComplianceTransferableTokens(_from, uint64(now), uint64(DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsLockPeriod())) < _value) {
+            return (32, HOLD_UP_1Y);
+        }
+
+        if (fromInvestorBalance > _value &&
+            fromInvestorBalance.sub(_value) < DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()) {
+           return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+        }
+
+        if (DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() && fromInvestorBalance > _value) {
+            return (50, ONLY_FULL_TRANSFER);
+        }
+    } else {
+        if (DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).getWalletType(_from) != DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).PLATFORM() && complianceService.getComplianceTransferableTokens(_from, uint64(now), uint64(DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUsLockPeriod())) < _value) {
+            return (33, HOLD_UP);
+        }
+
+        if (toRegion == US && !(DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).getWalletType(_from) == DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).PLATFORM()) &&
+               (DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() == 0 ||
+                DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() > now)) {
+            return (25, FLOWBACK);
+        }
+    }
+
+    if (toRegion == FORBIDDEN) {
+        return (26, DESTINATION_RESTRICTED);
+    }
+
+    if (toRegion == EU) {
+        if (isRetail(services, _to) && complianceService.getEURetailInvestorsCount(getCountry(services, _to)) >= DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getEuRetailLimit() &&
+            isNewInvestor(services, _to) &&
+            (keccak256(abi.encodePacked(getCountry(services, _from))) != keccak256(abi.encodePacked(getCountry(services, _to))) ||
+            (fromInvestorBalance > _value && isRetail(services, _from)))) {
+            return (40, MAX_INVESTORS_IN_CATEGORY);
+        }
+
+        if (balanceOfInvestor(services, _to).add(_value) < DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens()) {
+            return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+        }
+    }
+
+    if (fromRegion == EU) {
+        if (fromInvestorBalance.sub(_value) < DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens() &&
+            fromInvestorBalance > _value) {
+            return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+        }
+    }
+
+    if (DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccredited() && !isAccredited(services, _to)) {
+        return (61, ONLY_ACCREDITED);
+    }
+
+    if (toRegion == US) {
+        if(DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccreditedUS() && !isAccredited(services, _to)) {
+            return (61,ONLY_US_ACCREDITED);
+        }
+
+        uint usInvestorsLimit = getUsInvestorsLimit(services);
+        if (usInvestorsLimit != 0 && fromInvestorBalance > _value && complianceService.getUSInvestorsCount() >= usInvestorsLimit &&
+            isNewInvestor(services, _to)) {
+            return (41, ONLY_FULL_TRANSFER);
+        }
+
+        if (DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() != 0 && isAccredited(services, _to) && complianceService.getUSAccreditedInvestorsCount() >= DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() &&
+            isNewInvestor(services, _to) &&
+            (fromRegion != US || (fromInvestorBalance > _value && isAccredited(services, _from)))) {
+            return (40, MAX_INVESTORS_IN_CATEGORY);
+        }
+
+        if (balanceOfInvestor(services, _to).add(_value) < DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()) {
+            return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+        }
+    }
+
+    if (!isAccredited(services, _to)) {
+        if (DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit() != 0 && complianceService.getTotalInvestorsCount().sub(complianceService.getAccreditedInvestorsCount()) >= DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit() &&
+            isNewInvestor(services, _to) &&
+            (isAccredited(services, _from) || fromInvestorBalance > _value)) {
+            return (40, MAX_INVESTORS_IN_CATEGORY);
+        }
+    }
+
+    if (DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getTotalInvestorsLimit() != 0 && fromInvestorBalance > _value &&
+        complianceService.getTotalInvestorsCount() >= DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getTotalInvestorsLimit() &&
+        balanceOfInvestor(services, _to) == 0) {
+        return (41, ONLY_FULL_TRANSFER);
+    }
+
+    if (balanceOfInvestor(services, _from) == _value && !isNewInvestor(services, _to) &&
+        complianceService.getTotalInvestorsCount() <= DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumTotalInvestors()) {
+        return (71, NOT_ENOUGH_INVESTORS);
+    }
+
+    if (DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).getWalletType(_from) != DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).PLATFORM() &&
+        fromInvestorBalance.sub(_value) < DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()) {
+        return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+    }
+
+    if (DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).getWalletType(_to) != DSWalletManagerInterfaceVersioned(services[WALLET_MANAGER]).PLATFORM() &&
+        balanceOfInvestor(services, _to).add(_value) < DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()) {
+        return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+    }
+
+    if (DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor() != 0 &&
+        balanceOfInvestor(services, _to).add(_value) > DSComplianceConfigurationServiceInterfaceVersioned(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor()) {
+        return (52, AMOUNT_OF_TOKENS_ABOVE_MAX);
+    }
+
+    return (0, VALID);
+  }
+
     function preTransferInternalCheck(
         address[] memory _services,
         string _fromInvestor,
