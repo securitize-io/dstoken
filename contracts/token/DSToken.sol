@@ -120,7 +120,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
 
         walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].sub(_value);
         walletsBalances[_who] = walletsBalances[_who].sub(_value);
-        getOmnibusWalletService().burn(_omnibusWallet, _who, _value, _reason);
+        getOmnibusWalletService().burn(_omnibusWallet, getRegistryService().getInvestor(_who), _value, _reason);
 
         decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_omnibusWallet, _who, _value);
 
@@ -161,7 +161,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         getComplianceService().validateOmnibusSeize(_omnibusWallet, _from, _to, _value);
         walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].sub(_value);
         walletsBalances[_to] = walletsBalances[_to].add(_value);
-        getOmnibusWalletService().seize(_omnibusWallet, _from, _value, _reason);
+        getOmnibusWalletService().seize(_omnibusWallet, getRegistryService().getInvestor(_from), _value, _reason);
         decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_omnibusWallet, _from, _value);
         updateInvestorBalance(_to, _value, true);
 
@@ -285,14 +285,14 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
 
     function updateInvestorsBalances(address _from, address _to, uint256 _value) internal {
         if (getWalletManager().isOmnibusWallet(_to)) {
-            getOmnibusWalletService().deposit(_to, _from, _value);
+            getOmnibusWalletService().deposit(_to, getRegistryService().getInvestor(_from), _value);
 
             if (getOmnibusWalletService().isHolderOfRecord(_to)) {
                 updateInvestorBalance(_from, _value, false);
                 updateInvestorBalance(_to, _value, true);
             }
         } else if (getWalletManager().isOmnibusWallet(_from)) {
-            getOmnibusWalletService().withdraw(_from, _to, _value);
+            getOmnibusWalletService().withdraw(_from, getRegistryService().getInvestor(_to), _value);
 
             if (getOmnibusWalletService().isHolderOfRecord(_from)) {
                 updateInvestorBalance(_from, _value, false);
