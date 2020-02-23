@@ -9,7 +9,7 @@ contract IDSOmnibusWalletService is Initializable, VersionedContract {
     event OmnibusSeize(address indexed omnibusWallet, address indexed from, uint256 value, string reason);
     event OmnibusBurn(address indexed omnibusWallet, address indexed who, uint256 value, string reason);
 
-    uint8 public constant BENEFICIAL = 0;
+    uint8 public constant BENEFICIARY = 0;
     uint8 public constant HOLDER_OF_RECORD = 1;
 
     constructor() internal {}

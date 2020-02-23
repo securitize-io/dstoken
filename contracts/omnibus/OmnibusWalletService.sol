@@ -20,7 +20,7 @@ contract OmnibusWalletService is ProxyTarget, Initializable, IDSOmnibusWalletSer
     }
 
     function setAssetTrackingMode(address _omnibusWallet, uint8 _assetTrackingMode) public {
-        require(_assetTrackingMode == BENEFICIAL || _assetTrackingMode == HOLDER_OF_RECORD, "Invalid tracking mode value");
+        require(_assetTrackingMode == BENEFICIARY || _assetTrackingMode == HOLDER_OF_RECORD, "Invalid tracking mode value");
 
         wallets[_omnibusWallet].assetTrackingMode = _assetTrackingMode;
     }
