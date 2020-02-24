@@ -2,6 +2,7 @@ pragma solidity ^0.5.0;
 
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
+import "../omnibus/IDSOmnibusWalletController.sol";
 
 contract IDSRegistryService is Initializable, VersionedContract {
     constructor() internal {}
@@ -44,6 +45,11 @@ contract IDSRegistryService is Initializable, VersionedContract {
 
     modifier newWallet(address _address) {
         require(!isWallet(_address));
+        _;
+    }
+
+    modifier newOmnibusWalletController(address _omnibusWalletController) {
+        require(!isOmnibusWalletController(_omnibusWalletController));
         _;
     }
 
@@ -92,6 +98,12 @@ contract IDSRegistryService is Initializable, VersionedContract {
         address _address,
         string memory _id /*onlyExchangeOrAbove walletExists walletBelongsToInvestor(_address, _id)*/
     ) public returns (bool);
+    function addOmnibusWalletController(
+        string memory _id,
+        address _omnibusWalletController /*onlyIssuerOrAbove newOmnibusWalletController*/
+    ) public;
+    function getOmnibusWalletController(address _omnibusWalletController) public view returns (IDSOmnibusWalletController);
+    function isOmnibusWalletController(address _omnibusWalletController) public view returns (bool);
     function getInvestor(address _address) public view returns (string memory);
     function getInvestorDetails(address _address) public view returns (string memory, string memory);
     function getInvestorDetailsFull(string memory _id)

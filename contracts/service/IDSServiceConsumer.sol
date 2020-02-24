@@ -14,7 +14,7 @@ contract IDSServiceConsumer is Initializable, VersionedContract {
     uint256 public constant DS_TOKEN = 2;
     uint256 public constant REGISTRY_SERVICE = 4;
     uint256 public constant COMPLIANCE_SERVICE = 8;
-    uint256 public constant OMNIBUS_WALLET_SERVICE = 16;
+    uint256 public constant UNUSED_1 = 16;
     uint256 public constant WALLET_MANAGER = 32;
     uint256 public constant LOCK_MANAGER = 64;
     uint256 public constant UNUSED_2 = 128;

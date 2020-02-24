@@ -163,6 +163,19 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
         return true;
     }
 
+    function addOmnibusWalletController(string memory _id, address _omnibusWalletController) public onlyIssuerOrAbove newOmnibusWalletController(_omnibusWalletController) {
+        addWallet(_omnibusWalletController, _id);
+        omnibusWalletsControllers[_omnibusWalletController] = IDSOmnibusWalletController(_omnibusWalletController);
+    }
+
+    function getOmnibusWalletController(address _omnibusWalletController) public view returns (IDSOmnibusWalletController) {
+        return omnibusWalletsControllers[_omnibusWalletController];
+    }
+
+    function isOmnibusWalletController(address _omnibusWalletController) public view returns (bool) {
+        return address(omnibusWalletsControllers[_omnibusWalletController]) != address(0);
+    }
+
     function getInvestor(address _address) public view returns (string memory) {
         return investorsWallets[_address].owner;
     }

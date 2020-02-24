@@ -9,7 +9,6 @@ import "../compliance/IDSComplianceService.sol";
 import "../compliance/IDSComplianceConfigurationService.sol";
 import "../registry/IDSRegistryService.sol";
 import "../trust/IDSTrustService.sol";
-import "../omnibus/IDSOmnibusWalletService.sol";
 import "../utils/Ownable.sol";
 
 contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStore {
@@ -99,9 +98,5 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
 
     function getComplianceConfigurationService() internal view returns (IDSComplianceConfigurationService) {
         return IDSComplianceConfigurationService(getDSService(COMPLIANCE_CONFIGURATION_SERVICE));
-    }
-
-    function getOmnibusWalletService() internal view returns (IDSOmnibusWalletService) {
-        return IDSOmnibusWalletService(getDSService(OMNIBUS_WALLET_SERVICE));
     }
 }
