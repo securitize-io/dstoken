@@ -666,7 +666,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
                 adjustTotalInvestorsCounts(_from, increase);
             }
         } else if (getRegistryService().isOmnibusWalletController(_to)) {
-            if (getRegistryService().getOmnibusWalletController(_from).isHolderOfRecord()) {
+            if (getRegistryService().getOmnibusWalletController(_to).isHolderOfRecord()) {
                 adjustTotalInvestorsCounts(_from, increase);
             }
         } else {

@@ -13,10 +13,12 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
         _;
     }
 
-    function initialize() public initializer onlyFromProxy {
+    function initialize(address _omnibusWallet) public initializer onlyFromProxy {
         IDSOmnibusWalletController.initialize();
         ServiceConsumer.initialize();
         VERSIONS.push(1);
+
+        omnibusWallet = _omnibusWallet;
     }
 
     function setAssetTrackingMode(uint8 _assetTrackingMode) public {
@@ -39,21 +41,21 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
 
     function deposit(address _to, uint256 _value) public onlyToken {
         balances[_to] = balances[_to].add(_value);
-        emit OmnibusDeposit(address(this), _to, _value);
+        emit OmnibusDeposit(omnibusWallet, _to, _value);
     }
 
     function withdraw(address _from, uint256 _value) public enoughBalance(_from, _value) onlyToken {
         balances[_from] = balances[_from].sub(_value);
-        emit OmnibusWithdraw(address(this), _from, _value);
+        emit OmnibusWithdraw(omnibusWallet, _from, _value);
     }
 
     function seize(address _from, uint256 _value, string memory _reason) public enoughBalance(_from, _value) onlyToken {
         balances[_from] = balances[_from].sub(_value);
-        emit OmnibusSeize(address(this), _from, _value, _reason);
+        emit OmnibusSeize(omnibusWallet, _from, _value, _reason);
     }
 
     function burn(address _who, uint256 _value, string memory _reason) public enoughBalance(_who, _value) onlyToken {
         balances[_who] = balances[_who].sub(_value);
-        emit OmnibusBurn(address(this), _who, _value, _reason);
+        emit OmnibusBurn(omnibusWallet, _who, _value, _reason);
     }
 }
