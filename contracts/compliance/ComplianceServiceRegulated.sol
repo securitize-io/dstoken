@@ -260,7 +260,7 @@ library ComplianceServiceLibrary {
                 isNewInvestor(_services, _to) &&
                 !isHolderOfRecordInternalTransfer(_services, _omnibusWallet)
             ) {
-                return (40, MAX_INVESTORS_IN_CATEGORY);
+                return (41, ONLY_FULL_TRANSFER);
             }
 
             if (
@@ -305,7 +305,7 @@ library ComplianceServiceLibrary {
             isNewInvestor(_services, _to) &&
             !isHolderOfRecordInternalTransfer(_services, _omnibusWallet)
         ) {
-            return (41, MAX_INVESTORS_IN_CATEGORY);
+            return (41, ONLY_FULL_TRANSFER);
         }
 
         if (
