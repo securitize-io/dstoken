@@ -284,7 +284,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
     }
 
     function updateInvestorsBalances(address _from, address _to, uint256 _value) internal {
-        if (getRegistryService().isOmnibusWalletController(_to)) {
+        if (getRegistryService().isOmnibusWallet(_to)) {
             IDSOmnibusWalletController omnibusWalletController = getRegistryService().getOmnibusWalletController(_to);
             omnibusWalletController.deposit(_from, _value);
 
@@ -292,7 +292,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
                 updateInvestorBalance(_from, _value, false);
                 updateInvestorBalance(_to, _value, true);
             }
-        } else if (getRegistryService().isOmnibusWalletController(_from)) {
+        } else if (getRegistryService().isOmnibusWallet(_from)) {
             IDSOmnibusWalletController omnibusWalletController = getRegistryService().getOmnibusWalletController(_from);
             omnibusWalletController.withdraw(_to, _value);
 

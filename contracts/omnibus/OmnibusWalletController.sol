@@ -27,11 +27,11 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
         assetTrackingMode = _assetTrackingMode;
     }
 
-    function getWalletAssetTrackingMode(address _omnibusWallet) public view returns (uint8) {
+    function getWalletAssetTrackingMode() public view returns (uint8) {
         return assetTrackingMode;
     }
 
-    function isHolderOfRecord(address _omnibusWallet) public view returns (bool) {
+    function isHolderOfRecord() public view returns (bool) {
         return assetTrackingMode == HOLDER_OF_RECORD;
     }
 

@@ -17,9 +17,8 @@ contract IDSRegistryService is Initializable, VersionedContract {
     event DSRegistryServiceInvestorAttributeChanged(string _investorId, uint256 _attributeId, uint256 _value, uint256 _expiry, string _proofHash, address _sender);
     event DSRegistryServiceWalletAdded(address _wallet, string _investorId, address _sender);
     event DSRegistryServiceWalletRemoved(address _wallet, string _investorId, address _sender);
-    event DSRegistryServiceOmnibusWalletControllerAdded(address _omnibusWallet, string _investorId, IDSOmnibusWalletController omnibusWalletController);
-    event DSRegistryServiceOmnibusWalletControllerChanged(address _omnibusWallet, IDSOmnibusWalletController omnibusWalletController);
-    event DSRegistryServiceOmnibusWalletControllerRemoved(address _omnibusWallet, string _investorId);
+    event DSRegistryServiceOmnibusWalletAdded(address _omnibusWallet, string _investorId, IDSOmnibusWalletController omnibusWalletController);
+    event DSRegistryServiceOmnibusWalletRemoved(address _omnibusWallet, string _investorId);
 
     uint8 public constant NONE = 0;
     uint8 public constant KYC_APPROVED = 1;
@@ -51,13 +50,13 @@ contract IDSRegistryService is Initializable, VersionedContract {
         _;
     }
 
-    modifier newOmnibusWalletController(address _omnibusWallet) {
-        require(!isOmnibusWalletController(_omnibusWallet));
+    modifier newOmnibusWallet(address _omnibusWallet) {
+        require(!isOmnibusWallet(_omnibusWallet));
         _;
     }
 
-    modifier omnibusWalletControllerExists(address _omnibusWallet) {
-        require(isOmnibusWalletController(_omnibusWallet));
+    modifier omnibusWalletExists(address _omnibusWallet) {
+        require(isOmnibusWallet(_omnibusWallet));
         _;
     }
 
@@ -106,21 +105,17 @@ contract IDSRegistryService is Initializable, VersionedContract {
         address _address,
         string memory _id /*onlyExchangeOrAbove walletExists walletBelongsToInvestor(_address, _id)*/
     ) public returns (bool);
-    function addOmnibusWalletController(
+    function addOmnibusWallet(
         string memory _id,
         address _omnibusWallet,
-        IDSOmnibusWalletController _omnibusWalletController /*onlyIssuerOrAbove newOmnibusWalletController*/
+        IDSOmnibusWalletController _omnibusWalletController /*onlyIssuerOrAbove newOmnibusWallet*/
     ) public;
-    function changeOmnibusWalletController(
-        address _omnibusWallet,
-        IDSOmnibusWalletController _omnibusWalletController /*onlyIssuerOrAbove omnibusWalletControllerExists*/
-    ) public;
-    function removeOmnibusWalletController(
+    function removeOmnibusWallet(
         string memory _id,
         address _omnibusWallet /*onlyIssuerOrAbove omnibusWalletControllerExists*/
     ) public;
     function getOmnibusWalletController(address _omnibusWallet) public view returns (IDSOmnibusWalletController);
-    function isOmnibusWalletController(address _omnibusWallet) public view returns (bool);
+    function isOmnibusWallet(address _omnibusWallet) public view returns (bool);
     function getInvestor(address _address) public view returns (string memory);
     function getInvestorDetails(address _address) public view returns (string memory, string memory);
     function getInvestorDetailsFull(string memory _id)

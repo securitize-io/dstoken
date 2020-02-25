@@ -163,35 +163,27 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
         return true;
     }
 
-    function addOmnibusWalletController(string memory _id, address _omnibusWallet, IDSOmnibusWalletController _omnibusWalletController)
+    function addOmnibusWallet(string memory _id, address _omnibusWallet, IDSOmnibusWalletController _omnibusWalletController)
         public
         onlyIssuerOrAbove
-        newOmnibusWalletController(_omnibusWallet)
+        newOmnibusWallet(_omnibusWallet)
     {
         addWallet(_omnibusWallet, _id);
         omnibusWalletsControllers[_omnibusWallet] = _omnibusWalletController;
-        emit DSRegistryServiceOmnibusWalletControllerAdded(_omnibusWallet, _id, _omnibusWalletController);
+        emit DSRegistryServiceOmnibusWalletAdded(_omnibusWallet, _id, _omnibusWalletController);
     }
 
-    function changeOmnibusWalletController(address _omnibusWallet, IDSOmnibusWalletController _omnibusWalletController)
-        public
-        onlyIssuerOrAbove
-        omnibusWalletControllerExists(_omnibusWallet)
-    {
-        omnibusWalletsControllers[_omnibusWallet] = _omnibusWalletController;
-        emit DSRegistryServiceOmnibusWalletControllerChanged(_omnibusWallet, _omnibusWalletController);
-    }
-    function removeOmnibusWalletController(string memory _id, address _omnibusWallet) public onlyIssuerOrAbove omnibusWalletControllerExists(_omnibusWallet) {
+    function removeOmnibusWallet(string memory _id, address _omnibusWallet) public onlyIssuerOrAbove omnibusWalletExists(_omnibusWallet) {
         removeWallet(_omnibusWallet, _id);
         delete omnibusWalletsControllers[_omnibusWallet];
-        emit DSRegistryServiceOmnibusWalletControllerRemoved(_omnibusWallet, _id);
+        emit DSRegistryServiceOmnibusWalletRemoved(_omnibusWallet, _id);
     }
 
     function getOmnibusWalletController(address _omnibusWallet) public view returns (IDSOmnibusWalletController) {
         return omnibusWalletsControllers[_omnibusWallet];
     }
 
-    function isOmnibusWalletController(address _omnibusWallet) public view returns (bool) {
+    function isOmnibusWallet(address _omnibusWallet) public view returns (bool) {
         return address(omnibusWalletsControllers[_omnibusWallet]) != address(0);
     }
 
