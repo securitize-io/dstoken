@@ -155,5 +155,5 @@ contract IDSTrustService is Initializable, VersionedContract {
         string memory _name,
         address _resource /*onlyMasterOrIssuer onlyExistingResource*/
     ) public;
-    function isResourceOperator(string memory _name, address _resource, address _operator) public view returns (bool);
+    function isResourceOperator(address _resource, address _operator) public view returns (bool);
 }
