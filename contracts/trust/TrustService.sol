@@ -191,10 +191,9 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
         delete resourcesEntities[_resource];
     }
 
-    function isResourceOperator(string memory _name, address _resource, address _operator) public view returns (bool) {
+    function isResourceOperator(address _resource, address _operator) public view returns (bool) {
         return
-            keccak256(abi.encodePacked(_name)) != keccak256(abi.encodePacked("")) &&
-            keccak256(abi.encodePacked(resourcesEntities[_resource])) == keccak256(abi.encodePacked(_name)) &&
-            keccak256(abi.encodePacked(operatorsEntities[_operator])) == keccak256(abi.encodePacked(_name));
+            keccak256(abi.encodePacked(resourcesEntities[_resource])) != keccak256(abi.encodePacked("")) &&
+            keccak256(abi.encodePacked(resourcesEntities[_resource])) == keccak256(abi.encodePacked(operatorsEntities[_operator]));
     }
 }
