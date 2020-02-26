@@ -98,7 +98,7 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
         require(
             keccak256(abi.encodePacked(resourcesEntities[_resource])) != keccak256(abi.encodePacked("")) &&
                 keccak256(abi.encodePacked(resourcesEntities[_resource])) == keccak256(abi.encodePacked(_name)),
-            "Entity operator doesn't exist"
+            "Entity resource doesn't exist"
         );
 
         _;

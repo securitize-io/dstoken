@@ -56,6 +56,7 @@ library ComplianceServiceLibrary {
     function isNewInvestor(address[] memory _services, address _wallet) internal view returns (bool) {
         IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
 
+        // Return whether this investor has 0 balance and is not an omnibus wallet in BENEFICIARY mode (which is not considered an invesor)
         return balanceOfInvestor(_services, _wallet) == 0 && !(registryService.isOmnibusWallet(_wallet) && !registryService.getOmnibusWalletController(_wallet).isHolderOfRecord());
     }
 

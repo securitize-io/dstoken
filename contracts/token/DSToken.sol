@@ -73,6 +73,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         require(_to != address(0));
         require(_value > 0);
         require(_valueLocked <= _value, "valueLocked must be smaller than value");
+        //Make sure we are not hitting the cap
         require(cap == 0 || totalIssued.add(_value) <= cap, "Token Cap Hit");
 
         //Check issuance is allowed (and inform the compliance manager, possibly adding locks)
@@ -119,7 +120,6 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         getComplianceService().validateOmnibusBurn(_omnibusWallet, _who, _value);
 
         walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].sub(_value);
-        walletsBalances[_who] = walletsBalances[_who].sub(_value);
         getRegistryService().getOmnibusWalletController(_omnibusWallet).burn(_who, _value, _reason);
 
         decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_omnibusWallet, _who, _value);
@@ -193,7 +193,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         bool result = super.transfer(_to, _value);
 
         if (result) {
-            updateInvestorsBalances(msg.sender, _to, _value);
+            updateInvestorsBalancesOnTrasfer(msg.sender, _to, _value);
         }
 
         checkWalletsForList(msg.sender, _to);
@@ -214,7 +214,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         bool result = super.transferFrom(_from, _to, _value);
 
         if (result) {
-            updateInvestorsBalances(_from, _to, _value);
+            updateInvestorsBalancesOnTrasfer(_from, _to, _value);
         }
 
         checkWalletsForList(_from, _to);
@@ -283,7 +283,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         return investorsBalances[_id];
     }
 
-    function updateInvestorsBalances(address _from, address _to, uint256 _value) internal {
+    function updateInvestorsBalancesOnTrasfer(address _from, address _to, uint256 _value) internal {
         if (getRegistryService().isOmnibusWallet(_to)) {
             IDSOmnibusWalletController omnibusWalletController = getRegistryService().getOmnibusWalletController(_to);
             omnibusWalletController.deposit(_from, _value);

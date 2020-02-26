@@ -72,6 +72,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
 
     function validateOmnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value) public onlyToken returns (bool) {
         require(getRegistryService().isOmnibusWallet(_omnibusWallet));
+        require(!getRegistryService().isOmnibusWallet(_from));
         require(getWalletManager().getWalletType(_to) == getWalletManager().ISSUER());
 
         require(recordOmnibusSeize(_omnibusWallet, _from, _to, _value));
