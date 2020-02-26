@@ -59,8 +59,8 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
         balances[_from] = balances[_from].sub(_value);
 
         if (assetTrackingMode == BENEFICIARY) {
-            getToken().updateInvestorBalance(_from, _value, false);
-            getToken().updateInvestorBalance(_to, _value, true);
+            getToken().updateOmnibusInvestorBalance(omnibusWallet, _from, _value, false);
+            getToken().updateOmnibusInvestorBalance(omnibusWallet, _to, _value, true);
         }
 
         emit OmnibusTransfer(omnibusWallet, _from, _to);

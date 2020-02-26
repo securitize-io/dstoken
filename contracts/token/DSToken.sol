@@ -315,6 +315,14 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         }
     }
 
+    function updateOmnibusInvestorBalance(address _omnibusWallet, address _wallet, uint256 _value, bool _increase)
+        public
+        onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
+        returns (bool)
+    {
+        return updateInvestorBalance(_wallet, _value, _increase);
+    }
+
     function updateInvestorBalance(address _wallet, uint256 _value, bool _increase) internal returns (bool) {
         string memory investor = getRegistryService().getInvestor(_wallet);
         if (keccak256(abi.encodePacked(investor)) != keccak256("")) {

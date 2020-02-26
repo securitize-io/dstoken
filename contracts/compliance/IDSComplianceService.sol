@@ -31,11 +31,6 @@ contract IDSComplianceService is Initializable, VersionedContract {
     string internal constant ONLY_US_ACCREDITED = "Only us accredited";
     string internal constant NOT_ENOUGH_INVESTORS = "Not enough investors";
 
-    modifier onlyOmnibusWalletController(address omnibusWallet, IDSOmnibusWalletController omnibusWalletController) {
-        require(false);
-        _;
-    }
-
     function adjustInvestorCountsAfterCountryChange(string memory _id, string memory _country, string memory _prevCountry) public returns (bool);
 
     //*****************************************
@@ -53,7 +48,7 @@ contract IDSComplianceService is Initializable, VersionedContract {
         address _from,
         address _to,
         uint256 _value /*onlyOmnibusWalletController*/
-    ) public;
+    ) public returns (bool);
 
     function validateIssuance(
         address _to,
@@ -88,4 +83,5 @@ contract IDSComplianceService is Initializable, VersionedContract {
     function preIssuanceCheck(address _to, uint256 _value) public view returns (uint256 code, string memory reason);
 
     function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason);
+    function preInternalTransferCheck(address _from, address _to, uint256 _value, address _omnibusWallet) public view returns (uint256 code, string memory reason);
 }

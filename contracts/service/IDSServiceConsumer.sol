@@ -2,6 +2,7 @@ pragma solidity ^0.5.0;
 
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
+import "../omnibus/IDSOmnibusWalletController.sol";
 
 contract IDSServiceConsumer is Initializable, VersionedContract {
     constructor() internal {}
@@ -49,6 +50,11 @@ contract IDSServiceConsumer is Initializable, VersionedContract {
 
     modifier onlyIssuerOrAboveOrToken {
         assert(false);
+        _;
+    }
+
+    modifier onlyOmnibusWalletController(address omnibusWallet, IDSOmnibusWalletController omnibusWalletController) {
+        require(false);
         _;
     }
 

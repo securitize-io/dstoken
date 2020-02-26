@@ -3,6 +3,7 @@ pragma solidity ^0.5.0;
 import "../zeppelin/token/ERC20/IERC20.sol";
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
+import "../omnibus/IDSOmnibusWalletController.sol";
 
 contract IDSToken is IERC20, Initializable, VersionedContract {
     event Issue(address indexed to, uint256 value, uint256 valueLocked);
@@ -117,6 +118,13 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
     function isPaused() public view returns (bool);
 
     function balanceOfInvestor(string memory _id) public view returns (uint256);
+
+    function updateOmnibusInvestorBalance(
+        address _omnibusWallet,
+        address _wallet,
+        uint256 _value,
+        bool _increase /*onlyOmnibusWalletController*/
+    ) public returns (bool);
 
     function updateInvestorBalance(address _wallet, uint256 _value, bool _increase) internal returns (bool);
 
