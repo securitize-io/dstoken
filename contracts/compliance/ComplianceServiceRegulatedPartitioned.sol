@@ -8,6 +8,12 @@ library ComplianceServicePartitionedLibrary {
   uint internal constant US = 1;
   uint internal constant EU = 2;
   uint internal constant FORBIDDEN = 4;
+  uint256 internal constant DS_TOKEN = 0;
+  uint256 internal constant REGISTRY_SERVICE = 1;
+  uint256 internal constant WALLET_MANAGER = 2;
+  uint256 internal constant COMPLIANCE_CONFIGURATION_SERVICE = 3;
+  uint256 internal constant LOCK_MANAGER = 4;
+  uint256 internal constant COMPLIANCE_SERVICE = 5;
   string internal constant TOKEN_PAUSED = "Token Paused";
   string internal constant NOT_ENOUGH_TOKENS = "Not Enough Tokens";
   string internal constant VALID = "Valid";
@@ -62,63 +68,64 @@ library ComplianceServicePartitionedLibrary {
     return Math.min(getComplianceConfigurationService(_complianceService).getUsInvestorsLimit(), getComplianceConfigurationService(_complianceService).getMaxUsInvestorsPercentage().mul(_complianceService.getTotalInvestorsCount()).div(100));
   }
 
-  function preTransferCheck(ComplianceServiceRegulatedPartitioned _complianceService, address _from, address _to, uint _value) public view returns (uint code, string memory reason) {
-    if (getToken(_complianceService).isPaused()) {
+  function preTransferCheck(address[] memory services, address _from, address _to, uint _value) public view returns (uint code, string memory reason) {
+    ComplianceServiceRegulatedPartitioned complianceService = ComplianceServiceRegulatedPartitioned(services[COMPLIANCE_SERVICE]);
+    if (getToken(complianceService).isPaused()) {
       return (10, TOKEN_PAUSED);
     }
 
-    if (getToken(_complianceService).balanceOf(_from) < _value) {
+    if (getToken(complianceService).balanceOf(_from) < _value) {
       return (15, NOT_ENOUGH_TOKENS);
     }
 
-    if (keccak256(abi.encodePacked(getRegistryService(_complianceService).getInvestor(_from))) != keccak256("") &&
-        keccak256(abi.encodePacked(getRegistryService(_complianceService).getInvestor(_from))) == keccak256(abi.encodePacked(getRegistryService(_complianceService).getInvestor(_to)))) {
+    if (keccak256(abi.encodePacked(IDSRegistryService(services[REGISTRY_SERVICE]).getInvestor(_from))) != keccak256("") &&
+        keccak256(abi.encodePacked(IDSRegistryService(services[REGISTRY_SERVICE]).getInvestor(_from))) == keccak256(abi.encodePacked(IDSRegistryService(services[REGISTRY_SERVICE]).getInvestor(_to)))) {
             return (0, VALID);
     }
 
-    uint fromInvestorBalance = balanceOfInvestor(_complianceService, _from);
+    uint fromInvestorBalance = balanceOfInvestor(complianceService, _from);
 
-    if (getWalletManager(_complianceService).getWalletType(_to) == getWalletManager(_complianceService).PLATFORM()) {
-        if (getComplianceConfigurationService(_complianceService).getForceFullTransfer() && fromInvestorBalance > _value) {
+    if (IDSWalletManager(services[WALLET_MANAGER]).getWalletType(_to) == IDSWalletManager(services[WALLET_MANAGER]).PLATFORM()) {
+        if (IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() && fromInvestorBalance > _value) {
             return (50, ONLY_FULL_TRANSFER);
         }
 
         return (0, VALID);
     }
 
-    if (getWalletManager(_complianceService).getWalletType(_from) != getWalletManager(_complianceService).PLATFORM() && getLockManager(_complianceService).getTransferableTokens(_from, uint64(now)) < _value) {
+    if (IDSWalletManager(services[WALLET_MANAGER]).getWalletType(_from) != IDSWalletManager(services[WALLET_MANAGER]).PLATFORM() && IDSLockManager(services[LOCK_MANAGER]).getTransferableTokens(_from, uint64(now)) < _value) {
         return (16, TOKENS_LOCKED);
     }
 
 
-    if (!_complianceService.checkWhitelisted(_to)) {
+    if (!complianceService.checkWhitelisted(_to)) {
         return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
     }
 
-    uint fromRegion = getCountryCompliance(_complianceService, _from);
-    uint toRegion = getCountryCompliance(_complianceService, _to);
+    uint fromRegion = getCountryCompliance(complianceService, _from);
+    uint toRegion = getCountryCompliance(complianceService, _to);
 
     if (fromRegion == US) {
-        if (_complianceService.getComplianceTransferableTokens(_from, now, false) < _value) {
+        if (complianceService.getComplianceTransferableTokens(_from, now, false) < _value) {
             return (32, HOLD_UP_1Y);
         }
 
         if (fromInvestorBalance > _value &&
-            fromInvestorBalance.sub(_value) < getComplianceConfigurationService(_complianceService).getMinUsTokens()) {
+            fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()) {
            return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
 
-        if (getComplianceConfigurationService(_complianceService).getForceFullTransfer() && fromInvestorBalance > _value) {
+        if (IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() && fromInvestorBalance > _value) {
             return (50, ONLY_FULL_TRANSFER);
         }
     } else {
-        if (getWalletManager(_complianceService).getWalletType(_from) != getWalletManager(_complianceService).PLATFORM() && _complianceService.getComplianceTransferableTokens(_from, now, false) < _value) {
+        if (IDSWalletManager(services[WALLET_MANAGER]).getWalletType(_from) != IDSWalletManager(services[WALLET_MANAGER]).PLATFORM() && complianceService.getComplianceTransferableTokens(_from, now, false) < _value) {
             return (33, HOLD_UP);
         }
 
-        if (toRegion == US && !(getWalletManager(_complianceService).getWalletType(_from) == getWalletManager(_complianceService).PLATFORM()) &&
-               getComplianceConfigurationService(_complianceService).getBlockFlowbackEndTime() != 0 && // TODO:! SHOULD BE PERIOD INSTEAD OF ENDTIME
-               _complianceService.getComplianceTransferableTokens(_from, now, true) < _value) {
+        if (toRegion == US && !(IDSWalletManager(services[WALLET_MANAGER]).getWalletType(_from) == IDSWalletManager(services[WALLET_MANAGER]).PLATFORM()) &&
+               IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() != 0 && // TODO: SHOULD BE PERIOD INSTEAD OF ENDTIME?
+               complianceService.getComplianceTransferableTokens(_from, now, true) < _value) {
             return (25, FLOWBACK);
         }
     }
@@ -128,82 +135,82 @@ library ComplianceServicePartitionedLibrary {
     }
 
     if (toRegion == EU) {
-        if (isRetail(_complianceService, _to) && _complianceService.getEURetailInvestorsCount(getCountry(_complianceService, _to)) >= getComplianceConfigurationService(_complianceService).getEuRetailLimit() &&
-            isNewInvestor(_complianceService, _to) &&
-            (keccak256(abi.encodePacked(getCountry(_complianceService, _from))) != keccak256(abi.encodePacked(getCountry(_complianceService, _to))) ||
-            (fromInvestorBalance > _value && isRetail(_complianceService, _from)))) {
+        if (isRetail(complianceService, _to) && complianceService.getEURetailInvestorsCount(getCountry(complianceService, _to)) >= IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getEuRetailLimit() &&
+            isNewInvestor(complianceService, _to) &&
+            (keccak256(abi.encodePacked(getCountry(complianceService, _from))) != keccak256(abi.encodePacked(getCountry(complianceService, _to))) ||
+            (fromInvestorBalance > _value && isRetail(complianceService, _from)))) {
             return (40, MAX_INVESTORS_IN_CATEGORY);
         }
 
-        if (balanceOfInvestor(_complianceService, _to).add(_value) < getComplianceConfigurationService(_complianceService).getMinEuTokens()) {
+        if (balanceOfInvestor(complianceService, _to).add(_value) < IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens()) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
     }
 
     if (fromRegion == EU) {
-        if (fromInvestorBalance.sub(_value) < getComplianceConfigurationService(_complianceService).getMinEuTokens() &&
+        if (fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens() &&
             fromInvestorBalance > _value) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
     }
 
-    if (getComplianceConfigurationService(_complianceService).getForceAccredited() && !isAccredited(_complianceService, _to)) {
+    if (IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccredited() && !isAccredited(complianceService, _to)) {
       return (61, ONLY_ACCREDITED);
     }
 
     if (toRegion == US) {
-        if (getComplianceConfigurationService(_complianceService).getForceAccreditedUS() && !isAccredited(_complianceService, _to)) {
+        if (IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccreditedUS() && !isAccredited(complianceService, _to)) {
           return (61, ONLY_ACCREDITED);
         }
 
-        uint usInvestorsLimit = getUsInvestorsLimit(_complianceService);
-        if (usInvestorsLimit != 0 && fromInvestorBalance > _value && _complianceService.getUSInvestorsCount() >= usInvestorsLimit &&
-            isNewInvestor(_complianceService, _to)) {
+        uint usInvestorsLimit = getUsInvestorsLimit(complianceService);
+        if (usInvestorsLimit != 0 && fromInvestorBalance > _value && complianceService.getUSInvestorsCount() >= usInvestorsLimit &&
+            isNewInvestor(complianceService, _to)) {
             return (41, ONLY_FULL_TRANSFER);
         }
 
-        if (getComplianceConfigurationService(_complianceService).getUsAccreditedInvestorsLimit() != 0 && isAccredited(_complianceService, _to) && _complianceService.getUSAccreditedInvestorsCount() >= getComplianceConfigurationService(_complianceService).getUsAccreditedInvestorsLimit() &&
-            isNewInvestor(_complianceService, _to) &&
-            (fromRegion != US || (fromInvestorBalance > _value && isAccredited(_complianceService, _from)))) {
+        if (IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() != 0 && isAccredited(complianceService, _to) && complianceService.getUSAccreditedInvestorsCount() >= IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() &&
+            isNewInvestor(complianceService, _to) &&
+            (fromRegion != US || (fromInvestorBalance > _value && isAccredited(complianceService, _from)))) {
             return (40, MAX_INVESTORS_IN_CATEGORY);
         }
 
-        if (balanceOfInvestor(_complianceService, _to).add(_value) < getComplianceConfigurationService(_complianceService).getMinUsTokens()) {
+        if (balanceOfInvestor(complianceService, _to).add(_value) < IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
     }
 
-    if (!isAccredited(_complianceService, _to)) {
-        if (getComplianceConfigurationService(_complianceService).getNonAccreditedInvestorsLimit() != 0 && _complianceService.getTotalInvestorsCount().sub(_complianceService.getAccreditedInvestorsCount()) >= getComplianceConfigurationService(_complianceService).getNonAccreditedInvestorsLimit() &&
-            isNewInvestor(_complianceService, _to) &&
-            (isAccredited(_complianceService, _from) || fromInvestorBalance > _value)) {
+    if (!isAccredited(complianceService, _to)) {
+        if (IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit() != 0 && complianceService.getTotalInvestorsCount().sub(complianceService.getAccreditedInvestorsCount()) >= IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit() &&
+            isNewInvestor(complianceService, _to) &&
+            (isAccredited(complianceService, _from) || fromInvestorBalance > _value)) {
             return (40, MAX_INVESTORS_IN_CATEGORY);
         }
     }
 
-    if (getComplianceConfigurationService(_complianceService).getTotalInvestorsLimit() != 0 && fromInvestorBalance > _value &&
-        _complianceService.getTotalInvestorsCount() >= getComplianceConfigurationService(_complianceService).getTotalInvestorsLimit() &&
-        balanceOfInvestor(_complianceService, _to) == 0) {
+    if (IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getTotalInvestorsLimit() != 0 && fromInvestorBalance > _value &&
+        complianceService.getTotalInvestorsCount() >= IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getTotalInvestorsLimit() &&
+        balanceOfInvestor(complianceService, _to) == 0) {
         return (41, ONLY_FULL_TRANSFER);
     }
 
-    if (balanceOfInvestor(_complianceService, _from) == _value && !isNewInvestor(_complianceService, _to) &&
-        _complianceService.getTotalInvestorsCount() <= getComplianceConfigurationService(_complianceService).getMinimumTotalInvestors()) {
+    if (balanceOfInvestor(complianceService, _from) == _value && !isNewInvestor(complianceService, _to) &&
+        complianceService.getTotalInvestorsCount() <= IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumTotalInvestors()) {
         return (71, NOT_ENOUGH_INVESTORS);
     }
 
-    if (getWalletManager(_complianceService).getWalletType(_from) != getWalletManager(_complianceService).PLATFORM() &&
-        fromInvestorBalance.sub(_value) < getComplianceConfigurationService(_complianceService).getMinimumHoldingsPerInvestor()) {
+    if (IDSWalletManager(services[WALLET_MANAGER]).getWalletType(_from) != IDSWalletManager(services[WALLET_MANAGER]).PLATFORM() &&
+        fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()) {
         return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
     }
 
-    if (getWalletManager(_complianceService).getWalletType(_to) != getWalletManager(_complianceService).PLATFORM() &&
-        balanceOfInvestor(_complianceService, _to).add(_value) < getComplianceConfigurationService(_complianceService).getMinimumHoldingsPerInvestor()) {
+    if (IDSWalletManager(services[WALLET_MANAGER]).getWalletType(_to) != IDSWalletManager(services[WALLET_MANAGER]).PLATFORM() &&
+        balanceOfInvestor(complianceService, _to).add(_value) < IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()) {
         return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
     }
 
-    if (getComplianceConfigurationService(_complianceService).getMaximumHoldingsPerInvestor() != 0 &&
-        balanceOfInvestor(_complianceService, _to).add(_value) > getComplianceConfigurationService(_complianceService).getMaximumHoldingsPerInvestor()) {
+    if (IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor() != 0 &&
+        balanceOfInvestor(complianceService, _to).add(_value) > IDSComplianceConfigurationService(services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor()) {
         return (52, AMOUNT_OF_TOKENS_ABOVE_MAX);
     }
 
@@ -256,9 +263,19 @@ contract ComplianceServiceRegulatedPartitioned is ComplianceServiceRegulated, ID
         VERSIONS.push(1);
     }
 
-    function preTransferCheck(address _from, address _to, uint _value) view public returns (uint code, string memory reason) {
-        (code, reason) = ComplianceServicePartitionedLibrary.preTransferCheck(this, _from, _to, _value);
+    function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
+        address[] memory services = new address[](6);
 
+        services[0] = getDSService(DS_TOKEN);
+        services[1] = getDSService(REGISTRY_SERVICE);
+        services[2] = getDSService(WALLET_MANAGER);
+        services[3] = getDSService(COMPLIANCE_CONFIGURATION_SERVICE);
+        services[4] = getDSService(LOCK_MANAGER);
+        services[5] = address(this);
+
+        (code, reason) = ComplianceServicePartitionedLibrary.preTransferCheck(services, _from, _to, _value);
+
+        // TODO: WHY DO WE NEED THIS PART INSTEAD OF RETURNING THE RESULT OF PRETRANSFERCHECK
         if (code != 0) {
             return (code, reason);
         } else {
@@ -273,7 +290,7 @@ contract ComplianceServiceRegulatedPartitioned is ComplianceServiceRegulated, ID
       } else {
         uint lockTime = getComplianceConfigurationService().getNonUsLockPeriod();
         if (_checkFlowback) {
-          lockTime = Math.max(lockTime, getComplianceConfigurationService().getBlockFlowbackEndTime()); // TODO:! should be period instead of endtime
+          lockTime = Math.max(lockTime, getComplianceConfigurationService().getBlockFlowbackEndTime()); // TODO: should be period instead of endtime?
         }
 
         return lockTime;
