@@ -33,6 +33,8 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         return true;
     }
 
+    function validateOmnibusInternalTransfer(address _omnibusWallet, address _from, address _to, uint256 _value) public onlyOmnibusWalletController() {}
+
     function validateIssuance(address _to, uint256 _value, uint256 _issuanceTime) public onlyToken returns (bool) {
         require(!getRegistryService().isOmnibusWallet(_to));
 

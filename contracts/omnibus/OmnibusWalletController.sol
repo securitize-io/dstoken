@@ -9,12 +9,12 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
     using SafeMath for uint256;
 
     modifier onlyOperator(address _operator) {
-        require()
+        require(getTrustService().isResourceOperator(omnibusWallet, _operator), "Unauthorized access");
         _;
     }
 
     modifier enoughBalance(address _from, uint256 _value) {
-        require(balances[_from] >= _value, "Omnibus wallet withdraw: not enough tokens");
+        require(balances[_from] >= _value, "Not enough balance");
         _;
     }
 
@@ -52,6 +52,18 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
     function withdraw(address _from, uint256 _value) public enoughBalance(_from, _value) onlyToken {
         balances[_from] = balances[_from].sub(_value);
         emit OmnibusWithdraw(omnibusWallet, _from, _value);
+    }
+
+    function transfer(address _from, address _to, uint256 _value) public onlyOperator(msg.sender) enoughBalance(_from, _value) {
+        getComplianceService().validateOmnibusInternalTransfer(omnibusWallet, _from, _to, _value);
+        balances[_from] = balances[_from].sub(_value);
+
+        if (assetTrackingMode == BENEFICIARY) {
+            getToken().updateInvestorBalance(_from, _value, false);
+            getToken().updateInvestorBalance(_to, _value, true);
+        }
+
+        emit OmnibusTransfer(omnibusWallet, _from, _to);
     }
 
     function seize(address _from, uint256 _value, string memory _reason) public enoughBalance(_from, _value) onlyToken {
