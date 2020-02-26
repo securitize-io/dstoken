@@ -8,6 +8,11 @@ import "../utils/ProxyTarget.sol";
 contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWalletController, ServiceConsumer, OmnibusControllerDataStore {
     using SafeMath for uint256;
 
+    modifier onlyOperator(address _operator) {
+        require()
+        _;
+    }
+
     modifier enoughBalance(address _from, uint256 _value) {
         require(balances[_from] >= _value, "Omnibus wallet withdraw: not enough tokens");
         _;

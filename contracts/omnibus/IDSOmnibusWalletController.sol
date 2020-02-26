@@ -6,6 +6,7 @@ import "../utils/Initializable.sol";
 contract IDSOmnibusWalletController is Initializable, VersionedContract {
     event OmnibusDeposit(address indexed omnibusWallet, address to, uint256 value);
     event OmnibusWithdraw(address indexed omnibusWallet, address from, uint256 value);
+    event OmnibusTransfer(address indexed omnibusWallet, address from, address to);
     event OmnibusSeize(address indexed omnibusWallet, address from, uint256 value, string reason);
     event OmnibusBurn(address indexed omnibusWallet, address who, uint256 value, string reason);
 
@@ -18,6 +19,16 @@ contract IDSOmnibusWalletController is Initializable, VersionedContract {
         VERSIONS.push(1);
     }
 
+    modifier onlyOperator(address _operator) {
+        revert(false);
+        _;
+    }
+
+    modifier enoughBalance(address _from, uint256 _value) {
+        require(false);
+        _;
+    }
+
     function setAssetTrackingMode(uint8 _assetTrackingMode) public;
 
     function getWalletAssetTrackingMode() public view returns (uint8);
@@ -25,6 +36,12 @@ contract IDSOmnibusWalletController is Initializable, VersionedContract {
     function isHolderOfRecord() public view returns (bool);
 
     function getInvestorBalance(address _from) public view returns (uint256);
+
+    function transfer(
+        address _from,
+        address _to,
+        uint256 _value /*onlyOperator*/
+    ) public;
 
     function deposit(
         address _to,

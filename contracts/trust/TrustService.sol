@@ -40,25 +40,21 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
                 (keccak256(abi.encodePacked(ownersEntities[_owner])) != keccak256(abi.encodePacked("")) &&
                     keccak256(abi.encodePacked(ownersEntities[_owner])) == keccak256(abi.encodePacked(_name)))
         );
-
         _;
     }
 
     modifier onlyNewEntity(string memory _name) {
         require(!entities[_name], "Entity already exists");
-
         _;
     }
 
     modifier onlyExistingEntity(string memory _name) {
         require(entities[_name], "Entity doesn't exist");
-
         _;
     }
 
     modifier onlyNewEntityOwner(address _owner) {
         require(keccak256(abi.encodePacked(ownersEntities[_owner])) == keccak256(abi.encodePacked("")), "Entity owner already exists");
-
         _;
     }
 
@@ -68,13 +64,11 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
                 keccak256(abi.encodePacked(ownersEntities[_owner])) == keccak256(abi.encodePacked(_name)),
             "Entity owner doesn't exist"
         );
-
         _;
     }
 
     modifier onlyNewOperator(address _operator) {
         require(keccak256(abi.encodePacked(operatorsEntities[_operator])) == keccak256(abi.encodePacked("")), "Entity operator already exists");
-
         _;
     }
 
@@ -84,13 +78,11 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
                 keccak256(abi.encodePacked(operatorsEntities[_operator])) == keccak256(abi.encodePacked(_name)),
             "Entity operator doesn't exist"
         );
-
         _;
     }
 
     modifier onlyNewResource(address _resource) {
         require(keccak256(abi.encodePacked(resourcesEntities[_resource])) == keccak256(abi.encodePacked("")), "Entity resource already exists");
-
         _;
     }
 
@@ -100,7 +92,6 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
                 keccak256(abi.encodePacked(resourcesEntities[_resource])) == keccak256(abi.encodePacked(_name)),
             "Entity resource doesn't exist"
         );
-
         _;
     }
 
