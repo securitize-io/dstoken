@@ -114,6 +114,14 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         return checkTransfer(_from, _to, _value);
     }
 
+    function preInternalTransferCheck(address _from, address _to, uint256 _value, address _omnibusWallet) public view returns (uint256 code, string memory reason) {
+        if (getToken().isPaused()) {
+            return (10, TOKEN_PAUSED);
+        }
+
+        return checkTransfer(_from, _to, _value);
+    }
+
     function preIssuanceCheck(
         address, /*_to*/
         uint256 /*_value*/

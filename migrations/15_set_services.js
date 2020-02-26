@@ -155,6 +155,18 @@ module.exports = async function(deployer) {
         )
       );
 
+      console.log("Connecting omnibus wallet controller to compliance manager");
+      await omnibusWalletController.setDSService(
+        services.COMPLIANCE_SERVICE,
+        complianceService.address
+      );
+
+      console.log("Connecting omnibus wallet controller to token");
+      await omnibusWalletController.setDSService(
+        services.DS_TOKEN,
+        token.address
+      );
+
       console.log("Adding omnibus wallet investor to registry");
       await registry.registerInvestor(
         configurationManager.omnibusWalletInvestorId,

@@ -341,5 +341,4 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
     function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
         return getComplianceService().preTransferCheck(_from, _to, _value);
     }
-
 }
