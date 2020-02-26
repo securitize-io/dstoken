@@ -10,11 +10,6 @@ module.exports = async function(deployer) {
     artifacts.require("Proxy"),
     configurationManager,
     deployer,
-    artifacts.require("DSToken"),
-    [
-      configurationManager.name,
-      configurationManager.symbol,
-      configurationManager.decimals
-    ]
+    artifacts.require("PartitionsManager")
   );
 };

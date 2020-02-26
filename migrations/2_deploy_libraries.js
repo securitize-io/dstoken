@@ -1,13 +1,16 @@
 const ComplianceServiceRegulated = artifacts.require(
-  "ComplianceServiceRegulated"
+  "ComplianceServiceRegulatedPartitioned"
 );
 const ComplianceServiceLibrary = artifacts.require("ComplianceServiceLibrary");
+const ComplianceServicePartitionedLibrary = artifacts.require("ComplianceServicePartitionedLibrary");
 
 const configurationManager = require("./utils/configurationManager");
 
 async function deployLibraries(deployer) {
   await deployer.deploy(ComplianceServiceLibrary);
+  await deployer.deploy(ComplianceServicePartitionedLibrary);
   await deployer.link(ComplianceServiceLibrary, ComplianceServiceRegulated);
+  await deployer.link(ComplianceServicePartitionedLibrary, ComplianceServiceRegulated);
 }
 
 module.exports = async function(deployer) {

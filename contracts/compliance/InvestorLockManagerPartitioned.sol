@@ -7,7 +7,7 @@ import "../zeppelin/math/Math.sol";
 import "../service/ServiceConsumer.sol";
 import "../data-stores/LockManagerPartitionedDataStore.sol";
 
-contract ESInvestorLockManagerPartitionedVersioned is ProxyTarget, Initializable, IDSLockManagerPartitioned, ServiceConsumer, LockManagerPartitionedDataStore {
+contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockManagerPartitioned, ServiceConsumer, LockManager, LockManagerPartitionedDataStore {
   uint256 constant MAX_LOCKS_PER_INVESTOR_PARTITION = 30;
 
   function initialize() public initializer onlyFromProxy {

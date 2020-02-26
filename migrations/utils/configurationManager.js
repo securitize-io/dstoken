@@ -60,19 +60,23 @@ class ConfigurationManager {
       case "WHITELIST":
         return artifacts.require("ComplianceServiceWhitelisted");
       case "NORMAL":
-        return artifacts.require("ComplianceServiceRegulated");
+        return artifacts.require("ComplianceServiceRegulatedPartitioned");
       default:
         break;
     }
   }
 
   getAbstractLockManagerContract(artifacts) {
+    console.log('1xxxxxxxxxxxxxxxx');
+    console.log(this.complianceManagerType);
     switch (this.lockManagerType) {
       case "WALLET":
         return artifacts.require("LockManager");
-      case "INVESTOR":
-        return artifacts.require("InvestorLockManager");
+      default:
+        console.log('xxxxxxxxxxxxxxxx');
+        return artifacts.require("InvestorLockManagerPartitioned");
     }
+    console.log('2xxxxxxxxxxxxxxxx');
   }
 
   setProxyAddressForContractName(contractName, address) {

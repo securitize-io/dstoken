@@ -1,4 +1,4 @@
-const DSToken = artifacts.require("DSToken");
+const DSToken = artifacts.require("DSTokenPartitioned");
 const TrustService = artifacts.require("TrustService");
 const RegistryService = artifacts.require("RegistryService");
 const WalletManager = artifacts.require("WalletManager");
@@ -8,6 +8,7 @@ const ComplianceConfigurationService = artifacts.require(
   "ComplianceConfigurationService"
 );
 const MultiSigWallet = artifacts.require("MultiSigWallet");
+const PartitionsManager = artifacts.require("PartitionsManager");
 const configurationManager = require("./utils/configurationManager");
 const services = require("../utils/globals").services;
 
@@ -44,7 +45,7 @@ module.exports = async function(deployer) {
     )
   );
   const token = await DSToken.at(
-    configurationManager.getProxyAddressForContractName("DSToken")
+    configurationManager.getProxyAddressForContractName("DSTokenPartitioned")
   );
   const tokenIssuer = await TokenIssuer.at(
     configurationManager.getProxyAddressForContractName("TokenIssuer")
@@ -53,6 +54,9 @@ module.exports = async function(deployer) {
     configurationManager.getProxyAddressForContractName("WalletRegistrar")
   );
   const multisig = await MultiSigWallet.deployed();
+  const PartitionsManager = await ESPartitionsManager.at(
+    configurationManager.getProxyAddressForContractName("PartitionsManager")
+  );
   let registry;
 
   console.log("Connecting compliance configuration to trust service");
