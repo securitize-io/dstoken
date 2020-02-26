@@ -1,9 +1,8 @@
 pragma solidity ^0.5.0;
 
 import "./IDSLockManager.sol";
-import "../service/ServiceConsumer.sol";
 
-contract IDSLockManagerPartitioned is IDSLockManager, ServiceConsumer {
+contract IDSLockManagerPartitioned is IDSLockManager {
 
     function initialize() public isNotInitialized {
         VERSIONS.push(1);
@@ -18,11 +17,11 @@ contract IDSLockManagerPartitioned is IDSLockManager, ServiceConsumer {
   function lockInfo(address _who, uint _index, bytes32 _partition) public view returns (uint reasonCode, string memory reasonString, uint value, uint autoReleaseTime);
   function getTransferableTokens(address _who, uint256 _time, bytes32 _partition) public view returns (uint);
 
-  function addManualLockRecord(address /*_to*/, uint /*_valueLocked*/, string memory /*_reason*/, uint /*_releaseTime*/) onlyIssuerOrAboveOrToken public {
+  function addManualLockRecord(address /*_to*/, uint /*_valueLocked*/, string memory /*_reason*/, uint /*_releaseTime*/) /*onlyIssuerOrAboveOrToken*/ public {
     require(false, 'Partitioned Lock Manager');
   }
 
-  function removeLockRecord(address /*_to*/, uint /*_index*/) onlyIssuerOrAbove public returns (bool) {
+  function removeLockRecord(address /*_to*/, uint /*_index*/) /*onlyIssuerOrAbove*/ public returns (bool) {
     require(false, 'Partitioned Lock Manager');
   }
 

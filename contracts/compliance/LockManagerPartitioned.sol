@@ -7,7 +7,7 @@ import "../zeppelin/math/Math.sol";
 import "../service/ServiceConsumer.sol";
 import "../data-stores/LockManagerPartitionedDataStore.sol";
 
-contract ESInvestorLockManagerPartitionedVersioned is ProxyTarget, Initializable, IDSLockManagerPartitioned, LockManagerPartitionedDataStore {
+contract ESInvestorLockManagerPartitionedVersioned is ProxyTarget, Initializable, IDSLockManagerPartitioned, ServiceConsumer, LockManagerPartitionedDataStore {
   uint256 constant MAX_LOCKS_PER_INVESTOR_PARTITION = 30;
 
   function initialize() public initializer onlyFromProxy {
@@ -75,34 +75,32 @@ contract ESInvestorLockManagerPartitionedVersioned is ProxyTarget, Initializable
     autoReleaseTime = investorsLocks[investor][_partition][_lockIndex].releaseTime;
   }
 
-  function getTransferableTokens(address /*_who*/, uint256 /*_time*/, bytes32 /*_partition*/) public view returns (uint) {
-    require(false, 'Not implemented yet - pending token implementation');
-    // require(_time > 0, "time must be greater than zero");
-    // string memory investor = getRegistryService().getInvestor(_who);
-    // uint balanceOfHolderByPartition = getTokenPartitioned().balanceOfInvestorByPartition(investor, _partition);
-    // uint holderLockCount = getUint(LOCK_COUNT, investor, _partition);
-    // if (holderLockCount == 0) {
-    //   return balanceOfHolderByPartition;
-    // }
+  function getTransferableTokens(address _who, uint256 _time, bytes32 _partition) public view returns (uint) {
+    require(_time > 0, "time must be greater than zero");
+    string memory investor = getRegistryService().getInvestor(_who);
+    uint balanceOfHolderByPartition = getTokenPartitioned().balanceOfInvestorByPartition(investor, _partition);
 
-    // uint totalLockedTokens = 0;
-    // for (uint i = 0; i < holderLockCount; i ++) {
-    //   uint autoReleaseTime = getUint(LOCKS_RELEASE_TIME, investor, i);
-    //   if (autoReleaseTime == 0 || autoReleaseTime > _time) {
-    //     totalLockedTokens = totalLockedTokens.add(getUint(LOCKS_VALUE, investor, i));
-    //   }
-    // }
+    if (investorsLocksCounts[investor][_partition] == 0) {
+      return balanceOfHolderByPartition;
+    }
 
-    // //there may be more locked tokens than actual tokens, so the minimum between the two
-    // return SafeMath.sub(balanceOfHolderByPartition, Math.min256(totalLockedTokens, balanceOfHolderByPartition));
+    uint totalLockedTokens = 0;
+    for (uint i = 0; i < investorsLocksCounts[investor][_partition]; i++) {
+      uint256 autoReleaseTime = investorsLocks[investor][_partition][i].releaseTime;
+      if (autoReleaseTime == 0 || autoReleaseTime > _time) {
+        totalLockedTokens = totalLockedTokens.add(investorsLocks[investor][_partition][i].value);
+      }
+    }
+
+    //there may be more locked tokens than actual tokens, so the minimum between the two
+    return SafeMath.sub(balanceOfHolderByPartition, Math.min(totalLockedTokens, balanceOfHolderByPartition));
   }
 
-  function getTransferableTokens(address /*_who*/, uint256 /*_time*/) public view returns (uint /*transferable*/) {
-    require(false, 'Not implemented yet - pending token implementation');
-    // uint countOfPartitions = getTokenPartitioned().partitionCountOf(_who);
-    // for (uint index = 0; index < countOfPartitions; ++index) {
-    //   transferable = SafeMath.add(transferable, getTransferableTokens(_who, _time, getTokenPartitioned().partitionOf(_who, index)));
-    // }
+  function getTransferableTokens(address _who, uint256 _time) public view returns (uint transferable) {
+    uint countOfPartitions = getTokenPartitioned().partitionCountOf(_who);
+    for (uint index = 0; index < countOfPartitions; ++index) {
+      transferable = SafeMath.add(transferable, getTransferableTokens(_who, _time, getTokenPartitioned().partitionOf(_who, index)));
+    }
   }
 
 }

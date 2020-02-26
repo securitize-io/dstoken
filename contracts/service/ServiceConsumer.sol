@@ -3,9 +3,12 @@ pragma solidity ^0.5.0;
 import "./IDSServiceConsumer.sol";
 import "../data-stores/ServiceConsumerDataStore.sol";
 import "../token/IDSToken.sol";
+import "../token/IDSTokenPartitioned.sol";
 import "../compliance/IDSWalletManager.sol";
 import "../compliance/IDSLockManager.sol";
+import "../compliance/IDSLockManagerPartitioned.sol";
 import "../compliance/IDSComplianceService.sol";
+import "../compliance/IDSComplianceServicePartitioned.sol";
 import "../compliance/IDSPartitionsManager.sol";
 import "../compliance/IDSComplianceConfigurationService.sol";
 import "../registry/IDSRegistryService.sol";
@@ -89,8 +92,16 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
         return IDSLockManager(getDSService(LOCK_MANAGER));
     }
 
+    function getLockManagerPartitioned() internal view returns (IDSLockManagerPartitioned) {
+        return IDSLockManagerPartitioned(getDSService(LOCK_MANAGER));
+    }
+
     function getComplianceService() internal view returns (IDSComplianceService) {
         return IDSComplianceService(getDSService(COMPLIANCE_SERVICE));
+    }
+
+    function getComplianceServicePartitioned() internal view returns (IDSComplianceServicePartitioned) {
+        return IDSComplianceServicePartitioned(getDSService(COMPLIANCE_SERVICE));
     }
 
     function getRegistryService() internal view returns (IDSRegistryService) {
@@ -99,6 +110,10 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
 
     function getPartitionsManager() internal view returns (IDSPartitionsManager) {
         return IDSPartitionsManager(getDSService(PARTITIONS_MANAGER));
+    }
+
+    function getTokenPartitioned() internal view returns (IDSTokenPartitioned) {
+        return IDSTokenPartitioned(getDSService(DS_TOKEN));
     }
 
     function getComplianceConfigurationService() internal view returns (IDSComplianceConfigurationService) {
