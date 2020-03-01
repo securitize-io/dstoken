@@ -155,6 +155,12 @@ module.exports = async function(deployer) {
         )
       );
 
+      console.log("Connecting omnibus wallet controller to trust service");
+      await omnibusWalletController.setDSService(
+        services.TRUST_SERVICE,
+        trustService.address
+      );
+
       console.log("Connecting omnibus wallet controller to compliance manager");
       await omnibusWalletController.setDSService(
         services.COMPLIANCE_SERVICE,

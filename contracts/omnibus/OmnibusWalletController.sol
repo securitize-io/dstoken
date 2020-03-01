@@ -28,6 +28,7 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
 
     function setAssetTrackingMode(uint8 _assetTrackingMode) public {
         require(_assetTrackingMode == BENEFICIARY || _assetTrackingMode == HOLDER_OF_RECORD, "Invalid tracking mode value");
+        require(getToken().balanceOf(omnibusWallet) == 0, "Omnibus wallet must be empty");
 
         assetTrackingMode = _assetTrackingMode;
     }
