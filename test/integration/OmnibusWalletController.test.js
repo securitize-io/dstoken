@@ -45,6 +45,41 @@ async function assertBalances(testObject, investorWallet, expectedBalances) {
   );
 }
 
+async function assertInternalBalances(
+  testObject,
+  investorWallet1,
+  investorWallet2,
+  expectedBalances
+) {
+  const investor1Balance = await testObject.token.balanceOfInvestor(
+    investorId.GENERAL_INVESTOR_ID_1
+  );
+  const investor2Balance = await testObject.token.balanceOfInvestor(
+    investorId.GENERAL_INVESTOR_ID_2
+  );
+  const omnibusBalance = await testObject.token.balanceOfInvestor(
+    investorId.OMNIBUS_WALLET_INVESTOR_ID_1
+  );
+  const investor1InternalBalance = await testObject.omnibusController.balances(
+    investorWallet1
+  );
+  const investor2InternalBalance = await testObject.omnibusController.balances(
+    investorWallet2
+  );
+
+  assert.equal(investor1Balance.toNumber(), expectedBalances.investor1Balance);
+  assert.equal(investor2Balance.toNumber(), expectedBalances.investor2Balance);
+  assert.equal(omnibusBalance.toNumber(), expectedBalances.omnibusBalance);
+  assert.equal(
+    investor1InternalBalance.toNumber(),
+    expectedBalances.investor1InternalBalance
+  );
+  assert.equal(
+    investor2InternalBalance.toNumber(),
+    expectedBalances.investor2InternalBalance
+  );
+}
+
 async function assertEvent(contract, expectedEvent, expectedParams) {
   const events = await contract.getPastEvents("allEvents");
 
@@ -355,6 +390,55 @@ contract("OmnibusWalletController", function([
         await assertRevert(
           this.omnibusController.withdraw(investorWallet1, 1000)
         );
+      });
+    });
+
+    describe("Internal transfer", function() {
+      it.only("Should transfer tokens correctly", async function() {
+        await this.token.issueTokens(investorWallet1, 1000);
+        await this.token.transfer(omnibusWallet, 1000, {
+          from: investorWallet1
+        });
+        await this.omnibusController.transfer(
+          investorWallet1,
+          investorWallet2,
+          500
+        );
+        await assertEvent(this.omnibusController, "OmnibusTransfer", {
+          omnibusWallet,
+          from: investorWallet1,
+          to: investorWallet2,
+          value: 500
+        });
+        await assertInternalBalances(this, investorWallet1, investorWallet2, {
+          investor1Balance: 0,
+          investor2Balance: 0,
+          omnibusBalance: 1000,
+          investor1InternalBalance: 500,
+          investor2InternalBalance: 500
+        });
+        await assertCounters(this, {
+          totalInvestorsCount: 1,
+          usInvestorsCount: 1,
+          accreditedInvestorsCount: 1
+        });
+        await this.omnibusController.transfer(
+          investorWallet1,
+          investorWallet2,
+          500
+        );
+        await assertInternalBalances(this, investorWallet1, investorWallet2, {
+          investor1Balance: 0,
+          investor2Balance: 0,
+          omnibusBalance: 1000,
+          investor1InternalBalance: 0,
+          investor2InternalBalance: 1000
+        });
+        await assertCounters(this, {
+          totalInvestorsCount: 1,
+          usInvestorsCount: 1,
+          accreditedInvestorsCount: 1
+        });
       });
     });
   });

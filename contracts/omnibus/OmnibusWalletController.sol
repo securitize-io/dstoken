@@ -64,7 +64,7 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
             getToken().updateOmnibusInvestorBalance(omnibusWallet, _to, _value, true);
         }
 
-        emit OmnibusTransfer(omnibusWallet, _from, _to);
+        emit OmnibusTransfer(omnibusWallet, _from, _to, _value);
     }
 
     function seize(address _from, uint256 _value, string memory _reason) public enoughBalance(_from, _value) onlyToken {

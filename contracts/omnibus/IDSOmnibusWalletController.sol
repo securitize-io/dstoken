@@ -6,7 +6,7 @@ import "../utils/Initializable.sol";
 contract IDSOmnibusWalletController is Initializable, VersionedContract {
     event OmnibusDeposit(address indexed omnibusWallet, address to, uint256 value);
     event OmnibusWithdraw(address indexed omnibusWallet, address from, uint256 value);
-    event OmnibusTransfer(address indexed omnibusWallet, address from, address to);
+    event OmnibusTransfer(address indexed omnibusWallet, address from, address to, uint256 value);
     event OmnibusSeize(address indexed omnibusWallet, address from, uint256 value, string reason);
     event OmnibusBurn(address indexed omnibusWallet, address who, uint256 value, string reason);
 
