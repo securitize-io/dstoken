@@ -58,7 +58,8 @@ async function assertEvent(contract, expectedEvent, expectedParams) {
 contract("OmnibusWalletController", function([
   owner,
   omnibusWallet,
-  investorWallet1
+  investorWallet1,
+  investorWallet2
 ]) {
   beforeEach(async function() {
     await deployContracts(
@@ -97,6 +98,16 @@ contract("OmnibusWalletController", function([
       investorId.GENERAL_INVESTOR_ID_1
     );
 
+    await this.registryService.registerInvestor(
+      investorId.GENERAL_INVESTOR_ID_2,
+      investorId.GENERAL_INVESTOR_ID_2
+    );
+
+    await this.registryService.addWallet(
+      investorWallet2,
+      investorId.GENERAL_INVESTOR_ID_2
+    );
+
     await this.complianceConfiguration.setCountryCompliance(
       country.USA,
       compliance.US
@@ -109,6 +120,11 @@ contract("OmnibusWalletController", function([
 
     await this.registryService.setCountry(
       investorId.GENERAL_INVESTOR_ID_1,
+      country.USA
+    );
+
+    await this.registryService.setCountry(
+      investorId.GENERAL_INVESTOR_ID_2,
       country.USA
     );
   });
@@ -315,6 +331,24 @@ contract("OmnibusWalletController", function([
           from: investorWallet1,
           value: 300
         });
+      });
+
+      it("Should revert if trying to withdraw too much tokens", async function() {
+        await this.token.issueTokens(investorWallet1, 500);
+        await this.token.issueTokens(investorWallet2, 500);
+
+        await this.token.transfer(omnibusWallet, 100, {
+          from: investorWallet1
+        });
+        await this.token.transfer(omnibusWallet, 100, {
+          from: investorWallet2
+        });
+
+        await assertRevert(
+          this.token.transfer(investorWallet1, 200, {
+            from: omnibusWallet
+          })
+        );
       });
 
       it("Should revert if withdraw function is called not from token", async function() {
