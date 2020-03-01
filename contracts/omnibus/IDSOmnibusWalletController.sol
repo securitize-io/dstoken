@@ -31,11 +31,7 @@ contract IDSOmnibusWalletController is Initializable, VersionedContract {
 
     function setAssetTrackingMode(uint8 _assetTrackingMode) public;
 
-    function getWalletAssetTrackingMode() public view returns (uint8);
-
     function isHolderOfRecord() public view returns (bool);
-
-    function getInvestorBalance(address _from) public view returns (uint256);
 
     function transfer(
         address _from,

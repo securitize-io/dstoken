@@ -64,5 +64,9 @@ module.exports = {
     DAYS,
     WEEKS,
     YEARS
+  },
+  AssetTrackingMode: {
+    BENEFICIAL: 0,
+    HOLDER_OF_RECORD: 1
   }
 };
