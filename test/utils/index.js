@@ -96,7 +96,8 @@ async function deployContracts(
       artifacts.require("Proxy"),
       artifacts.require("OmnibusWalletController"),
       testObject,
-      "omnibusController"
+      "omnibusController",
+      [omnibusWalletAddress]
     );
 
     await setServicesDependencies(
@@ -106,8 +107,7 @@ async function deployContracts(
         testObject.complianceService.address,
         testObject.token.address,
         testObject.trustService.address
-      ],
-      [omnibusWalletAddress]
+      ]
     );
   }
 
