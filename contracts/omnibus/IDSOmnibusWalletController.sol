@@ -19,7 +19,7 @@ contract IDSOmnibusWalletController is Initializable, VersionedContract {
         VERSIONS.push(1);
     }
 
-    modifier onlyOperator(address _operator) {
+    modifier onlyOperatorOrAbove(address _operator) {
         require(false);
         _;
     }
