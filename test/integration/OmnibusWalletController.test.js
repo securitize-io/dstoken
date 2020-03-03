@@ -1,14 +1,18 @@
 const assertRevert = require("../utils/assertRevert");
 const deployContracts = require("../utils").deployContracts;
 const fixtures = require("../fixtures");
-const complianceType = require("../../utils/globals").complianceType;
-const lockManagerType = require("../../utils/globals").lockManagerType;
+const globals = require("../../utils/globals");
+const complianceType = globals.complianceType;
+const lockManagerType = globals.lockManagerType;
+const role = globals.roles;
 const investorId = fixtures.InvestorId;
 const assetTrackingMode = fixtures.AssetTrackingMode;
 const attributeType = fixtures.AttributeType;
 const attributeStatus = fixtures.AttributeStatus;
 const country = fixtures.Country;
 const compliance = fixtures.Compliance;
+
+const testEntity = "TestEntity";
 
 async function assertCounters(testObject, expectedValues) {
   const totalInvestorsCount = await testObject.complianceService.getTotalInvestorsCount();
@@ -174,7 +178,7 @@ contract("OmnibusWalletController", function([
       );
     });
 
-    it("Should set the mode correctly", async function() {
+    it("Should set the mode correctly when caller has master permissions", async function() {
       let trackingMode = await this.omnibusController.assetTrackingMode();
 
       assert.equal(trackingMode.toNumber(), assetTrackingMode.BENEFICIAL);
@@ -186,6 +190,37 @@ contract("OmnibusWalletController", function([
       trackingMode = await this.omnibusController.assetTrackingMode();
 
       assert.equal(trackingMode.toNumber(), assetTrackingMode.HOLDER_OF_RECORD);
+    });
+
+    it("Should set the mode correctly when caller has issuer permissions", async function() {
+      await this.trustService.setRole(investorWallet1, role.ISSUER);
+
+      await this.omnibusController.setAssetTrackingMode(
+        assetTrackingMode.HOLDER_OF_RECORD,
+        {from: investorWallet1}
+      );
+    });
+
+    describe("Resource permissions checks", function() {
+      beforeEach(async function() {
+        await this.trustService.addEntity(testEntity, investorWallet1);
+        await this.trustService.addResource(testEntity, omnibusWallet);
+      });
+
+      it("Should set the mode correctly when caller is entity owner", async function() {
+        await this.omnibusController.setAssetTrackingMode(
+          assetTrackingMode.HOLDER_OF_RECORD,
+          {from: investorWallet1}
+        );
+      });
+
+      it("Should set the mode correctly when caller is operator", async function() {
+        await this.trustService.addOperator(testEntity, investorWallet2);
+        await this.omnibusController.setAssetTrackingMode(
+          assetTrackingMode.HOLDER_OF_RECORD,
+          {from: investorWallet2}
+        );
+      });
     });
 
     it("Should fail to set the mode if the omnibus wallet balance is greater then 0", async function() {
@@ -394,7 +429,7 @@ contract("OmnibusWalletController", function([
     });
 
     describe("Internal transfer", function() {
-      it.only("Should transfer tokens correctly", async function() {
+      it("Should transfer tokens correctly", async function() {
         await this.token.issueTokens(investorWallet1, 1000);
         await this.token.transfer(omnibusWallet, 1000, {
           from: investorWallet1
@@ -578,6 +613,60 @@ contract("OmnibusWalletController", function([
           omnibusWallet,
           from: investorWallet1,
           value: 300
+        });
+      });
+    });
+
+    describe("Internal transfer", function() {
+      it("Should transfer tokens correctly", async function() {
+        await this.token.issueTokens(investorWallet1, 1000);
+        await this.token.transfer(omnibusWallet, 1000, {
+          from: investorWallet1
+        });
+        await assertCounters(this, {
+          totalInvestorsCount: 1,
+          usInvestorsCount: 1,
+          accreditedInvestorsCount: 0
+        });
+        await this.omnibusController.transfer(
+          investorWallet1,
+          investorWallet2,
+          500
+        );
+        await assertEvent(this.omnibusController, "OmnibusTransfer", {
+          omnibusWallet,
+          from: investorWallet1,
+          to: investorWallet2,
+          value: 500
+        });
+        await assertInternalBalances(this, investorWallet1, investorWallet2, {
+          investor1Balance: 500,
+          investor2Balance: 500,
+          omnibusBalance: 0,
+          investor1InternalBalance: 500,
+          investor2InternalBalance: 500
+        });
+        await assertCounters(this, {
+          totalInvestorsCount: 2,
+          usInvestorsCount: 2,
+          accreditedInvestorsCount: 0
+        });
+        await this.omnibusController.transfer(
+          investorWallet1,
+          investorWallet2,
+          500
+        );
+        await assertInternalBalances(this, investorWallet1, investorWallet2, {
+          investor1Balance: 0,
+          investor2Balance: 1000,
+          omnibusBalance: 0,
+          investor1InternalBalance: 0,
+          investor2InternalBalance: 1000
+        });
+        await assertCounters(this, {
+          totalInvestorsCount: 1,
+          usInvestorsCount: 1,
+          accreditedInvestorsCount: 0
         });
       });
     });
