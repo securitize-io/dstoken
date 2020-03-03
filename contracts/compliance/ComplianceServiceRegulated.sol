@@ -535,6 +535,8 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         } else {
             recordSeize(_from, _to, _value);
         }
+
+        return true;
     }
 
     function adjustInvestorCountsAfterCountryChange(string memory _id, string memory _country, string memory _prevCountry) public onlyRegistry returns (bool) {

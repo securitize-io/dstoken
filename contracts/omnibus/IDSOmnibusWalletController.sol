@@ -24,7 +24,7 @@ contract IDSOmnibusWalletController is Initializable, VersionedContract {
         _;
     }
 
-    modifier enoughBalance(address _from, uint256 _value) {
+    modifier enoughBalance(address _who, uint256 _value) {
         require(false);
         _;
     }
@@ -32,6 +32,8 @@ contract IDSOmnibusWalletController is Initializable, VersionedContract {
     function setAssetTrackingMode(uint8 _assetTrackingMode) public;
 
     function isHolderOfRecord() public view returns (bool);
+
+    function balanceOf(address _who) public view returns (uint256);
 
     function transfer(
         address _from,

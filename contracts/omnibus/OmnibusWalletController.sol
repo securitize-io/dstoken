@@ -20,8 +20,8 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
         _;
     }
 
-    modifier enoughBalance(address _from, uint256 _value) {
-        require(balances[_from] >= _value, "Not enough balance");
+    modifier enoughBalance(address _who, uint256 _value) {
+        require(balances[_who] >= _value, "Not enough balance");
         _;
     }
 
@@ -42,6 +42,10 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
 
     function isHolderOfRecord() public view returns (bool) {
         return assetTrackingMode == HOLDER_OF_RECORD;
+    }
+
+    function balanceOf(address _who) public view returns (uint256) {
+        return balances[_who];
     }
 
     function deposit(address _to, uint256 _value) public onlyToken {
