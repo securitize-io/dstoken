@@ -135,7 +135,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
     // TOKEN SEIZING
     //*********************
 
-    modifier validateSeizeParameters(address _from, address _to, uint256 _value) {
+    modifier validSeizeParameters(address _from, address _to, uint256 _value) {
         require(_from != address(0));
         require(_to != address(0));
         require(_value <= walletsBalances[_from]);
@@ -143,7 +143,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         _;
     }
 
-    function seize(address _from, address _to, uint256 _value, string memory _reason) public onlyIssuerOrAbove validateSeizeParameters(_from, _to, _value) {
+    function seize(address _from, address _to, uint256 _value, string memory _reason) public onlyIssuerOrAbove validSeizeParameters(_from, _to, _value) {
         getComplianceService().validateSeize(_from, _to, _value);
         walletsBalances[_from] = walletsBalances[_from].sub(_value);
         walletsBalances[_to] = walletsBalances[_to].add(_value);
@@ -157,7 +157,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
     function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string memory _reason)
         public
         onlyIssuerOrAbove
-        validateSeizeParameters(_omnibusWallet, _to, _value)
+        validSeizeParameters(_omnibusWallet, _to, _value)
     {
         getComplianceService().validateOmnibusSeize(_omnibusWallet, _from, _to, _value);
         walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].sub(_value);
@@ -195,7 +195,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         bool result = super.transfer(_to, _value);
 
         if (result) {
-            updateInvestorsBalancesOnTrasfer(msg.sender, _to, _value);
+            updateInvestorsBalancesOnTransfer(msg.sender, _to, _value);
         }
 
         checkWalletsForList(msg.sender, _to);
@@ -216,7 +216,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         bool result = super.transferFrom(_from, _to, _value);
 
         if (result) {
-            updateInvestorsBalancesOnTrasfer(_from, _to, _value);
+            updateInvestorsBalancesOnTransfer(_from, _to, _value);
         }
 
         checkWalletsForList(_from, _to);
@@ -285,7 +285,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         return investorsBalances[_id];
     }
 
-    function updateInvestorsBalancesOnTrasfer(address _from, address _to, uint256 _value) internal {
+    function updateInvestorsBalancesOnTransfer(address _from, address _to, uint256 _value) internal {
         if (getRegistryService().isOmnibusWallet(_to)) {
             IDSOmnibusWalletController omnibusWalletController = getRegistryService().getOmnibusWalletController(_to);
             omnibusWalletController.deposit(_from, _value);
