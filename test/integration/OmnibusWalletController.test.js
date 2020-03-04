@@ -13,12 +13,13 @@ const country = fixtures.Country;
 const compliance = fixtures.Compliance;
 
 const testEntity = "TestEntity";
-const seizeReason = "some seize reason";
+const reason = "some reason";
 
 async function assertCounters(testObject, expectedValues) {
   const totalInvestorsCount = await testObject.complianceService.getTotalInvestorsCount();
   const usInvestorsCount = await testObject.complianceService.getUSInvestorsCount();
   const accreditedInvestorsCount = await testObject.complianceService.getAccreditedInvestorsCount();
+  const usAccreditedInvestorsCount = await testObject.complianceService.getUSAccreditedInvestorsCount();
 
   assert.equal(
     totalInvestorsCount.toNumber(),
@@ -28,6 +29,10 @@ async function assertCounters(testObject, expectedValues) {
   assert.equal(
     accreditedInvestorsCount.toNumber(),
     expectedValues.accreditedInvestorsCount
+  );
+  assert.equal(
+    usAccreditedInvestorsCount.toNumber(),
+    expectedValues.usAccreditedInvestorsCount
   );
 }
 
@@ -190,7 +195,7 @@ contract("OmnibusWalletController", function([
     await this.walletManager.addIssuerWallet(issuer);
   });
 
-  describe("Asset tracking mode", function() {
+  describe.skip("Asset tracking mode", function() {
     it("Should fail to set the mode if caller does not have permissions", async function() {
       await assertRevert(
         this.omnibusController.setAssetTrackingMode(
@@ -283,7 +288,8 @@ contract("OmnibusWalletController", function([
         await assertCounters(this, {
           totalInvestorsCount: 0,
           usInvestorsCount: 0,
-          accreditedInvestorsCount: 0
+          accreditedInvestorsCount: 0,
+          usAccreditedInvestorsCount: 0
         });
         await this.token.issueTokens(investorWallet1, 1000);
         await assertBalances(this, investorWallet1, omnibusWallet, {
@@ -306,7 +312,8 @@ contract("OmnibusWalletController", function([
         await assertCounters(this, {
           totalInvestorsCount: 1,
           usInvestorsCount: 1,
-          accreditedInvestorsCount: 1
+          accreditedInvestorsCount: 1,
+          usAccreditedInvestorsCount: 1
         });
         await assertEvent(this.omnibusController, "OmnibusDeposit", {
           omnibusWallet,
@@ -330,7 +337,8 @@ contract("OmnibusWalletController", function([
         await assertCounters(this, {
           totalInvestorsCount: 2,
           usInvestorsCount: 2,
-          accreditedInvestorsCount: 1
+          accreditedInvestorsCount: 1,
+          usAccreditedInvestorsCount: 1
         });
         await assertEvent(this.omnibusController, "OmnibusDeposit", {
           omnibusWallet,
@@ -339,7 +347,7 @@ contract("OmnibusWalletController", function([
         });
       });
 
-      it("Should revert if deposit function is called not from token", async function() {
+      it("Should revert if deposit function is not called from token", async function() {
         await assertRevert(
           this.omnibusController.deposit(investorWallet1, 1000)
         );
@@ -362,7 +370,8 @@ contract("OmnibusWalletController", function([
         await assertCounters(this, {
           totalInvestorsCount: 1,
           usInvestorsCount: 1,
-          accreditedInvestorsCount: 1
+          accreditedInvestorsCount: 1,
+          usAccreditedInvestorsCount: 1
         });
         await this.token.transfer(investorWallet1, 1000, {
           from: omnibusWallet
@@ -377,7 +386,8 @@ contract("OmnibusWalletController", function([
         await assertCounters(this, {
           totalInvestorsCount: 1,
           usInvestorsCount: 1,
-          accreditedInvestorsCount: 0
+          accreditedInvestorsCount: 0,
+          usAccreditedInvestorsCount: 0
         });
         await assertEvent(this.omnibusController, "OmnibusWithdraw", {
           omnibusWallet,
@@ -404,7 +414,8 @@ contract("OmnibusWalletController", function([
         await assertCounters(this, {
           totalInvestorsCount: 2,
           usInvestorsCount: 2,
-          accreditedInvestorsCount: 1
+          accreditedInvestorsCount: 1,
+          usAccreditedInvestorsCount: 1
         });
         await assertEvent(this.omnibusController, "OmnibusWithdraw", {
           omnibusWallet,
@@ -429,7 +440,7 @@ contract("OmnibusWalletController", function([
         );
       });
 
-      it("Should revert if withdraw function is called not from token", async function() {
+      it("Should revert if withdraw function is not called from token", async function() {
         await assertRevert(
           this.omnibusController.withdraw(investorWallet1, 1000)
         );
@@ -463,7 +474,8 @@ contract("OmnibusWalletController", function([
         await assertCounters(this, {
           totalInvestorsCount: 1,
           usInvestorsCount: 1,
-          accreditedInvestorsCount: 1
+          accreditedInvestorsCount: 1,
+          usAccreditedInvestorsCount: 1
         });
         await this.omnibusController.transfer(
           investorWallet1,
@@ -480,7 +492,8 @@ contract("OmnibusWalletController", function([
         await assertCounters(this, {
           totalInvestorsCount: 1,
           usInvestorsCount: 1,
-          accreditedInvestorsCount: 1
+          accreditedInvestorsCount: 1,
+          usAccreditedInvestorsCount: 1
         });
       });
     });
@@ -496,13 +509,13 @@ contract("OmnibusWalletController", function([
           investorWallet1,
           issuer,
           1000,
-          seizeReason
+          reason
         );
         await assertEvent(this.omnibusController, "OmnibusSeize", {
           omnibusWallet,
           from: investorWallet1,
           value: 1000,
-          reason: seizeReason
+          reason: reason
         });
         await assertBalances(this, investorWallet1, omnibusWallet, {
           investorBalance: 0,
@@ -514,7 +527,8 @@ contract("OmnibusWalletController", function([
         await assertCounters(this, {
           totalInvestorsCount: 0,
           usInvestorsCount: 0,
-          accreditedInvestorsCount: 0
+          accreditedInvestorsCount: 0,
+          usAccreditedInvestorsCount: 0
         });
 
         const issuerBalance = await this.token.balanceOf(issuer);
@@ -531,13 +545,13 @@ contract("OmnibusWalletController", function([
           investorWallet1,
           issuer,
           300,
-          seizeReason
+          reason
         );
         await assertEvent(this.omnibusController, "OmnibusSeize", {
           omnibusWallet,
           from: investorWallet1,
           value: 300,
-          reason: seizeReason
+          reason: reason
         });
         await assertBalances(this, investorWallet1, omnibusWallet, {
           investorBalance: 500,
@@ -549,7 +563,8 @@ contract("OmnibusWalletController", function([
         await assertCounters(this, {
           totalInvestorsCount: 2,
           usInvestorsCount: 2,
-          accreditedInvestorsCount: 1
+          accreditedInvestorsCount: 1,
+          usAccreditedInvestorsCount: 1
         });
 
         const issuerBalance = await this.token.balanceOf(issuer);
@@ -576,14 +591,14 @@ contract("OmnibusWalletController", function([
             investorWallet1,
             issuer,
             201,
-            seizeReason
+            reason
           )
         );
       });
 
-      it("Should revert if deposit function is called not from token", async function() {
+      it("Should revert if seize function is not called from token", async function() {
         await assertRevert(
-          this.omnibusController.seize(investorWallet1, 100, seizeReason)
+          this.omnibusController.seize(investorWallet1, 100, reason)
         );
       });
 
@@ -598,7 +613,7 @@ contract("OmnibusWalletController", function([
             investorWallet1,
             issuer,
             500,
-            seizeReason
+            reason
           )
         );
       });
@@ -614,7 +629,7 @@ contract("OmnibusWalletController", function([
             omnibusWallet,
             issuer,
             500,
-            seizeReason
+            reason
           )
         );
       });
@@ -630,7 +645,7 @@ contract("OmnibusWalletController", function([
             investorWallet1,
             investorWallet2,
             500,
-            seizeReason
+            reason
           )
         );
       });
@@ -646,7 +661,163 @@ contract("OmnibusWalletController", function([
             investorWallet1,
             issuer,
             500,
-            seizeReason,
+            reason,
+            {from: investorWallet1}
+          )
+        );
+      });
+    });
+
+    describe("Burn", function() {
+      it("Should burn all tokens correctly", async function() {
+        await this.token.issueTokens(investorWallet1, 1000);
+        await this.token.transfer(omnibusWallet, 1000, {
+          from: investorWallet1
+        });
+        await this.token.omnibusBurn(
+          omnibusWallet,
+          investorWallet1,
+          1000,
+          reason
+        );
+        await assertEvent(this.omnibusController, "OmnibusBurn", {
+          omnibusWallet,
+          who: investorWallet1,
+          value: 1000,
+          reason: reason
+        });
+        await assertBalances(this, investorWallet1, omnibusWallet, {
+          investorBalance: 0,
+          investorWalletBalance: 0,
+          omnibusBalance: 0,
+          omnibusWalletBalance: 0,
+          investorInternalBalance: 0
+        });
+        await assertCounters(this, {
+          totalInvestorsCount: 0,
+          usInvestorsCount: 0,
+          accreditedInvestorsCount: 0,
+          usAccreditedInvestorsCount: 0
+        });
+      });
+
+      it("Should burn some tokens correctly", async function() {
+        await this.token.issueTokens(investorWallet1, 1000);
+        await this.token.transfer(omnibusWallet, 500, {
+          from: investorWallet1
+        });
+        await this.token.omnibusBurn(
+          omnibusWallet,
+          investorWallet1,
+          300,
+          reason
+        );
+        await assertEvent(this.omnibusController, "OmnibusBurn", {
+          omnibusWallet,
+          who: investorWallet1,
+          value: 300,
+          reason: reason
+        });
+        await assertBalances(this, investorWallet1, omnibusWallet, {
+          investorBalance: 500,
+          investorWalletBalance: 500,
+          omnibusBalance: 200,
+          omnibusWalletBalance: 200,
+          investorInternalBalance: 200
+        });
+        await assertCounters(this, {
+          totalInvestorsCount: 2,
+          usInvestorsCount: 2,
+          accreditedInvestorsCount: 1,
+          usAccreditedInvestorsCount: 1
+        });
+      });
+
+      it("Should revert when there is not enough tokens to burn", async function() {
+        await this.token.issueTokens(investorWallet1, 500);
+        await this.token.transfer(omnibusWallet, 500, {
+          from: investorWallet1
+        });
+        await this.token.issueTokens(investorWallet2, 500);
+        await this.token.transfer(omnibusWallet, 500, {
+          from: investorWallet2
+        });
+        await this.omnibusController.transfer(
+          investorWallet1,
+          investorWallet2,
+          300
+        );
+        await assertRevert(
+          this.token.omnibusBurn(omnibusWallet, investorWallet1, 201, reason)
+        );
+      });
+
+      it("Should revert if burn function is not called from token", async function() {
+        await assertRevert(
+          this.omnibusController.burn(investorWallet1, 100, reason)
+        );
+      });
+
+      it("Should revert if trying to seize from a non omnibus wallet", async function() {
+        await this.token.issueTokens(investorWallet1, 500);
+        await this.token.transfer(omnibusWallet, 500, {
+          from: investorWallet1
+        });
+        await assertRevert(
+          this.token.omnibusSeize(
+            investorWallet1,
+            investorWallet1,
+            issuer,
+            500,
+            reason
+          )
+        );
+      });
+
+      it("Should revert if trying to seize from a non omnibus investor", async function() {
+        await this.token.issueTokens(investorWallet1, 500);
+        await this.token.transfer(omnibusWallet, 500, {
+          from: investorWallet1
+        });
+        await assertRevert(
+          this.token.omnibusSeize(
+            omnibusWallet,
+            omnibusWallet,
+            issuer,
+            500,
+            reason
+          )
+        );
+      });
+
+      it("Should revert if trying to seize to a non issuer", async function() {
+        await this.token.issueTokens(investorWallet1, 500);
+        await this.token.transfer(omnibusWallet, 500, {
+          from: investorWallet1
+        });
+        await assertRevert(
+          this.token.omnibusSeize(
+            omnibusWallet,
+            investorWallet1,
+            investorWallet2,
+            500,
+            reason
+          )
+        );
+      });
+
+      it("Should revert if there is are no permissions to seize", async function() {
+        await this.token.issueTokens(investorWallet1, 500);
+        await this.token.transfer(omnibusWallet, 500, {
+          from: investorWallet1
+        });
+        await assertRevert(
+          this.token.omnibusSeize(
+            omnibusWallet,
+            investorWallet1,
+            issuer,
+            500,
+            reason,
             {from: investorWallet1}
           )
         );
@@ -660,7 +831,8 @@ contract("OmnibusWalletController", function([
         await assertCounters(this, {
           totalInvestorsCount: 0,
           usInvestorsCount: 0,
-          accreditedInvestorsCount: 0
+          accreditedInvestorsCount: 0,
+          usAccreditedInvestorsCount: 0
         });
         await this.token.issueTokens(investorWallet1, 1000);
         await assertBalances(this, investorWallet1, omnibusWallet, {
@@ -683,7 +855,8 @@ contract("OmnibusWalletController", function([
         await assertCounters(this, {
           totalInvestorsCount: 1,
           usInvestorsCount: 1,
-          accreditedInvestorsCount: 0
+          accreditedInvestorsCount: 0,
+          usAccreditedInvestorsCount: 0
         });
         await assertEvent(this.omnibusController, "OmnibusDeposit", {
           omnibusWallet,
@@ -708,7 +881,8 @@ contract("OmnibusWalletController", function([
         await assertCounters(this, {
           totalInvestorsCount: 1,
           usInvestorsCount: 1,
-          accreditedInvestorsCount: 0
+          accreditedInvestorsCount: 0,
+          usAccreditedInvestorsCount: 0
         });
         await assertEvent(this.omnibusController, "OmnibusDeposit", {
           omnibusWallet,
@@ -734,7 +908,8 @@ contract("OmnibusWalletController", function([
         await assertCounters(this, {
           totalInvestorsCount: 1,
           usInvestorsCount: 1,
-          accreditedInvestorsCount: 0
+          accreditedInvestorsCount: 0,
+          usAccreditedInvestorsCount: 0
         });
         await this.token.transfer(investorWallet1, 1000, {
           from: omnibusWallet
@@ -749,7 +924,8 @@ contract("OmnibusWalletController", function([
         await assertCounters(this, {
           totalInvestorsCount: 1,
           usInvestorsCount: 1,
-          accreditedInvestorsCount: 0
+          accreditedInvestorsCount: 0,
+          usAccreditedInvestorsCount: 0
         });
         await assertEvent(this.omnibusController, "OmnibusWithdraw", {
           omnibusWallet,
@@ -776,7 +952,8 @@ contract("OmnibusWalletController", function([
         await assertCounters(this, {
           totalInvestorsCount: 1,
           usInvestorsCount: 1,
-          accreditedInvestorsCount: 0
+          accreditedInvestorsCount: 0,
+          usAccreditedInvestorsCount: 0
         });
         await assertEvent(this.omnibusController, "OmnibusWithdraw", {
           omnibusWallet,
@@ -795,7 +972,8 @@ contract("OmnibusWalletController", function([
         await assertCounters(this, {
           totalInvestorsCount: 1,
           usInvestorsCount: 1,
-          accreditedInvestorsCount: 0
+          accreditedInvestorsCount: 0,
+          usAccreditedInvestorsCount: 0
         });
         await this.omnibusController.transfer(
           investorWallet1,
@@ -818,7 +996,8 @@ contract("OmnibusWalletController", function([
         await assertCounters(this, {
           totalInvestorsCount: 2,
           usInvestorsCount: 2,
-          accreditedInvestorsCount: 0
+          accreditedInvestorsCount: 0,
+          usAccreditedInvestorsCount: 0
         });
         await this.omnibusController.transfer(
           investorWallet1,
@@ -835,8 +1014,83 @@ contract("OmnibusWalletController", function([
         await assertCounters(this, {
           totalInvestorsCount: 1,
           usInvestorsCount: 1,
-          accreditedInvestorsCount: 0
+          accreditedInvestorsCount: 0,
+          usAccreditedInvestorsCount: 0
         });
+      });
+    });
+
+    describe("Seize", function() {
+      it("Should seize all tokens correctly", async function() {
+        await this.token.issueTokens(investorWallet1, 1000);
+        await this.token.transfer(omnibusWallet, 1000, {
+          from: investorWallet1
+        });
+        await this.token.omnibusSeize(
+          omnibusWallet,
+          investorWallet1,
+          issuer,
+          1000,
+          reason
+        );
+        await assertEvent(this.omnibusController, "OmnibusSeize", {
+          omnibusWallet,
+          from: investorWallet1,
+          value: 1000,
+          reason: reason
+        });
+        await assertBalances(this, investorWallet1, omnibusWallet, {
+          investorBalance: 0,
+          investorWalletBalance: 0,
+          omnibusBalance: 0,
+          omnibusWalletBalance: 0,
+          investorInternalBalance: 0
+        });
+        await assertCounters(this, {
+          totalInvestorsCount: 0,
+          usInvestorsCount: 0,
+          accreditedInvestorsCount: 0,
+          usAccreditedInvestorsCount: 0
+        });
+
+        const issuerBalance = await this.token.balanceOf(issuer);
+        assert.equal(issuerBalance.toNumber(), 1000);
+      });
+
+      it("Should seize some tokens correctly", async function() {
+        await this.token.issueTokens(investorWallet1, 1000);
+        await this.token.transfer(omnibusWallet, 500, {
+          from: investorWallet1
+        });
+        await this.token.omnibusSeize(
+          omnibusWallet,
+          investorWallet1,
+          issuer,
+          300,
+          reason
+        );
+        await assertEvent(this.omnibusController, "OmnibusSeize", {
+          omnibusWallet,
+          from: investorWallet1,
+          value: 300,
+          reason: reason
+        });
+        await assertBalances(this, investorWallet1, omnibusWallet, {
+          investorBalance: 700,
+          investorWalletBalance: 500,
+          omnibusBalance: 0,
+          omnibusWalletBalance: 200,
+          investorInternalBalance: 200
+        });
+        await assertCounters(this, {
+          totalInvestorsCount: 1,
+          usInvestorsCount: 1,
+          accreditedInvestorsCount: 0,
+          usAccreditedInvestorsCount: 0
+        });
+
+        const issuerBalance = await this.token.balanceOf(issuer);
+        assert.equal(issuerBalance.toNumber(), 300);
       });
     });
   });

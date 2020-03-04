@@ -4,6 +4,6 @@ import "./ServiceConsumerDataStore.sol";
 
 contract OmnibusControllerDataStore is ServiceConsumerDataStore {
     address public omnibusWallet;
-    mapping(address => uint256) public balances;
     uint8 public assetTrackingMode;
+    mapping(address => uint256) internal balances;
 }
