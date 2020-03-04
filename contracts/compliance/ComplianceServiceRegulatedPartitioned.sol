@@ -255,7 +255,7 @@ library ComplianceServicePartitionedLibrary {
 *
 */
 
-contract ComplianceServiceRegulatedPartitioned is ComplianceServiceRegulated, IDSComplianceServicePartitioned {
+contract ComplianceServiceRegulatedPartitioned is ComplianceServiceRegulated {
     using SafeMath for uint256;
 
     function initialize() public initializer onlyFromProxy {

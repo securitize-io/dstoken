@@ -16,18 +16,12 @@ contract PartitionsManager is ProxyTarget, Initializable,  IDSPartitionsManager,
 
 
   function ensurePartition(uint256 _issuanceDate, uint256 _region) public onlyIssuerOrAboveOrToken returns (bytes32 partition) {
-
     partition = keccak256(abi.encodePacked(_issuanceDate, _region));
 
-
     if (getPartitionIssuanceDate(partition) == 0) {
-
       partitions[partition] = PartitionData(_issuanceDate, _region);
-
       emit PartitionCreated(_issuanceDate, _region, partition);
-
     }
-
   }
 
 

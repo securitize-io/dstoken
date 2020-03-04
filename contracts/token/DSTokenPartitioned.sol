@@ -2,6 +2,7 @@ pragma solidity ^0.5.0;
 
 import './DSToken.sol';
 import './IDSTokenPartitioned.sol';
+import '../compliance/IDSPartitionsManager.sol';
 import '../data-stores/TokenPartitionedDataStore.sol';
 import "../zeppelin/math/Math.sol";
 
@@ -16,7 +17,6 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned, TokenPartitionedDat
     super.issueTokensCustom(_to, _value, _issuanceTime, _valueLocked, _reason, _releaseTime);
     string memory country = getRegistryService().getCountry(getRegistryService().getInvestor(_to));
     bytes32 partition = getPartitionsManager().ensurePartition(_issuanceTime, getComplianceConfigurationService().getCountryCompliance(country));
-
     transferPartition(address(0), _to, _value, partition);
 
     emit IssueByPartition(_to, _value, partition);

@@ -54,7 +54,7 @@ module.exports = async function(deployer) {
     configurationManager.getProxyAddressForContractName("WalletRegistrar")
   );
   const multisig = await MultiSigWallet.deployed();
-  const PartitionsManager = await ESPartitionsManager.at(
+  const partitionsManager = await PartitionsManager.at(
     configurationManager.getProxyAddressForContractName("PartitionsManager")
   );
   let registry;
@@ -120,6 +120,11 @@ module.exports = async function(deployer) {
       gas: 1e6
     });
 
+    console.log("Connecting token to partitions manager");
+    await token.setDSService(services.PARTITIONS_MANAGER, partitionsManager.address, {
+      gas: 1e6
+    });
+
     console.log("Connecting token issuer to registry");
     await tokenIssuer.setDSService(
       services.REGISTRY_SERVICE,
@@ -145,6 +150,12 @@ module.exports = async function(deployer) {
       services.REGISTRY_SERVICE,
       registry.address
     );
+
+    console.log("Connecting compliance manager to partitions manager");
+    await complianceService.setDSService(
+      services.PARTITIONS_MANAGER,
+      partitionsManager.address
+    );
   }
 
   console.log("Connecting token to trust service");
@@ -158,6 +169,11 @@ module.exports = async function(deployer) {
     {
       gas: 1e6
     }
+  );
+  console.log("Connecting token to compliance configuration service");
+  await token.setDSService(
+    services.COMPLIANCE_CONFIGURATION_SERVICE,
+    complianceConfiguration.address
   );
   console.log("Connecting token to wallet manager");
   await token.setDSService(services.WALLET_MANAGER, walletManager.address, {
@@ -191,6 +207,16 @@ module.exports = async function(deployer) {
   await walletRegistrar.setDSService(
     services.TRUST_SERVICE,
     trustService.address
+  );
+  console.log("Connecting partitions manager to trust service");
+  await partitionsManager.setDSService(
+    services.TRUST_SERVICE,
+    trustService.address
+  );
+  console.log("Connecting partitions manager to token");
+  await partitionsManager.setDSService(
+    services.DS_TOKEN,
+    token.address
   );
 
   console.log(
