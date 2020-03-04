@@ -49,13 +49,11 @@ contract IDSOmnibusWalletController is Initializable, VersionedContract {
 
     function seize(
         address _from,
-        uint256 _value, /*onlyToken*/
-        string memory _reason
+        uint256 _value /*onlyToken*/
     ) public;
 
     function burn(
         address _from,
-        uint256 _value, /*onlyToken*/
-        string memory _reason
+        uint256 _value /*onlyToken*/
     ) public;
 }
