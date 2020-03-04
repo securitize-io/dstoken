@@ -125,6 +125,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_omnibusWallet, _who, _value);
 
         totalSupply = totalSupply.sub(_value);
+        emit OmnibusBurn(_omnibusWallet, _who, _value, _reason);
         emit Burn(_omnibusWallet, _value, _reason);
         emit Transfer(_omnibusWallet, address(0), _value);
         checkWalletsForList(_omnibusWallet, address(0));
@@ -165,6 +166,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_omnibusWallet, _from, _value);
         updateInvestorBalance(_to, _value, true);
 
+        emit OmnibusSeize(_omnibusWallet, _from, _value, _reason);
         emit Seize(_omnibusWallet, _to, _value, _reason);
         emit Transfer(_omnibusWallet, _to, _value);
         checkWalletsForList(_omnibusWallet, _to);
@@ -287,6 +289,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         if (getRegistryService().isOmnibusWallet(_to)) {
             IDSOmnibusWalletController omnibusWalletController = getRegistryService().getOmnibusWalletController(_to);
             omnibusWalletController.deposit(_from, _value);
+            emit OmnibusDeposit(_to, _from, _value);
 
             if (omnibusWalletController.isHolderOfRecord()) {
                 updateInvestorBalance(_from, _value, false);
@@ -295,6 +298,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         } else if (getRegistryService().isOmnibusWallet(_from)) {
             IDSOmnibusWalletController omnibusWalletController = getRegistryService().getOmnibusWalletController(_from);
             omnibusWalletController.withdraw(_to, _value);
+            emit OmnibusWithdraw(_from, _to, _value);
 
             if (omnibusWalletController.isHolderOfRecord()) {
                 updateInvestorBalance(_from, _value, false);

@@ -480,12 +480,14 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function adjustTransferCounts(address _from, address _to, bool increase) internal {
-        if (getRegistryService().isOmnibusWallet(_from)) {
-            if (getRegistryService().getOmnibusWalletController(_from).isHolderOfRecord()) {
+        IDSRegistryService registry = getRegistryService();
+
+        if (registry.isOmnibusWallet(_from)) {
+            if (registry.getOmnibusWalletController(_from).isHolderOfRecord()) {
                 adjustTotalInvestorsCounts(_from, increase);
             }
-        } else if (getRegistryService().isOmnibusWallet(_to)) {
-            if (getRegistryService().getOmnibusWalletController(_to).isHolderOfRecord()) {
+        } else if (registry.isOmnibusWallet(_to)) {
+            if (registry.getOmnibusWalletController(_to).isHolderOfRecord()) {
                 adjustTotalInvestorsCounts(_from, increase);
             }
         } else {

@@ -8,6 +8,10 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
     event Issue(address indexed to, uint256 value, uint256 valueLocked);
     event Burn(address indexed burner, uint256 value, string reason);
     event Seize(address indexed from, address indexed to, uint256 value, string reason);
+    event OmnibusDeposit(address indexed omnibusWallet, address to, uint256 value);
+    event OmnibusWithdraw(address indexed omnibusWallet, address from, uint256 value);
+    event OmnibusSeize(address indexed omnibusWallet, address from, uint256 value, string reason);
+    event OmnibusBurn(address indexed omnibusWallet, address who, uint256 value, string reason);
 
     event WalletAdded(address wallet);
     event WalletRemoved(address wallet);
