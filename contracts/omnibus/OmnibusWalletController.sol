@@ -50,12 +50,10 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
 
     function deposit(address _to, uint256 _value) public onlyToken {
         balances[_to] = balances[_to].add(_value);
-        emit OmnibusDeposit(omnibusWallet, _to, _value);
     }
 
     function withdraw(address _from, uint256 _value) public enoughBalance(_from, _value) onlyToken {
         balances[_from] = balances[_from].sub(_value);
-        emit OmnibusWithdraw(omnibusWallet, _from, _value);
     }
 
     function transfer(address _from, address _to, uint256 _value) public onlyOperatorOrAbove(msg.sender) enoughBalance(_from, _value) {
@@ -73,11 +71,9 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
 
     function seize(address _from, uint256 _value, string memory _reason) public enoughBalance(_from, _value) onlyToken {
         balances[_from] = balances[_from].sub(_value);
-        emit OmnibusSeize(omnibusWallet, _from, _value, _reason);
     }
 
     function burn(address _who, uint256 _value, string memory _reason) public enoughBalance(_who, _value) onlyToken {
         balances[_who] = balances[_who].sub(_value);
-        emit OmnibusBurn(omnibusWallet, _who, _value, _reason);
     }
 }
