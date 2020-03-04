@@ -4,7 +4,7 @@ import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
 contract IDSOmnibusWalletController is Initializable, VersionedContract {
-    event OmnibusTransfer(address indexed omnibusWallet, address from, address to);
+    event OmnibusTransfer(address indexed omnibusWallet, address from, address to, uint256 value);
 
     uint8 public constant BENEFICIARY = 0;
     uint8 public constant HOLDER_OF_RECORD = 1;
@@ -51,13 +51,11 @@ contract IDSOmnibusWalletController is Initializable, VersionedContract {
 
     function seize(
         address _from,
-        uint256 _value, /*onlyToken*/
-        string memory _reason
+        uint256 _value /*onlyToken*/
     ) public;
 
     function burn(
         address _from,
-        uint256 _value, /*onlyToken*/
-        string memory _reason
+        uint256 _value /*onlyToken*/
     ) public;
 }
