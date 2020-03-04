@@ -120,7 +120,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         getComplianceService().validateOmnibusBurn(_omnibusWallet, _who, _value);
 
         walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].sub(_value);
-        getRegistryService().getOmnibusWalletController(_omnibusWallet).burn(_who, _value, _reason);
+        getRegistryService().getOmnibusWalletController(_omnibusWallet).burn(_who, _value);
 
         decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_omnibusWallet, _who, _value);
 
@@ -162,7 +162,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         getComplianceService().validateOmnibusSeize(_omnibusWallet, _from, _to, _value);
         walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].sub(_value);
         walletsBalances[_to] = walletsBalances[_to].add(_value);
-        getRegistryService().getOmnibusWalletController(_omnibusWallet).seize(_from, _value, _reason);
+        getRegistryService().getOmnibusWalletController(_omnibusWallet).seize(_from, _value);
         decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_omnibusWallet, _from, _value);
         updateInvestorBalance(_to, _value, true);
 
