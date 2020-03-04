@@ -70,7 +70,7 @@ library ComplianceServiceLibrary {
         return IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getCountryCompliance(getCountry(_services, _wallet));
     }
 
-    function isBeneficiaryTransfer(address[] memory _services, address _from, address _to) internal view returns (bool) {
+    function isBeneficiaryDepositOrWithdrawl(address[] memory _services, address _from, address _to) internal view returns (bool) {
         IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
 
         return
@@ -179,7 +179,7 @@ library ComplianceServiceLibrary {
             }
 
             if (
-                (!isBeneficiaryTransfer(_services, _from, _to) &&
+                (!isBeneficiaryDepositOrWithdrawl(_services, _from, _to) &&
                     fromInvestorBalance > _value &&
                     fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens())
             ) {
@@ -234,7 +234,7 @@ library ComplianceServiceLibrary {
             }
 
             if (
-                !isBeneficiaryTransfer(_services, _from, _to) &&
+                !isBeneficiaryDepositOrWithdrawl(_services, _from, _to) &&
                 !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
                 balanceOfInvestor(_services, _to).add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens()
             ) {
@@ -242,7 +242,7 @@ library ComplianceServiceLibrary {
             }
         }
 
-        if (fromRegion == EU && !isBeneficiaryTransfer(_services, _from, _to) && !isHolderOfRecordInternalTransfer(_services, _omnibusWallet)) {
+        if (fromRegion == EU && !isBeneficiaryDepositOrWithdrawl(_services, _from, _to) && !isHolderOfRecordInternalTransfer(_services, _omnibusWallet)) {
             if (fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens() && fromInvestorBalance > _value) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
@@ -282,7 +282,7 @@ library ComplianceServiceLibrary {
             }
 
             if (
-                !isBeneficiaryTransfer(_services, _from, _to) &&
+                !isBeneficiaryDepositOrWithdrawl(_services, _from, _to) &&
                 !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
                 balanceOfInvestor(_services, _to).add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()
             ) {
@@ -314,7 +314,7 @@ library ComplianceServiceLibrary {
         }
 
         if (
-            !isBeneficiaryTransfer(_services, _from, _to) &&
+            !isBeneficiaryDepositOrWithdrawl(_services, _from, _to) &&
             !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
             balanceOfInvestor(_services, _from) == _value &&
             !isNewInvestor(_services, _to) &&
@@ -324,7 +324,7 @@ library ComplianceServiceLibrary {
         }
 
         if (
-            !isBeneficiaryTransfer(_services, _from, _to) &&
+            !isBeneficiaryDepositOrWithdrawl(_services, _from, _to) &&
             !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
             IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) != IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM() &&
             fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
@@ -333,7 +333,7 @@ library ComplianceServiceLibrary {
         }
 
         if (
-            !isBeneficiaryTransfer(_services, _from, _to) &&
+            !isBeneficiaryDepositOrWithdrawl(_services, _from, _to) &&
             !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
             IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) != IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM() &&
             balanceOfInvestor(_services, _to).add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
@@ -342,7 +342,7 @@ library ComplianceServiceLibrary {
         }
 
         if (
-            !isBeneficiaryTransfer(_services, _from, _to) &&
+            !isBeneficiaryDepositOrWithdrawl(_services, _from, _to) &&
             !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
             IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor() != 0 &&
             balanceOfInvestor(_services, _to).add(_value) > IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor()
