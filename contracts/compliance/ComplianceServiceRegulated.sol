@@ -84,7 +84,7 @@ library ComplianceServiceLibrary {
         return registryService.isOmnibusWallet(_omnibusWallet) && registryService.getOmnibusWalletController(_omnibusWallet).isHolderOfRecord();
     }
 
-    function getUsInvestorsLimit(address[] memory _services) public view returns (uint256) {
+    function getUsInvestorsLimit(address[] memory _services) internal view returns (uint256) {
         ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
         IDSComplianceConfigurationService compConfService = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]);
 
@@ -114,7 +114,11 @@ library ComplianceServiceLibrary {
             return (10, TOKEN_PAUSED);
         }
 
-        if (!isOmnibusInternalTransfer(_omnibusWallet) && IDSToken(_services[DS_TOKEN]).balanceOf(_from) < _value) {
+        if (
+            IDSToken(_services[DS_TOKEN]).balanceOf(_from) < _value ||
+            (isOmnibusInternalTransfer(_omnibusWallet) &&
+                IDSRegistryService(_services[REGISTRY_SERVICE]).getOmnibusWalletController(_omnibusWallet).getInvestorBalance(_from) < _value)
+        ) {
             return (15, NOT_ENOUGH_TOKENS);
         }
 
