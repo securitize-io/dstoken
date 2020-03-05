@@ -70,6 +70,21 @@ library ComplianceServiceLibrary {
         return IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getCountryCompliance(getCountry(_services, _wallet));
     }
 
+    function getUsInvestorsLimit(address[] memory _services) internal view returns (uint256) {
+        ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
+        IDSComplianceConfigurationService compConfService = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]);
+
+        if (compConfService.getMaxUsInvestorsPercentage() == 0) {
+            return compConfService.getUsInvestorsLimit();
+        }
+
+        if (compConfService.getUsInvestorsLimit() == 0) {
+            return compConfService.getMaxUsInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100);
+        }
+
+        return Math.min(compConfService.getUsInvestorsLimit(), compConfService.getMaxUsInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100));
+    }
+
     function isBeneficiaryDepositOrWithdrawl(address[] memory _services, address _from, address _to) internal view returns (bool) {
         IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
 
@@ -84,19 +99,10 @@ library ComplianceServiceLibrary {
         return registryService.isOmnibusWallet(_omnibusWallet) && registryService.getOmnibusWalletController(_omnibusWallet).isHolderOfRecord();
     }
 
-    function getUsInvestorsLimit(address[] memory _services) internal view returns (uint256) {
-        ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
-        IDSComplianceConfigurationService compConfService = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]);
+    function isOmnibusTransfer(address[] memory _services, address _from, address _to) internal view returns (bool) {
+        IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
 
-        if (compConfService.getMaxUsInvestorsPercentage() == 0) {
-            return compConfService.getUsInvestorsLimit();
-        }
-
-        if (compConfService.getUsInvestorsLimit() == 0) {
-            return compConfService.getMaxUsInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100);
-        }
-
-        return Math.min(compConfService.getUsInvestorsLimit(), compConfService.getMaxUsInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100));
+        return registryService.isOmnibusWallet(_from) || registryService.isOmnibusWallet(_to);
     }
 
     function isOmnibusInternalTransfer(address _omnibusWallet) internal pure returns (bool) {
@@ -140,7 +146,12 @@ library ComplianceServiceLibrary {
         uint256 fromInvestorBalance = balanceOfInvestor(_services, _from);
 
         if (IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) == IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM()) {
-            if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() && fromInvestorBalance > _value) {
+            if (
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() &&
+                fromInvestorBalance > _value &&
+                !isOmnibusTransfer(_services, _from, _to) &&
+                !isOmnibusInternalTransfer(_omnibusWallet)
+            ) {
                 return (50, ONLY_FULL_TRANSFER);
             }
 
@@ -185,7 +196,12 @@ library ComplianceServiceLibrary {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
 
-            if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() && fromInvestorBalance > _value) {
+            if (
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() &&
+                fromInvestorBalance > _value &&
+                !isOmnibusTransfer(_services, _from, _to) &&
+                !isOmnibusInternalTransfer(_omnibusWallet)
+            ) {
                 return (50, ONLY_FULL_TRANSFER);
             }
         } else {
