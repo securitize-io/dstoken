@@ -289,6 +289,25 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         return investorsBalances[_id];
     }
 
+    function updateOmnibusInvestorBalance(address _omnibusWallet, address _wallet, uint256 _value, bool _increase)
+        public
+        onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
+        returns (bool)
+    {
+        return updateInvestorBalance(_wallet, _value, _increase);
+    }
+
+    function emitOmnibusTransferEvent(address _omnibusWallet, address _from, address _to, uint256 _value)
+        public
+        onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
+    {
+        emit OmnibusTransfer(_omnibusWallet, _from, _to, _value, getRegistryService().getOmnibusWalletController(_omnibusWallet).getWalletAssetTrackingMode());
+    }
+
+    function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
+        return getComplianceService().preTransferCheck(_from, _to, _value);
+    }
+
     function updateInvestorsBalancesOnTransfer(address _from, address _to, uint256 _value) internal {
         if (getRegistryService().isOmnibusWallet(_to)) {
             IDSOmnibusWalletController omnibusWalletController = getRegistryService().getOmnibusWalletController(_to);
@@ -323,14 +342,6 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         }
     }
 
-    function updateOmnibusInvestorBalance(address _omnibusWallet, address _wallet, uint256 _value, bool _increase)
-        public
-        onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
-        returns (bool)
-    {
-        return updateInvestorBalance(_wallet, _value, _increase);
-    }
-
     function updateInvestorBalance(address _wallet, uint256 _value, bool _increase) internal returns (bool) {
         string memory investor = getRegistryService().getInvestor(_wallet);
         if (keccak256(abi.encodePacked(investor)) != keccak256("")) {
@@ -344,9 +355,5 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         }
 
         return true;
-    }
-
-    function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
-        return getComplianceService().preTransferCheck(_from, _to, _value);
     }
 }
