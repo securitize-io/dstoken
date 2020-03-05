@@ -90,13 +90,6 @@ async function deployContracts(
     "issuer"
   );
 
-  await deployContractBehindProxy(
-    artifacts.require("Proxy"),
-    artifacts.require("OmnibusWalletService"),
-    testObject,
-    "omnibusWalletService"
-  );
-
   await setServicesDependencies(
     testObject.registryService,
     [
@@ -121,8 +114,7 @@ async function deployContracts(
       services.LOCK_MANAGER,
       services.COMPLIANCE_CONFIGURATION_SERVICE,
       services.REGISTRY_SERVICE,
-      services.DS_TOKEN,
-      services.OMNIBUS_WALLET_SERVICE
+      services.DS_TOKEN
     ],
     [
       testObject.trustService.address,
@@ -130,8 +122,7 @@ async function deployContracts(
       testObject.lockManager.address,
       testObject.complianceConfiguration.address,
       testObject.registryService.address,
-      testObject.token.address,
-      testObject.omnibusWalletService.address
+      testObject.token.address
     ]
   );
 
@@ -149,8 +140,7 @@ async function deployContracts(
       services.WALLET_MANAGER,
       services.LOCK_MANAGER,
       services.REGISTRY_SERVICE,
-      services.TOKEN_ISSUER,
-      services.OMNIBUS_WALLET_SERVICE
+      services.TOKEN_ISSUER
     ],
     [
       testObject.trustService.address,
@@ -158,8 +148,7 @@ async function deployContracts(
       testObject.walletManager.address,
       testObject.lockManager.address,
       testObject.registryService.address,
-      testObject.issuer.address,
-      testObject.omnibusWalletService.address
+      testObject.issuer.address
     ]
   );
 

@@ -8,6 +8,10 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
     event Issue(address indexed to, uint256 value, uint256 valueLocked);
     event Burn(address indexed burner, uint256 value, string reason);
     event Seize(address indexed from, address indexed to, uint256 value, string reason);
+    event OmnibusDeposit(address indexed omnibusWallet, address to, uint256 value, uint8 assetTrackingMode);
+    event OmnibusWithdraw(address indexed omnibusWallet, address from, uint256 value, uint8 assetTrackingMode);
+    event OmnibusSeize(address indexed omnibusWallet, address from, uint256 value, string reason, uint8 assetTrackingMode);
+    event OmnibusBurn(address indexed omnibusWallet, address who, uint256 value, string reason, uint8 assetTrackingMode);
 
     event WalletAdded(address wallet);
     event WalletRemoved(address wallet);
@@ -76,6 +80,13 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
         string memory _reason /*onlyIssuerOrAbove*/
     ) public;
 
+    function omnibusBurn(
+        address _omnibusWallet,
+        address _who,
+        uint256 _value,
+        string memory _reason /*onlyIssuerOrAbove*/
+    ) public;
+
     //*********************
     // TOKEN SIEZING
     //*********************
@@ -85,6 +96,15 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
         address _to,
         uint256 _value,
         string memory _reason /*onlyIssuerOrAbove*/
+    ) public;
+
+    function omnibusSeize(
+        address _omnibusWallet,
+        address _from,
+        address _to,
+        uint256 _value,
+        string memory _reason
+        /*onlyIssuerOrAbove*/
     ) public;
 
     //*********************

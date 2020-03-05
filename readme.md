@@ -41,12 +41,15 @@ npm run migrate -- --name <token name> --symbol <token symbol> --decimals <token
 --lock_manager TYPE - lock manager type (WALLET,INVESTOR) - if omitted, INVESTOR is selected
 --owners - a space seperated string of owner addresses that own the multisig wallet
 --required_confirmations - the number of required confirmations to execute a multisig wallet transaction
+--no_omnibus_wallet - skip omnibus wallet
+--omnibus_wallet_investor_id - the investor id of the omnibus wallet in the registry
+--omnibus_wallet - the address of the omnibus wallet in the registry
 ```
 
 For example, to install a standard DSToken (with default compliance manager and lock manager), run:
 
 ```
-npm run migrate -- --network ganache --name ExampleToken --symbol EXM --decimals 18 --owners "0x648fC6c064d96ca6671a627D7a62C11C6CEff594 0xB640F84605Fa887653b0752FF937AB2E64FB2715" --required_confirmations 2
+npm run migrate -- --network ganache --name ExampleToken --symbol EXM --decimals 18 --owners "0x648fC6c064d96ca6671a627D7a62C11C6CEff594 0xB640F84605Fa887653b0752FF937AB2E64FB2715" --required_confirmations 2 --omnibus_wallet_investor_id "investor_id" --omnibus_wallet '648fC6c064d96ca6671a627D7a62C11C6CEff594'
 
 ```
 

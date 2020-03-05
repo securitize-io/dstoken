@@ -44,6 +44,51 @@ contract IDSTrustService is Initializable, VersionedContract {
         _;
     }
 
+    modifier onlyEntityOwnerOrAbove(string memory _name, address _owner) {
+        assert(false);
+        _;
+    }
+
+    modifier onlyNewEntity(string memory _name) {
+        assert(false);
+        _;
+    }
+
+    modifier onlyExistingEntity(string memory _name) {
+        assert(false);
+        _;
+    }
+
+    modifier onlyNewEntityOwner(address _owner) {
+        assert(false);
+        _;
+    }
+
+    modifier onlyExistingEntityOwner(string memory _name, address _owner) {
+        assert(false);
+        _;
+    }
+
+    modifier onlyNewOperator(address _operator) {
+        assert(false);
+        _;
+    }
+
+    modifier onlyExistingOperator(string memory _name, address _operator) {
+        assert(false);
+        _;
+    }
+
+    modifier onlyNewResource(address _resource) {
+        assert(false);
+        _;
+    }
+
+    modifier onlyExistingResource(string memory _name, address _resource) {
+        assert(false);
+        _;
+    }
+
     /**
    * @dev Sets or removes a role for a wallet. (internal)
    * @param _address The wallet whose role needs to be set or removed.
@@ -85,4 +130,30 @@ contract IDSTrustService is Initializable, VersionedContract {
    * @return A boolean that indicates if the operation was successful.
    */
     function getRole(address _address) public view returns (uint8);
+    function addEntity(
+        string memory _name,
+        address _owner /*onlyMasterOrIssuer onlyNewEntity onlyNewEntityOwner*/
+    ) public;
+    function changeEntityOwner(
+        string memory _name,
+        address _oldOwner,
+        address _newOwner /*onlyMasterOrIssuer onlyExistingEntityOwner*/
+    ) public;
+    function addOperator(
+        string memory _name,
+        address _operator /*onlyEntityOwnerOrAbove onlyNewOperator*/
+    ) public;
+    function removeOperator(
+        string memory _name,
+        address _operator /*onlyEntityOwnerOrAbove onlyExistingOperator*/
+    ) public;
+    function addResource(
+        string memory _name,
+        address _resource /*onlyMasterOrIssuer onlyExistingEntity onlyNewResource*/
+    ) public;
+    function removeResource(
+        string memory _name,
+        address _resource /*onlyMasterOrIssuer onlyExistingResource*/
+    ) public;
+    function isResourceOperator(address _resource, address _operator) public view returns (bool);
 }

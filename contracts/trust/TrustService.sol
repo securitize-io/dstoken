@@ -33,6 +33,77 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
         _;
     }
 
+    modifier onlyEntityOwnerOrAbove(string memory _name, address _owner) {
+        require(
+            roles[msg.sender] == MASTER ||
+                roles[msg.sender] == ISSUER ||
+                (keccak256(abi.encodePacked(ownersEntities[_owner])) != keccak256(abi.encodePacked("")) &&
+                    keccak256(abi.encodePacked(ownersEntities[_owner])) == keccak256(abi.encodePacked(_name)))
+        );
+
+        _;
+    }
+
+    modifier onlyNewEntity(string memory _name) {
+        require(!entities[_name], "Entity already exists");
+
+        _;
+    }
+
+    modifier onlyExistingEntity(string memory _name) {
+        require(entities[_name], "Entity doesn't exist");
+
+        _;
+    }
+
+    modifier onlyNewEntityOwner(address _owner) {
+        require(keccak256(abi.encodePacked(ownersEntities[_owner])) == keccak256(abi.encodePacked("")), "Entity owner already exists");
+
+        _;
+    }
+
+    modifier onlyExistingEntityOwner(string memory _name, address _owner) {
+        require(
+            keccak256(abi.encodePacked(ownersEntities[_owner])) != keccak256(abi.encodePacked("")) &&
+                keccak256(abi.encodePacked(ownersEntities[_owner])) == keccak256(abi.encodePacked(_name)),
+            "Entity owner doesn't exist"
+        );
+
+        _;
+    }
+
+    modifier onlyNewOperator(address _operator) {
+        require(keccak256(abi.encodePacked(operatorsEntities[_operator])) == keccak256(abi.encodePacked("")), "Entity operator already exists");
+
+        _;
+    }
+
+    modifier onlyExistingOperator(string memory _name, address _operator) {
+        require(
+            keccak256(abi.encodePacked(operatorsEntities[_operator])) != keccak256(abi.encodePacked("")) &&
+                keccak256(abi.encodePacked(operatorsEntities[_operator])) == keccak256(abi.encodePacked(_name)),
+            "Entity operator doesn't exist"
+        );
+
+        _;
+    }
+
+    modifier onlyNewResource(address _resource) {
+        require(keccak256(abi.encodePacked(resourcesEntities[_resource])) == keccak256(abi.encodePacked("")), "Entity resource already exists");
+
+        _;
+    }
+
+    modifier onlyExistingResource(string memory _name, address _resource) {
+        require(
+            keccak256(abi.encodePacked(resourcesEntities[_resource])) != keccak256(abi.encodePacked("")) &&
+                keccak256(abi.encodePacked(resourcesEntities[_resource])) == keccak256(abi.encodePacked(_name)),
+            "Entity resource doesn't exist"
+        );
+
+        _;
+    }
+
     /**
    * @dev Sets or removes a role for a wallet. (internal)
    * @param _address The wallet whose role needs to be set or removed.
@@ -101,5 +172,37 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
    */
     function getRole(address _address) public view returns (uint8) {
         return roles[_address];
+    }
+
+    function addEntity(string memory _name, address _owner) public onlyMasterOrIssuer onlyNewEntity(_name) onlyNewEntityOwner(_owner) {
+        entities[_name] = true;
+        ownersEntities[_owner] = _name;
+    }
+
+    function changeEntityOwner(string memory _name, address _oldOwner, address _newOwner) public onlyMasterOrIssuer onlyExistingEntityOwner(_name, _oldOwner) {
+        delete ownersEntities[_oldOwner];
+        ownersEntities[_newOwner] = _name;
+    }
+
+    function addOperator(string memory _name, address _operator) public onlyEntityOwnerOrAbove(_name, msg.sender) onlyNewOperator(_operator) {
+        operatorsEntities[_operator] = _name;
+    }
+
+    function removeOperator(string memory _name, address _operator) public onlyEntityOwnerOrAbove(_name, msg.sender) onlyExistingOperator(_name, _operator) {
+        delete operatorsEntities[_operator];
+    }
+
+    function addResource(string memory _name, address _resource) public onlyMasterOrIssuer onlyExistingEntity(_name) onlyNewResource(_resource) {
+        resourcesEntities[_resource] = _name;
+    }
+
+    function removeResource(string memory _name, address _resource) public onlyMasterOrIssuer onlyExistingResource(_name, _resource) {
+        delete resourcesEntities[_resource];
+    }
+
+    function isResourceOperator(address _resource, address _operator) public view returns (bool) {
+        return
+            keccak256(abi.encodePacked(resourcesEntities[_resource])) != keccak256(abi.encodePacked("")) &&
+            keccak256(abi.encodePacked(resourcesEntities[_resource])) == keccak256(abi.encodePacked(operatorsEntities[_operator]));
     }
 }

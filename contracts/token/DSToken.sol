@@ -114,15 +114,38 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         checkWalletsForList(_who, address(0));
     }
 
+    function omnibusBurn(address _omnibusWallet, address _who, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
+        require(_value <= walletsBalances[_omnibusWallet]);
+
+        IDSOmnibusWalletController omnibusController = getRegistryService().getOmnibusWalletController(_omnibusWallet);
+
+        getComplianceService().validateOmnibusBurn(_omnibusWallet, _who, _value);
+
+        walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].sub(_value);
+        omnibusController.burn(_who, _value);
+
+        decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_omnibusWallet, _who, _value);
+
+        totalSupply = totalSupply.sub(_value);
+        emit OmnibusBurn(_omnibusWallet, _who, _value, _reason, omnibusController.getWalletAssetTrackingMode());
+        emit Burn(_omnibusWallet, _value, _reason);
+        emit Transfer(_omnibusWallet, address(0), _value);
+        checkWalletsForList(_omnibusWallet, address(0));
+    }
+
     //*********************
     // TOKEN SEIZING
     //*********************
 
-    function seize(address _from, address _to, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
+    modifier validSeizeParameters(address _from, address _to, uint256 _value) {
         require(_from != address(0));
         require(_to != address(0));
         require(_value <= walletsBalances[_from]);
 
+        _;
+    }
+
+    function seize(address _from, address _to, uint256 _value, string memory _reason) public onlyIssuerOrAbove validSeizeParameters(_from, _to, _value) {
         getComplianceService().validateSeize(_from, _to, _value);
         walletsBalances[_from] = walletsBalances[_from].sub(_value);
         walletsBalances[_to] = walletsBalances[_to].add(_value);
@@ -133,6 +156,26 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         checkWalletsForList(_from, _to);
     }
 
+    function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string memory _reason)
+        public
+        onlyIssuerOrAbove
+        validSeizeParameters(_omnibusWallet, _to, _value)
+    {
+        IDSOmnibusWalletController omnibusController = getRegistryService().getOmnibusWalletController(_omnibusWallet);
+
+        getComplianceService().validateOmnibusSeize(_omnibusWallet, _from, _to, _value);
+        walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].sub(_value);
+        walletsBalances[_to] = walletsBalances[_to].add(_value);
+        omnibusController.seize(_from, _value);
+        decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_omnibusWallet, _from, _value);
+        updateInvestorBalance(_to, _value, true);
+
+        emit OmnibusSeize(_omnibusWallet, _from, _value, _reason, omnibusController.getWalletAssetTrackingMode());
+        emit Seize(_omnibusWallet, _to, _value, _reason);
+        emit Transfer(_omnibusWallet, _to, _value);
+        checkWalletsForList(_omnibusWallet, _to);
+    }
+
     //*********************
     // TRANSFER RESTRICTIONS
     //*********************
@@ -141,7 +184,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
   * @dev Checks whether it can transfer with the compliance manager, if not -throws.
   */
     modifier canTransfer(address _sender, address _receiver, uint256 _value) {
-        getComplianceService().validate(_sender, _receiver, _value);
+        getComplianceService().validateTransfer(_sender, _receiver, _value);
         _;
     }
 
@@ -156,7 +199,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         bool result = super.transfer(_to, _value);
 
         if (result) {
-            updateInvestorsBalances(msg.sender, _to, _value);
+            updateInvestorsBalancesOnTransfer(msg.sender, _to, _value);
         }
 
         checkWalletsForList(msg.sender, _to);
@@ -177,7 +220,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         bool result = super.transferFrom(_from, _to, _value);
 
         if (result) {
-            updateInvestorsBalances(_from, _to, _value);
+            updateInvestorsBalancesOnTransfer(_from, _to, _value);
         }
 
         checkWalletsForList(_from, _to);
@@ -246,18 +289,38 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         return investorsBalances[_id];
     }
 
-    function updateInvestorsBalances(address _from, address _to, uint256 _value) internal {
-        if (getWalletManager().getWalletType(_to) != getWalletManager().OMNIBUS()) {
-            updateInvestorBalance(_from, _value, false);
+    function updateInvestorsBalancesOnTransfer(address _from, address _to, uint256 _value) internal {
+        if (getRegistryService().isOmnibusWallet(_to)) {
+            IDSOmnibusWalletController omnibusWalletController = getRegistryService().getOmnibusWalletController(_to);
+            omnibusWalletController.deposit(_from, _value);
+            emit OmnibusDeposit(_to, _from, _value, omnibusWalletController.getWalletAssetTrackingMode());
 
-            if (getWalletManager().getWalletType(_from) == getWalletManager().OMNIBUS()) {
-                getOmnibusWalletService().withdraw(_from, getRegistryService().getInvestor(_to), _value);
+            if (omnibusWalletController.isHolderOfRecord()) {
+                updateInvestorBalance(_from, _value, false);
+                updateInvestorBalance(_to, _value, true);
+            }
+        } else if (getRegistryService().isOmnibusWallet(_from)) {
+            IDSOmnibusWalletController omnibusWalletController = getRegistryService().getOmnibusWalletController(_from);
+            omnibusWalletController.withdraw(_to, _value);
+            emit OmnibusWithdraw(_from, _to, _value, omnibusWalletController.getWalletAssetTrackingMode());
+
+            if (omnibusWalletController.isHolderOfRecord()) {
+                updateInvestorBalance(_from, _value, false);
+                updateInvestorBalance(_to, _value, true);
             }
         } else {
-            getOmnibusWalletService().deposit(_to, getRegistryService().getInvestor(_from), _value);
+            updateInvestorBalance(_from, _value, false);
+            updateInvestorBalance(_to, _value, true);
         }
 
-        updateInvestorBalance(_to, _value, true);
+    }
+
+    function decreaseInvestorBalanceOnOmnibusSeizeOrBurn(address _omnibusWallet, address _from, uint256 _value) internal {
+        if (getRegistryService().getOmnibusWalletController(_omnibusWallet).isHolderOfRecord()) {
+            updateInvestorBalance(_omnibusWallet, _value, false);
+        } else {
+            updateInvestorBalance(_from, _value, false);
+        }
     }
 
     function updateInvestorBalance(address _wallet, uint256 _value, bool _increase) internal returns (bool) {
