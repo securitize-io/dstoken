@@ -44,8 +44,11 @@ module.exports = async function(deployer) {
       abstractLockManagerContract._json.contractName
     )
   );
-  const token = await DSToken.at(
-    configurationManager.getProxyAddressForContractName("DSTokenPartitioned")
+  const abstractTokenContract = configurationManager.getAbstractTokenContract(artifacts);
+  const token = await abstractTokenContract.at(
+    configurationManager.getProxyAddressForContractName(
+      abstractTokenContract._json.contractName
+    )
   );
   const tokenIssuer = await TokenIssuer.at(
     configurationManager.getProxyAddressForContractName("TokenIssuer")

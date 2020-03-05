@@ -49,6 +49,7 @@ class ConfigurationManager {
     this.complianceManagerType = argv.compliance || "NORMAL";
     this.lockManagerType = argv.lock_manager || "INVESTOR";
     this.noRegistry = argv.no_registry;
+    this.partitioned = argv.partitioned;
 
     return true;
   }
@@ -60,23 +61,32 @@ class ConfigurationManager {
       case "WHITELIST":
         return artifacts.require("ComplianceServiceWhitelisted");
       case "NORMAL":
-        return artifacts.require("ComplianceServiceRegulatedPartitioned");
+        if (this.partitioned) {
+          return artifacts.require("ComplianceServiceRegulatedPartitioned");
+        }
+        return artifacts.require("ComplianceServiceRegulated");
       default:
         break;
     }
   }
 
   getAbstractLockManagerContract(artifacts) {
-    console.log('1xxxxxxxxxxxxxxxx');
-    console.log(this.complianceManagerType);
     switch (this.lockManagerType) {
       case "WALLET":
         return artifacts.require("LockManager");
       default:
-        console.log('xxxxxxxxxxxxxxxx');
-        return artifacts.require("InvestorLockManagerPartitioned");
+        if (this.partitioned) {
+          return artifacts.require("InvestorLockManagerPartitioned");
+        }
+        return artifacts.require("InvestorLockManager");
     }
-    console.log('2xxxxxxxxxxxxxxxx');
+  }
+
+  getAbstractTokenContract(artifacts) {
+    if (this.partitioned) {
+        return artifacts.require("DSTokenPartitioned");
+    }
+    return artifacts.require("DSToken");
   }
 
   setProxyAddressForContractName(contractName, address) {
