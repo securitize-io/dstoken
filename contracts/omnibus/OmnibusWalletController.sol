@@ -40,6 +40,10 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
         assetTrackingMode = _assetTrackingMode;
     }
 
+    function getAssetTrackingMode() public view returns (uint8) {
+        return assetTrackingMode;
+    }
+
     function isHolderOfRecord() public view returns (bool) {
         return assetTrackingMode == HOLDER_OF_RECORD;
     }
@@ -66,7 +70,7 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
             getToken().updateOmnibusInvestorBalance(omnibusWallet, _to, _value, true);
         }
 
-        emit OmnibusTransfer(omnibusWallet, _from, _to, _value);
+        getToken().emitOmnibusTransferEvent(omnibusWallet, _from, _to, _value);
     }
 
     function seize(address _from, uint256 _value) public enoughBalance(_from, _value) onlyToken {

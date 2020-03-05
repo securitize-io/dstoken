@@ -9,10 +9,11 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
     event Issue(address indexed to, uint256 value, uint256 valueLocked);
     event Burn(address indexed burner, uint256 value, string reason);
     event Seize(address indexed from, address indexed to, uint256 value, string reason);
-    event OmnibusDeposit(address indexed omnibusWallet, address to, uint256 value);
-    event OmnibusWithdraw(address indexed omnibusWallet, address from, uint256 value);
-    event OmnibusSeize(address indexed omnibusWallet, address from, uint256 value, string reason);
-    event OmnibusBurn(address indexed omnibusWallet, address who, uint256 value, string reason);
+    event OmnibusTransfer(address indexed omnibusWallet, address from, address to, uint256 value, uint8 assetTrackingMode);
+    event OmnibusDeposit(address indexed omnibusWallet, address to, uint256 value, uint8 assetTrackingMode);
+    event OmnibusWithdraw(address indexed omnibusWallet, address from, uint256 value, uint8 assetTrackingMode);
+    event OmnibusSeize(address indexed omnibusWallet, address from, uint256 value, string reason, uint8 assetTrackingMode);
+    event OmnibusBurn(address indexed omnibusWallet, address who, uint256 value, string reason, uint8 assetTrackingMode);
 
     event WalletAdded(address wallet);
     event WalletRemoved(address wallet);
@@ -129,6 +130,13 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
         uint256 _value,
         bool _increase /*onlyOmnibusWalletController*/
     ) public returns (bool);
+
+    function emitOmnibusTransferEvent(
+        address _omnibusWallet,
+        address _from,
+        address _to,
+        uint256 _value /*onlyOmnibusWalletController*/
+    ) public;
 
     function updateInvestorBalance(address _wallet, uint256 _value, bool _increase) internal returns (bool);
 
