@@ -1026,8 +1026,20 @@ contract("ComplianceServiceRegulated", function([
         investorId.GENERAL_INVESTOR_ID_1,
         country.USA
       );
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_2,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+      );
+      await this.registryService.addWallet(
+        wallet1,
+        investorId.GENERAL_INVESTOR_ID_2
+      );
+      await this.registryService.setCountry(
+        investorId.GENERAL_INVESTOR_ID_2,
+        country.USA
+      );
       await this.token.issueTokens(owner, 100);
-      await assertRevert(this.token.issueTokens(owner, 100));
+      await assertRevert(this.token.issueTokens(wallet1, 100));
     });
 
     it("should not issue tokens to a new investor if non accredited limit is exceeded", async function() {
