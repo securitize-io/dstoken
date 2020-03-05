@@ -66,7 +66,7 @@ module.exports = {
     YEARS
   },
   AssetTrackingMode: {
-    BENEFICIAL: 0,
+    BENEFICIARY: 0,
     HOLDER_OF_RECORD: 1
   }
 };

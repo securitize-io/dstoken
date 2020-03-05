@@ -52,7 +52,7 @@ async function assertBalances(
     investorId.OMNIBUS_WALLET_INVESTOR_ID_1
   );
   const omnibusWalletBalance = await testObject.token.balanceOf(omnibusWallet);
-  const investorInternalBalance = await testObject.omnibusController.balances(
+  const investorInternalBalance = await testObject.omnibusController.balanceOf(
     investorWallet
   );
 
@@ -87,10 +87,10 @@ async function assertInternalBalances(
   const omnibusBalance = await testObject.token.balanceOfInvestor(
     investorId.OMNIBUS_WALLET_INVESTOR_ID_1
   );
-  const investor1InternalBalance = await testObject.omnibusController.balances(
+  const investor1InternalBalance = await testObject.omnibusController.balanceOf(
     investorWallet1
   );
-  const investor2InternalBalance = await testObject.omnibusController.balances(
+  const investor2InternalBalance = await testObject.omnibusController.balanceOf(
     investorWallet2
   );
 
@@ -110,10 +110,14 @@ async function assertInternalBalances(
 async function assertEvent(contract, expectedEvent, expectedParams) {
   const events = await contract.getPastEvents("allEvents");
 
-  assert.equal(events[0].event, expectedEvent);
+  const event = events.find(event => event.event == expectedEvent);
+
+  if (!event) {
+    assert.fail(`Event ${expectedEvent} not found`);
+  }
 
   for (const key of Object.keys(expectedParams)) {
-    assert.equal(events[0].returnValues[key], expectedParams[key]);
+    assert.equal(event.returnValues[key], expectedParams[key]);
   }
 }
 
@@ -195,7 +199,7 @@ contract("OmnibusWalletController", function([
     await this.walletManager.addIssuerWallet(issuer);
   });
 
-  describe.skip("Asset tracking mode", function() {
+  describe("Asset tracking mode", function() {
     it("Should fail to set the mode if caller does not have permissions", async function() {
       await assertRevert(
         this.omnibusController.setAssetTrackingMode(
@@ -206,13 +210,13 @@ contract("OmnibusWalletController", function([
     });
 
     it("Should set the mode correctly when caller has master permissions", async function() {
-      let trackingMode = await this.omnibusController.assetTrackingMode();
+      let trackingMode = await this.omnibusController.getAssetTrackingMode();
 
-      assert.equal(trackingMode.toNumber(), assetTrackingMode.BENEFICIAL);
+      assert.equal(trackingMode.toNumber(), assetTrackingMode.BENEFICIARY);
       await this.omnibusController.setAssetTrackingMode(
         assetTrackingMode.HOLDER_OF_RECORD
       );
-      trackingMode = await this.omnibusController.assetTrackingMode();
+      trackingMode = await this.omnibusController.getAssetTrackingMode();
       assert.equal(trackingMode.toNumber(), assetTrackingMode.HOLDER_OF_RECORD);
     });
 
@@ -315,10 +319,11 @@ contract("OmnibusWalletController", function([
           accreditedInvestorsCount: 1,
           usAccreditedInvestorsCount: 1
         });
-        await assertEvent(this.omnibusController, "OmnibusDeposit", {
+        await assertEvent(this.token, "OmnibusDeposit", {
           omnibusWallet,
           to: investorWallet1,
-          value: 1000
+          value: 1000,
+          assetTrackingMode: assetTrackingMode.HOLDER_OF_RECORD
         });
       });
 
@@ -340,10 +345,11 @@ contract("OmnibusWalletController", function([
           accreditedInvestorsCount: 1,
           usAccreditedInvestorsCount: 1
         });
-        await assertEvent(this.omnibusController, "OmnibusDeposit", {
+        await assertEvent(this.token, "OmnibusDeposit", {
           omnibusWallet,
           to: investorWallet1,
-          value: 500
+          value: 500,
+          assetTrackingMode: assetTrackingMode.HOLDER_OF_RECORD
         });
       });
 
@@ -389,10 +395,11 @@ contract("OmnibusWalletController", function([
           accreditedInvestorsCount: 0,
           usAccreditedInvestorsCount: 0
         });
-        await assertEvent(this.omnibusController, "OmnibusWithdraw", {
+        await assertEvent(this.token, "OmnibusWithdraw", {
           omnibusWallet,
           from: investorWallet1,
-          value: 1000
+          value: 1000,
+          assetTrackingMode: assetTrackingMode.HOLDER_OF_RECORD
         });
       });
 
@@ -417,10 +424,11 @@ contract("OmnibusWalletController", function([
           accreditedInvestorsCount: 1,
           usAccreditedInvestorsCount: 1
         });
-        await assertEvent(this.omnibusController, "OmnibusWithdraw", {
+        await assertEvent(this.token, "OmnibusWithdraw", {
           omnibusWallet,
           from: investorWallet1,
-          value: 300
+          value: 300,
+          assetTrackingMode: assetTrackingMode.HOLDER_OF_RECORD
         });
       });
 
@@ -458,11 +466,12 @@ contract("OmnibusWalletController", function([
           investorWallet2,
           500
         );
-        await assertEvent(this.omnibusController, "OmnibusTransfer", {
+        await assertEvent(this.token, "OmnibusTransfer", {
           omnibusWallet,
           from: investorWallet1,
           to: investorWallet2,
-          value: 500
+          value: 500,
+          assetTrackingMode: assetTrackingMode.HOLDER_OF_RECORD
         });
         await assertInternalBalances(this, investorWallet1, investorWallet2, {
           investor1Balance: 0,
@@ -511,11 +520,12 @@ contract("OmnibusWalletController", function([
           1000,
           reason
         );
-        await assertEvent(this.omnibusController, "OmnibusSeize", {
+        await assertEvent(this.token, "OmnibusSeize", {
           omnibusWallet,
           from: investorWallet1,
           value: 1000,
-          reason: reason
+          reason: reason,
+          assetTrackingMode: assetTrackingMode.HOLDER_OF_RECORD
         });
         await assertBalances(this, investorWallet1, omnibusWallet, {
           investorBalance: 0,
@@ -547,11 +557,12 @@ contract("OmnibusWalletController", function([
           300,
           reason
         );
-        await assertEvent(this.omnibusController, "OmnibusSeize", {
+        await assertEvent(this.token, "OmnibusSeize", {
           omnibusWallet,
           from: investorWallet1,
           value: 300,
-          reason: reason
+          reason: reason,
+          assetTrackingMode: assetTrackingMode.HOLDER_OF_RECORD
         });
         await assertBalances(this, investorWallet1, omnibusWallet, {
           investorBalance: 500,
@@ -597,9 +608,7 @@ contract("OmnibusWalletController", function([
       });
 
       it("Should revert if seize function is not called from token", async function() {
-        await assertRevert(
-          this.omnibusController.seize(investorWallet1, 100, reason)
-        );
+        await assertRevert(this.omnibusController.seize(investorWallet1, 100));
       });
 
       it("Should revert if trying to seize from a non omnibus wallet", async function() {
@@ -680,11 +689,12 @@ contract("OmnibusWalletController", function([
           1000,
           reason
         );
-        await assertEvent(this.omnibusController, "OmnibusBurn", {
+        await assertEvent(this.token, "OmnibusBurn", {
           omnibusWallet,
           who: investorWallet1,
           value: 1000,
-          reason: reason
+          reason: reason,
+          assetTrackingMode: assetTrackingMode.HOLDER_OF_RECORD
         });
         await assertBalances(this, investorWallet1, omnibusWallet, {
           investorBalance: 0,
@@ -712,11 +722,12 @@ contract("OmnibusWalletController", function([
           300,
           reason
         );
-        await assertEvent(this.omnibusController, "OmnibusBurn", {
+        await assertEvent(this.token, "OmnibusBurn", {
           omnibusWallet,
           who: investorWallet1,
           value: 300,
-          reason: reason
+          reason: reason,
+          assetTrackingMode: assetTrackingMode.HOLDER_OF_RECORD
         });
         await assertBalances(this, investorWallet1, omnibusWallet, {
           investorBalance: 500,
@@ -753,9 +764,7 @@ contract("OmnibusWalletController", function([
       });
 
       it("Should revert if burn function is not called from token", async function() {
-        await assertRevert(
-          this.omnibusController.burn(investorWallet1, 100, reason)
-        );
+        await assertRevert(this.omnibusController.burn(investorWallet1, 100));
       });
 
       it("Should revert if trying to seize from a non omnibus wallet", async function() {
@@ -858,10 +867,11 @@ contract("OmnibusWalletController", function([
           accreditedInvestorsCount: 0,
           usAccreditedInvestorsCount: 0
         });
-        await assertEvent(this.omnibusController, "OmnibusDeposit", {
+        await assertEvent(this.token, "OmnibusDeposit", {
           omnibusWallet,
           to: investorWallet1,
-          value: 1000
+          value: 1000,
+          assetTrackingMode: assetTrackingMode.BENEFICIARY
         });
       });
 
@@ -884,10 +894,11 @@ contract("OmnibusWalletController", function([
           accreditedInvestorsCount: 0,
           usAccreditedInvestorsCount: 0
         });
-        await assertEvent(this.omnibusController, "OmnibusDeposit", {
+        await assertEvent(this.token, "OmnibusDeposit", {
           omnibusWallet,
           to: investorWallet1,
-          value: 500
+          value: 500,
+          assetTrackingMode: assetTrackingMode.BENEFICIARY
         });
       });
     });
@@ -927,10 +938,11 @@ contract("OmnibusWalletController", function([
           accreditedInvestorsCount: 0,
           usAccreditedInvestorsCount: 0
         });
-        await assertEvent(this.omnibusController, "OmnibusWithdraw", {
+        await assertEvent(this.token, "OmnibusWithdraw", {
           omnibusWallet,
           from: investorWallet1,
-          value: 1000
+          value: 1000,
+          assetTrackingMode: assetTrackingMode.BENEFICIARY
         });
       });
 
@@ -955,10 +967,11 @@ contract("OmnibusWalletController", function([
           accreditedInvestorsCount: 0,
           usAccreditedInvestorsCount: 0
         });
-        await assertEvent(this.omnibusController, "OmnibusWithdraw", {
+        await assertEvent(this.token, "OmnibusWithdraw", {
           omnibusWallet,
           from: investorWallet1,
-          value: 300
+          value: 300,
+          assetTrackingMode: assetTrackingMode.BENEFICIARY
         });
       });
     });
@@ -980,11 +993,12 @@ contract("OmnibusWalletController", function([
           investorWallet2,
           500
         );
-        await assertEvent(this.omnibusController, "OmnibusTransfer", {
+        await assertEvent(this.token, "OmnibusTransfer", {
           omnibusWallet,
           from: investorWallet1,
           to: investorWallet2,
-          value: 500
+          value: 500,
+          assetTrackingMode: assetTrackingMode.BENEFICIARY
         });
         await assertInternalBalances(this, investorWallet1, investorWallet2, {
           investor1Balance: 500,
@@ -1033,11 +1047,12 @@ contract("OmnibusWalletController", function([
           1000,
           reason
         );
-        await assertEvent(this.omnibusController, "OmnibusSeize", {
+        await assertEvent(this.token, "OmnibusSeize", {
           omnibusWallet,
           from: investorWallet1,
           value: 1000,
-          reason: reason
+          reason: reason,
+          assetTrackingMode: assetTrackingMode.BENEFICIARY
         });
         await assertBalances(this, investorWallet1, omnibusWallet, {
           investorBalance: 0,
@@ -1069,11 +1084,12 @@ contract("OmnibusWalletController", function([
           300,
           reason
         );
-        await assertEvent(this.omnibusController, "OmnibusSeize", {
+        await assertEvent(this.token, "OmnibusSeize", {
           omnibusWallet,
           from: investorWallet1,
           value: 300,
-          reason: reason
+          reason: reason,
+          assetTrackingMode: assetTrackingMode.BENEFICIARY
         });
         await assertBalances(this, investorWallet1, omnibusWallet, {
           investorBalance: 700,

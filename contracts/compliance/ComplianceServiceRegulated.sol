@@ -115,8 +115,8 @@ library ComplianceServiceLibrary {
         }
 
         if (
-            IDSToken(_services[DS_TOKEN]).balanceOf(_from) < _value ||
-            (isOmnibusInternalTransfer(_omnibusWallet) && IDSRegistryService(_services[REGISTRY_SERVICE]).getOmnibusWalletController(_omnibusWallet).balanceOf(_from) < _value)
+            (isOmnibusInternalTransfer(_omnibusWallet) && IDSRegistryService(_services[REGISTRY_SERVICE]).getOmnibusWalletController(_omnibusWallet).balanceOf(_from) < _value) ||
+            (!isOmnibusInternalTransfer(_omnibusWallet) && IDSToken(_services[DS_TOKEN]).balanceOf(_from) < _value)
         ) {
             return (15, NOT_ENOUGH_TOKENS);
         }
