@@ -9,27 +9,7 @@ const fixtures = require("../fixtures");
 const investorId = fixtures.InvestorId;
 const country = fixtures.Country;
 const compliance = fixtures.Compliance;
-
-const duration = {
-  seconds: function(val) {
-    return val;
-  },
-  minutes: function(val) {
-    return val * this.seconds(60);
-  },
-  hours: function(val) {
-    return val * this.minutes(60);
-  },
-  days: function(val) {
-    return val * this.hours(24);
-  },
-  weeks: function(val) {
-    return val * this.days(7);
-  },
-  years: function(val) {
-    return val * this.days(365);
-  }
-};
+const time = fixtures.Time;
 
 contract("ComplianceServiceRegulated", function([
   owner,
@@ -57,7 +37,7 @@ contract("ComplianceServiceRegulated", function([
       compliance.EU
     );
     await this.complianceConfiguration.setAll(
-      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, duration.years(1)],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, time.YEARS],
       [true, false, false]
     );
   });
@@ -320,7 +300,7 @@ contract("ComplianceServiceRegulated", function([
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await increaseTime(duration.days(370));
+      await increaseTime(370 * time.DAYS);
       await assertRevert(
         this.token.transfer(owner, 50, {from: wallet, gas: 5e6})
       );
@@ -426,7 +406,7 @@ contract("ComplianceServiceRegulated", function([
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await increaseTime(duration.days(370));
+      await increaseTime(370 * time.DAYS);
       await this.token.transfer(owner, 100, {from: wallet, gas: 5e6});
       assert.equal(await this.token.balanceOf(wallet), 0);
     });
@@ -564,7 +544,7 @@ contract("ComplianceServiceRegulated", function([
         10
       );
       assert.equal(10, res[0].toNumber());
-      assert.equal("Token Paused", res[1]);
+      assert.equal("Token paused", res[1]);
     });
 
     it("Pre transfer check with not enough tokens", async function() {
@@ -592,7 +572,7 @@ contract("ComplianceServiceRegulated", function([
         10
       );
       assert.equal(15, res[0].toNumber());
-      assert.equal("Not Enough Tokens", res[1]);
+      assert.equal("Not enough tokens", res[1]);
     });
 
     it("Pre transfer check when transfer myself", async function() {
@@ -632,7 +612,7 @@ contract("ComplianceServiceRegulated", function([
         10
       );
       assert.equal(20, res[0].toNumber());
-      assert.equal("Wallet not in registry Service", res[1]);
+      assert.equal("Wallet not in registry service", res[1]);
     });
 
     it("Pre transfer check with tokens locked", async function() {
@@ -658,7 +638,7 @@ contract("ComplianceServiceRegulated", function([
         10
       );
       assert.equal(16, res[0].toNumber());
-      assert.equal("Tokens Locked", res[1]);
+      assert.equal("Tokens locked", res[1]);
     });
 
     it("Pre transfer check with tokens locked for 1 year (For Us investors)", async function() {
@@ -838,14 +818,14 @@ contract("ComplianceServiceRegulated", function([
         compliance.EU
       );
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await increaseTime(duration.days(370));
+      await increaseTime(370 * time.DAYS);
       const res = await this.complianceService.preTransferCheck(
         wallet,
         owner,
         50
       );
       assert.equal(res[0].toNumber(), 50);
-      assert.equal(res[1], "Only Full Transfer");
+      assert.equal(res[1], "Only full transfer");
     });
 
     it("Pre transfer check from nonUs investor to US - should return code 25", async function() {
