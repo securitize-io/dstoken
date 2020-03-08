@@ -2,6 +2,7 @@ pragma solidity ^0.5.0;
 
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
+import "../omnibus/IDSOmnibusWalletController.sol";
 
 contract IDSRegistryService is Initializable, VersionedContract {
     constructor() internal {}
@@ -16,6 +17,8 @@ contract IDSRegistryService is Initializable, VersionedContract {
     event DSRegistryServiceInvestorAttributeChanged(string _investorId, uint256 _attributeId, uint256 _value, uint256 _expiry, string _proofHash, address _sender);
     event DSRegistryServiceWalletAdded(address _wallet, string _investorId, address _sender);
     event DSRegistryServiceWalletRemoved(address _wallet, string _investorId, address _sender);
+    event DSRegistryServiceOmnibusWalletAdded(address _omnibusWallet, string _investorId, IDSOmnibusWalletController omnibusWalletController);
+    event DSRegistryServiceOmnibusWalletRemoved(address _omnibusWallet, string _investorId);
 
     uint8 public constant NONE = 0;
     uint8 public constant KYC_APPROVED = 1;
@@ -44,6 +47,16 @@ contract IDSRegistryService is Initializable, VersionedContract {
 
     modifier newWallet(address _address) {
         require(!isWallet(_address));
+        _;
+    }
+
+    modifier newOmnibusWallet(address _omnibusWallet) {
+        require(!isOmnibusWallet(_omnibusWallet));
+        _;
+    }
+
+    modifier omnibusWalletExists(address _omnibusWallet) {
+        require(isOmnibusWallet(_omnibusWallet));
         _;
     }
 
@@ -92,6 +105,17 @@ contract IDSRegistryService is Initializable, VersionedContract {
         address _address,
         string memory _id /*onlyExchangeOrAbove walletExists walletBelongsToInvestor(_address, _id)*/
     ) public returns (bool);
+    function addOmnibusWallet(
+        string memory _id,
+        address _omnibusWallet,
+        IDSOmnibusWalletController _omnibusWalletController /*onlyIssuerOrAbove newOmnibusWallet*/
+    ) public;
+    function removeOmnibusWallet(
+        string memory _id,
+        address _omnibusWallet /*onlyIssuerOrAbove omnibusWalletControllerExists*/
+    ) public;
+    function getOmnibusWalletController(address _omnibusWallet) public view returns (IDSOmnibusWalletController);
+    function isOmnibusWallet(address _omnibusWallet) public view returns (bool);
     function getInvestor(address _address) public view returns (string memory);
     function getInvestorDetails(address _address) public view returns (string memory, string memory);
     function getInvestorDetailsFull(string memory _id)

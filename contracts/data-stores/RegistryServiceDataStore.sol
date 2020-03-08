@@ -1,6 +1,7 @@
 pragma solidity ^0.5.0;
 
 import "./ServiceConsumerDataStore.sol";
+import "../omnibus/IDSOmnibusWalletController.sol";
 
 contract RegistryServiceDataStore is ServiceConsumerDataStore {
     struct Attribute {
@@ -27,4 +28,5 @@ contract RegistryServiceDataStore is ServiceConsumerDataStore {
 
     mapping(string => Investor) internal investors;
     mapping(address => Wallet) internal investorsWallets;
+    mapping(address => IDSOmnibusWalletController) internal omnibusWalletsControllers;
 }

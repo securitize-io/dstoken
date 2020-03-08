@@ -7,13 +7,17 @@ class ConfigurationManager {
 
   setConfiguration() {
     const decimals = parseInt(argv.decimals);
+    console.log(argv);
 
     if (
       argv.help ||
       !argv.name ||
       !argv.symbol ||
       isNaN(decimals) ||
-      !argv.owners
+      !argv.owners ||
+      (!argv.no_registry &&
+        !argv.no_omnibus_wallet &&
+        (!argv.omnibus_wallet_investor_id || !argv.omnibus_wallet))
     ) {
       console.log("Token Deployer");
       console.log(
@@ -34,6 +38,13 @@ class ConfigurationManager {
       console.log(
         "   --required_confirmations - the number of required confirmations to execute a multisig wallet transaction"
       );
+      console.log("   --no_omnibus_wallet - skip omnibus wallet");
+      console.log(
+        "   --omnibus_wallet_investor_id - the investor id of the omnibus wallet in the registry"
+      );
+      console.log(
+        "   --omnibus_wallet - the address of the omnibus wallet in the registry"
+      );
       console.log("   --help - outputs this help");
       console.log("\n");
       process.exit();
@@ -50,6 +61,14 @@ class ConfigurationManager {
     this.lockManagerType = argv.lock_manager || "INVESTOR";
     this.noRegistry = argv.no_registry;
     this.partitioned = argv.partitioned;
+
+    if (this.noRegistry) {
+      this.noOmnibusWallet = true;
+    } else {
+      this.noOmnibusWallet = argv.no_omnibus_wallet;
+      this.omnibusWalletInvestorId = argv.omnibus_wallet_investor_id;
+      this.omnibusWallet = `0x${argv.omnibus_wallet}`;
+    }
 
     return true;
   }

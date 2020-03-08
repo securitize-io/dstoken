@@ -22,18 +22,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         VERSIONS.push(3);
     }
 
-    function validateIssuance(address _to, uint256 _value, uint256 _issuanceTime) public onlyToken returns (bool) {
-        uint256 code;
-        string memory reason;
-
-        (code, reason) = preIssuanceCheck(_to, _value);
-        require(code == 0, reason);
-        require(recordIssuance(_to, _value, _issuanceTime));
-
-        return true;
-    }
-
-    function validate(address _from, address _to, uint256 _value) public onlyToken returns (bool) {
+    function validateTransfer(address _from, address _to, uint256 _value) public onlyToken returns (bool) {
         uint256 code;
         string memory reason;
 
@@ -44,15 +33,49 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         return true;
     }
 
+    function validateIssuance(address _to, uint256 _value, uint256 _issuanceTime) public onlyToken returns (bool) {
+        require(!getRegistryService().isOmnibusWallet(_to));
+
+        uint256 code;
+        string memory reason;
+
+        (code, reason) = preIssuanceCheck(_to, _value);
+        require(code == 0, reason);
+        require(recordIssuance(_to, _value, _issuanceTime));
+
+        return true;
+    }
+
     function validateBurn(address _who, uint256 _value) public onlyToken returns (bool) {
+        require(!getRegistryService().isOmnibusWallet(_who));
         require(recordBurn(_who, _value));
 
         return true;
     }
 
+    function validateOmnibusBurn(address _omnibusWallet, address _who, uint256 _value) public onlyToken returns (bool) {
+        require(getRegistryService().isOmnibusWallet(_omnibusWallet));
+        require(!getRegistryService().isOmnibusWallet(_who));
+
+        require(recordOmnibusBurn(_omnibusWallet, _who, _value));
+
+        return true;
+    }
+
     function validateSeize(address _from, address _to, uint256 _value) public onlyToken returns (bool) {
+        require(!getRegistryService().isOmnibusWallet(_from));
         require(getWalletManager().getWalletType(_to) == getWalletManager().ISSUER());
         require(recordSeize(_from, _to, _value));
+
+        return true;
+    }
+
+    function validateOmnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value) public onlyToken returns (bool) {
+        require(getRegistryService().isOmnibusWallet(_omnibusWallet));
+        require(!getRegistryService().isOmnibusWallet(_from));
+        require(getWalletManager().getWalletType(_to) == getWalletManager().ISSUER());
+
+        require(recordOmnibusSeize(_omnibusWallet, _from, _to, _value));
 
         return true;
     }
@@ -93,10 +116,11 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
     }
 
     // These functions should be implemented by the concrete compliance manager
-
     function recordIssuance(address _to, uint256 _value, uint256 _issuanceTime) internal returns (bool);
     function recordTransfer(address _from, address _to, uint256 _value) internal returns (bool);
     function recordBurn(address _who, uint256 _value) internal returns (bool);
+    function recordOmnibusBurn(address _omnibusWallet, address _who, uint256 _value) internal returns (bool);
     function recordSeize(address _from, address _to, uint256 _value) internal returns (bool);
+    function recordOmnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value) internal returns (bool);
     function checkTransfer(address _from, address _to, uint256 _value) internal view returns (uint256, string memory);
 }

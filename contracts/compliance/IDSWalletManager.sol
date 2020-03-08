@@ -63,10 +63,7 @@ contract IDSWalletManager is Initializable, VersionedContract {
    * @param _owner The address of the owner.
    * @return A boolean that indicates if the operation was successful.
    */
-    function addExchangeWallet(
-        address _wallet,
-        address _owner /*onlyIssuerOrAbove*/
-    ) public returns (bool);
+    function addExchangeWallet(address _wallet, address _owner) public returns (bool);
     /**
    * @dev Removes a special wallet.
    * @param _wallet The address of the wallet.

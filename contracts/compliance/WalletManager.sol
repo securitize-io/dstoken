@@ -25,6 +25,7 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
    */
     function setSpecialWallet(address _wallet, uint8 _type) internal returns (bool) {
         require(keccak256(abi.encodePacked(getRegistryService().getInvestor(_wallet))) == keccak256(""));
+
         uint8 oldType = getWalletType(_wallet);
         require(oldType == NONE || _type == NONE);
 
