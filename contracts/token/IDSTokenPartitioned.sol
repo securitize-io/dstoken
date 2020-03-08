@@ -5,8 +5,7 @@ import "./IDSToken.sol";
 
 
 contract IDSTokenPartitioned is IDSToken {
-  function initialize() public isNotInitialized {
-    super.initialize();
+  function initialize() public {
     VERSIONS.push(1);
   }
   function balanceOfByPartition(address _who, bytes32 _partition) public view returns (uint256);

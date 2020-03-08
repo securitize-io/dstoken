@@ -11,8 +11,8 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
   uint256 constant MAX_LOCKS_PER_INVESTOR_PARTITION = 30;
 
   function initialize() public initializer onlyFromProxy {
+    LockManager.initialize();
     IDSLockManagerPartitioned.initialize();
-    ServiceConsumer.initialize();
     VERSIONS.push(1);
   }
 

@@ -4,7 +4,7 @@ import "./IDSLockManager.sol";
 
 contract IDSLockManagerPartitioned is IDSLockManager {
 
-    function initialize() public isNotInitialized {
+    function initialize() public {
         VERSIONS.push(1);
     }
 

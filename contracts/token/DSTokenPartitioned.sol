@@ -7,8 +7,8 @@ import '../data-stores/TokenPartitionedDataStore.sol';
 import "../zeppelin/math/Math.sol";
 
 contract DSTokenPartitioned is DSToken, IDSTokenPartitioned, TokenPartitionedDataStore {
-  function initialize() public {
-    IDSToken.initialize();
+  function initialize(string memory _name, string memory _symbol, uint8 _decimals) public initializer onlyFromProxy {
+    DSToken.initialize(_name, _symbol, _decimals);
     IDSTokenPartitioned.initialize();
     VERSIONS.push(1);
   }
