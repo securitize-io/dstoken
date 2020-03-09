@@ -190,6 +190,7 @@ library ComplianceServiceLibrary {
 
             if (
                 (!isBeneficiaryDepositOrWithdrawl(_services, _from, _to) &&
+                    !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
                     fromInvestorBalance > _value &&
                     fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens())
             ) {
