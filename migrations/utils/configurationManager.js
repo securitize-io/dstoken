@@ -64,6 +64,10 @@ class ConfigurationManager {
     this.lockManagerType = argv.lock_manager || "INVESTOR";
     this.noRegistry = argv.no_registry;
     this.partitioned = argv.partitioned;
+    if (this.partitioned) {
+      this.complianceManagerType = "PARTITIONED";
+      this.lockManagerType = "PARTITIONED";
+    }
 
     if (this.noRegistry) {
       this.noOmnibusWallet = true;
@@ -83,10 +87,9 @@ class ConfigurationManager {
       case "WHITELIST":
         return artifacts.require("ComplianceServiceWhitelisted");
       case "NORMAL":
-        if (this.partitioned) {
-          return artifacts.require("ComplianceServiceRegulatedPartitioned");
-        }
         return artifacts.require("ComplianceServiceRegulated");
+      case "PARTITIONED":
+        return artifacts.require("ComplianceServiceRegulatedPartitioned");
       default:
         break;
     }
@@ -96,10 +99,9 @@ class ConfigurationManager {
     switch (this.lockManagerType) {
       case "WALLET":
         return artifacts.require("LockManager");
+      case "PARTITIONED":
+        return artifacts.require("InvestorLockManagerPartitioned");
       default:
-        if (this.partitioned) {
-          return artifacts.require("InvestorLockManagerPartitioned");
-        }
         return artifacts.require("InvestorLockManager");
     }
   }
