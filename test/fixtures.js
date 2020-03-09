@@ -27,18 +27,6 @@ module.exports = {
     ISRAEL_INVESTOR_ID: "israelInvestorId",
     ISRAEL_INVESTOR_COLLISION_HASH: "israelInvestorCollisionHash"
   },
-  AttributeType: {
-    NONE: 0,
-    KYC_APPROVED: 1,
-    ACCREDITED: 2,
-    QUALIFIED: 4,
-    PROFESSIONAL: 8
-  },
-  AttributeStatus: {
-    PENDING: 0,
-    APPROVED: 1,
-    REJECTED: 2
-  },
   Country: {
     FRANCE: "france",
     USA: "usa",
