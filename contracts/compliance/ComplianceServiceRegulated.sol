@@ -279,7 +279,7 @@ library ComplianceServiceLibrary {
                 !isBeneficiaryDepositOrWithdrawl(_services, _from, _to) &&
                 !isHolderOfRecordInternalTransfer(_services, _omnibusWallet)
             ) {
-                return (61, ONLY_US_ACCREDITED);
+                return (62, ONLY_US_ACCREDITED);
             }
 
             uint256 usInvestorsLimit = getUsInvestorsLimit(_services);
