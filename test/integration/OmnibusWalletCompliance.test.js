@@ -384,7 +384,7 @@ contract("OmnibusWalletCompliance", function([
         assert.equal(res[1], "Amount of tokens under min");
       });
 
-      it("Should fail the withdraw if the omnibus investor balance is above the maximum holdings per investor limit", async function() {
+      it("Should fail the withdraw if the investor balance is above the maximum holdings per investor limit", async function() {
         await this.token.issueTokens(investorWallet1, 1000);
         await this.token.transfer(omnibusWallet1, 1000, {
           from: investorWallet1
@@ -393,7 +393,7 @@ contract("OmnibusWalletCompliance", function([
         const res = await this.complianceService.preTransferCheck(
           omnibusWallet1,
           investorWallet1,
-          499
+          1000
         );
         assert.equal(res[0].toNumber(), 52);
         assert.equal(res[1], "Amount of tokens above max");
