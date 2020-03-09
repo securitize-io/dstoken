@@ -4,7 +4,6 @@ const fixtures = require("../fixtures");
 const globals = require("../../utils/globals");
 const complianceType = globals.complianceType;
 const lockManagerType = globals.lockManagerType;
-const role = globals.roles;
 const investorId = fixtures.InvestorId;
 const assetTrackingMode = fixtures.AssetTrackingMode;
 const attributeType = fixtures.AttributeType;
