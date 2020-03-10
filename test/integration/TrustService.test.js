@@ -40,9 +40,9 @@ contract("TrustService", function([
     it(`Should transfer ownership (MASTER role) of the contract to ${newOwnerWallet}`, async function() {
       const {logs} = await this.trustService.setServiceOwner(newOwnerWallet);
 
-      assert.equal(logs[0].args._address, ownerWallet);
+      assert.equal(logs[0].args.address, ownerWallet);
       assert.equal(logs[0].event, "DSTrustServiceRoleRemoved");
-      assert.equal(logs[1].args._address, newOwnerWallet);
+      assert.equal(logs[1].args.address, newOwnerWallet);
       assert.equal(logs[1].event, "DSTrustServiceRoleAdded");
     });
 
@@ -95,7 +95,7 @@ contract("TrustService", function([
         }
       );
 
-      assert.equal(logs[0].args._address, issuerWallet);
+      assert.equal(logs[0].args.address, issuerWallet);
       assert.equal(logs[0].event, "DSTrustServiceRoleAdded");
     });
 
@@ -113,7 +113,7 @@ contract("TrustService", function([
         {from: newOwnerWallet}
       );
 
-      assert.equal(logs[0].args._address, exchangeWallet);
+      assert.equal(logs[0].args.address, exchangeWallet);
       assert.equal(logs[0].event, "DSTrustServiceRoleAdded");
     });
 
@@ -158,7 +158,7 @@ contract("TrustService", function([
           from: issuerWallet
         });
 
-        assert.equal(logs[0].args._address, wallet1);
+        assert.equal(logs[0].args.address, wallet1);
         assert.equal(logs[0].event, "DSTrustServiceRoleRemoved");
       });
 
@@ -179,7 +179,7 @@ contract("TrustService", function([
           from: newOwnerWallet
         });
 
-        assert.equal(logs[0].args._address, wallet2);
+        assert.equal(logs[0].args.address, wallet2);
         assert.equal(logs[0].event, "DSTrustServiceRoleRemoved");
       });
 

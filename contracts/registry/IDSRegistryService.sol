@@ -11,14 +11,14 @@ contract IDSRegistryService is Initializable, VersionedContract {
         VERSIONS.push(3);
     }
 
-    event DSRegistryServiceInvestorAdded(string _investorId, address _sender);
-    event DSRegistryServiceInvestorRemoved(string _investorId, address _sender);
-    event DSRegistryServiceInvestorCountryChanged(string _investorId, string _country, address _sender);
-    event DSRegistryServiceInvestorAttributeChanged(string _investorId, uint256 _attributeId, uint256 _value, uint256 _expiry, string _proofHash, address _sender);
-    event DSRegistryServiceWalletAdded(address _wallet, string _investorId, address _sender);
-    event DSRegistryServiceWalletRemoved(address _wallet, string _investorId, address _sender);
-    event DSRegistryServiceOmnibusWalletAdded(address _omnibusWallet, string _investorId, IDSOmnibusWalletController omnibusWalletController);
-    event DSRegistryServiceOmnibusWalletRemoved(address _omnibusWallet, string _investorId);
+    event DSRegistryServiceInvestorAdded(string investorId, address sender);
+    event DSRegistryServiceInvestorRemoved(string investorId, address sender);
+    event DSRegistryServiceInvestorCountryChanged(string investorId, string country, address sender);
+    event DSRegistryServiceInvestorAttributeChanged(string investorId, uint256 attributeId, uint256 value, uint256 expiry, string proofHash, address sender);
+    event DSRegistryServiceWalletAdded(address wallet, string investorId, address sender);
+    event DSRegistryServiceWalletRemoved(address wallet, string investorId, address sender);
+    event DSRegistryServiceOmnibusWalletAdded(address omnibusWallet, string investorId, IDSOmnibusWalletController omnibusWalletController);
+    event DSRegistryServiceOmnibusWalletRemoved(address omnibusWallet, string investorId);
 
     uint8 public constant NONE = 0;
     uint8 public constant KYC_APPROVED = 1;
