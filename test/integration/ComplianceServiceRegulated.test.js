@@ -778,7 +778,7 @@ contract("ComplianceServiceRegulated", function([
         owner,
         10
       );
-      assert.equal(res[0].toNumber(), 61);
+      assert.equal(res[0].toNumber(), 62);
       assert.equal(res[1], "Only us accredited");
     });
 
