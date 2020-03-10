@@ -10,7 +10,10 @@ const ComplianceConfigurationService = artifacts.require(
 const OmnibusWalletController = artifacts.require("OmnibusWalletController");
 const MultiSigWallet = artifacts.require("MultiSigWallet");
 const configurationManager = require("./utils/configurationManager");
-const services = require("../utils/globals").services;
+const globals = require("../utils/globals");
+const services = globals.services;
+const attributeType = globals.attributeType;
+const attributeStatus = globals.attributeStatus;
 
 module.exports = async function(deployer) {
   if (configurationManager.isTestMode()) {
@@ -184,6 +187,21 @@ module.exports = async function(deployer) {
         configurationManager.omnibusWalletInvestorId,
         configurationManager.omnibusWallet,
         omnibusWalletController.address
+      );
+
+      await registry.setAttribute(
+        configurationManager.omnibusWalletInvestorId,
+        attributeType.ACCREDITED,
+        attributeStatus.APPROVED,
+        "",
+        ""
+      );
+      await registry.setAttribute(
+        configurationManager.omnibusWalletInvestorId,
+        attributeType.QUALIFIED,
+        attributeStatus.APPROVED,
+        "",
+        ""
       );
     }
   }

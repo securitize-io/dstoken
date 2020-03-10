@@ -8,13 +8,13 @@ import "../utils/ProxyTarget.sol";
 contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWalletController, ServiceConsumer, OmnibusControllerDataStore {
     using SafeMath for uint256;
 
-    modifier onlyOperatorOrAbove(address _operator) {
+    modifier onlyOperatorOrAbove {
         IDSTrustService trustService = getTrustService();
         require(
-            trustService.getRole(_operator) == trustService.ISSUER() ||
-                trustService.getRole(_operator) == trustService.MASTER() ||
-                trustService.isEntityOwner(omnibusWallet, _operator) ||
-                trustService.isResourceOperator(omnibusWallet, _operator),
+            trustService.getRole(msg.sender) == trustService.ISSUER() ||
+                trustService.getRole(msg.sender) == trustService.MASTER() ||
+                trustService.isEntityOwner(omnibusWallet, msg.sender) ||
+                trustService.isResourceOperator(omnibusWallet, msg.sender),
             "Insufficient trust level"
         );
         _;
@@ -33,7 +33,7 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
         omnibusWallet = _omnibusWallet;
     }
 
-    function setAssetTrackingMode(uint8 _assetTrackingMode) public onlyOperatorOrAbove(msg.sender) {
+    function setAssetTrackingMode(uint8 _assetTrackingMode) public onlyOperatorOrAbove {
         require(_assetTrackingMode == BENEFICIARY || _assetTrackingMode == HOLDER_OF_RECORD, "Invalid tracking mode value");
         require(getToken().balanceOf(omnibusWallet) == 0, "Omnibus wallet must be empty");
 
@@ -60,7 +60,7 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
         balances[_from] = balances[_from].sub(_value);
     }
 
-    function transfer(address _from, address _to, uint256 _value) public onlyOperatorOrAbove(msg.sender) enoughBalance(_from, _value) {
+    function transfer(address _from, address _to, uint256 _value) public onlyOperatorOrAbove enoughBalance(_from, _value) {
         getComplianceService().validateOmnibusInternalTransfer(omnibusWallet, _from, _to, _value);
         balances[_from] = balances[_from].sub(_value);
         balances[_to] = balances[_to].add(_value);

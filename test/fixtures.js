@@ -29,18 +29,6 @@ module.exports = {
     OMNIBUS_WALLET_INVESTOR_ID_1: "omnibusWalletInvestorId1",
     OMNIBUS_WALLET_INVESTOR_ID_2: "omnibusWalletInvestorId2"
   },
-  AttributeType: {
-    NONE: 0,
-    KYC_APPROVED: 1,
-    ACCREDITED: 2,
-    QUALIFIED: 4,
-    PROFESSIONAL: 8
-  },
-  AttributeStatus: {
-    PENDING: 0,
-    APPROVED: 1,
-    REJECTED: 2
-  },
   Country: {
     FRANCE: "france",
     USA: "usa",

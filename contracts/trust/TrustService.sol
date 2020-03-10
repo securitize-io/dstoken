@@ -33,23 +33,23 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
         _;
     }
 
-    modifier onlyEntityOwnerOrAbove(string memory _name, address _owner) {
+    modifier onlyEntityOwnerOrAbove(string memory _name) {
         require(
             roles[msg.sender] == MASTER ||
                 roles[msg.sender] == ISSUER ||
-                (keccak256(abi.encodePacked(ownersEntities[_owner])) != keccak256(abi.encodePacked("")) &&
-                    keccak256(abi.encodePacked(ownersEntities[_owner])) == keccak256(abi.encodePacked(_name)))
+                (keccak256(abi.encodePacked(ownersEntities[msg.sender])) != keccak256(abi.encodePacked("")) &&
+                    keccak256(abi.encodePacked(ownersEntities[msg.sender])) == keccak256(abi.encodePacked(_name)))
         );
         _;
     }
 
     modifier onlyNewEntity(string memory _name) {
-        require(!entities[_name], "Entity already exists");
+        require(entitiesOwners[_name] != address(0), "Entity already exists");
         _;
     }
 
     modifier onlyExistingEntity(string memory _name) {
-        require(entities[_name], "Entity doesn't exist");
+        require(entitiesOwners[_name] != address(0), "Entity doesn't exist");
         _;
     }
 
@@ -166,7 +166,7 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
     }
 
     function addEntity(string memory _name, address _owner) public onlyMasterOrIssuer onlyNewEntity(_name) onlyNewEntityOwner(_owner) {
-        entities[_name] = true;
+        entitiesOwners[_name] = _owner;
         ownersEntities[_owner] = _name;
     }
 
@@ -175,11 +175,11 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
         ownersEntities[_newOwner] = _name;
     }
 
-    function addOperator(string memory _name, address _operator) public onlyEntityOwnerOrAbove(_name, msg.sender) onlyNewOperator(_operator) {
+    function addOperator(string memory _name, address _operator) public onlyEntityOwnerOrAbove(_name) onlyNewOperator(_operator) {
         operatorsEntities[_operator] = _name;
     }
 
-    function removeOperator(string memory _name, address _operator) public onlyEntityOwnerOrAbove(_name, msg.sender) onlyExistingOperator(_name, _operator) {
+    function removeOperator(string memory _name, address _operator) public onlyEntityOwnerOrAbove(_name) onlyExistingOperator(_name, _operator) {
         delete operatorsEntities[_operator];
     }
 

@@ -24,5 +24,17 @@ module.exports = {
   lockManagerType: {
     WALLET: 0,
     INVESTOR: 1
+  },
+  attributeType: {
+    NONE: 0,
+    KYC_APPROVED: 1,
+    ACCREDITED: 2,
+    QUALIFIED: 4,
+    PROFESSIONAL: 8
+  },
+  attributeStatus: {
+    PENDING: 0,
+    APPROVED: 1,
+    REJECTED: 2
   }
 };
