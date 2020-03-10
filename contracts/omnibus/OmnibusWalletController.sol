@@ -8,8 +8,20 @@ import "../utils/ProxyTarget.sol";
 contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWalletController, ServiceConsumer, OmnibusControllerDataStore {
     using SafeMath for uint256;
 
+    modifier onlyOperatorOrAbove {
+        IDSTrustService trustService = getTrustService();
+        require(
+            trustService.getRole(msg.sender) == trustService.ISSUER() ||
+                trustService.getRole(msg.sender) == trustService.MASTER() ||
+                trustService.isEntityOwner(omnibusWallet, msg.sender) ||
+                trustService.isResourceOperator(omnibusWallet, msg.sender),
+            "Insufficient trust level"
+        );
+        _;
+    }
+
     modifier enoughBalance(address _from, uint256 _value) {
-        require(balances[_from] >= _value, "Omnibus wallet withdraw: not enough tokens");
+        require(balances[_from] >= _value, "Not enough balance");
         _;
     }
 
@@ -21,8 +33,9 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
         omnibusWallet = _omnibusWallet;
     }
 
-    function setAssetTrackingMode(uint8 _assetTrackingMode) public {
+    function setAssetTrackingMode(uint8 _assetTrackingMode) public onlyOperatorOrAbove {
         require(_assetTrackingMode == BENEFICIARY || _assetTrackingMode == HOLDER_OF_RECORD, "Invalid tracking mode value");
+        require(getToken().balanceOf(omnibusWallet) == 0, "Omnibus wallet must be empty");
 
         assetTrackingMode = _assetTrackingMode;
     }
@@ -45,6 +58,19 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
 
     function withdraw(address _from, uint256 _value) public enoughBalance(_from, _value) onlyToken {
         balances[_from] = balances[_from].sub(_value);
+    }
+
+    function transfer(address _from, address _to, uint256 _value) public onlyOperatorOrAbove enoughBalance(_from, _value) {
+        getComplianceService().validateOmnibusInternalTransfer(omnibusWallet, _from, _to, _value);
+        balances[_from] = balances[_from].sub(_value);
+        balances[_to] = balances[_to].add(_value);
+
+        if (assetTrackingMode == BENEFICIARY) {
+            getToken().updateOmnibusInvestorBalance(omnibusWallet, _from, _value, false);
+            getToken().updateOmnibusInvestorBalance(omnibusWallet, _to, _value, true);
+        }
+
+        getToken().emitOmnibusTransferEvent(omnibusWallet, _from, _to, _value);
     }
 
     function seize(address _from, uint256 _value) public enoughBalance(_from, _value) onlyToken {

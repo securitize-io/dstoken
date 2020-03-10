@@ -13,6 +13,16 @@ contract IDSOmnibusWalletController is Initializable, VersionedContract {
         VERSIONS.push(1);
     }
 
+    modifier onlyOperatorOrAbove {
+        require(false);
+        _;
+    }
+
+    modifier enoughBalance(address _from, uint256 _value) {
+        require(false);
+        _;
+    }
+
     function setAssetTrackingMode(uint8 _assetTrackingMode) public;
 
     function getWalletAssetTrackingMode() public view returns (uint8);
@@ -20,6 +30,12 @@ contract IDSOmnibusWalletController is Initializable, VersionedContract {
     function isHolderOfRecord() public view returns (bool);
 
     function getInvestorBalance(address _from) public view returns (uint256);
+
+    function transfer(
+        address _from,
+        address _to,
+        uint256 _value /*onlyOperator*/
+    ) public;
 
     function deposit(
         address _to,

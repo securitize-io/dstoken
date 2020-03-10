@@ -62,6 +62,11 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
         _;
     }
 
+    modifier onlyOmnibusWalletController(address omnibusWallet, IDSOmnibusWalletController omnibusWalletController) {
+        require(getRegistryService().getOmnibusWalletController(omnibusWallet) == omnibusWalletController);
+        _;
+    }
+
     function getDSService(uint256 _serviceId) public view returns (address) {
         return services[_serviceId];
     }
