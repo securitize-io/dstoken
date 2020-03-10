@@ -478,7 +478,7 @@ contract("RegistryService", function([
       });
     });
 
-    describe.skip("Omnibus controller", function() {
+    describe("Omnibus controller", function() {
       before(async function() {
         await this.registryService.registerInvestor(
           investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
@@ -498,8 +498,16 @@ contract("RegistryService", function([
           true
         );
         assert.equal(await this.registryService.isWallet(omnibusWallet), true);
-        // assert.equal(logs[1].event, "DSRegistryServiceOmnibusWalletAdded");
-        // assert.equal(logs[1].args);
+        assert.equal(logs[1].event, "DSRegistryServiceOmnibusWalletAdded");
+        assert.equal(logs[1].args.omnibusWallet, omnibusWallet);
+        assert.equal(
+          logs[1].args.investorId,
+          investorId.OMNIBUS_WALLET_INVESTOR_ID_1
+        );
+        assert.equal(
+          logs[1].args.omnibusWalletController,
+          this.omnibusController1.address
+        );
       });
 
       it("Should retrieve the omnibus controller", async function() {
@@ -511,7 +519,7 @@ contract("RegistryService", function([
       });
 
       it("Should remove the omnibus controller", async function() {
-        const {logs} = this.registryService.removeOmnibusWallet(
+        const {logs} = await this.registryService.removeOmnibusWallet(
           investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
           omnibusWallet
         );
@@ -521,6 +529,12 @@ contract("RegistryService", function([
           false
         );
         assert.equal(await this.registryService.isWallet(omnibusWallet), false);
+        assert.equal(logs[1].event, "DSRegistryServiceOmnibusWalletRemoved");
+        assert.equal(logs[1].args.omnibusWallet, omnibusWallet);
+        assert.equal(
+          logs[1].args.investorId,
+          investorId.OMNIBUS_WALLET_INVESTOR_ID_1
+        );
       });
     });
   });
