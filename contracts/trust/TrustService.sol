@@ -191,7 +191,11 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
         delete resourcesEntities[_resource];
     }
 
-    function isEntityOwner(address _resource, address _owner) public view returns (bool) {
+    function getEntityWithOwner(address _owner) public view returns (string memory) {
+        return ownersEntities[_owner];
+    }
+
+    function isResourceOwner(address _resource, address _owner) public view returns (bool) {
         return
             keccak256(abi.encodePacked(resourcesEntities[_resource])) != keccak256(abi.encodePacked("")) &&
             keccak256(abi.encodePacked(resourcesEntities[_resource])) == keccak256(abi.encodePacked(ownersEntities[_owner]));

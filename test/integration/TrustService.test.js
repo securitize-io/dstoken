@@ -2,7 +2,8 @@ const assertRevert = require("../utils/assertRevert");
 const roles = require("../../utils/globals").roles;
 const deployContractBehindProxy = require("../utils").deployContractBehindProxy;
 
-const testEntity = "TestEntity";
+const testEntity1 = "TestEntity1";
+const testEntity2 = "TestEntity2";
 
 contract("TrustService", function([
   ownerWallet,
@@ -12,6 +13,7 @@ contract("TrustService", function([
   wallet1,
   wallet2,
   entityOwner1,
+  entityOwner2,
   operator1,
   resource
 ]) {
@@ -195,18 +197,51 @@ contract("TrustService", function([
     });
   });
 
-  describe("Entities owners", function() {
+  describe.only("Entities owners", function() {
     it("Should add an entity", async function() {
-      await this.trustService.addEntity(testEntity, entityOwner1);
+      await this.trustService.addEntity(testEntity1, entityOwner1);
+
+      assert.equal(
+        await this.trustService.getEntityWithOwner(entityOwner1),
+        testEntity1
+      );
     });
 
-    it("Should fail if trying to add the same entity again", async function() {});
+    it("Should fail if trying to add the same entity again", async function() {
+      await assertRevert(
+        this.trustService.addEntity(testEntity1, entityOwner1)
+      );
+    });
 
-    it("Should fail to add an entity when sender is unauthorized", async function() {});
+    it("Should fail to add an entity when sender is unauthorized", async function() {
+      await assertRevert(
+        this.trustService.addEntity(testEntity1, entityOwner1),
+        {from: wallet1}
+      );
+    });
 
-    it("Should fail trying to add a new entity with an existing entity owner", async function() {});
+    it("Should fail trying to add a new entity with an existing entity owner", async function() {
+      await assertRevert(
+        this.trustService.addEntity(testEntity2, entityOwner1)
+      );
+    });
 
-    it("Should change the entity owner", async function() {});
+    it("Should change the entity owner", async function() {
+      await this.trustService.changeEntityOwner(
+        testEntity1,
+        entityOwner1,
+        entityOwner2
+      );
+
+      assert.equal(
+        await this.trustService.getEntityWithOwner(entityOwner1),
+        ""
+      );
+      assert.equal(
+        await this.trustService.getEntityWithOwner(entityOwner2),
+        testEntity1
+      );
+    });
 
     it("Should fail to change the entity owner when sender is unauthorized", async function() {});
 
