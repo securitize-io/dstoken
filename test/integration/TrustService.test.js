@@ -2,13 +2,18 @@ const assertRevert = require("../utils/assertRevert");
 const roles = require("../../utils/globals").roles;
 const deployContractBehindProxy = require("../utils").deployContractBehindProxy;
 
+const testEntity = "TestEntity";
+
 contract("TrustService", function([
   ownerWallet,
   newOwnerWallet,
   issuerWallet,
   exchangeWallet,
   wallet1,
-  wallet2
+  wallet2,
+  entityOwner1,
+  operator1,
+  resource
 ]) {
   before(async function() {
     await deployContractBehindProxy(
@@ -188,5 +193,61 @@ contract("TrustService", function([
         assert.equal(role.words[0], roles.NONE);
       });
     });
+  });
+
+  describe("Entities owners", function() {
+    it("Should add an entity", async function() {
+      await this.trustService.addEntity(testEntity, entityOwner1);
+    });
+
+    it("Should fail if trying to add the same entity again", async function() {});
+
+    it("Should fail to add an entity when sender is unauthorized", async function() {});
+
+    it("Should fail trying to add a new entity with an existing entity owner", async function() {});
+
+    it("Should change the entity owner", async function() {});
+
+    it("Should fail to change the entity owner when sender is unauthorized", async function() {});
+
+    it("Should fail to change the entity owner when sender is a different entity owner", async function() {});
+
+    it("Should change the entity owner", async function() {});
+  });
+
+  describe("Entities operators", function() {
+    it("Should add an operator when sender is issuer", async function() {});
+
+    it("Should add an operator when sender is entity owner", async function() {});
+
+    it("Should fail to add an operator when sender is unauthorized", async function() {});
+
+    it("Should fail to add an already existing operator", async function() {});
+
+    it("Should remove an operator when sender is issuer", async function() {});
+
+    it("Should remove an operator when sender is entity owner", async function() {});
+
+    it("Should fail to remove an operator when sender is unauthorized", async function() {});
+
+    it("Should fail to remove s non existing operator", async function() {});
+  });
+
+  describe("Entities resources", function() {
+    it("Should add a resource", async function() {});
+
+    it("Should fail to add a resource when entity does not exist", async function() {});
+
+    it("Should fail to add a resource that already exist", async function() {});
+
+    it("Should fail to add a resource when sender is unauthorized", async function() {});
+
+    it("Should remove a resource", async function() {});
+
+    it("Should fail to remove a resource that does not exist", async function() {});
+
+    it("Should fail to remove a resource when sender is unauthorized", async function() {});
+
+    it("Should verify that an operator can access a resource", async function() {});
   });
 });
