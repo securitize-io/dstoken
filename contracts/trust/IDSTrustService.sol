@@ -44,7 +44,7 @@ contract IDSTrustService is Initializable, VersionedContract {
         _;
     }
 
-    modifier onlyEntityOwnerOrAbove(string memory _name, address _owner) {
+    modifier onlyEntityOwnerOrAbove(string memory _name) {
         assert(false);
         _;
     }
