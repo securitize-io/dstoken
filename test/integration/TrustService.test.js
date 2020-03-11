@@ -4,6 +4,7 @@ const deployContractBehindProxy = require("../utils").deployContractBehindProxy;
 
 const testEntity1 = "TestEntity1";
 const testEntity2 = "TestEntity2";
+const testEntity3 = "TestEntity3";
 
 contract("TrustService", function([
   ownerWallet,
@@ -11,11 +12,12 @@ contract("TrustService", function([
   issuerWallet,
   exchangeWallet,
   wallet1,
-  wallet2,
-  entityOwner1,
-  entityOwner2,
-  operator1,
-  resource
+  wallet2
+  // entityOwner1,
+  // entityOwner2,
+  // operator1,
+  // operator2,
+  // resource
 ]) {
   before(async function() {
     await deployContractBehindProxy(
@@ -197,92 +199,230 @@ contract("TrustService", function([
     });
   });
 
-  describe.only("Entities owners", function() {
-    it("Should add an entity", async function() {
-      await this.trustService.addEntity(testEntity1, entityOwner1);
+  // describe("Entities owners", function() {
+  //   it("Should add an entity", async function() {
+  //     await this.trustService.addEntity(testEntity1, entityOwner1);
 
-      assert.equal(
-        await this.trustService.getEntityWithOwner(entityOwner1),
-        testEntity1
-      );
-    });
+  //     assert.equal(
+  //       await this.trustService.getEntityWithOwner(entityOwner1),
+  //       testEntity1
+  //     );
+  //   });
 
-    it("Should fail if trying to add the same entity again", async function() {
-      await assertRevert(
-        this.trustService.addEntity(testEntity1, entityOwner1)
-      );
-    });
+  //   it("Should fail if trying to add the same entity again", async function() {
+  //     await assertRevert(
+  //       this.trustService.addEntity(testEntity1, entityOwner1)
+  //     );
+  //   });
 
-    it("Should fail to add an entity when sender is unauthorized", async function() {
-      await assertRevert(
-        this.trustService.addEntity(testEntity1, entityOwner1),
-        {from: wallet1}
-      );
-    });
+  //   it("Should fail to add an entity when sender is unauthorized", async function() {
+  //     await assertRevert(
+  //       this.trustService.addEntity(testEntity1, entityOwner1),
+  //       {from: wallet1}
+  //     );
+  //   });
 
-    it("Should fail trying to add a new entity with an existing entity owner", async function() {
-      await assertRevert(
-        this.trustService.addEntity(testEntity2, entityOwner1)
-      );
-    });
+  //   it("Should fail trying to add a new entity with an existing entity owner", async function() {
+  //     await assertRevert(
+  //       this.trustService.addEntity(testEntity2, entityOwner1)
+  //     );
+  //   });
 
-    it("Should change the entity owner", async function() {
-      await this.trustService.changeEntityOwner(
-        testEntity1,
-        entityOwner1,
-        entityOwner2
-      );
+  //   it("Should change the entity owner", async function() {
+  //     await this.trustService.changeEntityOwner(
+  //       testEntity1,
+  //       entityOwner1,
+  //       entityOwner2
+  //     );
 
-      assert.equal(
-        await this.trustService.getEntityWithOwner(entityOwner1),
-        ""
-      );
-      assert.equal(
-        await this.trustService.getEntityWithOwner(entityOwner2),
-        testEntity1
-      );
-    });
+  //     assert.equal(
+  //       await this.trustService.getEntityWithOwner(entityOwner1),
+  //       ""
+  //     );
+  //     assert.equal(
+  //       await this.trustService.getEntityWithOwner(entityOwner2),
+  //       testEntity1
+  //     );
 
-    it("Should fail to change the entity owner when sender is unauthorized", async function() {});
+  //     await this.trustService.changeEntityOwner(
+  //       testEntity1,
+  //       entityOwner2,
+  //       entityOwner1
+  //     );
+  //   });
 
-    it("Should fail to change the entity owner when sender is a different entity owner", async function() {});
+  //   it("Should fail to change the entity owner when sender is unauthorized", async function() {
+  //     await assertRevert(
+  //       this.trustService.changeEntityOwner(
+  //         testEntity1,
+  //         entityOwner1,
+  //         entityOwner2,
+  //         {from: wallet1}
+  //       )
+  //     );
+  //   });
 
-    it("Should change the entity owner", async function() {});
-  });
+  //   it("Should fail to change the entity owner when sender is a different entity owner", async function() {
+  //     await this.trustService.addEntity(testEntity2, entityOwner2);
 
-  describe("Entities operators", function() {
-    it("Should add an operator when sender is issuer", async function() {});
+  //     await assertRevert(
+  //       this.trustService.changeEntityOwner(
+  //         testEntity1,
+  //         entityOwner1,
+  //         entityOwner2,
+  //         {from: entityOwner2}
+  //       )
+  //     );
+  //   });
+  // });
 
-    it("Should add an operator when sender is entity owner", async function() {});
+  // describe("Entities operators", function() {
+  //   it("Should add an operator when sender is issuer", async function() {
+  //     await this.trustService.addOperator(testEntity1, operator1);
 
-    it("Should fail to add an operator when sender is unauthorized", async function() {});
+  //     assert.equal(
+  //       await this.trustService.getEntityWithOperator(operator1),
+  //       testEntity1
+  //     );
 
-    it("Should fail to add an already existing operator", async function() {});
+  //     await this.trustService.removeOperator(testEntity1, operator1);
+  //   });
 
-    it("Should remove an operator when sender is issuer", async function() {});
+  //   it("Should add an operator when sender is entity owner", async function() {
+  //     await this.trustService.addOperator(testEntity1, operator1, {
+  //       from: entityOwner1
+  //     });
 
-    it("Should remove an operator when sender is entity owner", async function() {});
+  //     assert.equal(
+  //       await this.trustService.getEntityWithOperator(operator1),
+  //       testEntity1
+  //     );
 
-    it("Should fail to remove an operator when sender is unauthorized", async function() {});
+  //     await this.trustService.removeOperator(testEntity1, operator1);
+  //   });
 
-    it("Should fail to remove s non existing operator", async function() {});
-  });
+  //   it("Should fail to add an operator when sender is unauthorized", async function() {
+  //     await assertRevert(
+  //       this.trustService.addOperator(testEntity1, operator1, {
+  //         from: wallet1
+  //       })
+  //     );
+  //   });
 
-  describe("Entities resources", function() {
-    it("Should add a resource", async function() {});
+  //   it("Should fail to add an already existing operator", async function() {
+  //     await this.trustService.addOperator(testEntity1, operator1);
+  //     await assertRevert(this.trustService.addOperator(testEntity1, operator1));
+  //   });
 
-    it("Should fail to add a resource when entity does not exist", async function() {});
+  //   it("Should remove an operator when sender is issuer", async function() {
+  //     await this.trustService.removeOperator(testEntity1, operator1);
 
-    it("Should fail to add a resource that already exist", async function() {});
+  //     assert.equal(
+  //       await this.trustService.getEntityWithOperator(operator1),
+  //       ""
+  //     );
+  //   });
 
-    it("Should fail to add a resource when sender is unauthorized", async function() {});
+  //   it("Should remove an operator when sender is entity owner", async function() {
+  //     await this.trustService.addOperator(testEntity1, operator1);
+  //     await this.trustService.removeOperator(testEntity1, operator1, {
+  //       from: entityOwner1
+  //     });
 
-    it("Should remove a resource", async function() {});
+  //     assert.equal(
+  //       await this.trustService.getEntityWithOperator(operator1),
+  //       ""
+  //     );
+  //   });
 
-    it("Should fail to remove a resource that does not exist", async function() {});
+  //   it("Should fail to remove an operator when sender is unauthorized", async function() {
+  //     await this.trustService.addOperator(testEntity1, operator1);
+  //     await assertRevert(
+  //       this.trustService.removeOperator(testEntity1, operator1, {
+  //         from: wallet1
+  //       })
+  //     );
+  //   });
 
-    it("Should fail to remove a resource when sender is unauthorized", async function() {});
+  //   it("Should fail to remove a non existing operator", async function() {
+  //     await assertRevert(
+  //       this.trustService.removeOperator(testEntity1, wallet1)
+  //     );
+  //   });
+  // });
 
-    it("Should verify that an operator can access a resource", async function() {});
-  });
+  // describe("Entities resources", function() {
+  //   it("Should add a resource", async function() {
+  //     await this.trustService.addResource(testEntity1, resource);
+
+  //     assert.equal(
+  //       await this.trustService.getEntityWithResource(resource),
+  //       testEntity1
+  //     );
+
+  //     await this.trustService.removeResource(testEntity1, resource);
+  //   });
+
+  //   it("Should fail to add a resource when entity does not exist", async function() {
+  //     await assertRevert(this.trustService.addResource(testEntity3, resource));
+  //   });
+
+  //   it("Should fail to add a resource that already exist", async function() {
+  //     await this.trustService.addResource(testEntity1, resource);
+  //     await assertRevert(this.trustService.addResource(testEntity1, resource));
+  //   });
+
+  //   it("Should fail to add a resource when sender is unauthorized", async function() {
+  //     await assertRevert(
+  //       this.trustService.addResource(testEntity1, resource, {from: wallet1})
+  //     );
+  //   });
+
+  //   it("Should remove a resource", async function() {
+  //     await this.trustService.removeResource(testEntity1, resource);
+
+  //     assert.equal(await this.trustService.getEntityWithResource(resource), "");
+  //   });
+
+  //   it("Should fail to remove a resource that does not exist", async function() {
+  //     await assertRevert(
+  //       this.trustService.removeResource(testEntity1, resource)
+  //     );
+  //   });
+
+  //   it("Should fail to remove a resource when sender is unauthorized", async function() {
+  //     await this.trustService.addResource(testEntity1, resource);
+  //     await assertRevert(
+  //       this.trustService.removeResource(testEntity1, resource, {from: wallet1})
+  //     );
+  //   });
+
+  //   it("Should verify that an owner can access a resource", async function() {
+  //     assert.equal(
+  //       await this.trustService.isResourceOwner(resource, entityOwner1),
+  //       true
+  //     );
+  //   });
+
+  //   it("Should verify that an operator can access a resource", async function() {
+  //     assert.equal(
+  //       await this.trustService.isResourceOperator(resource, operator1),
+  //       true
+  //     );
+  //   });
+
+  //   it("Should verify that an unauthorized owner cannot access a resource", async function() {
+  //     assert.equal(
+  //       await this.trustService.isResourceOwner(resource, entityOwner2),
+  //       false
+  //     );
+  //   });
+
+  //   it("Should verify that an unauthorized operator cannot access a resource", async function() {
+  //     assert.equal(
+  //       await this.trustService.isResourceOperator(resource, operator2),
+  //       false
+  //     );
+  //   });
+  // });
 });

@@ -156,6 +156,8 @@ contract IDSTrustService is Initializable, VersionedContract {
         address _resource /*onlyMasterOrIssuer onlyExistingResource*/
     ) public;
     function getEntityWithOwner(address _owner) public view returns (string memory);
+    function getEntityWithOperator(address _operator) public view returns (string memory);
+    function getEntityWithResource(address _resource) public view returns (string memory);
     function isResourceOwner(address _resource, address _owner) public view returns (bool);
     function isResourceOperator(address _resource, address _operator) public view returns (bool);
 }
