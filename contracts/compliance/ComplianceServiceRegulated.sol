@@ -115,9 +115,8 @@ library ComplianceServiceLibrary {
         }
 
         if (
-            IDSToken(_services[DS_TOKEN]).balanceOf(_from) < _value ||
-            (isOmnibusInternalTransfer(_omnibusWallet) &&
-                IDSRegistryService(_services[REGISTRY_SERVICE]).getOmnibusWalletController(_omnibusWallet).getInvestorBalance(_from) < _value)
+            (isOmnibusInternalTransfer(_omnibusWallet) && IDSRegistryService(_services[REGISTRY_SERVICE]).getOmnibusWalletController(_omnibusWallet).balanceOf(_from) < _value) ||
+            (!isOmnibusInternalTransfer(_omnibusWallet) && IDSToken(_services[DS_TOKEN]).balanceOf(_from) < _value)
         ) {
             return (15, NOT_ENOUGH_TOKENS);
         }
@@ -541,6 +540,8 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         } else {
             recordSeize(_from, _to, _value);
         }
+
+        return true;
     }
 
     function adjustInvestorCountsAfterCountryChange(string memory _id, string memory _country, string memory _prevCountry) public onlyRegistry returns (bool) {

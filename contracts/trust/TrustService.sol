@@ -44,7 +44,7 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
     }
 
     modifier onlyNewEntity(string memory _name) {
-        require(entitiesOwners[_name] != address(0), "Entity already exists");
+        require(entitiesOwners[_name] == address(0), "Entity already exists");
         _;
     }
 

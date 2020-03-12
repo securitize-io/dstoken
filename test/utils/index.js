@@ -6,7 +6,8 @@ async function deployContracts(
   testObject,
   artifacts,
   complianceType = compliance.NORMAL,
-  lockManagerType = lockManager.INVESTOR
+  lockManagerType = lockManager.INVESTOR,
+  omnibusWalletAddress = undefined
 ) {
   await deployContractBehindProxy(
     artifacts.require("Proxy"),
@@ -89,6 +90,26 @@ async function deployContracts(
     testObject,
     "issuer"
   );
+
+  if (omnibusWalletAddress) {
+    await deployContractBehindProxy(
+      artifacts.require("Proxy"),
+      artifacts.require("OmnibusWalletController"),
+      testObject,
+      "omnibusController",
+      [omnibusWalletAddress]
+    );
+
+    await setServicesDependencies(
+      testObject.omnibusController,
+      [services.COMPLIANCE_SERVICE, services.DS_TOKEN, services.TRUST_SERVICE],
+      [
+        testObject.complianceService.address,
+        testObject.token.address,
+        testObject.trustService.address
+      ]
+    );
+  }
 
   await setServicesDependencies(
     testObject.registryService,
