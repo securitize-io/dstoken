@@ -49,9 +49,7 @@ contract("TrustService", function([
     it(`Should transfer ownership (MASTER role) of the contract to ${newOwnerWallet}`, async function() {
       const {logs} = await this.trustService.setServiceOwner(newOwnerWallet);
 
-      assert.equal(logs[0].args.targetAddress, ownerWallet, {
-        from: newOwnerWallet
-      });
+      assert.equal(logs[0].args.targetAddress, ownerWallet);
       assert.equal(logs[0].event, "DSTrustServiceRoleRemoved");
       assert.equal(logs[1].args.targetAddress, newOwnerWallet);
       assert.equal(logs[1].event, "DSTrustServiceRoleAdded");
