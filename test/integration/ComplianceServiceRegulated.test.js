@@ -18,14 +18,16 @@ contract("ComplianceServiceRegulated", function([
   issuerWallet,
   noneWallet1,
   noneWallet2,
-  platformWallet
+  platformWallet,
+  omnibusWallet
 ]) {
   beforeEach(async function() {
     await deployContracts(
       this,
       artifacts,
       complianceType.NORMAL,
-      lockManagerType.WALLET
+      lockManagerType.WALLET,
+      [omnibusWallet]
     );
     await this.trustService.setRole(issuerWallet, roles.ISSUER);
     await this.complianceConfiguration.setCountryCompliance(
@@ -48,6 +50,20 @@ contract("ComplianceServiceRegulated", function([
       await assertRevert(
         this.complianceService.validateIssuance(wallet, 100, await latestTime())
       );
+    });
+
+    it.only("Should revert due to issuing to omnibus wallet", async function() {
+      await this.registryService.registerInvestor(
+        investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
+        investorId.OMNIBUS_WALLET_INVESTOR_ID_1
+      );
+      await this.registryService.addOmnibusWallet(
+        investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
+        omnibusWallet,
+        this.omnibusController1.address
+      );
+      await this.token.setCap(1000);
+      await assertRevert(this.token.issueTokens(omnibusWallet, 100));
     });
 
     it("Should issue tokens", async function() {
