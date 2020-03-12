@@ -269,15 +269,15 @@ contract("OmnibusWalletController", function([
 
     describe("IsHolderOfRecord", function() {
       it("Should return 'true'", async function() {
-        await this.omnibusController.setAssetTrackingMode(
+        await this.omnibusController1.setAssetTrackingMode(
           assetTrackingMode.HOLDER_OF_RECORD
         );
 
-        assert.equal(await this.omnibusController.isHolderOfRecord(), true);
+        assert.equal(await this.omnibusController1.isHolderOfRecord(), true);
       });
 
       it("Should return 'false'", async function() {
-        assert.equal(await this.omnibusController.isHolderOfRecord(), false);
+        assert.equal(await this.omnibusController1.isHolderOfRecord(), false);
       });
     });
   });
