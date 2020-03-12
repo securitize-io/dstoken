@@ -250,7 +250,7 @@ contract("OmnibusWalletController", function([
       });
     });
 
-    it("Should fail to set the mode if the omnibus wallet balance is greater then 0", async function() {
+    it("Should fail to set the mode if the omnibus wallet balance is greater than 0", async function() {
       await this.token.issueTokens(investorWallet1, 1000);
       await this.token.transfer(omnibusWallet, 500, {
         from: investorWallet1
@@ -267,16 +267,18 @@ contract("OmnibusWalletController", function([
       await assertRevert(this.omnibusController.setAssetTrackingMode(3));
     });
 
-    it("Should return 'true' if the mode is 'holder of record'", async function() {
-      await this.omnibusController.setAssetTrackingMode(
-        assetTrackingMode.HOLDER_OF_RECORD
-      );
+    describe("IsHolderOfRecord", function() {
+      it("Should return 'true' if the mode is 'holder of record'", async function() {
+        await this.omnibusController.setAssetTrackingMode(
+          assetTrackingMode.HOLDER_OF_RECORD
+        );
 
-      assert.equal(await this.omnibusController.isHolderOfRecord(), true);
-    });
+        assert.equal(await this.omnibusController.isHolderOfRecord(), true);
+      });
 
-    it("Should return 'false' if the mode is not 'holder of record'", async function() {
-      assert.equal(await this.omnibusController.isHolderOfRecord(), false);
+      it("Should return 'false' if the mode is not 'holder of record'", async function() {
+        assert.equal(await this.omnibusController.isHolderOfRecord(), false);
+      });
     });
   });
 
@@ -659,7 +661,7 @@ contract("OmnibusWalletController", function([
         );
       });
 
-      it("Should revert if there is are no permissions to seize", async function() {
+      it("Should revert if there are no permissions to seize", async function() {
         await this.token.issueTokens(investorWallet1, 500);
         await this.token.transfer(omnibusWallet, 500, {
           from: investorWallet1
@@ -787,7 +789,7 @@ contract("OmnibusWalletController", function([
         );
       });
 
-      it("Should revert if there is are no permissions to burn", async function() {
+      it("Should revert if there are no permissions to burn", async function() {
         await this.token.issueTokens(investorWallet1, 500);
         await this.token.transfer(omnibusWallet, 500, {
           from: investorWallet1
