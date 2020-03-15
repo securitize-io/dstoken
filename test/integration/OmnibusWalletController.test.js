@@ -52,7 +52,7 @@ async function assertBalances(
     investorId.OMNIBUS_WALLET_INVESTOR_ID_1
   );
   const omnibusWalletBalance = await testObject.token.balanceOf(omnibusWallet);
-  const investorInternalBalance = await testObject.omnibusController.balanceOf(
+  const investorInternalBalance = await testObject.omnibusController1.balanceOf(
     investorWallet
   );
 
@@ -87,10 +87,10 @@ async function assertInternalBalances(
   const omnibusBalance = await testObject.token.balanceOfInvestor(
     investorId.OMNIBUS_WALLET_INVESTOR_ID_1
   );
-  const investor1InternalBalance = await testObject.omnibusController.balanceOf(
+  const investor1InternalBalance = await testObject.omnibusController1.balanceOf(
     investorWallet1
   );
-  const investor2InternalBalance = await testObject.omnibusController.balanceOf(
+  const investor2InternalBalance = await testObject.omnibusController1.balanceOf(
     investorWallet2
   );
 
@@ -134,7 +134,7 @@ contract("OmnibusWalletController", function([
       artifacts,
       complianceType.NORMAL,
       lockManagerType.INVESTOR,
-      omnibusWallet
+      [omnibusWallet]
     );
     await this.registryService.registerInvestor(
       investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
@@ -144,7 +144,7 @@ contract("OmnibusWalletController", function([
     await this.registryService.addOmnibusWallet(
       investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
       omnibusWallet,
-      this.omnibusController.address
+      this.omnibusController1.address
     );
 
     await this.registryService.setAttribute(
@@ -202,7 +202,7 @@ contract("OmnibusWalletController", function([
   describe("Asset tracking mode", function() {
     it("Should fail to set the mode if caller does not have permissions", async function() {
       await assertRevert(
-        this.omnibusController.setAssetTrackingMode(
+        this.omnibusController1.setAssetTrackingMode(
           assetTrackingMode.HOLDER_OF_RECORD,
           {from: investorWallet1}
         )
@@ -210,19 +210,19 @@ contract("OmnibusWalletController", function([
     });
 
     it("Should set the mode correctly when caller has master permissions", async function() {
-      let trackingMode = await this.omnibusController.getAssetTrackingMode();
+      let trackingMode = await this.omnibusController1.getAssetTrackingMode();
 
       assert.equal(trackingMode.toNumber(), assetTrackingMode.BENEFICIARY);
-      await this.omnibusController.setAssetTrackingMode(
+      await this.omnibusController1.setAssetTrackingMode(
         assetTrackingMode.HOLDER_OF_RECORD
       );
-      trackingMode = await this.omnibusController.getAssetTrackingMode();
+      trackingMode = await this.omnibusController1.getAssetTrackingMode();
       assert.equal(trackingMode.toNumber(), assetTrackingMode.HOLDER_OF_RECORD);
     });
 
     it("Should set the mode correctly when caller has issuer permissions", async function() {
       await this.trustService.setRole(investorWallet1, role.ISSUER);
-      await this.omnibusController.setAssetTrackingMode(
+      await this.omnibusController1.setAssetTrackingMode(
         assetTrackingMode.HOLDER_OF_RECORD,
         {from: investorWallet1}
       );
@@ -235,7 +235,7 @@ contract("OmnibusWalletController", function([
       });
 
       it("Should set the mode correctly when caller is entity owner", async function() {
-        await this.omnibusController.setAssetTrackingMode(
+        await this.omnibusController1.setAssetTrackingMode(
           assetTrackingMode.HOLDER_OF_RECORD,
           {from: investorWallet1}
         );
@@ -243,7 +243,7 @@ contract("OmnibusWalletController", function([
 
       it("Should set the mode correctly when caller is operator", async function() {
         await this.trustService.addOperator(testEntity, investorWallet2);
-        await this.omnibusController.setAssetTrackingMode(
+        await this.omnibusController1.setAssetTrackingMode(
           assetTrackingMode.HOLDER_OF_RECORD,
           {from: investorWallet2}
         );
@@ -257,34 +257,34 @@ contract("OmnibusWalletController", function([
       });
 
       await assertRevert(
-        this.omnibusController.setAssetTrackingMode(
+        this.omnibusController1.setAssetTrackingMode(
           assetTrackingMode.HOLDER_OF_RECORD
         )
       );
     });
 
     it("Should fail to set the mode if the given value is invalid", async function() {
-      await assertRevert(this.omnibusController.setAssetTrackingMode(3));
+      await assertRevert(this.omnibusController1.setAssetTrackingMode(3));
     });
 
     describe("IsHolderOfRecord", function() {
-      it("Should return 'true' if the mode is 'holder of record'", async function() {
-        await this.omnibusController.setAssetTrackingMode(
+      it("Should return 'true'", async function() {
+        await this.omnibusController1.setAssetTrackingMode(
           assetTrackingMode.HOLDER_OF_RECORD
         );
 
-        assert.equal(await this.omnibusController.isHolderOfRecord(), true);
+        assert.equal(await this.omnibusController1.isHolderOfRecord(), true);
       });
 
-      it("Should return 'false' if the mode is not 'holder of record'", async function() {
-        assert.equal(await this.omnibusController.isHolderOfRecord(), false);
+      it("Should return 'false'", async function() {
+        assert.equal(await this.omnibusController1.isHolderOfRecord(), false);
       });
     });
   });
 
   describe("Operations in 'holder of record' mode", function() {
     beforeEach(async function() {
-      await this.omnibusController.setAssetTrackingMode(
+      await this.omnibusController1.setAssetTrackingMode(
         assetTrackingMode.HOLDER_OF_RECORD
       );
     });
@@ -357,7 +357,7 @@ contract("OmnibusWalletController", function([
 
       it("Should revert if deposit function is not called from token", async function() {
         await assertRevert(
-          this.omnibusController.deposit(investorWallet1, 1000)
+          this.omnibusController1.deposit(investorWallet1, 1000)
         );
       });
     });
@@ -452,7 +452,7 @@ contract("OmnibusWalletController", function([
 
       it("Should revert if withdraw function is not called from token", async function() {
         await assertRevert(
-          this.omnibusController.withdraw(investorWallet1, 1000)
+          this.omnibusController1.withdraw(investorWallet1, 1000)
         );
       });
     });
@@ -463,7 +463,7 @@ contract("OmnibusWalletController", function([
         await this.token.transfer(omnibusWallet, 1000, {
           from: investorWallet1
         });
-        await this.omnibusController.transfer(
+        await this.omnibusController1.transfer(
           investorWallet1,
           investorWallet2,
           500
@@ -488,7 +488,7 @@ contract("OmnibusWalletController", function([
           accreditedInvestorsCount: 1,
           usAccreditedInvestorsCount: 1
         });
-        await this.omnibusController.transfer(
+        await this.omnibusController1.transfer(
           investorWallet1,
           investorWallet2,
           500
@@ -593,7 +593,7 @@ contract("OmnibusWalletController", function([
         await this.token.transfer(omnibusWallet, 500, {
           from: investorWallet2
         });
-        await this.omnibusController.transfer(
+        await this.omnibusController1.transfer(
           investorWallet1,
           investorWallet2,
           300
@@ -610,7 +610,7 @@ contract("OmnibusWalletController", function([
       });
 
       it("Should revert if seize function is not called from token", async function() {
-        await assertRevert(this.omnibusController.seize(investorWallet1, 100));
+        await assertRevert(this.omnibusController1.seize(investorWallet1, 100));
       });
 
       it("Should revert if trying to seize from a non omnibus wallet", async function() {
@@ -755,7 +755,7 @@ contract("OmnibusWalletController", function([
         await this.token.transfer(omnibusWallet, 500, {
           from: investorWallet2
         });
-        await this.omnibusController.transfer(
+        await this.omnibusController1.transfer(
           investorWallet1,
           investorWallet2,
           300
@@ -766,7 +766,7 @@ contract("OmnibusWalletController", function([
       });
 
       it("Should revert if burn function is not called from token", async function() {
-        await assertRevert(this.omnibusController.burn(investorWallet1, 100));
+        await assertRevert(this.omnibusController1.burn(investorWallet1, 100));
       });
 
       it("Should revert if trying to burn from a non omnibus wallet", async function() {
@@ -957,7 +957,7 @@ contract("OmnibusWalletController", function([
           accreditedInvestorsCount: 0,
           usAccreditedInvestorsCount: 0
         });
-        await this.omnibusController.transfer(
+        await this.omnibusController1.transfer(
           investorWallet1,
           investorWallet2,
           500
@@ -982,7 +982,7 @@ contract("OmnibusWalletController", function([
           accreditedInvestorsCount: 0,
           usAccreditedInvestorsCount: 0
         });
-        await this.omnibusController.transfer(
+        await this.omnibusController1.transfer(
           investorWallet1,
           investorWallet2,
           500
