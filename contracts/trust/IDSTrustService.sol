@@ -16,11 +16,11 @@ contract IDSTrustService is Initializable, VersionedContract {
     /**
    * @dev Should be emitted when a role is set for a user.
    */
-    event DSTrustServiceRoleAdded(address _address, uint8 _role, address _sender);
+    event DSTrustServiceRoleAdded(address targetAddress, uint8 role, address sender);
     /**
    * @dev Should be emitted when a role is removed for a user.
    */
-    event DSTrustServiceRoleRemoved(address _address, uint8 _role, address _sender);
+    event DSTrustServiceRoleRemoved(address targetAddress, uint8 role, address sender);
 
     // Role constants
     uint8 public constant NONE = 0;
