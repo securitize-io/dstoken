@@ -18,16 +18,19 @@ contract("ComplianceServiceRegulated", function([
   issuerWallet,
   noneWallet1,
   noneWallet2,
-  platformWallet
+  platformWallet,
+  omnibusWallet
 ]) {
   beforeEach(async function() {
     await deployContracts(
       this,
       artifacts,
       complianceType.NORMAL,
-      lockManagerType.WALLET
+      lockManagerType.WALLET,
+      [omnibusWallet]
     );
     await this.trustService.setRole(issuerWallet, roles.ISSUER);
+    await this.walletManager.addIssuerWallet(issuerWallet);
     await this.complianceConfiguration.setCountryCompliance(
       country.USA,
       compliance.US
@@ -48,6 +51,20 @@ contract("ComplianceServiceRegulated", function([
       await assertRevert(
         this.complianceService.validateIssuance(wallet, 100, await latestTime())
       );
+    });
+
+    it("Should revert due to issuing to omnibus wallet", async function() {
+      await this.registryService.registerInvestor(
+        investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
+        investorId.OMNIBUS_WALLET_INVESTOR_ID_1
+      );
+      await this.registryService.addOmnibusWallet(
+        investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
+        omnibusWallet,
+        this.omnibusController1.address
+      );
+      await this.token.setCap(1000);
+      await assertRevert(this.token.issueTokens(omnibusWallet, 100));
     });
 
     it("Should issue tokens", async function() {
@@ -428,6 +445,30 @@ contract("ComplianceServiceRegulated", function([
       await assertRevert(this.token.burn(wallet, 100, "Test", {from: wallet}));
     });
 
+    it("Should revert due to burning omnibus wallet tokens", async function() {
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+      );
+      await this.registryService.addWallet(
+        wallet,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.token.issueTokens(wallet, 100);
+      await this.registryService.registerInvestor(
+        investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
+        investorId.OMNIBUS_WALLET_INVESTOR_ID_1
+      );
+      await this.registryService.addOmnibusWallet(
+        investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
+        omnibusWallet,
+        this.omnibusController1.address
+      );
+      await this.token.issueTokens(wallet, 100);
+      await this.token.transfer(omnibusWallet, 50, {from: wallet});
+      await assertRevert(this.token.burn(omnibusWallet, 40, "Test"));
+    });
+
     it("Should decrease total investors value when burn tokens", async function() {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_2,
@@ -491,6 +532,32 @@ contract("ComplianceServiceRegulated", function([
       await assertRevert(this.token.seize(owner, wallet, 100, "Test"));
     });
 
+    it("Should revert due to seizing omnibus wallet tokens", async function() {
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+      );
+      await this.registryService.addWallet(
+        wallet,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.token.issueTokens(wallet, 100);
+      await this.registryService.registerInvestor(
+        investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
+        investorId.OMNIBUS_WALLET_INVESTOR_ID_1
+      );
+      await this.registryService.addOmnibusWallet(
+        investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
+        omnibusWallet,
+        this.omnibusController1.address
+      );
+      await this.token.issueTokens(wallet, 100);
+      await this.token.transfer(omnibusWallet, 50, {from: wallet});
+      await assertRevert(
+        this.token.seize(omnibusWallet, issuerWallet, 40, "Test")
+      );
+    });
+
     it("Should seize tokens", async function() {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
@@ -501,10 +568,6 @@ contract("ComplianceServiceRegulated", function([
         investorId.GENERAL_INVESTOR_COLLISION_HASH_2
       );
       await this.registryService.addWallet(
-        issuerWallet,
-        investorId.GENERAL_INVESTOR_ID_1
-      );
-      await this.registryService.addWallet(
         owner,
         investorId.GENERAL_INVESTOR_ID_2
       );
@@ -513,7 +576,7 @@ contract("ComplianceServiceRegulated", function([
       assert.equal(await this.token.balanceOf(owner), 100);
       const role = await this.trustService.getRole(issuerWallet);
       assert.equal(role.words[0], roles.ISSUER);
-      // await this.token.seize(owner, issuerAccount, 100, "Test"); -> Why is not working?
+      await this.token.seize(owner, issuerWallet, 100, "Test");
     });
   });
 

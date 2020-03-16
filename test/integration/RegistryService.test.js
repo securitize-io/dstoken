@@ -153,7 +153,6 @@ contract("RegistryService", function([
             );
           });
 
-          // TODO: activate test
           it("Trying to get the country for the investor with wrong ID - should be empty", async function() {
             const newInvestorId = generateRandomInvestorId();
 
@@ -458,7 +457,6 @@ contract("RegistryService", function([
           assert.equal(investorDetails[1], investorCountry);
         });
         describe("Get the investor: negative tests", function() {
-          // TODO: activate test
           it("Trying to get the investor using the wrong Wallet - should be empty", async function() {
             const investor = await this.registryService.getInvestor(
               additionalWallet
