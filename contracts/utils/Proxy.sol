@@ -1,36 +1,36 @@
 pragma solidity ^0.5.0;
 
 contract Proxy {
-    address public proxyOwner;
-    address public proxyTarget;
+    address public owner;
+    address public target;
 
     event ProxyTargetSet(address target);
     event ProxyOwnerChanged(address owner);
 
     constructor() public {
-        proxyOwner = msg.sender;
+        owner = msg.sender;
     }
 
     /**
    * @dev Throws if called by any account other than the owner.
    */
     modifier onlyOwner() {
-        require(msg.sender == proxyOwner);
+        require(msg.sender == owner);
         _;
     }
 
     function setTarget(address _target) public onlyOwner {
-        proxyTarget = _target;
+        target = _target;
         emit ProxyTargetSet(_target);
     }
 
     function setOwner(address _owner) public onlyOwner {
-        proxyOwner = _owner;
+        owner = _owner;
         emit ProxyOwnerChanged(_owner);
     }
 
     function() external payable {
-        address _impl = proxyTarget;
+        address _impl = target;
         require(_impl != address(0));
 
         assembly {

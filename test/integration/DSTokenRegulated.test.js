@@ -151,12 +151,12 @@ contract("DSToken (regulated)", function([
   describe("Ownership", function() {
     it("Should allow to transfer ownership and return the correct owner address", async function() {
       await this.token.transferOwnership(issuerWallet);
-      let changedOwner = await this.token.owner();
+      let changedOwner = await this.token.contractOwner();
       assert.equal(changedOwner, issuerWallet);
 
       // Check that ownership can be transferred from new owner to previous owner
       await this.token.transferOwnership(owner, {from: issuerWallet});
-      changedOwner = await this.token.owner();
+      changedOwner = await this.token.contractOwner();
 
       assert.equal(changedOwner, owner);
     });
