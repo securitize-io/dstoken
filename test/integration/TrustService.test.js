@@ -207,7 +207,7 @@ contract("TrustService", function([
       await this.trustService.addEntity(testEntity1, entityOwner1);
 
       assert.equal(
-        await this.trustService.getEntityWithOwner(entityOwner1),
+        await this.trustService.getEntityByOwner(entityOwner1),
         testEntity1
       );
     });
@@ -238,12 +238,9 @@ contract("TrustService", function([
         entityOwner2
       );
 
+      assert.equal(await this.trustService.getEntityByOwner(entityOwner1), "");
       assert.equal(
-        await this.trustService.getEntityWithOwner(entityOwner1),
-        ""
-      );
-      assert.equal(
-        await this.trustService.getEntityWithOwner(entityOwner2),
+        await this.trustService.getEntityByOwner(entityOwner2),
         testEntity1
       );
 
@@ -284,7 +281,7 @@ contract("TrustService", function([
       await this.trustService.addOperator(testEntity1, operator1);
 
       assert.equal(
-        await this.trustService.getEntityWithOperator(operator1),
+        await this.trustService.getEntityByOperator(operator1),
         testEntity1
       );
 
@@ -297,7 +294,7 @@ contract("TrustService", function([
       });
 
       assert.equal(
-        await this.trustService.getEntityWithOperator(operator1),
+        await this.trustService.getEntityByOperator(operator1),
         testEntity1
       );
 
@@ -320,10 +317,7 @@ contract("TrustService", function([
     it("Should remove an operator when sender is master", async function() {
       await this.trustService.removeOperator(testEntity1, operator1);
 
-      assert.equal(
-        await this.trustService.getEntityWithOperator(operator1),
-        ""
-      );
+      assert.equal(await this.trustService.getEntityByOperator(operator1), "");
     });
 
     it("Should remove an operator when sender is entity owner", async function() {
@@ -332,10 +326,7 @@ contract("TrustService", function([
         from: entityOwner1
       });
 
-      assert.equal(
-        await this.trustService.getEntityWithOperator(operator1),
-        ""
-      );
+      assert.equal(await this.trustService.getEntityByOperator(operator1), "");
     });
 
     it("Should fail to remove an operator when sender is unauthorized", async function() {
@@ -359,7 +350,7 @@ contract("TrustService", function([
       await this.trustService.addResource(testEntity1, resource);
 
       assert.equal(
-        await this.trustService.getEntityWithResource(resource),
+        await this.trustService.getEntityByResource(resource),
         testEntity1
       );
 
@@ -384,7 +375,7 @@ contract("TrustService", function([
     it("Should remove a resource", async function() {
       await this.trustService.removeResource(testEntity1, resource);
 
-      assert.equal(await this.trustService.getEntityWithResource(resource), "");
+      assert.equal(await this.trustService.getEntityByResource(resource), "");
     });
 
     it("Should fail to remove a resource that does not exist", async function() {

@@ -191,15 +191,15 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
         delete resourcesEntities[_resource];
     }
 
-    function getEntityWithOwner(address _owner) public view returns (string memory) {
+    function getEntityByOwner(address _owner) public view returns (string memory) {
         return ownersEntities[_owner];
     }
 
-    function getEntityWithOperator(address _operator) public view returns (string memory) {
+    function getEntityByOperator(address _operator) public view returns (string memory) {
         return operatorsEntities[_operator];
     }
 
-    function getEntityWithResource(address _resource) public view returns (string memory) {
+    function getEntityByResource(address _resource) public view returns (string memory) {
         return resourcesEntities[_resource];
     }
 
