@@ -13,6 +13,7 @@ async function deployLibraries(deployer) {
   await deployer.deploy(ComplianceServiceLibrary);
   await deployer.deploy(ComplianceServicePartitionedLibrary);
   await deployer.link(ComplianceServiceLibrary, ComplianceServiceRegulated);
+  await deployer.link(ComplianceServiceLibrary, ComplianceServiceRegulatedPartitioned);
   await deployer.link(ComplianceServicePartitionedLibrary, ComplianceServiceRegulatedPartitioned);
 }
 
