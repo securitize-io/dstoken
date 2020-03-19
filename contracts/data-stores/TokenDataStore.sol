@@ -1,8 +1,10 @@
 pragma solidity ^0.5.0;
 
 import "./ServiceConsumerDataStore.sol";
+import '../utils/TokenPartitionsLibrary.sol';
 
 contract TokenDataStore is ServiceConsumerDataStore {
+    using TokenPartitionsLibrary for TokenPartitionsLibrary.TokenPartitions;
     mapping(address => uint256) internal walletsBalances;
     mapping(string => uint256) internal investorsBalances;
     mapping(address => mapping(address => uint256)) internal allowances;
@@ -17,4 +19,5 @@ contract TokenDataStore is ServiceConsumerDataStore {
     uint256 public cap;
     uint256 public totalSupply;
     uint256 public totalIssued;
+    TokenPartitionsLibrary.TokenPartitions partitionsManagement;
 }

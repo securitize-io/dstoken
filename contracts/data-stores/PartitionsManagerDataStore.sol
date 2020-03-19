@@ -3,10 +3,10 @@ pragma solidity ^0.5.0;
 import "./ServiceConsumerDataStore.sol";
 
 contract PartitionsManagerDataStore is ServiceConsumerDataStore {
-    struct PartitionData {
+    struct Partition {
     	uint256 issuanceDate;
     	uint256 region;
     }
-    // Map from bytes32 representation to PartitionData struct
-    mapping(bytes32 => PartitionData) internal partitions;
+    // Map from bytes32 representation to Partition struct
+    mapping(bytes32 => Partition) internal partitions;
 }

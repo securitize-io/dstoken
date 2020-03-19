@@ -426,34 +426,6 @@ library ComplianceServiceLibrary {
 
         return (0, VALID);
     }
-
-    function getToken(IDSServiceConsumer _service) public view returns (IDSToken) {
-        return IDSToken(_service.getDSService(_service.DS_TOKEN()));
-    }
-
-    function getTrustService(IDSServiceConsumer _service) public view returns (IDSTrustService) {
-        return IDSTrustService(_service.getDSService(_service.TRUST_SERVICE()));
-    }
-
-    function getWalletManager(IDSServiceConsumer _service) public view returns (IDSWalletManager) {
-        return IDSWalletManager(_service.getDSService(_service.WALLET_MANAGER()));
-    }
-
-    function getLockManager(IDSServiceConsumer _service) public view returns (IDSLockManager) {
-        return IDSLockManager(_service.getDSService(_service.LOCK_MANAGER()));
-    }
-
-    function getComplianceService(IDSServiceConsumer _service) public view returns (IDSComplianceService) {
-        return IDSComplianceService(_service.getDSService(_service.COMPLIANCE_SERVICE()));
-    }
-
-    function getRegistryService(IDSServiceConsumer _service) public view returns (IDSRegistryService) {
-        return IDSRegistryService(_service.getDSService(_service.REGISTRY_SERVICE()));
-    }
-
-    function getComplianceConfigurationService(IDSServiceConsumer _service) public view returns (IDSComplianceConfigurationService) {
-        return IDSComplianceConfigurationService(_service.getDSService(_service.COMPLIANCE_CONFIGURATION_SERVICE()));
-    }
 }
 
 /**
@@ -613,13 +585,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         services[4] = getDSService(LOCK_MANAGER);
         services[5] = address(this);
 
-        (code, reason) = ComplianceServiceLibrary.preTransferCheck(services, _from, _to, _value, _omnibusWallet);
-
-        if (code != 0) {
-            return (code, reason);
-        } else {
-            return checkTransfer(_from, _to, _value);
-        }
+        return ComplianceServiceLibrary.preTransferCheck(services, _from, _to, _value, _omnibusWallet);
     }
 
     function getComplianceTransferableTokens(address _who, uint64 _time, uint64 _lockTime) public view returns (uint256) {
@@ -661,10 +627,6 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         services[5] = address(this);
 
         return ComplianceServiceLibrary.preIssuanceCheck(services, _to, _value);
-    }
-
-    function checkTransfer(address, address, uint256) internal view returns (uint256, string memory) {
-        return (0, VALID);
     }
 
     function getTotalInvestorsCount() public view returns (uint256) {
