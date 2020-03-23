@@ -121,17 +121,17 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
     function getTransferableTokens(address _who, uint64 _time) public view returns (uint256) {
         require(_time > 0, "time must be greater than zero");
 
-        uint256 balanceOfHolder = getToken().balanceOf(_who);
+        uint256 balanceOfInvestor = getToken().balanceOf(_who);
 
-        uint256 holderLockCount = locksCounts[_who];
+        uint256 investorLockCount = locksCounts[_who];
 
         //No locks, go to base class implementation
-        if (holderLockCount == 0) {
-            return balanceOfHolder;
+        if (investorLockCount == 0) {
+            return balanceOfInvestor;
         }
 
         uint256 totalLockedTokens = 0;
-        for (uint256 i = 0; i < holderLockCount; i++) {
+        for (uint256 i = 0; i < investorLockCount; i++) {
             uint256 autoReleaseTime = locks[_who][i].releaseTime;
 
             if (autoReleaseTime == 0 || autoReleaseTime > _time) {
@@ -140,28 +140,28 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         }
 
         //there may be more locked tokens than actual tokens, so the minimum between the two
-        uint256 transferable = SafeMath.sub(balanceOfHolder, Math.min(totalLockedTokens, balanceOfHolder));
+        uint256 transferable = SafeMath.sub(balanceOfInvestor, Math.min(totalLockedTokens, balanceOfInvestor));
 
         return transferable;
     }
 
-    function getTransferableTokensForHolder(string memory, uint64) public view returns (uint256) {
+    function getTransferableTokensForInvestor(string memory, uint64) public view returns (uint256) {
         return 0;
     }
 
-    function lockInfoForHolder(string memory, uint256) public view returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime) {
+    function lockInfoForInvestor(string memory, uint256) public view returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime) {
         return (0, "", 0, 0);
     }
 
-    function lockCountForHolder(string memory) public view returns (uint256) {
+    function lockCountForInvestor(string memory) public view returns (uint256) {
         return 0;
     }
 
-    function createLockForHolder(string memory, uint256, uint256, string memory, uint256) public onlyIssuerOrAboveOrToken {
+    function createLockForInvestor(string memory, uint256, uint256, string memory, uint256) public onlyIssuerOrAboveOrToken {
         revert("lock manager supports only wallet locks");
     }
 
-    function removeLockRecordForHolder(string memory, uint256) public onlyIssuerOrAbove returns (bool) {
+    function removeLockRecordForInvestor(string memory, uint256) public onlyIssuerOrAbove returns (bool) {
         revert("lock manager supports only wallet locks");
 
     }

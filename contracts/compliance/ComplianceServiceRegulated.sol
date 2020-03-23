@@ -627,17 +627,17 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
         string memory investor = getRegistryService().getInvestor(_who);
 
-        uint256 balanceOfHolder = getLockManager().getTransferableTokens(_who, _time);
+        uint256 balanceOfInvestor = getLockManager().getTransferableTokens(_who, _time);
 
-        uint256 holderIssuancesCount = issuancesCounters[investor];
+        uint256 investorIssuancesCount = issuancesCounters[investor];
 
         //No locks, go to base class implementation
-        if (holderIssuancesCount == 0) {
-            return balanceOfHolder;
+        if (investorIssuancesCount == 0) {
+            return balanceOfInvestor;
         }
 
         uint256 totalLockedTokens = 0;
-        for (uint256 i = 0; i < holderIssuancesCount; i++) {
+        for (uint256 i = 0; i < investorIssuancesCount; i++) {
             uint256 issuanceTimestamp = issuancesTimestamps[investor][i];
 
             if (_lockTime > _time || issuanceTimestamp > SafeMath.sub(_time, _lockTime)) {
@@ -646,7 +646,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         }
 
         //there may be more locked tokens than actual tokens, so the minimum between the two
-        uint256 transferable = SafeMath.sub(balanceOfHolder, Math.min(totalLockedTokens, balanceOfHolder));
+        uint256 transferable = SafeMath.sub(balanceOfInvestor, Math.min(totalLockedTokens, balanceOfInvestor));
 
         return transferable;
     }
