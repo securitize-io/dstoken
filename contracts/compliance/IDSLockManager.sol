@@ -13,8 +13,8 @@ contract IDSLockManager is Initializable, VersionedContract {
     event Locked(address indexed who, uint256 value, uint256 indexed reason, string reasonString, uint256 releaseTime);
     event Unlocked(address indexed who, uint256 value, uint256 indexed reason, string reasonString, uint256 releaseTime);
 
-    event HolderLocked(string investorId, uint256 value, uint256 indexed reason, string reasonString, uint256 releaseTime);
-    event HolderUnlocked(string investorId, uint256 value, uint256 indexed reason, string reasonString, uint256 releaseTime);
+    event HolderLocked(string holderId, uint256 value, uint256 indexed reason, string reasonString, uint256 releaseTime);
+    event HolderUnlocked(string holderId, uint256 value, uint256 indexed reason, string reasonString, uint256 releaseTime);
 
     /**
   * @dev creates a lock record for wallet address
