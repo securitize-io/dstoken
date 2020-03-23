@@ -31,7 +31,7 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
         setLockInfoImpl(_investor, lockCount, _valueLocked, _reasonCode, _reasonString, _releaseTime);
         lockCount += 1;
         investorsLocksCounts[_investor] = lockCount;
-        emit InvestorLocked(_investor, _valueLocked, _reasonCode, _reasonString, _releaseTime);
+        emit HolderLocked(_investor, _valueLocked, _reasonCode, _reasonString, _releaseTime);
 
     }
     function createLock(address _to, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime) internal {
@@ -47,7 +47,7 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
     }
 
     function removeLockRecordForInvestor(string memory _investorId, uint256 _lockIndex) public onlyIssuerOrAbove returns (bool) {
-        emit InvestorUnlocked(
+        emit HolderUnlocked(
             _investorId,
             investorsLocks[_investorId][_lockIndex].value,
             investorsLocks[_investorId][_lockIndex].reason,
