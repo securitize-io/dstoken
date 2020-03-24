@@ -124,19 +124,19 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
 
     function balanceOfInvestor(string memory _id) public view returns (uint256);
 
-    function updateOmnibusInvestorBalance(
-        address _omnibusWallet,
-        address _wallet,
-        uint256 _value,
-        bool _increase /*onlyOmnibusWalletController*/
-    ) public returns (bool);
+    // function updateOmnibusInvestorBalance(
+    //     address _omnibusWallet,
+    //     address _wallet,
+    //     uint256 _value,
+    //     bool _increase /*onlyOmnibusWalletController*/
+    // ) public returns (bool);
 
-    function emitOmnibusTransferEvent(
-        address _omnibusWallet,
-        address _from,
-        address _to,
-        uint256 _value /*onlyOmnibusWalletController*/
-    ) public;
+    // function emitOmnibusTransferEvent(
+    //     address _omnibusWallet,
+    //     address _from,
+    //     address _to,
+    //     uint256 _value /*onlyOmnibusWalletController*/
+    // ) public;
 
     function updateInvestorBalance(address _wallet, uint256 _value, bool _increase) internal returns (bool);
 

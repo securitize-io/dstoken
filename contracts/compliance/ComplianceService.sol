@@ -33,23 +33,23 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         return true;
     }
 
-    function validateOmnibusInternalTransfer(address _omnibusWallet, address _from, address _to, uint256 _value)
-        public
-        onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
-        returns (bool)
-    {
-        uint256 code;
-        string memory reason;
+    // function validateOmnibusInternalTransfer(address _omnibusWallet, address _from, address _to, uint256 _value)
+    //     public
+    //     onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
+    //     returns (bool)
+    // {
+    //     uint256 code;
+    //     string memory reason;
 
-        (code, reason) = preInternalTransferCheck(_from, _to, _value, _omnibusWallet);
-        require(code == 0, reason);
+    //     (code, reason) = preInternalTransferCheck(_from, _to, _value, _omnibusWallet);
+    //     require(code == 0, reason);
 
-        if (!getRegistryService().getOmnibusWalletController(_omnibusWallet).isHolderOfRecord()) {
-            require(recordTransfer(_from, _to, _value));
-        }
+    //     if (!getRegistryService().getOmnibusWalletController(_omnibusWallet).isHolderOfRecord()) {
+    //         require(recordTransfer(_from, _to, _value));
+    //     }
 
-        return true;
-    }
+    //     return true;
+    // }
 
     function validateIssuance(address _to, uint256 _value, uint256 _issuanceTime) public onlyToken returns (bool) {
         require(!getRegistryService().isOmnibusWallet(_to));

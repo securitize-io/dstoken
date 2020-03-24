@@ -480,19 +480,19 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function adjustTransferCounts(address _from, address _to, bool increase) internal {
-        IDSRegistryService registry = getRegistryService();
+        // IDSRegistryService registry = getRegistryService();
 
-        if (registry.isOmnibusWallet(_from)) {
-            if (registry.getOmnibusWalletController(_from).isHolderOfRecord()) {
-                adjustTotalInvestorsCounts(_from, increase);
-            }
-        } else if (registry.isOmnibusWallet(_to)) {
-            if (registry.getOmnibusWalletController(_to).isHolderOfRecord()) {
-                adjustTotalInvestorsCounts(_from, increase);
-            }
-        } else {
+        // if (registry.isOmnibusWallet(_from)) {
+        //     if (registry.getOmnibusWalletController(_from).isHolderOfRecord()) {
+        //         adjustTotalInvestorsCounts(_from, increase);
+        //     }
+        // } else if (registry.isOmnibusWallet(_to)) {
+        //     if (registry.getOmnibusWalletController(_to).isHolderOfRecord()) {
+        //         adjustTotalInvestorsCounts(_from, increase);
+        //     }
+        // } else {
             adjustTotalInvestorsCounts(_from, increase);
-        }
+        // }
     }
 
     function recordIssuance(address _to, uint256 _value, uint256 _issuanceTime) internal returns (bool) {
@@ -598,14 +598,10 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
-        return preTransferCheckImpl(_from, _to, _value, address(0));
+        return ComplianceServiceLibrary.preTransferCheck(getServices(), _from, _to, _value, address(0));
     }
 
     function preInternalTransferCheck(address _from, address _to, uint256 _value, address _omnibusWallet) public view returns (uint256 code, string memory reason) {
-        return preTransferCheckImpl(_from, _to, _value, _omnibusWallet);
-    }
-
-    function preTransferCheckImpl(address _from, address _to, uint256 _value, address _omnibusWallet) internal view returns (uint256 code, string memory reason) {
         return ComplianceServiceLibrary.preTransferCheck(getServices(), _from, _to, _value, _omnibusWallet);
     }
 

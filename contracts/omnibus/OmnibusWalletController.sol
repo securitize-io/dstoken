@@ -61,16 +61,16 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
     }
 
     function transfer(address _from, address _to, uint256 _value) public onlyOperatorOrAbove enoughBalance(_from, _value) {
-        getComplianceService().validateOmnibusInternalTransfer(omnibusWallet, _from, _to, _value);
+        // getComplianceService().validateOmnibusInternalTransfer(omnibusWallet, _from, _to, _value);
         balances[_from] = balances[_from].sub(_value);
         balances[_to] = balances[_to].add(_value);
 
-        if (assetTrackingMode == BENEFICIARY) {
-            getToken().updateOmnibusInvestorBalance(omnibusWallet, _from, _value, false);
-            getToken().updateOmnibusInvestorBalance(omnibusWallet, _to, _value, true);
-        }
+        // if (assetTrackingMode == BENEFICIARY) {
+        //     getToken().updateOmnibusInvestorBalance(omnibusWallet, _from, _value, false);
+        //     getToken().updateOmnibusInvestorBalance(omnibusWallet, _to, _value, true);
+        // }
 
-        getToken().emitOmnibusTransferEvent(omnibusWallet, _from, _to, _value);
+        // getToken().emitOmnibusTransferEvent(omnibusWallet, _from, _to, _value);
     }
 
     function seize(address _from, uint256 _value) public enoughBalance(_from, _value) onlyToken {

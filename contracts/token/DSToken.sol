@@ -99,15 +99,6 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     //*********************
 
     function burn(address _who, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
-        // require(_value <= tokenData.walletsBalances[_who]);
-        // no need to require value <= totalSupply, since that would imply the
-        // sender's balance is greater than the totalSupply, which *should* be an assertion failure
-
-        // getComplianceService().validateBurn(_who, _value);
-
-        // tokenData.walletsBalances[_who] = tokenData.walletsBalances[_who].sub(_value);
-        // updateInvestorBalance(_who, _value, false);
-        // tokenData.totalSupply = tokenData.totalSupply.sub(_value);
         TokenLibrary.burn(tokenData, getServices(), _who, _value);
         emit Burn(_who, _value, _reason);
         emit Transfer(_who, address(0), _value);
@@ -132,10 +123,6 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     function seize(address _from, address _to, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
         // getComplianceService().validateSeize(_from, _to, _value);
         TokenLibrary.seize(tokenData, getServices(), _from, _to, _value);
-        // tokenData.walletsBalances[_from] = tokenData.walletsBalances[_from].sub(_value);
-        // tokenData.walletsBalances[_to] = tokenData.walletsBalances[_to].add(_value);
-        // updateInvestorBalance(_from, _value, false);
-        // updateInvestorBalance(_to, _value, true);
         emit Seize(_from, _to, _value, _reason);
         emit Transfer(_from, _to, _value);
         checkWalletsForList(_from, _to);
@@ -147,7 +134,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     {
         address[] memory services = getServices();
         TokenLibrary.omnibusSeize(tokenData, services, _omnibusWallet, _from, _to, _value);
-        emit OmnibusSeize(_omnibusWallet, _from, _value, _reason /*omnibusController.getWalletAssetTrackingMode()*/);
+        emit OmnibusSeize(_omnibusWallet, _from, _value, _reason);
         emit Seize(_omnibusWallet, _to, _value, _reason);
         emit Transfer(_omnibusWallet, _to, _value);
         checkWalletsForList(_omnibusWallet, _to);
@@ -172,7 +159,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
    * @param _to The address that will receive the tokens.
    * @param _value The amount of tokens to be transferred.
    */
-    function transfer(address _to, uint256 _value) public /*canTransfer(msg.sender, _to, _value)*/ returns (bool) {
+    function transfer(address _to, uint256 _value) public canTransfer(msg.sender, _to, _value) returns (bool) {
         bool result = super.transfer(_to, _value);
 
         if (result) {
@@ -262,43 +249,27 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         return tokenData.investorsBalances[_id];
     }
 
-    function updateOmnibusInvestorBalance(address _omnibusWallet, address _wallet, uint256 _value, bool _increase)
-        public
-        onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
-        returns (bool)
-    {
-        return updateInvestorBalance(_wallet, _value, _increase);
-    }
+    // function updateOmnibusInvestorBalance(address _omnibusWallet, address _wallet, uint256 _value, bool _increase)
+    //     public
+    //     onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
+    //     returns (bool)
+    // {
+    //     return updateInvestorBalance(_wallet, _value, _increase);
+    // }
 
-    function emitOmnibusTransferEvent(address _omnibusWallet, address _from, address _to, uint256 _value)
-        public
-        onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
-    {
-        emit OmnibusTransfer(_omnibusWallet, _from, _to, _value/*, getRegistryService().getOmnibusWalletController(_omnibusWallet).getAssetTrackingMode()*/);
-    }
+    // function emitOmnibusTransferEvent(address _omnibusWallet, address _from, address _to, uint256 _value)
+    //     public
+    //     onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
+    // {
+    //     emit OmnibusTransfer(_omnibusWallet, _from, _to, _value /*getRegistryService().getOmnibusWalletController(_omnibusWallet).getAssetTrackingMode()*/);
+    // }
+
+    // function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
+    //     return getComplianceService().preTransferCheck(_from, _to, _value);
+    // }
 
     function updateInvestorsBalancesOnTransfer(address _from, address _to, uint256 _value) internal {
-        // IDSRegistryService registryService = getRegistryService();
         uint omnibusEvent = TokenLibrary.updateOmnibusBalanceUpdatesOnTransfer(tokenData, getRegistryService(), _from, _to, _value);
-        // if (registryService.isOmnibusWallet(_to)) {
-        //     IDSOmnibusWalletController omnibusWalletController = registryService.getOmnibusWalletController(_to);
-        //     omnibusWalletController.deposit(_from, _value);
-        //     emit OmnibusDeposit(_to, _from, _value, omnibusWalletController.getWalletAssetTrackingMode());
-
-        //     if (omnibusWalletController.isHolderOfRecord()) {
-        //         updateInvestorBalance(_from, _value, false);
-        //         updateInvestorBalance(_to, _value, true);
-        //     }
-        // } else if (registryService.isOmnibusWallet(_from)) {
-        //     IDSOmnibusWalletController omnibusWalletController = registryService.getOmnibusWalletController(_from);
-        //     omnibusWalletController.withdraw(_to, _value);
-        //     emit OmnibusWithdraw(_from, _to, _value, omnibusWalletController.getWalletAssetTrackingMode());
-
-        //     if (omnibusWalletController.isHolderOfRecord()) {
-        //         updateInvestorBalance(_from, _value, false);
-        //         updateInvestorBalance(_to, _value, true);
-        //     }
-        // }
         if (omnibusEvent == 1) {
             emit OmnibusDeposit(_to, _from, _value);
         } else if (omnibusEvent == 2) {
@@ -335,4 +306,5 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         services[1] = getDSService(REGISTRY_SERVICE);
         return services;
     }
+
 }
