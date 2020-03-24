@@ -440,11 +440,13 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function recordTransfer(address _from, address _to, uint256 _value) internal returns (bool) {
-        if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_from)) == _value) {
+        IDSToken token = getToken();
+        IDSRegistryService registry = getRegistryService();
+        if (_value != 0 && token.balanceOfInvestor(registry.getInvestor(_from)) == _value) {
             adjustTransferCounts(_from, _to, false);
         }
 
-        if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_to)) == 0) {
+        if (_value != 0 && token.balanceOfInvestor(registry.getInvestor(_to)) == 0) {
             adjustTransferCounts(_to, _from, true);
         }
 
@@ -576,16 +578,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function preTransferCheckImpl(address _from, address _to, uint256 _value, address _omnibusWallet) internal view returns (uint256 code, string memory reason) {
-        address[] memory services = new address[](6);
-
-        services[0] = getDSService(DS_TOKEN);
-        services[1] = getDSService(REGISTRY_SERVICE);
-        services[2] = getDSService(WALLET_MANAGER);
-        services[3] = getDSService(COMPLIANCE_CONFIGURATION_SERVICE);
-        services[4] = getDSService(LOCK_MANAGER);
-        services[5] = address(this);
-
-        return ComplianceServiceLibrary.preTransferCheck(services, _from, _to, _value, _omnibusWallet);
+        return ComplianceServiceLibrary.preTransferCheck(getServices(), _from, _to, _value, _omnibusWallet);
     }
 
     function getComplianceTransferableTokens(address _who, uint64 _time, uint64 _lockTime) public view returns (uint256) {
@@ -618,15 +611,8 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function preIssuanceCheck(address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
-        address[] memory services = new address[](6);
-        services[0] = getDSService(DS_TOKEN);
-        services[1] = getDSService(REGISTRY_SERVICE);
-        services[2] = getDSService(WALLET_MANAGER);
-        services[3] = getDSService(COMPLIANCE_CONFIGURATION_SERVICE);
-        services[4] = getDSService(LOCK_MANAGER);
-        services[5] = address(this);
 
-        return ComplianceServiceLibrary.preIssuanceCheck(services, _to, _value);
+        return ComplianceServiceLibrary.preIssuanceCheck(getServices(), _to, _value);
     }
 
     function getTotalInvestorsCount() public view returns (uint256) {
@@ -677,5 +663,15 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         euRetailInvestorsCount[_country] = _value;
 
         return true;
+    }
+
+    function getServices() internal view returns (address[] memory services) {
+        services = new address[](6);
+        services[0] = getDSService(DS_TOKEN);
+        services[1] = getDSService(REGISTRY_SERVICE);
+        services[2] = getDSService(WALLET_MANAGER);
+        services[3] = getDSService(COMPLIANCE_CONFIGURATION_SERVICE);
+        services[4] = getDSService(LOCK_MANAGER);
+        services[5] = address(this);
     }
 }

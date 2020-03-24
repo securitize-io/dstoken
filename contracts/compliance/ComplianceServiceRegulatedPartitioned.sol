@@ -347,6 +347,18 @@ library ComplianceServicePartitionedLibrary {
 
       return (0, VALID);
   }
+
+  function getLockTime(IDSComplianceConfigurationService _complianceConfiguration, uint _partitionRegion, bool _checkFlowback) public view returns (uint) {
+    if (_partitionRegion == US) {
+        return _complianceConfiguration.getUsLockPeriod();
+    } else {
+      uint lockTime = _complianceConfiguration.getNonUsLockPeriod();
+      if (_checkFlowback) {
+        lockTime = Math.max(lockTime, _complianceConfiguration.getBlockFlowbackEndTime());
+      }
+      return lockTime;
+    }
+  }
 }
 
 /**
@@ -364,29 +376,13 @@ contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitione
     }
 
     function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
-        address[] memory services = new address[](6);
-
-        services[0] = getDSService(DS_TOKEN);
-        services[1] = getDSService(REGISTRY_SERVICE);
-        services[2] = getDSService(WALLET_MANAGER);
-        services[3] = getDSService(COMPLIANCE_CONFIGURATION_SERVICE);
-        services[4] = getDSService(LOCK_MANAGER);
-        services[5] = address(this);
-
-        return ComplianceServicePartitionedLibrary.preTransferCheck(services, _from, _to, _value, address(0));
+        return ComplianceServicePartitionedLibrary.preTransferCheck(getServices(), _from, _to, _value, address(0));
     }
 
     function getLockTime(bool _checkFlowback, bytes32 _partition) internal view returns (uint) {
-      if (getPartitionsManager().getPartitionRegion(_partition) == US) {
-          return getComplianceConfigurationService().getUsLockPeriod();
-      } else {
-        uint lockTime = getComplianceConfigurationService().getNonUsLockPeriod();
-        if (_checkFlowback) {
-          lockTime = Math.max(lockTime, getComplianceConfigurationService().getBlockFlowbackEndTime());
-        }
-
-        return lockTime;
-      }
+      IDSComplianceConfigurationService complianceConfiguration = getComplianceConfigurationService();
+      uint partitionRegion = getPartitionsManager().getPartitionRegion(_partition);
+      return ComplianceServicePartitionedLibrary.getLockTime(complianceConfiguration, partitionRegion, _checkFlowback);
     }
 
     function getComplianceTransferableTokens(address _who, uint256 _time, bool _checkFlowback) public view returns (uint transferable) {

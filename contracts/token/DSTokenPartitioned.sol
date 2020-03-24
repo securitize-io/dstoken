@@ -76,11 +76,4 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
   function partitionOf(address _who, uint _index) public view returns (bytes32) {
     return partitionsManagement.partitionOf(_who, _index); // walletPartitions[_who].partitions[_index];
   }
-
-  function getServices() internal view returns(address[] memory) {
-    address[] memory services = new address[](2);
-    services[0] = getDSService(COMPLIANCE_SERVICE);
-    services[1] = getDSService(REGISTRY_SERVICE);
-    return services;
-  }
 }

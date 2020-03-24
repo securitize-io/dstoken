@@ -10,7 +10,7 @@ contract StandardTokenMock is ProxyTarget, Initializable, StandardToken {
         StandardToken.initialize();
 
         VERSIONS.push(1);
-        walletsBalances[_initialAccount] = _initialBalance;
-        totalSupply = _initialBalance;
+        tokenData.walletsBalances[_initialAccount] = _initialBalance;
+        tokenData.totalSupply = _initialBalance;
     }
 }
