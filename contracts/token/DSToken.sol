@@ -39,6 +39,10 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         return tokenData.totalSupply;
     }
 
+    function totalIssued() public view returns (uint256) {
+        return tokenData.totalIssued;
+    }
+
     /******************************
        TOKEN ISSUANCE (MINTING)
    *******************************/
