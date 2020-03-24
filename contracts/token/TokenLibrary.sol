@@ -140,7 +140,7 @@ library TokenLibrary {
       if (_registryService.isOmnibusWallet(_to)) {
             IDSOmnibusWalletController omnibusWalletController = _registryService.getOmnibusWalletController(_to);
             omnibusWalletController.deposit(_from, _value);
-            emit OmnibusDeposit(_to, _from, _value, omnibusWalletController.getWalletAssetTrackingMode());
+            emit OmnibusDeposit(_to, _from, _value, omnibusWalletController.getAssetTrackingMode());
 
             if (omnibusWalletController.isHolderOfRecord()) {
                 updateInvestorBalance(_tokenData, _registryService, _from, _value, false);
@@ -150,7 +150,7 @@ library TokenLibrary {
         } else if (_registryService.isOmnibusWallet(_from)) {
             IDSOmnibusWalletController omnibusWalletController = _registryService.getOmnibusWalletController(_from);
             omnibusWalletController.withdraw(_to, _value);
-            emit OmnibusWithdraw(_from, _to, _value, omnibusWalletController.getWalletAssetTrackingMode());
+            emit OmnibusWithdraw(_from, _to, _value, omnibusWalletController.getAssetTrackingMode());
 
             if (omnibusWalletController.isHolderOfRecord()) {
                 updateInvestorBalance(_tokenData, _registryService, _from, _value, false);

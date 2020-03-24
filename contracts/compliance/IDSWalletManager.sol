@@ -19,15 +19,15 @@ contract IDSWalletManager is Initializable, VersionedContract {
     /**
    * @dev should be emitted when a special wallet is added.
    */
-    event DSWalletManagerSpecialWalletAdded(address _wallet, uint8 _type, address _sender);
+    event DSWalletManagerSpecialWalletAdded(address wallet, uint8 walletType, address sender);
     /**
    * @dev should be emitted when a special wallet is removed.
    */
-    event DSWalletManagerSpecialWalletRemoved(address _wallet, uint8 _type, address _sender);
+    event DSWalletManagerSpecialWalletRemoved(address wallet, uint8 walletType, address sender);
     /**
    * @dev should be emitted when the number of reserved slots is set for a wallet.
    */
-    event DSWalletManagerReservedSlotsSet(address _wallet, string _country, uint8 _accreditationStatus, uint256 _slots, address _sender);
+    event DSWalletManagerReservedSlotsSet(address wallet, string country, uint8 accreditationStatus, uint256 slots, address sender);
 
     /**
    * @dev Sets a wallet to be an special wallet. (internal)

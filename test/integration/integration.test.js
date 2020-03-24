@@ -110,7 +110,7 @@ contract("Integration", function([
       );
       assert.equal(tx.logs[0].event, "DSRegistryServiceInvestorAdded");
       assert.equal(
-        tx.logs[0].args._investorId.valueOf(),
+        tx.logs[0].args.investorId.valueOf(),
         investorId.SPAIN_INVESTOR_ID
       );
       tx = await this.registryService.setCountry(
@@ -119,7 +119,7 @@ contract("Integration", function([
       );
       assert.equal(tx.logs[0].event, "DSRegistryServiceInvestorCountryChanged");
       assert.equal(
-        tx.logs[0].args._investorId.valueOf(),
+        tx.logs[0].args.investorId.valueOf(),
         investorId.SPAIN_INVESTOR_ID
       );
       tx = await this.registryService.addWallet(
@@ -127,9 +127,9 @@ contract("Integration", function([
         investorId.SPAIN_INVESTOR_ID
       );
       assert.equal(tx.logs[0].event, "DSRegistryServiceWalletAdded");
-      assert.equal(tx.logs[0].args._wallet.valueOf(), spainInvestorWallet);
+      assert.equal(tx.logs[0].args.wallet.valueOf(), spainInvestorWallet);
       assert.equal(
-        tx.logs[0].args._investorId.valueOf(),
+        tx.logs[0].args.investorId.valueOf(),
         investorId.SPAIN_INVESTOR_ID
       );
 
@@ -454,8 +454,8 @@ contract("Integration", function([
     it("Should create correctly issuer,platform and exchange wallets", async function() {
       let tx = await this.walletManager.addIssuerWallet(issuerWallet);
       assert.equal(tx.logs[0].event, "DSWalletManagerSpecialWalletAdded");
-      assert.equal(tx.logs[0].args._wallet, issuerWallet);
-      assert.equal(tx.logs[0].args._type, 1);
+      assert.equal(tx.logs[0].args.wallet, issuerWallet);
+      assert.equal(tx.logs[0].args.walletType, 1);
 
       await this.walletManager.addPlatformWallet(platformWallet);
 

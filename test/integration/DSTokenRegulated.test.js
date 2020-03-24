@@ -9,7 +9,7 @@ const compliance = fixtures.Compliance;
 const time = fixtures.Time;
 
 contract("DSToken (regulated)", function([
-  _,
+  owner,
   issuerWallet,
   usInvestorWallet,
   usInvestorSecondaryWallet,
@@ -145,6 +145,20 @@ contract("DSToken (regulated)", function([
     it("Should not allow instantiating the token without a proxy", async function() {
       const token = await DSToken.new();
       await assertRevert(token.initialize("DSTokenMock", "DST", 18));
+    });
+  });
+
+  describe("Ownership", function() {
+    it("Should allow to transfer ownership and return the correct owner address", async function() {
+      await this.token.transferOwnership(issuerWallet);
+      let changedOwner = await this.token.contractOwner();
+      assert.equal(changedOwner, issuerWallet);
+
+      // Check that ownership can be transferred from new owner to previous owner
+      await this.token.transferOwnership(owner, {from: issuerWallet});
+      changedOwner = await this.token.contractOwner();
+
+      assert.equal(changedOwner, owner);
     });
   });
 

@@ -11,7 +11,10 @@ const OmnibusWalletController = artifacts.require("OmnibusWalletController");
 const MultiSigWallet = artifacts.require("MultiSigWallet");
 const PartitionsManager = artifacts.require("PartitionsManager");
 const configurationManager = require("./utils/configurationManager");
-const services = require("../utils/globals").services;
+const globals = require("../utils/globals");
+const services = globals.services;
+const attributeType = globals.attributeType;
+const attributeStatus = globals.attributeStatus;
 
 module.exports = async function(deployer) {
   if (configurationManager.isTestMode()) {
@@ -173,6 +176,24 @@ module.exports = async function(deployer) {
         )
       );
 
+      console.log("Connecting omnibus wallet controller to trust service");
+      await omnibusWalletController.setDSService(
+        services.TRUST_SERVICE,
+        trustService.address
+      );
+
+      console.log("Connecting omnibus wallet controller to compliance manager");
+      await omnibusWalletController.setDSService(
+        services.COMPLIANCE_SERVICE,
+        complianceService.address
+      );
+
+      console.log("Connecting omnibus wallet controller to token");
+      await omnibusWalletController.setDSService(
+        services.DS_TOKEN,
+        token.address
+      );
+
       console.log("Adding omnibus wallet investor to registry");
       await registry.registerInvestor(
         configurationManager.omnibusWalletInvestorId,
@@ -184,6 +205,21 @@ module.exports = async function(deployer) {
         configurationManager.omnibusWalletInvestorId,
         configurationManager.omnibusWallet,
         omnibusWalletController.address
+      );
+
+      await registry.setAttribute(
+        configurationManager.omnibusWalletInvestorId,
+        attributeType.ACCREDITED,
+        attributeStatus.APPROVED,
+        "",
+        ""
+      );
+      await registry.setAttribute(
+        configurationManager.omnibusWalletInvestorId,
+        attributeType.QUALIFIED,
+        attributeStatus.APPROVED,
+        "",
+        ""
       );
     }
   }

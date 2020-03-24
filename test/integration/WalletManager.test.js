@@ -28,7 +28,7 @@ contract("WalletManager", function([
 
       const {logs} = await this.walletManager.addIssuerWallet(wallet);
 
-      assert.equal(logs[0].args._wallet, wallet);
+      assert.equal(logs[0].args.wallet, wallet);
       assert.equal(logs[0].event, "DSWalletManagerSpecialWalletAdded");
 
       assert.equal(await this.walletManager.getWalletType(wallet), 1);
@@ -42,7 +42,7 @@ contract("WalletManager", function([
         from: issuerWallet1
       });
 
-      assert.equal(logs[0].args._wallet, issuerWallet2);
+      assert.equal(logs[0].args.wallet, issuerWallet2);
       assert.equal(logs[0].event, "DSWalletManagerSpecialWalletAdded");
     });
 
@@ -74,7 +74,7 @@ contract("WalletManager", function([
           from: issuerWallet1
         });
 
-        assert.equal(logs[0].args._wallet, issuerWallet2);
+        assert.equal(logs[0].args.wallet, issuerWallet2);
         assert.equal(logs[0].event, "DSWalletManagerSpecialWalletAdded");
 
         await assertRevert(this.walletManager.addIssuerWallet(issuerWallet2));
@@ -89,7 +89,7 @@ contract("WalletManager", function([
 
       const {logs} = await this.walletManager.addPlatformWallet(issuerWallet2);
 
-      assert.equal(logs[0].args._wallet, issuerWallet2);
+      assert.equal(logs[0].args.wallet, issuerWallet2);
       assert.equal(logs[0].event, "DSWalletManagerSpecialWalletAdded");
     });
 
@@ -101,7 +101,7 @@ contract("WalletManager", function([
         from: issuerWallet1
       });
 
-      assert.equal(logs[0].args._wallet, issuerWallet2);
+      assert.equal(logs[0].args.wallet, issuerWallet2);
       assert.equal(logs[0].event, "DSWalletManagerSpecialWalletAdded");
     });
 
@@ -134,7 +134,7 @@ contract("WalletManager", function([
           {from: issuerWallet1}
         );
 
-        assert.equal(logs[0].args._wallet, issuerWallet2);
+        assert.equal(logs[0].args.wallet, issuerWallet2);
         assert.equal(logs[0].event, "DSWalletManagerSpecialWalletAdded");
 
         await assertRevert(this.walletManager.addPlatformWallet(issuerWallet2));
@@ -152,7 +152,7 @@ contract("WalletManager", function([
         exchangeWallet1
       );
 
-      assert.equal(logs[0].args._wallet, issuerWallet2);
+      assert.equal(logs[0].args.wallet, issuerWallet2);
       assert.equal(logs[0].event, "DSWalletManagerSpecialWalletAdded");
     });
 
@@ -166,7 +166,7 @@ contract("WalletManager", function([
         {from: issuerWallet1}
       );
 
-      assert.equal(logs[0].args._wallet, exchangeWallet2);
+      assert.equal(logs[0].args.wallet, exchangeWallet2);
       assert.equal(logs[0].event, "DSWalletManagerSpecialWalletAdded");
     });
 
@@ -215,7 +215,7 @@ contract("WalletManager", function([
 
       const {logs} = await this.walletManager.removeSpecialWallet(wallet);
 
-      assert.equal(logs[0].args._wallet, wallet);
+      assert.equal(logs[0].args.wallet, wallet);
       assert.equal(logs[0].event, "DSWalletManagerSpecialWalletRemoved");
     });
 
@@ -232,7 +232,7 @@ contract("WalletManager", function([
         {from: issuerWallet1}
       );
 
-      assert.equal(logs[0].args._wallet, issuerWallet2);
+      assert.equal(logs[0].args.wallet, issuerWallet2);
       assert.equal(logs[0].event, "DSWalletManagerSpecialWalletRemoved");
     });
 
@@ -277,7 +277,7 @@ contract("WalletManager", function([
         SLOTS
       );
 
-      assert.equal(logs[0].args._wallet, wallet);
+      assert.equal(logs[0].args.wallet, wallet);
       assert.equal(logs[0].event, "DSWalletManagerReservedSlotsSet");
 
       assert.equal(
@@ -302,7 +302,7 @@ contract("WalletManager", function([
         {from: issuerWallet1}
       );
 
-      assert.equal(logs[0].args._wallet, wallet);
+      assert.equal(logs[0].args.wallet, wallet);
       assert.equal(logs[0].event, "DSWalletManagerReservedSlotsSet");
 
       assert.equal(

@@ -14,7 +14,7 @@ contract Ownable is Initializable {
         emit OwnershipTransferred(address(0), _owner);
     }
 
-    function owner() public view returns (address) {
+    function contractOwner() public view returns (address) {
         return _owner;
     }
 

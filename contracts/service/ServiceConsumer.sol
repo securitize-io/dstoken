@@ -27,7 +27,7 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
 
     modifier onlyMaster {
         IDSTrustService trustManager = getTrustService();
-        require(this.owner() == msg.sender || trustManager.getRole(msg.sender) == trustManager.MASTER(), "Insufficient trust level");
+        require(this.contractOwner() == msg.sender || trustManager.getRole(msg.sender) == trustManager.MASTER(), "Insufficient trust level");
         _;
     }
 
@@ -63,6 +63,11 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
             IDSTrustService trustManager = IDSTrustService(getDSService(TRUST_SERVICE));
             require(trustManager.getRole(msg.sender) == trustManager.ISSUER() || trustManager.getRole(msg.sender) == trustManager.MASTER(), "Insufficient trust level");
         }
+        _;
+    }
+
+    modifier onlyOmnibusWalletController(address omnibusWallet, IDSOmnibusWalletController omnibusWalletController) {
+        require(getRegistryService().getOmnibusWalletController(omnibusWallet) == omnibusWalletController);
         _;
     }
 

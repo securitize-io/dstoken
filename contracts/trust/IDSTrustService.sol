@@ -16,11 +16,11 @@ contract IDSTrustService is Initializable, VersionedContract {
     /**
    * @dev Should be emitted when a role is set for a user.
    */
-    event DSTrustServiceRoleAdded(address _address, uint8 _role, address _sender);
+    event DSTrustServiceRoleAdded(address targetAddress, uint8 role, address sender);
     /**
    * @dev Should be emitted when a role is removed for a user.
    */
-    event DSTrustServiceRoleRemoved(address _address, uint8 _role, address _sender);
+    event DSTrustServiceRoleRemoved(address targetAddress, uint8 role, address sender);
 
     // Role constants
     uint8 public constant NONE = 0;
@@ -44,7 +44,7 @@ contract IDSTrustService is Initializable, VersionedContract {
         _;
     }
 
-    modifier onlyEntityOwnerOrAbove(string memory _name, address _owner) {
+    modifier onlyEntityOwnerOrAbove(string memory _name) {
         assert(false);
         _;
     }
@@ -155,5 +155,9 @@ contract IDSTrustService is Initializable, VersionedContract {
         string memory _name,
         address _resource /*onlyMasterOrIssuer onlyExistingResource*/
     ) public;
+    function getEntityByOwner(address _owner) public view returns (string memory);
+    function getEntityByOperator(address _operator) public view returns (string memory);
+    function getEntityByResource(address _resource) public view returns (string memory);
+    function isResourceOwner(address _resource, address _owner) public view returns (bool);
     function isResourceOperator(address _resource, address _operator) public view returns (bool);
 }

@@ -33,32 +33,28 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
         _;
     }
 
-    modifier onlyEntityOwnerOrAbove(string memory _name, address _owner) {
+    modifier onlyEntityOwnerOrAbove(string memory _name) {
         require(
             roles[msg.sender] == MASTER ||
                 roles[msg.sender] == ISSUER ||
-                (keccak256(abi.encodePacked(ownersEntities[_owner])) != keccak256(abi.encodePacked("")) &&
-                    keccak256(abi.encodePacked(ownersEntities[_owner])) == keccak256(abi.encodePacked(_name)))
+                (keccak256(abi.encodePacked(ownersEntities[msg.sender])) != keccak256(abi.encodePacked("")) &&
+                    keccak256(abi.encodePacked(ownersEntities[msg.sender])) == keccak256(abi.encodePacked(_name)))
         );
-
         _;
     }
 
     modifier onlyNewEntity(string memory _name) {
-        require(!entities[_name], "Entity already exists");
-
+        require(entitiesOwners[_name] == address(0), "Entity already exists");
         _;
     }
 
     modifier onlyExistingEntity(string memory _name) {
-        require(entities[_name], "Entity doesn't exist");
-
+        require(entitiesOwners[_name] != address(0), "Entity doesn't exist");
         _;
     }
 
     modifier onlyNewEntityOwner(address _owner) {
         require(keccak256(abi.encodePacked(ownersEntities[_owner])) == keccak256(abi.encodePacked("")), "Entity owner already exists");
-
         _;
     }
 
@@ -68,13 +64,11 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
                 keccak256(abi.encodePacked(ownersEntities[_owner])) == keccak256(abi.encodePacked(_name)),
             "Entity owner doesn't exist"
         );
-
         _;
     }
 
     modifier onlyNewOperator(address _operator) {
         require(keccak256(abi.encodePacked(operatorsEntities[_operator])) == keccak256(abi.encodePacked("")), "Entity operator already exists");
-
         _;
     }
 
@@ -84,13 +78,11 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
                 keccak256(abi.encodePacked(operatorsEntities[_operator])) == keccak256(abi.encodePacked(_name)),
             "Entity operator doesn't exist"
         );
-
         _;
     }
 
     modifier onlyNewResource(address _resource) {
         require(keccak256(abi.encodePacked(resourcesEntities[_resource])) == keccak256(abi.encodePacked("")), "Entity resource already exists");
-
         _;
     }
 
@@ -100,7 +92,6 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
                 keccak256(abi.encodePacked(resourcesEntities[_resource])) == keccak256(abi.encodePacked(_name)),
             "Entity resource doesn't exist"
         );
-
         _;
     }
 
@@ -175,7 +166,7 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
     }
 
     function addEntity(string memory _name, address _owner) public onlyMasterOrIssuer onlyNewEntity(_name) onlyNewEntityOwner(_owner) {
-        entities[_name] = true;
+        entitiesOwners[_name] = _owner;
         ownersEntities[_owner] = _name;
     }
 
@@ -184,11 +175,11 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
         ownersEntities[_newOwner] = _name;
     }
 
-    function addOperator(string memory _name, address _operator) public onlyEntityOwnerOrAbove(_name, msg.sender) onlyNewOperator(_operator) {
+    function addOperator(string memory _name, address _operator) public onlyEntityOwnerOrAbove(_name) onlyNewOperator(_operator) {
         operatorsEntities[_operator] = _name;
     }
 
-    function removeOperator(string memory _name, address _operator) public onlyEntityOwnerOrAbove(_name, msg.sender) onlyExistingOperator(_name, _operator) {
+    function removeOperator(string memory _name, address _operator) public onlyEntityOwnerOrAbove(_name) onlyExistingOperator(_name, _operator) {
         delete operatorsEntities[_operator];
     }
 
@@ -198,6 +189,24 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
 
     function removeResource(string memory _name, address _resource) public onlyMasterOrIssuer onlyExistingResource(_name, _resource) {
         delete resourcesEntities[_resource];
+    }
+
+    function getEntityByOwner(address _owner) public view returns (string memory) {
+        return ownersEntities[_owner];
+    }
+
+    function getEntityByOperator(address _operator) public view returns (string memory) {
+        return operatorsEntities[_operator];
+    }
+
+    function getEntityByResource(address _resource) public view returns (string memory) {
+        return resourcesEntities[_resource];
+    }
+
+    function isResourceOwner(address _resource, address _owner) public view returns (bool) {
+        return
+            keccak256(abi.encodePacked(resourcesEntities[_resource])) != keccak256(abi.encodePacked("")) &&
+            keccak256(abi.encodePacked(resourcesEntities[_resource])) == keccak256(abi.encodePacked(ownersEntities[_owner]));
     }
 
     function isResourceOperator(address _resource, address _operator) public view returns (bool) {

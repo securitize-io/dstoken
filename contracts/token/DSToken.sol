@@ -262,6 +262,21 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         return tokenData.investorsBalances[_id];
     }
 
+    function updateOmnibusInvestorBalance(address _omnibusWallet, address _wallet, uint256 _value, bool _increase)
+        public
+        onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
+        returns (bool)
+    {
+        return updateInvestorBalance(_wallet, _value, _increase);
+    }
+
+    function emitOmnibusTransferEvent(address _omnibusWallet, address _from, address _to, uint256 _value)
+        public
+        onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
+    {
+        emit OmnibusTransfer(_omnibusWallet, _from, _to, _value/*, getRegistryService().getOmnibusWalletController(_omnibusWallet).getAssetTrackingMode()*/);
+    }
+
     function updateInvestorsBalancesOnTransfer(address _from, address _to, uint256 _value) internal {
         // IDSRegistryService registryService = getRegistryService();
         uint omnibusEvent = TokenLibrary.updateOmnibusBalanceUpdatesOnTransfer(tokenData, getRegistryService(), _from, _to, _value);
@@ -320,5 +335,4 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         services[1] = getDSService(REGISTRY_SERVICE);
         return services;
     }
-
 }

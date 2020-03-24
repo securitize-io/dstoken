@@ -20,5 +20,4 @@ contract TokenDataStore is ServiceConsumerDataStore {
     uint8 public decimals;
     TokenLibrary.SupportedFeatures public supportedFeatures;
     bool internal paused;
-
 }
