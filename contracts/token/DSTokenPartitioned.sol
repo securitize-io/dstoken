@@ -1,9 +1,9 @@
-pragma solidity ^0.5.0;
+ pragma solidity ^0.5.0;
 
 import "./DSToken.sol";
 import "./IDSTokenPartitioned.sol";
 import "../compliance/IDSPartitionsManager.sol";
-import "../utils/TokenPartitionsLibrary.sol";
+import "./TokenPartitionsLibrary.sol";
 
 contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
 
@@ -15,13 +15,7 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
 
   function issueTokensCustom(address _to, uint256 _value, uint256 _issuanceTime, uint256 _valueLocked, string memory _reason, uint64 _releaseTime) /*onlyIssuerOrAbove*/ public returns (bool) {
     super.issueTokensCustom(_to, _value, _issuanceTime, _valueLocked, _reason, _releaseTime);
-    IDSRegistryService registryService = getRegistryService();
-    string memory country = registryService.getCountry(registryService.getInvestor(_to));
-    bytes32 partition = getPartitionsManager().ensurePartition(_issuanceTime, getComplianceConfigurationService().getCountryCompliance(country));
-    partitionsManagement.transferPartition(registryService, address(0), _to, _value, partition);
-
-    emit IssueByPartition(_to, _value, partition);
-
+    partitionsManagement.issueTokensCustom(getRegistryService(), getComplianceConfigurationService(), getPartitionsManager(),  _to, _value, _issuanceTime);
     return true;
   }
 

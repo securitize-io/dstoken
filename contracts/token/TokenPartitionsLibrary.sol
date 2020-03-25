@@ -4,11 +4,15 @@ import "../zeppelin/math/SafeMath.sol";
 import "../zeppelin/math/Math.sol";
 import "../compliance/IDSComplianceServicePartitioned.sol";
 import "../registry/IDSRegistryService.sol";
+import "../compliance/IDSComplianceConfigurationService.sol";
+import "../compliance/IDSPartitionsManager.sol";
+// import "./IDSToken.sol";
 
 library TokenPartitionsLibrary {
    uint internal constant COMPLIANCE_SERVICE = 0;
    uint internal constant REGISTRY_SERVICE = 1;
 
+  event IssueByPartition(address indexed to, uint256 value, bytes32 indexed partition);
   event TransferByPartition(address indexed from, address indexed to, uint256 value, bytes32 indexed partition);
   struct AddressPartitions {
     uint count;
@@ -20,6 +24,13 @@ library TokenPartitionsLibrary {
   struct TokenPartitions {
     mapping(address => AddressPartitions) walletPartitions;
     mapping (string => mapping (bytes32 => uint)) investorPartitionsBalances;
+  }
+
+  function issueTokensCustom(TokenPartitions storage self, IDSRegistryService _registry, IDSComplianceConfigurationService _compConf, IDSPartitionsManager _partitionsManager, address _to, uint256 _value, uint256 _issuanceTime) public returns (bool) {
+    string memory country = _registry.getCountry(_registry.getInvestor(_to));
+    bytes32 partition = _partitionsManager.ensurePartition(_issuanceTime, _compConf.getCountryCompliance(country));
+    transferPartition(self, _registry, address(0), _to, _value, partition);
+    emit IssueByPartition(_to, _value, partition);
   }
 
   function setPartitionToAddressImpl(TokenPartitions storage self, address _who, uint _index, bytes32 _partition)

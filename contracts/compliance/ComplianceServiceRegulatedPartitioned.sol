@@ -14,23 +14,23 @@ library ComplianceServicePartitionedLibrary {
   uint256 internal constant COMPLIANCE_CONFIGURATION_SERVICE = 3;
   uint256 internal constant LOCK_MANAGER = 4;
   uint256 internal constant COMPLIANCE_SERVICE = 5;
-  string internal constant TOKEN_PAUSED = "TokenPaused";
-  string internal constant NOT_ENOUGH_TOKENS = "NotEnoughTokens";
+  string internal constant TOKEN_PAUSED = "Token paused";
+  string internal constant NOT_ENOUGH_TOKENS = "Not enough tokens";
   string internal constant VALID = "Valid";
-  string internal constant TOKENS_LOCKED = "TokensLocked";
-  string internal constant ONLY_FULL_TRANSFER = "OnlyFullTransfer";
+  string internal constant TOKENS_LOCKED = "Tokens locked";
+  string internal constant ONLY_FULL_TRANSFER = "Only full transfer";
   string internal constant FLOWBACK = "Flowback";
-  string internal constant WALLET_NOT_IN_REGISTRY_SERVICE = "WalletNotInRegistryService";
-  string internal constant AMOUNT_OF_TOKENS_UNDER_MIN = "AmountOfTokensUnderMin";
-  string internal constant AMOUNT_OF_TOKENS_ABOVE_MAX = "AmountOfTokensAboveMax";
-  string internal constant HOLD_UP = "HoldUp";
-  string internal constant HOLD_UP_1Y = "HoldUp1Y";
-  string internal constant DESTINATION_RESTRICTED = "DestinationRestricted";
-  string internal constant MAX_INVESTORS_IN_CATEGORY = "MaxInvestorsInCategory";
-  string internal constant ONLY_ACCREDITED = "OnlyAccredited";
-  string internal constant ONLY_US_ACCREDITED = "OnlyUSAccredited";
-  string internal constant NOT_ENOUGH_INVESTORS = "NotEnoughInvestors";
-  string internal constant OMNIBUS_TO_OMNIBUS_TRANSFER = "OmnibusToOmnibusTransfer";
+  string internal constant WALLET_NOT_IN_REGISTRY_SERVICE = "Wallet not in registry service";
+  string internal constant AMOUNT_OF_TOKENS_UNDER_MIN = "Amount of tokens under min";
+  string internal constant AMOUNT_OF_TOKENS_ABOVE_MAX = "Amount of tokens above max";
+  string internal constant HOLD_UP = "Hold-up";
+  string internal constant HOLD_UP_1Y = "Hold-up 1y";
+  string internal constant DESTINATION_RESTRICTED = "Destination restricted";
+  string internal constant MAX_INVESTORS_IN_CATEGORY = "Max investors in category";
+  string internal constant ONLY_ACCREDITED = "Only accredited";
+  string internal constant ONLY_US_ACCREDITED = "Only US accredited";
+  string internal constant NOT_ENOUGH_INVESTORS = "Not enough investors";
+  string internal constant OMNIBUS_TO_OMNIBUS_TRANSFER = "Omnibus to omnibus transfer";
 
   using SafeMath for uint256;
 

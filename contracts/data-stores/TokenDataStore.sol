@@ -1,7 +1,7 @@
 pragma solidity ^0.5.0;
 
 import "./ServiceConsumerDataStore.sol";
-import '../utils/TokenPartitionsLibrary.sol';
+import '../token/TokenPartitionsLibrary.sol';
 import '../token/TokenLibrary.sol';
 
 contract TokenDataStore is ServiceConsumerDataStore {

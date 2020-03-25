@@ -346,6 +346,11 @@ module.exports = async function(deployer) {
       walletRegistrar.address
     } | Version: ${await walletRegistrar.getVersion()}`
   );
+  console.log(
+    `Partitions Manager is at address: ${
+      partitionsManager.address
+    } | Version: ${await partitionsManager.getVersion()}`
+  );
 
   if (!registry) {
     console.log("\nNo investors registry was deployed.");

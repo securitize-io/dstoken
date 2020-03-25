@@ -1,9 +1,9 @@
 pragma solidity ^0.5.0;
 
-import "./BasicToken.sol";
 import "../service/ServiceConsumer.sol";
+import "../data-stores/TokenDataStore.sol";
 
-contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataStore {
+contract StandardToken is IERC20, VersionedContract, Ownable, ServiceConsumer, TokenDataStore {
     event Pause();
     event Unpause();
 
@@ -61,6 +61,10 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
   */
     function balanceOf(address _owner) public view returns (uint256) {
         return tokenData.walletsBalances[_owner];
+    }
+
+    function totalSupply() public view returns (uint256) {
+        return tokenData.totalSupply;
     }
 
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {

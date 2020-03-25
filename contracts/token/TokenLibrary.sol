@@ -110,6 +110,7 @@ library TokenLibrary {
         _tokenData.walletsBalances[_omnibusWallet] = _tokenData.walletsBalances[_omnibusWallet].sub(_value);
         omnibusController.burn(_who, _value);
         decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_tokenData, registryService, omnibusController, _omnibusWallet, _who, _value);
+        _tokenData.totalSupply = _tokenData.totalSupply.sub(_value);
         // checkWalletsForList(_tokenData, _omnibusWallet, address(0));
     }
 
