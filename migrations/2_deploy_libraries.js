@@ -16,15 +16,18 @@ const configurationManager = require("./utils/configurationManager");
 
 async function deployLibraries(deployer) {
   await deployer.deploy(ComplianceServiceLibrary);
-  await deployer.deploy(ComplianceServicePartitionedLibrary);
   await deployer.deploy(TokenLibrary);
-  await deployer.deploy(TokenPartitionsLibrary);
   await deployer.link(ComplianceServiceLibrary, ComplianceServiceRegulated);
-  await deployer.link(ComplianceServiceLibrary, ComplianceServiceRegulatedPartitioned);
-  await deployer.link(ComplianceServicePartitionedLibrary, ComplianceServiceRegulatedPartitioned);
   await deployer.link(TokenLibrary, DSToken);
-  await deployer.link(TokenLibrary, DSTokenPartitioned);
-  await deployer.link(TokenPartitionsLibrary, DSTokenPartitioned);
+  console.log(`Is Partitioned: ${configurationManager.isPartitioned()}`)
+  if (configurationManager.isPartitioned()) {
+    await deployer.deploy(TokenPartitionsLibrary);
+    await deployer.deploy(ComplianceServicePartitionedLibrary);
+    await deployer.link(ComplianceServicePartitionedLibrary, ComplianceServiceRegulatedPartitioned);
+    await deployer.link(ComplianceServiceLibrary, ComplianceServiceRegulatedPartitioned);
+    await deployer.link(TokenLibrary, DSTokenPartitioned);
+    await deployer.link(TokenPartitionsLibrary, DSTokenPartitioned);
+  }
 }
 
 module.exports = async function(deployer) {

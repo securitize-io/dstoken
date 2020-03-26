@@ -124,6 +124,10 @@ class ConfigurationManager {
   isTestMode() {
     return process.env.TEST_MODE === "TRUE";
   }
+
+  isPartitioned() {
+    return this.partitioned != undefined;
+  }
 }
 
 module.exports = new ConfigurationManager();

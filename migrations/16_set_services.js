@@ -1,4 +1,3 @@
-const DSToken = artifacts.require("DSTokenPartitioned");
 const TrustService = artifacts.require("TrustService");
 const RegistryService = artifacts.require("RegistryService");
 const WalletManager = artifacts.require("WalletManager");
@@ -61,9 +60,15 @@ module.exports = async function(deployer) {
     configurationManager.getProxyAddressForContractName("WalletRegistrar")
   );
   const multisig = await MultiSigWallet.deployed();
-  const partitionsManager = await PartitionsManager.at(
-    configurationManager.getProxyAddressForContractName("PartitionsManager")
-  );
+
+  let partitionsManager = undefined;
+  if (configurationManager.isPartitioned())
+  {
+     partitionsManager = await PartitionsManager.at(
+      configurationManager.getProxyAddressForContractName("PartitionsManager")
+    );
+  }
+
   let registry;
   let omnibusWalletController;
 
@@ -132,11 +137,6 @@ module.exports = async function(deployer) {
       }
     );
 
-    console.log("Connecting token to partitions manager");
-    await token.setDSService(services.PARTITIONS_MANAGER, partitionsManager.address, {
-      gas: 1e6
-    });
-
     console.log("Connecting token issuer to registry");
     await tokenIssuer.setDSService(
       services.REGISTRY_SERVICE,
@@ -161,12 +161,6 @@ module.exports = async function(deployer) {
     await complianceService.setDSService(
       services.REGISTRY_SERVICE,
       registry.address
-    );
-
-    console.log("Connecting compliance manager to partitions manager");
-    await complianceService.setDSService(
-      services.PARTITIONS_MANAGER,
-      partitionsManager.address
     );
 
     if (!configurationManager.noOmnibusWallet) {
@@ -224,6 +218,29 @@ module.exports = async function(deployer) {
     }
   }
 
+  if (configurationManager.isPartitioned())
+  {
+    console.log("Connecting token to partitions manager");
+    await token.setDSService(services.PARTITIONS_MANAGER, partitionsManager.address, {
+      gas: 1e6
+    });
+    console.log("Connecting partitions manager to trust service");
+    await partitionsManager.setDSService(
+      services.TRUST_SERVICE,
+      trustService.address
+    );
+    console.log("Connecting partitions manager to token");
+    await partitionsManager.setDSService(
+      services.DS_TOKEN,
+      token.address
+    );
+    console.log("Connecting compliance manager to partitions manager");
+    await complianceService.setDSService(
+      services.PARTITIONS_MANAGER,
+      partitionsManager.address
+    );
+  }
+
   console.log("Connecting token to trust service");
   await token.setDSService(services.TRUST_SERVICE, trustService.address, {
     gas: 1e6
@@ -274,23 +291,15 @@ module.exports = async function(deployer) {
     services.TRUST_SERVICE,
     trustService.address
   );
-  console.log("Connecting partitions manager to trust service");
-  await partitionsManager.setDSService(
-    services.TRUST_SERVICE,
-    trustService.address
-  );
-  console.log("Connecting partitions manager to token");
-  await partitionsManager.setDSService(
-    services.DS_TOKEN,
-    token.address
-  );
 
   console.log(
     `\n\nToken "${configurationManager.name}" (${configurationManager.symbol}) [decimals: ${configurationManager.decimals}] deployment complete`
   );
   console.log("-------------------------");
+  tokenType = configurationManager.isPartitioned() ? "TokenPartitioned" : "Token";
   console.log(
-    `Token is at address: ${
+
+    `${tokenType} is at address: ${
       token.address
     } | Version: ${await token.getVersion()}`
   );
@@ -346,11 +355,14 @@ module.exports = async function(deployer) {
       walletRegistrar.address
     } | Version: ${await walletRegistrar.getVersion()}`
   );
-  console.log(
-    `Partitions Manager is at address: ${
+
+  if (configurationManager.isPartitioned()) {
+    console.log(
+      `Partitions Manager is at address: ${
       partitionsManager.address
-    } | Version: ${await partitionsManager.getVersion()}`
-  );
+      } | Version: ${await partitionsManager.getVersion()}`
+    );
+  }
 
   if (!registry) {
     console.log("\nNo investors registry was deployed.");
@@ -358,6 +370,7 @@ module.exports = async function(deployer) {
   if (!omnibusWalletController) {
     console.log("\nNo omnibus wallet controller was deployed.");
   }
+
   console.log(
     `Multisig wallet is at address: ${
       multisig.address

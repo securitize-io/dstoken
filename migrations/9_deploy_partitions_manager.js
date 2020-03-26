@@ -2,7 +2,7 @@ const deployContractBehindProxy = require("./utils").deployContractBehindProxy;
 const configurationManager = require("./utils/configurationManager");
 
 module.exports = async function(deployer) {
-  if (configurationManager.isTestMode()) {
+  if (configurationManager.isTestMode() || !configurationManager.isPartitioned()) {
     return;
   }
 
