@@ -1,5 +1,6 @@
 const assertRevert = require("../utils/assertRevert");
 const latestTime = require("../utils/latestTime");
+const snapshotsHelper = require("../utils/snapshots");
 const increaseTime = require("../utils/increaseTime").increaseTime;
 const deployContracts = require("../utils").deployContracts;
 const roles = require("../../utils/globals").roles;
@@ -21,7 +22,7 @@ contract("ComplianceServiceRegulated", function([
   platformWallet,
   omnibusWallet
 ]) {
-  beforeEach(async function() {
+  before(async function() {
     await deployContracts(
       this,
       artifacts,
@@ -43,6 +44,15 @@ contract("ComplianceServiceRegulated", function([
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, time.YEARS],
       [true, false, false]
     );
+  });
+
+  beforeEach(async function() {
+    snapshot = await snapshotsHelper.takeSnapshot()
+    snapshotId = snapshot['result'];
+  });
+
+  afterEach(async function() {
+    await snapshotsHelper.revertToSnapshot(snapshotId);
   });
 
   describe("Validate issuance(recordIssuance):", function() {

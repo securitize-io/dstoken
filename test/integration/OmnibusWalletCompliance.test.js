@@ -1,5 +1,6 @@
 const latestTime = require("../utils/latestTime");
 const deployContracts = require("../utils").deployContracts;
+const snapshotsHelper = require("../utils/snapshots");
 const fixtures = require("../fixtures");
 const globals = require("../../utils/globals");
 const complianceType = globals.complianceType;
@@ -19,7 +20,7 @@ contract("OmnibusWalletCompliance", function([
   investorWallet1,
   investorWallet2
 ]) {
-  beforeEach(async function() {
+  before(async function() {
     await deployContracts(
       this,
       artifacts,
@@ -85,6 +86,15 @@ contract("OmnibusWalletCompliance", function([
       investorWallet1,
       investorId.GENERAL_INVESTOR_ID_1
     );
+  });
+
+  beforeEach(async function() {
+    snapshot = await snapshotsHelper.takeSnapshot()
+    snapshotId = snapshot['result'];
+  });
+
+  afterEach(async function() {
+    await snapshotsHelper.revertToSnapshot(snapshotId);
   });
 
   describe("Omnibus to omnibus transfer", function() {

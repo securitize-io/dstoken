@@ -1,5 +1,6 @@
 const assertRevert = require("../utils/assertRevert");
 const deployContracts = require("../utils").deployContracts;
+const snapshotsHelper = require("../utils/snapshots");
 const fixtures = require("../fixtures");
 const globals = require("../../utils/globals");
 const complianceType = globals.complianceType;
@@ -128,7 +129,7 @@ contract("OmnibusWalletController", function([
   investorWallet2,
   issuer
 ]) {
-  beforeEach(async function() {
+  before(async function() {
     await deployContracts(
       this,
       artifacts,
@@ -197,6 +198,15 @@ contract("OmnibusWalletController", function([
 
     await this.trustService.setRole(issuer, role.ISSUER);
     await this.walletManager.addIssuerWallet(issuer);
+  });
+
+  beforeEach(async function() {
+    snapshot = await snapshotsHelper.takeSnapshot()
+    snapshotId = snapshot['result'];
+  });
+
+  afterEach(async function() {
+    await snapshotsHelper.revertToSnapshot(snapshotId);
   });
 
   describe("Asset tracking mode", function() {

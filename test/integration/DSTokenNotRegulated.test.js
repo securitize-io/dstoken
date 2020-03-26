@@ -1,5 +1,6 @@
 const DSToken = artifacts.require("DSToken");
 const assertRevert = require("../utils/assertRevert");
+const snapshotsHelper = require("../utils/snapshots");
 const complianceType = require("../../utils/globals").complianceType;
 const lockManagerType = require("../../utils/globals").lockManagerType;
 const deployContracts = require("../utils").deployContracts;
@@ -14,7 +15,7 @@ contract("DSToken (not regulated)", function([
   wallet3
 ]) {
   describe("Compliance not regulated", function() {
-    beforeEach(async function() {
+    before(async function() {
       await deployContracts(
         this,
         artifacts,
@@ -22,6 +23,15 @@ contract("DSToken (not regulated)", function([
         lockManagerType.WALLET
       );
     });
+
+  beforeEach(async function() {
+    snapshot = await snapshotsHelper.takeSnapshot()
+    snapshotId = snapshot['result'];
+  });
+
+  afterEach(async function() {
+    await snapshotsHelper.revertToSnapshot(snapshotId);
+  });
 
     describe("Creation", function() {
       it("Should get the basic details of the token correctly", async function() {
@@ -135,13 +145,22 @@ contract("DSToken (not regulated)", function([
   });
 
   describe("Compliance whitelisted", function() {
-    beforeEach(async function() {
+    before(async function() {
       await deployContracts(
         this,
         artifacts,
         complianceType.WHITELIST,
         lockManagerType.WALLET
       );
+    });
+
+    beforeEach(async function() {
+      snapshotWhiteListed = await snapshotsHelper.takeSnapshot()
+      snapshotWhiteListedId = snapshot['result'];
+    });
+
+    afterEach(async function() {
+      await snapshotsHelper.revertToSnapshot(snapshotWhiteListedId);
     });
 
     describe("Investors", function() {

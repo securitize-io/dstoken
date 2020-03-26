@@ -1,6 +1,7 @@
 const DSToken = artifacts.require("DSToken");
 const assertRevert = require("../utils/assertRevert");
 const latestTime = require("../utils/latestTime");
+const snapshotsHelper = require("../utils/snapshots");
 const deployContracts = require("../utils").deployContracts;
 const fixtures = require("../fixtures");
 const investorId = fixtures.InvestorId;
@@ -19,7 +20,7 @@ contract("DSToken (regulated)", function([
   chinaInvestorWallet,
   israelInvestorWallet
 ]) {
-  beforeEach(async function() {
+  before(async function() {
     // Setting up the environment
     await deployContracts(this, artifacts);
 
@@ -128,6 +129,15 @@ contract("DSToken (regulated)", function([
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 1 * time.YEARS],
       [true, false, false]
     );
+  });
+
+  beforeEach(async function() {
+    snapshot = await snapshotsHelper.takeSnapshot()
+    snapshotId = snapshot['result'];
+  });
+
+  afterEach(async function() {
+    await snapshotsHelper.revertToSnapshot(snapshotId);
   });
 
   describe("Creation", function() {
