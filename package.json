@@ -1,11 +1,7 @@
 {
   "name": "Digital_Securities",
-  "version": "v0.9.0",
+  "version": "v2.0.0",
   "description": "Digital Securities Reference Implementation",
-  "main": "truffle.js",
-  "directories": {
-    "test": "test"
-  },
   "scripts": {
     "test": "npm run test:unitests && npm run test:integration",
     "test:unitests": "cross-env TEST_MODE=TRUE ./scripts/test.sh ./test/unitests/**",
@@ -32,6 +28,10 @@
     {
       "name": "Omri Perl",
       "email": "omri@securitize.io"
+    },
+    {
+      "name": "Niv Dadush",
+      "email": "niv@securitize.io"
     }
   ],
   "license": "ISC",
@@ -58,6 +58,5 @@
     "solium": "^1.1.7",
     "truffle": "^5.0.22",
     "truffle-hdwallet-provider": "^1.0.10"
-  },
-  "dependencies": {}
+  }
 }
