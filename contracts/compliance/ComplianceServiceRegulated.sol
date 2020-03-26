@@ -464,20 +464,16 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         VERSIONS.push(5);
     }
 
-    function foo(address _who, uint _value, uint _compareTo) internal view returns (bool) {
+    function compareInvestorBalance(address _who, uint _value, uint _compareTo) internal view returns (bool) {
         return (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_who)) == _compareTo);
     }
 
     function recordTransfer(address _from, address _to, uint256 _value) internal returns (bool) {
-        // IDSToken token = getToken();
-        // IDSRegistryService registry = getRegistryService();
-        // if (_value != 0 && token.balanceOfInvestor(registry.getInvestor(_from)) == _value) {
-        if (foo(_from, _value, _value)) {
+        if (compareInvestorBalance(_from, _value, _value)) {
             adjustTransferCounts(_from, _to, false);
         }
 
-        // if (_value != 0 && token.balanceOfInvestor(registry.getInvestor(_to)) == 0) {
-        if (foo(_to, _value, 0)) {
+        if (compareInvestorBalance(_to, _value, 0)) {
             adjustTransferCounts(_to, _from, true);
         }
 
@@ -491,8 +487,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function recordIssuance(address _to, uint256 _value, uint256 _issuanceTime) internal returns (bool) {
-        // if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_to)) == 0) {
-        if (foo(_to, _value, 0)) {
+        if (compareInvestorBalance(_to, _value, 0)) {
             adjustTotalInvestorsCounts(_to, true);
         }
 
@@ -502,8 +497,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function recordBurn(address _who, uint256 _value) internal returns (bool) {
-        // if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_who)) == _value) {
-        if (foo(_who, _value, _value)) {
+        if (compareInvestorBalance(_who, _value, _value)) {
             adjustTotalInvestorsCounts(_who, false);
         }
         return true;
@@ -524,10 +518,6 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         address, /*_to*/
         uint256 _value
     ) internal returns (bool) {
-        // if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_from)) == _value) {
-        //     adjustTotalInvestorsCounts(_from, false);
-        // }
-
         return recordBurn(_from, _value);
     }
 

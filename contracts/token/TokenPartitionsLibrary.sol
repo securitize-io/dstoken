@@ -82,15 +82,20 @@ library TokenPartitionsLibrary {
 
   function transferPartitions(TokenPartitions storage self, address[] memory _services, address _from, address _to, uint256 _value) public returns (bool) {
     uint partitionCount = partitionCountOf(self, _from);
-
-    for (uint index = 0; _value > 0 && index < partitionCount; ++index) {
+    uint index = 0;
+    while ( _value > 0 && index < partitionCount) {
       bytes32 partition = partitionOf(self, _from, index);
 
       uint transferable = Math.min(_value, IDSComplianceServicePartitioned(_services[COMPLIANCE_SERVICE]).getComplianceTransferableTokens(_from, now, _to, partition));
       if (transferable > 0) {
+        if (self.walletPartitions[_from].balances[partition] == transferable) {
+          --index;
+          --partitionCount;
+        }
         transferPartition(self, IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to, transferable, partition);
         _value -= transferable;
       }
+      ++index;
     }
 
     require(_value == 0);

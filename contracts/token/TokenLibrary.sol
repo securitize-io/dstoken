@@ -57,9 +57,6 @@ library TokenLibrary {
         _tokenData.walletsBalances[_to] = _tokenData.walletsBalances[_to].add(_value);
         updateInvestorBalance(_tokenData, IDSRegistryService(_services[REGISTRY_SERVICE]), _to, _value, true);
 
-        // emit Issue(_to, _value, _valueLocked);
-        // emit Transfer(address(0), _to, _value);
-
         if (_valueLocked > 0) {
             _lockManager.addManualLockRecord(_to, _valueLocked, _reason, _releaseTime);
         }
@@ -86,9 +83,6 @@ library TokenLibrary {
         _tokenData.walletsBalances[_who] = _tokenData.walletsBalances[_who].sub(_value);
         updateInvestorBalance(_tokenData, IDSRegistryService(_services[REGISTRY_SERVICE]), _who, _value, false);
         _tokenData.totalSupply = _tokenData.totalSupply.sub(_value);
-        // emit Burn(_who, _value, _reason);
-        // emit Transfer(_who, address(0), _value);
-        // checkWalletsForList(_who, address(0));
     }
 
     function seize(TokenData storage _tokenData, address[] memory _services, address _from, address _to, uint256 _value) public  validSeizeParameters(_tokenData, _from, _to, _value) {
@@ -98,9 +92,6 @@ library TokenLibrary {
         _tokenData.walletsBalances[_to] = _tokenData.walletsBalances[_to].add(_value);
         updateInvestorBalance(_tokenData, registryService, _from, _value, false);
         updateInvestorBalance(_tokenData, registryService, _to, _value, true);
-        // emit Seize(_from, _to, _value, _reason);
-        // emit Transfer(_from, _to, _value);
-        // checkWalletsForList(_from, _to);
     }
 
     function omnibusBurn(TokenData storage _tokenData, address[] memory _services, address _omnibusWallet, address _who, uint256 _value) public {
@@ -111,7 +102,6 @@ library TokenLibrary {
         omnibusController.burn(_who, _value);
         decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_tokenData, registryService, omnibusController, _omnibusWallet, _who, _value);
         _tokenData.totalSupply = _tokenData.totalSupply.sub(_value);
-        // checkWalletsForList(_tokenData, _omnibusWallet, address(0));
     }
 
     function omnibusSeize(TokenData storage _tokenData, address[] memory _services, address _omnibusWallet, address _from, address _to, uint256 _value)
@@ -126,7 +116,6 @@ library TokenLibrary {
         omnibusController.seize(_from, _value);
         decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_tokenData, registryService, omnibusController, _omnibusWallet, _from, _value);
         updateInvestorBalance(_tokenData, registryService, _to, _value, true);
-        // checkWalletsForList(_tokenData, _omnibusWallet, _to);
     }
 
     function decreaseInvestorBalanceOnOmnibusSeizeOrBurn(TokenData storage _tokenData, IDSRegistryService _registryService, IDSOmnibusWalletController _omnibusController, address _omnibusWallet, address _from, uint256 _value) internal {
@@ -176,40 +165,4 @@ library TokenLibrary {
 
         return true;
     }
-
-    // function checkWalletsForList(TokenData storage _tokenData, address _from, address _to) private {
-    //     if (_tokenData.walletsBalances[_from] == 0) {
-    //         removeWalletFromList(_from);
-    //     }
-    //     if (_tokenData.walletsBalances[_to] > 0) {
-    //         addWalletToList(_to);
-    //     }
-    // }
-
-    // function addWalletToList(address _address) private {
-    //     //Check if it's already there
-    //     uint256 existingIndex = walletsToIndexes[_address];
-    //     if (existingIndex == 0) {
-    //         //If not - add it
-    //         uint256 index = walletsCount.add(1);
-    //         walletsList[index] = _address;
-    //         walletsToIndexes[_address] = index;
-    //         walletsCount = index;
-    //     }
-    // }
-
-    // function removeWalletFromList(address _address) private {
-    //     //Make sure it's there
-    //     uint256 existingIndex = walletsToIndexes[_address];
-    //     if (existingIndex != 0) {
-    //         //Put the last wallet instead of it (this will work even with 1 wallet in the list)
-    //         uint256 lastIndex = walletsCount;
-    //         address lastWalletAddress = walletsList[lastIndex];
-    //         walletsList[existingIndex] = lastWalletAddress;
-    //         //Decrease the total count
-    //         walletsCount = lastIndex.sub(1);
-    //         //Remove from reverse index
-    //         delete walletsToIndexes[_address];
-    //     }
-    // }
 }
