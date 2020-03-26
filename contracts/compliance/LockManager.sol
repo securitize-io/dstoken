@@ -20,6 +20,13 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         VERSIONS.push(2);
     }
 
+    modifier validLock(address _to, uint256 _valueLocked, uint _releaseTime) {
+        require(_to != address(0));
+        require(_valueLocked > 0);
+        require(_releaseTime == 0 || _releaseTime > uint256(now), "Release time is in the past");
+        _;
+    }
+
     uint256 constant MAX_LOCKS_PER_ADDRESS = 30;
 
     function setLockInfoImpl(address _to, uint256 _lockCount, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime) internal {
@@ -42,10 +49,10 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         emit Locked(_to, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
 
-    function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime) public onlyIssuerOrAboveOrToken {
-        require(_to != address(0));
-        require(_valueLocked > 0);
-        require(_releaseTime == 0 || _releaseTime > uint256(now), "Release time is in the past");
+    function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime) 
+    onlyIssuerOrAboveOrToken
+    validLock(_to, _valueLocked, _releaseTime)
+    public {
         createLock(_to, _valueLocked, 0, _reason, _releaseTime);
     }
 

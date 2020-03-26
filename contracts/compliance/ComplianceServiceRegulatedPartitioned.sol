@@ -393,7 +393,7 @@ contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitione
     }
 
     function getComplianceTransferableTokens(address _who, uint256 _time, bool _checkFlowback, bytes32 _partition) public view returns (uint) {
-      require(_time != 0, "non zero time required"); // Might be redundant
+      require(_time != 0, "non zero time required");
       if (getPartitionsManager().getPartitionIssuanceDate(_partition).add(getLockTime(_checkFlowback, _partition)) > _time) {
         return 0;
       }

@@ -6,7 +6,7 @@ import "./StandardToken.sol";
 
 contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     // using FeaturesLibrary for SupportedFeatures;
-
+    uint internal constant OMNIBUS_NO_ACTION = 0;
     function initialize(string memory _name, string memory _symbol, uint8 _decimals) public initializer onlyFromProxy {
         IDSToken.initialize();
         StandardToken.initialize();
@@ -70,7 +70,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
 
         emit Issue(_to, _value, _valueLocked);
         emit Transfer(address(0), _to, _value);
-        TokenLibrary.issueTokensCustom(tokenData, getServices(), getLockManager(), _to, _value, _issuanceTime, _valueLocked, _releaseTime, _reason, cap);
+        TokenLibrary.issueTokensCustom(tokenData, getCommonServices(), getLockManager(), _to, _value, _issuanceTime, _valueLocked, _releaseTime, _reason, cap);
 
         checkWalletsForList(address(0), _to);
         return true;
@@ -81,7 +81,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     //*********************
 
     function burn(address _who, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
-        TokenLibrary.burn(tokenData, getServices(), _who, _value);
+        TokenLibrary.burn(tokenData, getCommonServices(), _who, _value);
         emit Burn(_who, _value, _reason);
         emit Transfer(_who, address(0), _value);
         checkWalletsForList(_who, address(0));
@@ -89,8 +89,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
 
     function omnibusBurn(address _omnibusWallet, address _who, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
         require(_value <= tokenData.walletsBalances[_omnibusWallet]);
-        address[] memory services = getServices();
-        TokenLibrary.omnibusBurn(tokenData, services, _omnibusWallet, _who, _value);
+        TokenLibrary.omnibusBurn(tokenData, getCommonServices(), _omnibusWallet, _who, _value);
         emit OmnibusBurn(_omnibusWallet, _who, _value, _reason, getAssetTrackingMode(_omnibusWallet));
         emit Burn(_omnibusWallet, _value, _reason);
         emit Transfer(_omnibusWallet, address(0), _value);
@@ -102,8 +101,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     //*********************
 
     function seize(address _from, address _to, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
-        // getComplianceService().validateSeize(_from, _to, _value);
-        TokenLibrary.seize(tokenData, getServices(), _from, _to, _value);
+        TokenLibrary.seize(tokenData, getCommonServices(), _from, _to, _value);
         emit Seize(_from, _to, _value, _reason);
         emit Transfer(_from, _to, _value);
         checkWalletsForList(_from, _to);
@@ -113,7 +111,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         public
         onlyIssuerOrAbove
     {
-        address[] memory services = getServices();
+        address[] memory services = getCommonServices();
         TokenLibrary.omnibusSeize(tokenData, services, _omnibusWallet, _from, _to, _value);
         emit OmnibusSeize(_omnibusWallet, _from, _value, _reason, getAssetTrackingMode(_omnibusWallet));
         emit Seize(_omnibusWallet, _to, _value, _reason);
@@ -250,8 +248,8 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     }
 
     function updateInvestorsBalancesOnTransfer(address _from, address _to, uint256 _value) internal {
-        uint omnibusEvent = TokenLibrary.updateOmnibusBalanceUpdatesOnTransfer(tokenData, getRegistryService(), _from, _to, _value);
-        if (omnibusEvent == 0) {
+        uint omnibusEvent = TokenLibrary.applyOmnibusBalanceUpdatesOnTransfer(tokenData, getRegistryService(), _from, _to, _value);
+        if (omnibusEvent == OMNIBUS_NO_ACTION) {
             updateInvestorBalance(_from, _value, false);
             updateInvestorBalance(_to, _value, true);
         }
@@ -276,7 +274,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         return getComplianceService().preTransferCheck(_from, _to, _value);
     }
 
-    function getServices() internal view returns(address[] memory) {
+    function getCommonServices() internal view returns(address[] memory) {
         address[] memory services = new address[](2);
         services[0] = getDSService(COMPLIANCE_SERVICE);
         services[1] = getDSService(REGISTRY_SERVICE);

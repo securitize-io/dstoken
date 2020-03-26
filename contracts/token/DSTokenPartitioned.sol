@@ -20,19 +20,19 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
   }
 
   function transfer(address _to, uint256 _value) public returns (bool) {
-    return DSToken.transfer(_to, _value) && partitionsManagement.transferPartitions(getServices(), msg.sender, _to, _value);
+    return DSToken.transfer(_to, _value) && partitionsManagement.transferPartitions(getCommonServices(), msg.sender, _to, _value);
   }
 
   function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
-    return DSToken.transferFrom(_from, _to, _value) && partitionsManagement.transferPartitions(getServices(), _from, _to, _value);
+    return DSToken.transferFrom(_from, _to, _value) && partitionsManagement.transferPartitions(getCommonServices(), _from, _to, _value);
   }
 
   function transferByPartitions(address _to, uint256 _value, bytes32[] memory _partitions, uint256[] memory _values) public returns (bool) {
-    return DSToken.transfer(_to, _value) && partitionsManagement.transferPartitions(getServices(), msg.sender, _to, _value, _partitions, _values);
+    return DSToken.transfer(_to, _value) && partitionsManagement.transferPartitions(getCommonServices(), msg.sender, _to, _value, _partitions, _values);
   }
 
   function transferFromByPartitions(address _from, address _to, uint256 _value, bytes32[] memory _partitions, uint256[] memory _values) public returns (bool) {
-    return DSToken.transferFrom(_from, _to, _value) && partitionsManagement.transferPartitions(getServices(), _from, _to, _value, _partitions, _values);
+    return DSToken.transferFrom(_from, _to, _value) && partitionsManagement.transferPartitions(getCommonServices(), _from, _to, _value, _partitions, _values);
   }
 
   function burn(address, uint256, string memory) public {
@@ -56,18 +56,18 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
   }
 
   function balanceOfByPartition(address _who, bytes32 _partition) public view returns (uint256) {
-    return partitionsManagement.balanceOfByPartition(_who, _partition); //walletPartitions[_who].balances[_partition];
+    return partitionsManagement.balanceOfByPartition(_who, _partition);
   }
 
   function balanceOfInvestorByPartition(string memory _id, bytes32 _partition) public view returns (uint256) {
-    return partitionsManagement.balanceOfInvestorByPartition(_id, _partition); // investorPartitionsBalances[_id][_partition];
+    return partitionsManagement.balanceOfInvestorByPartition(_id, _partition);
   }
 
   function partitionCountOf(address _who) public view returns (uint) {
-    return partitionsManagement.partitionCountOf(_who); // walletPartitions[_who].count;
+    return partitionsManagement.partitionCountOf(_who);
   }
 
   function partitionOf(address _who, uint _index) public view returns (bytes32) {
-    return partitionsManagement.partitionOf(_who, _index); // walletPartitions[_who].partitions[_index];
+    return partitionsManagement.partitionOf(_who, _index);
   }
 }

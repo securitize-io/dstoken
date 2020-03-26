@@ -30,11 +30,11 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
     emit LockedPartitioned(_to,_valueLocked,_reasonCode,_reasonString,_releaseTime,_partition);
   }
 
-  function addManualLockRecord(address _to, uint _valueLocked, string memory _reason, uint _releaseTime, bytes32 _partition) onlyIssuerOrAboveOrToken public {
-    require(_to != address(0));
-    require(_valueLocked > 0);
-    require(_releaseTime == 0 || _releaseTime > uint(now),"Release time is in the past");
-
+  function addManualLockRecord(address _to, uint _valueLocked, string memory _reason, uint _releaseTime, bytes32 _partition)
+  public
+  validLock(_to, _valueLocked, _releaseTime)
+  onlyIssuerOrAboveOrToken
+   {
     createLock(_to,_valueLocked,0,_reason,_releaseTime,_partition);
   }
 

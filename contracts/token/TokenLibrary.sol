@@ -60,8 +60,6 @@ library TokenLibrary {
         if (_valueLocked > 0) {
             _lockManager.addManualLockRecord(_to, _valueLocked, _reason, _releaseTime);
         }
-
-        // checkWalletsForList(address(0), _to);
         return true;
     }
 
@@ -126,7 +124,7 @@ library TokenLibrary {
         }
     }
 
-    function updateOmnibusBalanceUpdatesOnTransfer(TokenData storage _tokenData, IDSRegistryService _registryService, address _from, address _to, uint256 _value) public returns (uint) {
+    function applyOmnibusBalanceUpdatesOnTransfer(TokenData storage _tokenData, IDSRegistryService _registryService, address _from, address _to, uint256 _value) public returns (uint) {
       if (_registryService.isOmnibusWallet(_to)) {
             IDSOmnibusWalletController omnibusWalletController = _registryService.getOmnibusWalletController(_to);
             omnibusWalletController.deposit(_from, _value);

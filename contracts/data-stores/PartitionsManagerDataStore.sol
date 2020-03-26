@@ -7,6 +7,5 @@ contract PartitionsManagerDataStore is ServiceConsumerDataStore {
     	uint256 issuanceDate;
     	uint256 region;
     }
-    // Map from bytes32 representation to Partition struct
     mapping(bytes32 => Partition) internal partitions;
 }

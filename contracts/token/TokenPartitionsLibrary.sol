@@ -6,7 +6,6 @@ import "../compliance/IDSComplianceServicePartitioned.sol";
 import "../registry/IDSRegistryService.sol";
 import "../compliance/IDSComplianceConfigurationService.sol";
 import "../compliance/IDSPartitionsManager.sol";
-// import "./IDSToken.sol";
 
 library TokenPartitionsLibrary {
    uint internal constant COMPLIANCE_SERVICE = 0;
