@@ -1,22 +1,79 @@
 pragma solidity ^0.5.0;
 
-import "./BasicToken.sol";
+import "../service/ServiceConsumer.sol";
+import "../data-stores/TokenDataStore.sol";
 
-contract StandardToken is BasicToken {
+contract StandardToken is IERC20, VersionedContract, Ownable, ServiceConsumer, TokenDataStore {
+    event Pause();
+    event Unpause();
+
     constructor() internal {}
 
     function initialize() public isNotInitialized {
-        BasicToken.initialize();
+        ServiceConsumer.initialize();
         VERSIONS.push(2);
+    }
+
+    modifier whenNotPaused() {
+        require(!paused, "Contract is paused");
+        _;
+    }
+
+    modifier whenPaused() {
+        require(paused, "Contract is not paused");
+        _;
+    }
+
+    function pause() public onlyOwner whenNotPaused {
+        paused = true;
+        emit Pause();
+    }
+
+    function unpause() public onlyOwner whenPaused {
+        paused = false;
+        emit Unpause();
+    }
+
+    function isPaused() public view returns (bool) {
+        return paused;
+    }
+
+    /**
+  * @dev transfer token for a specified address
+  * @param _to The address to transfer to.
+  * @param _value The amount to be transferred.
+  */
+    function transfer(address _to, uint256 _value) public returns (bool) {
+        require(_to != address(0));
+        require(_value <= tokenData.walletsBalances[msg.sender]);
+
+        tokenData.walletsBalances[msg.sender] = tokenData.walletsBalances[msg.sender].sub(_value);
+        tokenData.walletsBalances[_to] = tokenData.walletsBalances[_to].add(_value);
+
+        emit Transfer(msg.sender, _to, _value);
+        return true;
+    }
+
+    /**
+  * @dev Gets the balance of the specified address.
+  * @param _owner The address to query the the balance of.
+  * @return An uint256 representing the amount owned by the passed address.
+  */
+    function balanceOf(address _owner) public view returns (uint256) {
+        return tokenData.walletsBalances[_owner];
+    }
+
+    function totalSupply() public view returns (uint256) {
+        return tokenData.totalSupply;
     }
 
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
         require(_to != address(0));
-        require(_value <= walletsBalances[_from]);
+        require(_value <= tokenData.walletsBalances[_from]);
         require(_value <= allowances[_from][msg.sender]);
 
-        walletsBalances[_from] = walletsBalances[_from].sub(_value);
-        walletsBalances[_to] = walletsBalances[_to].add(_value);
+        tokenData.walletsBalances[_from] = tokenData.walletsBalances[_from].sub(_value);
+        tokenData.walletsBalances[_to] = tokenData.walletsBalances[_to].add(_value);
         allowances[_from][msg.sender] = allowances[_from][msg.sender].sub(_value);
         emit Transfer(_from, _to, _value);
         return true;

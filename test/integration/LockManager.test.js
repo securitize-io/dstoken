@@ -1,5 +1,6 @@
 const assertRevert = require("../utils/assertRevert");
 const latestTime = require("../utils/latestTime");
+const snapshotsHelper = require("../utils/snapshots");
 const deployContracts = require("../utils").deployContracts;
 const complianceType = require("../../utils/globals").complianceType;
 const lockManagerType = require("../../utils/globals").lockManagerType;
@@ -16,7 +17,7 @@ contract("LockManager", function([
   exchangeWallet,
   noneWallet
 ]) {
-  beforeEach(async function() {
+  before(async function() {
     await deployContracts(
       this,
       artifacts,
@@ -25,6 +26,15 @@ contract("LockManager", function([
     );
     await this.trustService.setRole(issuerWallet, roles.ISSUER);
     await this.trustService.setRole(exchangeWallet, roles.EXCHANGE);
+  });
+
+  beforeEach(async function() {
+    snapshot = await snapshotsHelper.takeSnapshot()
+    snapshotId = snapshot['result'];
+  });
+
+  afterEach(async function() {
+    await snapshotsHelper.revertToSnapshot(snapshotId);
   });
 
   describe("Add Manual Lock Record", function() {

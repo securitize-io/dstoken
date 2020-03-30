@@ -2,12 +2,14 @@ pragma solidity ^0.5.0;
 
 import "./IDSToken.sol";
 import "../utils/ProxyTarget.sol";
-import "./PausableToken.sol";
+import "./StandardToken.sol";
 
-contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
+contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
+    // using FeaturesLibrary for SupportedFeatures;
+    uint internal constant OMNIBUS_NO_ACTION = 0;
     function initialize(string memory _name, string memory _symbol, uint8 _decimals) public initializer onlyFromProxy {
         IDSToken.initialize();
-        PausableToken.initialize();
+        StandardToken.initialize();
 
         VERSIONS.push(3);
         name = _name;
@@ -20,25 +22,21 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
    *******************************/
 
     function setFeature(uint8 featureIndex, bool enable) public onlyMaster {
-        uint256 base = 2;
-        uint256 mask = base**featureIndex;
-
-        // Enable only if the feature is turned off and disable only if the feature is turned on
-        if (enable && (supportedFeatures & mask == 0)) {
-            supportedFeatures = supportedFeatures ^ mask;
-        } else if (!enable && (supportedFeatures & mask >= 1)) {
-            supportedFeatures = supportedFeatures ^ mask;
-        }
+        supportedFeatures.setFeature(featureIndex, enable);
     }
 
     function setFeatures(uint256 features) public onlyMaster {
-        supportedFeatures = features;
+        supportedFeatures.value = features;
     }
 
     function setCap(uint256 _cap) public onlyMaster {
         require(cap == 0, "Token cap already set");
         require(_cap > 0);
         cap = _cap;
+    }
+
+    function totalIssued() public view returns (uint256) {
+        return tokenData.totalIssued;
     }
 
     /******************************
@@ -52,7 +50,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
   * @return true if successful
   */
 
-    function issueTokens(address _to, uint256 _value) public onlyIssuerOrAbove returns (bool) {
+    function issueTokens(address _to, uint256 _value) public /*onlyIssuerOrAbove*/ returns (bool) {
         issueTokensCustom(_to, _value, now, 0, "", 0);
     }
     /**
@@ -69,30 +67,13 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         onlyIssuerOrAbove
         returns (bool)
     {
-        //Check input values
-        require(_to != address(0));
-        require(_value > 0);
-        require(_valueLocked <= _value, "valueLocked must be smaller than value");
-        //Make sure we are not hitting the cap
-        require(cap == 0 || totalIssued.add(_value) <= cap, "Token Cap Hit");
-
-        //Check issuance is allowed (and inform the compliance manager, possibly adding locks)
-        getComplianceService().validateIssuance(_to, _value, _issuanceTime);
-
-        //Adding and subtracting is done through safemath
-        totalSupply = totalSupply.add(_value);
-        totalIssued = totalIssued.add(_value);
-        walletsBalances[_to] = walletsBalances[_to].add(_value);
-        updateInvestorBalance(_to, _value, true);
 
         emit Issue(_to, _value, _valueLocked);
         emit Transfer(address(0), _to, _value);
-
-        if (_valueLocked > 0) {
-            getLockManager().addManualLockRecord(_to, _valueLocked, _reason, _releaseTime);
-        }
+        TokenLibrary.issueTokensCustom(tokenData, getCommonServices(), getLockManager(), _to, _value, _issuanceTime, _valueLocked, _releaseTime, _reason, cap);
 
         checkWalletsForList(address(0), _to);
+        return true;
     }
 
     //*********************
@@ -100,34 +81,16 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
     //*********************
 
     function burn(address _who, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
-        require(_value <= walletsBalances[_who]);
-        // no need to require value <= totalSupply, since that would imply the
-        // sender's balance is greater than the totalSupply, which *should* be an assertion failure
-
-        getComplianceService().validateBurn(_who, _value);
-
-        walletsBalances[_who] = walletsBalances[_who].sub(_value);
-        updateInvestorBalance(_who, _value, false);
-        totalSupply = totalSupply.sub(_value);
+        TokenLibrary.burn(tokenData, getCommonServices(), _who, _value);
         emit Burn(_who, _value, _reason);
         emit Transfer(_who, address(0), _value);
         checkWalletsForList(_who, address(0));
     }
 
     function omnibusBurn(address _omnibusWallet, address _who, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
-        require(_value <= walletsBalances[_omnibusWallet]);
-
-        IDSOmnibusWalletController omnibusController = getRegistryService().getOmnibusWalletController(_omnibusWallet);
-
-        getComplianceService().validateOmnibusBurn(_omnibusWallet, _who, _value);
-
-        walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].sub(_value);
-        omnibusController.burn(_who, _value);
-
-        decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_omnibusWallet, _who, _value);
-
-        totalSupply = totalSupply.sub(_value);
-        emit OmnibusBurn(_omnibusWallet, _who, _value, _reason, omnibusController.getAssetTrackingMode());
+        require(_value <= tokenData.walletsBalances[_omnibusWallet]);
+        TokenLibrary.omnibusBurn(tokenData, getCommonServices(), _omnibusWallet, _who, _value);
+        emit OmnibusBurn(_omnibusWallet, _who, _value, _reason, getAssetTrackingMode(_omnibusWallet));
         emit Burn(_omnibusWallet, _value, _reason);
         emit Transfer(_omnibusWallet, address(0), _value);
         checkWalletsForList(_omnibusWallet, address(0));
@@ -137,20 +100,8 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
     // TOKEN SEIZING
     //*********************
 
-    modifier validSeizeParameters(address _from, address _to, uint256 _value) {
-        require(_from != address(0));
-        require(_to != address(0));
-        require(_value <= walletsBalances[_from]);
-
-        _;
-    }
-
-    function seize(address _from, address _to, uint256 _value, string memory _reason) public onlyIssuerOrAbove validSeizeParameters(_from, _to, _value) {
-        getComplianceService().validateSeize(_from, _to, _value);
-        walletsBalances[_from] = walletsBalances[_from].sub(_value);
-        walletsBalances[_to] = walletsBalances[_to].add(_value);
-        updateInvestorBalance(_from, _value, false);
-        updateInvestorBalance(_to, _value, true);
+    function seize(address _from, address _to, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
+        TokenLibrary.seize(tokenData, getCommonServices(), _from, _to, _value);
         emit Seize(_from, _to, _value, _reason);
         emit Transfer(_from, _to, _value);
         checkWalletsForList(_from, _to);
@@ -159,18 +110,9 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
     function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string memory _reason)
         public
         onlyIssuerOrAbove
-        validSeizeParameters(_omnibusWallet, _to, _value)
     {
-        IDSOmnibusWalletController omnibusController = getRegistryService().getOmnibusWalletController(_omnibusWallet);
-
-        getComplianceService().validateOmnibusSeize(_omnibusWallet, _from, _to, _value);
-        walletsBalances[_omnibusWallet] = walletsBalances[_omnibusWallet].sub(_value);
-        walletsBalances[_to] = walletsBalances[_to].add(_value);
-        omnibusController.seize(_from, _value);
-        decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_omnibusWallet, _from, _value);
-        updateInvestorBalance(_to, _value, true);
-
-        emit OmnibusSeize(_omnibusWallet, _from, _value, _reason, omnibusController.getAssetTrackingMode());
+        TokenLibrary.omnibusSeize(tokenData, getCommonServices(), _omnibusWallet, _from, _to, _value);
+        emit OmnibusSeize(_omnibusWallet, _from, _value, _reason, getAssetTrackingMode(_omnibusWallet));
         emit Seize(_omnibusWallet, _to, _value, _reason);
         emit Transfer(_omnibusWallet, _to, _value);
         checkWalletsForList(_omnibusWallet, _to);
@@ -281,12 +223,12 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
     // MISCELLANEOUS FUNCTIONS
     //**************************************
 
-    function isPaused() public view returns (bool) {
-        return paused;
+    function balanceOfInvestor(string memory _id) public view returns (uint256) {
+        return tokenData.investorsBalances[_id];
     }
 
-    function balanceOfInvestor(string memory _id) public view returns (uint256) {
-        return investorsBalances[_id];
+    function getAssetTrackingMode(address _omnibusWallet) internal view returns(uint8) {
+        return getRegistryService().getOmnibusWalletController(_omnibusWallet).getAssetTrackingMode();
     }
 
     function updateOmnibusInvestorBalance(address _omnibusWallet, address _wallet, uint256 _value, bool _increase)
@@ -301,44 +243,14 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
         public
         onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
     {
-        emit OmnibusTransfer(_omnibusWallet, _from, _to, _value, getRegistryService().getOmnibusWalletController(_omnibusWallet).getAssetTrackingMode());
-    }
-
-    function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
-        return getComplianceService().preTransferCheck(_from, _to, _value);
+        emit OmnibusTransfer(_omnibusWallet, _from, _to, _value, getAssetTrackingMode(_omnibusWallet));
     }
 
     function updateInvestorsBalancesOnTransfer(address _from, address _to, uint256 _value) internal {
-        if (getRegistryService().isOmnibusWallet(_to)) {
-            IDSOmnibusWalletController omnibusWalletController = getRegistryService().getOmnibusWalletController(_to);
-            omnibusWalletController.deposit(_from, _value);
-            emit OmnibusDeposit(_to, _from, _value, omnibusWalletController.getAssetTrackingMode());
-
-            if (omnibusWalletController.isHolderOfRecord()) {
-                updateInvestorBalance(_from, _value, false);
-                updateInvestorBalance(_to, _value, true);
-            }
-        } else if (getRegistryService().isOmnibusWallet(_from)) {
-            IDSOmnibusWalletController omnibusWalletController = getRegistryService().getOmnibusWalletController(_from);
-            omnibusWalletController.withdraw(_to, _value);
-            emit OmnibusWithdraw(_from, _to, _value, omnibusWalletController.getAssetTrackingMode());
-
-            if (omnibusWalletController.isHolderOfRecord()) {
-                updateInvestorBalance(_from, _value, false);
-                updateInvestorBalance(_to, _value, true);
-            }
-        } else {
+        uint omnibusEvent = TokenLibrary.applyOmnibusBalanceUpdatesOnTransfer(tokenData, getRegistryService(), _from, _to, _value);
+        if (omnibusEvent == OMNIBUS_NO_ACTION) {
             updateInvestorBalance(_from, _value, false);
             updateInvestorBalance(_to, _value, true);
-        }
-
-    }
-
-    function decreaseInvestorBalanceOnOmnibusSeizeOrBurn(address _omnibusWallet, address _from, uint256 _value) internal {
-        if (getRegistryService().getOmnibusWalletController(_omnibusWallet).isHolderOfRecord()) {
-            updateInvestorBalance(_omnibusWallet, _value, false);
-        } else {
-            updateInvestorBalance(_from, _value, false);
         }
     }
 
@@ -351,9 +263,21 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, PausableToken {
             } else {
                 balance = balance.sub(_value);
             }
-            investorsBalances[investor] = balance;
+            tokenData.investorsBalances[investor] = balance;
         }
 
         return true;
     }
+
+    function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
+        return getComplianceService().preTransferCheck(_from, _to, _value);
+    }
+
+    function getCommonServices() internal view returns(address[] memory) {
+        address[] memory services = new address[](2);
+        services[0] = getDSService(COMPLIANCE_SERVICE);
+        services[1] = getDSService(REGISTRY_SERVICE);
+        return services;
+    }
+
 }

@@ -1,5 +1,6 @@
 const assertRevert = require("../utils/assertRevert");
 const deployContracts = require("../utils").deployContracts;
+const snapshotsHelper = require("../utils/snapshots");
 const roles = require("../../utils/globals").roles;
 const country = require("../fixtures").Country;
 
@@ -15,10 +16,19 @@ contract("WalletManager", function([
   exchangeWallet2,
   noneWallet
 ]) {
-  beforeEach(async function() {
+  before(async function() {
     await deployContracts(this, artifacts);
     await this.trustService.setRole(issuerWallet1, roles.ISSUER);
     await this.trustService.setRole(exchangeWallet1, roles.EXCHANGE);
+  });
+
+  beforeEach(async function() {
+    snapshot = await snapshotsHelper.takeSnapshot()
+    snapshotId = snapshot['result'];
+  });
+
+  afterEach(async function() {
+    await snapshotsHelper.revertToSnapshot(snapshotId);
   });
 
   describe("Add issuer wallet:", function() {

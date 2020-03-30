@@ -85,12 +85,11 @@ library ComplianceServiceLibrary {
         return Math.min(compConfService.getUsInvestorsLimit(), compConfService.getMaxUsInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100));
     }
 
-    function isBeneficiaryDepositOrWithdrawl(address[] memory _services, address _from, address _to) internal view returns (bool) {
-        IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
+    function isBeneficiaryDepositOrWithdrawl(IDSRegistryService _registryService, address _from, address _to) public view returns (bool) {
 
         return
-            (registryService.isOmnibusWallet(_from) && !registryService.getOmnibusWalletController(_from).isHolderOfRecord()) ||
-            (registryService.isOmnibusWallet(_to) && !registryService.getOmnibusWalletController(_to).isHolderOfRecord());
+            (_registryService.isOmnibusWallet(_from) && !_registryService.getOmnibusWalletController(_from).isHolderOfRecord()) ||
+            (_registryService.isOmnibusWallet(_to) && !_registryService.getOmnibusWalletController(_to).isHolderOfRecord());
     }
 
     function isHolderOfRecordInternalTransfer(address[] memory _services, address _omnibusWallet) internal view returns (bool) {
@@ -189,7 +188,7 @@ library ComplianceServiceLibrary {
             }
 
             if (
-                (!isBeneficiaryDepositOrWithdrawl(_services, _from, _to) &&
+                (!isBeneficiaryDepositOrWithdrawl(IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to) &&
                     !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
                     fromInvestorBalance > _value &&
                     fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens())
@@ -250,7 +249,7 @@ library ComplianceServiceLibrary {
             }
 
             if (
-                !isBeneficiaryDepositOrWithdrawl(_services, _from, _to) &&
+                !isBeneficiaryDepositOrWithdrawl(IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to) &&
                 !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
                 balanceOfInvestor(_services, _to).add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens()
             ) {
@@ -258,7 +257,7 @@ library ComplianceServiceLibrary {
             }
         }
 
-        if (fromRegion == EU && !isBeneficiaryDepositOrWithdrawl(_services, _from, _to) && !isHolderOfRecordInternalTransfer(_services, _omnibusWallet)) {
+        if (fromRegion == EU && !isBeneficiaryDepositOrWithdrawl(IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to) && !isHolderOfRecordInternalTransfer(_services, _omnibusWallet)) {
             if (fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens() && fromInvestorBalance > _value) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
@@ -267,7 +266,7 @@ library ComplianceServiceLibrary {
         if (
             IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccredited() &&
             !isAccredited(_services, _to) &&
-            !isBeneficiaryDepositOrWithdrawl(_services, _from, _to) &&
+            !isBeneficiaryDepositOrWithdrawl(IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to) &&
             !isHolderOfRecordInternalTransfer(_services, _omnibusWallet)
         ) {
             return (61, ONLY_ACCREDITED);
@@ -277,7 +276,7 @@ library ComplianceServiceLibrary {
             if (
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccreditedUS() &&
                 !isAccredited(_services, _to) &&
-                !isBeneficiaryDepositOrWithdrawl(_services, _from, _to) &&
+                !isBeneficiaryDepositOrWithdrawl(IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to) &&
                 !isHolderOfRecordInternalTransfer(_services, _omnibusWallet)
             ) {
                 return (62, ONLY_US_ACCREDITED);
@@ -308,7 +307,7 @@ library ComplianceServiceLibrary {
             }
 
             if (
-                !isBeneficiaryDepositOrWithdrawl(_services, _from, _to) &&
+                !isBeneficiaryDepositOrWithdrawl(IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to) &&
                 !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
                 balanceOfInvestor(_services, _to).add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()
             ) {
@@ -340,7 +339,7 @@ library ComplianceServiceLibrary {
         }
 
         if (
-            !isBeneficiaryDepositOrWithdrawl(_services, _from, _to) &&
+            !isBeneficiaryDepositOrWithdrawl(IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to) &&
             !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
             balanceOfInvestor(_services, _from) == _value &&
             !isNewInvestor(_services, _to) &&
@@ -350,7 +349,7 @@ library ComplianceServiceLibrary {
         }
 
         if (
-            !isBeneficiaryDepositOrWithdrawl(_services, _from, _to) &&
+            !isBeneficiaryDepositOrWithdrawl(IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to) &&
             !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
             IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) != IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM() &&
             fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
@@ -359,7 +358,7 @@ library ComplianceServiceLibrary {
         }
 
         if (
-            !isBeneficiaryDepositOrWithdrawl(_services, _from, _to) &&
+            !isBeneficiaryDepositOrWithdrawl(IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to) &&
             !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
             IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) != IDSWalletManager(_services[WALLET_MANAGER]).PLATFORM() &&
             balanceOfInvestor(_services, _to).add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
@@ -368,7 +367,7 @@ library ComplianceServiceLibrary {
         }
 
         if (
-            !isBeneficiaryDepositOrWithdrawl(_services, _from, _to) &&
+            !isBeneficiaryDepositOrWithdrawl(IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to) &&
             !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
             IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor() != 0 &&
             balanceOfInvestor(_services, _to).add(_value) > IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor()
@@ -465,12 +464,16 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         VERSIONS.push(5);
     }
 
+    function compareInvestorBalance(address _who, uint _value, uint _compareTo) internal view returns (bool) {
+        return (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_who)) == _compareTo);
+    }
+
     function recordTransfer(address _from, address _to, uint256 _value) internal returns (bool) {
-        if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_from)) == _value) {
+        if (compareInvestorBalance(_from, _value, _value)) {
             adjustTransferCounts(_from, _to, false);
         }
 
-        if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_to)) == 0) {
+        if (compareInvestorBalance(_to, _value, 0)) {
             adjustTransferCounts(_to, _from, true);
         }
 
@@ -478,23 +481,13 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function adjustTransferCounts(address _from, address _to, bool increase) internal {
-        IDSRegistryService registry = getRegistryService();
-
-        if (registry.isOmnibusWallet(_from)) {
-            if (registry.getOmnibusWalletController(_from).isHolderOfRecord()) {
-                adjustTotalInvestorsCounts(_from, increase);
-            }
-        } else if (registry.isOmnibusWallet(_to)) {
-            if (registry.getOmnibusWalletController(_to).isHolderOfRecord()) {
-                adjustTotalInvestorsCounts(_from, increase);
-            }
-        } else {
+        if (!ComplianceServiceLibrary.isBeneficiaryDepositOrWithdrawl(getRegistryService(), _from, _to)) {
             adjustTotalInvestorsCounts(_from, increase);
         }
     }
 
     function recordIssuance(address _to, uint256 _value, uint256 _issuanceTime) internal returns (bool) {
-        if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_to)) == 0) {
+        if (compareInvestorBalance(_to, _value, 0)) {
             adjustTotalInvestorsCounts(_to, true);
         }
 
@@ -504,10 +497,9 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function recordBurn(address _who, uint256 _value) internal returns (bool) {
-        if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_who)) == _value) {
+        if (compareInvestorBalance(_who, _value, _value)) {
             adjustTotalInvestorsCounts(_who, false);
         }
-
         return true;
     }
 
@@ -526,11 +518,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         address, /*_to*/
         uint256 _value
     ) internal returns (bool) {
-        if (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_from)) == _value) {
-            adjustTotalInvestorsCounts(_from, false);
-        }
-
-        return true;
+        return recordBurn(_from, _value);
     }
 
     function recordOmnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value) internal returns (bool) {
@@ -539,7 +527,6 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         } else {
             recordSeize(_from, _to, _value);
         }
-
         return true;
     }
 
@@ -596,35 +583,15 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
-        return preTransferCheckImpl(_from, _to, _value, address(0));
+        return ComplianceServiceLibrary.preTransferCheck(getServices(), _from, _to, _value, address(0));
     }
 
     function preInternalTransferCheck(address _from, address _to, uint256 _value, address _omnibusWallet) public view returns (uint256 code, string memory reason) {
-        return preTransferCheckImpl(_from, _to, _value, _omnibusWallet);
-    }
-
-    function preTransferCheckImpl(address _from, address _to, uint256 _value, address _omnibusWallet) internal view returns (uint256 code, string memory reason) {
-        address[] memory services = new address[](6);
-
-        services[0] = getDSService(DS_TOKEN);
-        services[1] = getDSService(REGISTRY_SERVICE);
-        services[2] = getDSService(WALLET_MANAGER);
-        services[3] = getDSService(COMPLIANCE_CONFIGURATION_SERVICE);
-        services[4] = getDSService(LOCK_MANAGER);
-        services[5] = address(this);
-
-        (code, reason) = ComplianceServiceLibrary.preTransferCheck(services, _from, _to, _value, _omnibusWallet);
-
-        if (code != 0) {
-            return (code, reason);
-        } else {
-            return checkTransfer(_from, _to, _value);
-        }
+        return ComplianceServiceLibrary.preTransferCheck(getServices(), _from, _to, _value, _omnibusWallet);
     }
 
     function getComplianceTransferableTokens(address _who, uint64 _time, uint64 _lockTime) public view returns (uint256) {
         require(_time != 0, "time must be greater than zero");
-
         string memory investor = getRegistryService().getInvestor(_who);
 
         uint256 balanceOfInvestor = getLockManager().getTransferableTokens(_who, _time);
@@ -652,19 +619,8 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function preIssuanceCheck(address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
-        address[] memory services = new address[](6);
-        services[0] = getDSService(DS_TOKEN);
-        services[1] = getDSService(REGISTRY_SERVICE);
-        services[2] = getDSService(WALLET_MANAGER);
-        services[3] = getDSService(COMPLIANCE_CONFIGURATION_SERVICE);
-        services[4] = getDSService(LOCK_MANAGER);
-        services[5] = address(this);
 
-        return ComplianceServiceLibrary.preIssuanceCheck(services, _to, _value);
-    }
-
-    function checkTransfer(address, address, uint256) internal view returns (uint256, string memory) {
-        return (0, VALID);
+        return ComplianceServiceLibrary.preIssuanceCheck(getServices(), _to, _value);
     }
 
     function getTotalInvestorsCount() public view returns (uint256) {
@@ -715,5 +671,15 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         euRetailInvestorsCount[_country] = _value;
 
         return true;
+    }
+
+    function getServices() internal view returns (address[] memory services) {
+        services = new address[](6);
+        services[0] = getDSService(DS_TOKEN);
+        services[1] = getDSService(REGISTRY_SERVICE);
+        services[2] = getDSService(WALLET_MANAGER);
+        services[3] = getDSService(COMPLIANCE_CONFIGURATION_SERVICE);
+        services[4] = getDSService(LOCK_MANAGER);
+        services[5] = address(this);
     }
 }

@@ -6,11 +6,15 @@ module.exports = async function(deployer) {
     return;
   }
 
+  const abstractTokenContract = configurationManager.getAbstractTokenContract(
+    artifacts
+  );
+
   await deployContractBehindProxy(
     artifacts.require("Proxy"),
     configurationManager,
     deployer,
-    artifacts.require("DSToken"),
+    abstractTokenContract,
     [
       configurationManager.name,
       configurationManager.symbol,

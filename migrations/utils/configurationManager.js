@@ -45,6 +45,9 @@ class ConfigurationManager {
       console.log(
         "   --omnibus_wallet - the address of the omnibus wallet in the registry"
       );
+      console.log(
+        "   --partitioned - add partitions support"
+      );
       console.log("   --help - outputs this help");
       console.log("\n");
       process.exit();
@@ -60,6 +63,11 @@ class ConfigurationManager {
     this.complianceManagerType = argv.compliance || "NORMAL";
     this.lockManagerType = argv.lock_manager || "INVESTOR";
     this.noRegistry = argv.no_registry;
+    this.partitioned = argv.partitioned;
+    if (this.partitioned) {
+      this.complianceManagerType = "PARTITIONED";
+      this.lockManagerType = "PARTITIONED";
+    }
 
     if (this.noRegistry) {
       this.noOmnibusWallet = true;
@@ -80,6 +88,8 @@ class ConfigurationManager {
         return artifacts.require("ComplianceServiceWhitelisted");
       case "NORMAL":
         return artifacts.require("ComplianceServiceRegulated");
+      case "PARTITIONED":
+        return artifacts.require("ComplianceServiceRegulatedPartitioned");
       default:
         break;
     }
@@ -89,9 +99,18 @@ class ConfigurationManager {
     switch (this.lockManagerType) {
       case "WALLET":
         return artifacts.require("LockManager");
-      case "INVESTOR":
+      case "PARTITIONED":
+        return artifacts.require("InvestorLockManagerPartitioned");
+      default:
         return artifacts.require("InvestorLockManager");
     }
+  }
+
+  getAbstractTokenContract(artifacts) {
+    if (this.partitioned) {
+        return artifacts.require("DSTokenPartitioned");
+    }
+    return artifacts.require("DSToken");
   }
 
   setProxyAddressForContractName(contractName, address) {
@@ -104,6 +123,10 @@ class ConfigurationManager {
 
   isTestMode() {
     return process.env.TEST_MODE === "TRUE";
+  }
+
+  isPartitioned() {
+    return this.partitioned != undefined;
   }
 }
 
