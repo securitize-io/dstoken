@@ -107,10 +107,10 @@ library ComplianceServicePartitionedLibrary {
       return _omnibusWallet != address(0);
   }
 
-    function checkHoldUp(address[] memory _services, address _omnibusWallet, address _from, uint256 _value, bool us) internal view returns (bool) {
+    function checkHoldUp(address[] memory _services, address _omnibusWallet, address _from, uint256 _value, bool isUSLockPeriod) internal view returns (bool) {
         ComplianceServiceRegulatedPartitioned complianceService = ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]);
         uint64 lockPeriod;
-        if (us) {
+        if (isUSLockPeriod) {
             lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsLockPeriod());
         } else {
             lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUsLockPeriod());

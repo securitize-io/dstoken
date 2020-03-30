@@ -114,10 +114,10 @@ library ComplianceServiceLibrary {
         return _omnibusWallet != address(0);
     }
 
-    function checkHoldUp(address[] memory _services, address _omnibusWallet, address _from, uint256 _value, bool us) internal view returns (bool) {
+    function checkHoldUp(address[] memory _services, address _omnibusWallet, address _from, uint256 _value, bool isUSLockPeriod) internal view returns (bool) {
         ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
         uint64 lockPeriod;
-        if (us) {
+        if (isUSLockPeriod) {
             lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsLockPeriod());
         } else {
             lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUsLockPeriod());
@@ -216,7 +216,7 @@ library ComplianceServiceLibrary {
             if (
                 isNotBeneficiaryOrHolderOfRecord &&
                     fromInvestorBalance > _value &&
-                    fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()//)
+                    fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()
             ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
