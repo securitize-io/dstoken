@@ -111,8 +111,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         public
         onlyIssuerOrAbove
     {
-        address[] memory services = getCommonServices();
-        TokenLibrary.omnibusSeize(tokenData, services, _omnibusWallet, _from, _to, _value);
+        TokenLibrary.omnibusSeize(tokenData, getCommonServices(), _omnibusWallet, _from, _to, _value);
         emit OmnibusSeize(_omnibusWallet, _from, _value, _reason, getAssetTrackingMode(_omnibusWallet));
         emit Seize(_omnibusWallet, _to, _value, _reason);
         emit Transfer(_omnibusWallet, _to, _value);

@@ -46,7 +46,7 @@ class ConfigurationManager {
         "   --omnibus_wallet - the address of the omnibus wallet in the registry"
       );
       console.log(
-        "   --partitioned - add tranches support"
+        "   --partitioned - add partitions support"
       );
       console.log("   --help - outputs this help");
       console.log("\n");
