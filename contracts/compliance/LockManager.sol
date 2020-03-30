@@ -14,13 +14,38 @@ import "../data-stores/LockManagerDataStore.sol";
 contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsumer, LockManagerDataStore {
     using SafeMath for uint256;
 
+    /*************** Legacy functions ***************/
+    function createLockForHolder(string memory _holder, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime)
+        public
+        onlyIssuerOrAboveOrToken
+    {
+        createLockForInvestor(_holder, _valueLocked, _reasonCode, _reasonString, _releaseTime);
+    }
+    function removeLockRecordForHolder(string memory _holderId, uint256 _lockIndex) public onlyIssuerOrAbove returns (bool) {
+        return removeLockRecordForInvestor(_holderId, _lockIndex);
+    }
+    function lockCountForHolder(string memory _holderId) public view returns (uint256) {
+        return lockCountForInvestor(_holderId);
+    }
+    function lockInfoForHolder(string memory _holderId, uint256 _lockIndex)
+        public
+        view
+        returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime)
+    {
+        return lockInfoForInvestor(_holderId, _lockIndex);
+    }
+    function getTransferableTokensForHolder(string memory _holderId, uint64 _time) public view returns (uint256) {
+        return getTransferableTokensForInvestor(_holderId, _time);
+    }
+    /******************************/
+
     function initialize() public initializer onlyFromProxy {
         IDSLockManager.initialize();
         ServiceConsumer.initialize();
         VERSIONS.push(2);
     }
 
-    modifier validLock(address _to, uint256 _valueLocked, uint _releaseTime) {
+    modifier validLock(address _to, uint256 _valueLocked, uint256 _releaseTime) {
         require(_to != address(0));
         require(_valueLocked > 0);
         require(_releaseTime == 0 || _releaseTime > uint256(now), "Release time is in the past");
@@ -49,10 +74,11 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         emit Locked(_to, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
 
-    function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime) 
-    onlyIssuerOrAboveOrToken
-    validLock(_to, _valueLocked, _releaseTime)
-    public {
+    function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime)
+        public
+        onlyIssuerOrAboveOrToken
+        validLock(_to, _valueLocked, _releaseTime)
+    {
         createLock(_to, _valueLocked, 0, _reason, _releaseTime);
     }
 
