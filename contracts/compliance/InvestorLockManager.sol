@@ -12,11 +12,10 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
     /*************** Legacy functions ***************/
     function createLockForHolder(string memory _holder, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime)
         public
-        onlyIssuerOrAboveOrToken
     {
         createLockForInvestor(_holder, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
-    function removeLockRecordForHolder(string memory _holderId, uint256 _lockIndex) public onlyIssuerOrAbove returns (bool) {
+    function removeLockRecordForHolder(string memory _holderId, uint256 _lockIndex) public returns (bool) {
         return removeLockRecordForInvestor(_holderId, _lockIndex);
     }
     function lockCountForHolder(string memory _holderId) public view returns (uint256) {
