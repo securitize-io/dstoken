@@ -40,6 +40,10 @@ contract("ComplianceServiceRegulated", function([
       country.FRANCE,
       compliance.EU
     );
+    await this.complianceConfiguration.setCountryCompliance(
+      country.JAPAN,
+      compliance.JP
+    );
     await this.complianceConfiguration.setAll(
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, time.YEARS, 0],
       [true, false, false]

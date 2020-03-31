@@ -42,7 +42,8 @@ module.exports = {
     NONE: 0,
     US: 1,
     EU: 2,
-    FORBIDDEN: 4
+    FORBIDDEN: 4,
+    JP: 8
   },
   Address: {
     ZERO_ADDRESS: "0x0000000000000000000000000000000000000000"
