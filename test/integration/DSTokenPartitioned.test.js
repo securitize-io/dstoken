@@ -197,6 +197,16 @@ contract("DSToken (regulated)", function([
 
       assert.equal(totalIssued, 600);
     });
+
+    it("Should create a partition with the given time and region", async function() {
+      await this.token.issueTokensCustom(usInvestorWallet, 100, 1, 0, "", 0);
+      const partition = await this.token.partitionOf(usInvestorWallet,0);
+      const issuanceTime = await this.partitionsManager.getPartitionIssuanceDate(partition);
+      const region = await this.partitionsManager.getPartitionRegion(partition);
+      assert.equal(issuanceTime, 1);
+      assert.equal(region, compliance.US);
+    });
+
   });
 
   describe("Locking", function() {
@@ -253,7 +263,22 @@ contract("DSToken (regulated)", function([
       );
       assert.equal(usInvestorSecondaryWalletBalance.toNumber(), 50);
     });
+
   });
+
+  describe("Transfer", function() {
+    it("Should transfer from more than one partition", async function() {
+
+    });
+
+    it("Should transfer by specific partition", async function() {
+
+    });
+
+    it("Should return the balance of a wallet partition correctly", async function() {
+      // test by wallet and investor
+    });
+  })
 
   describe("Burn", function() {
     it("Should not allow burn without specifying a partition", async function() {
