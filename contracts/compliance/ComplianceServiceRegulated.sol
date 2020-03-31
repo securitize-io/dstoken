@@ -449,7 +449,10 @@ library ComplianceServiceLibrary {
                     return (40, MAX_INVESTORS_IN_CATEGORY);
                 }
             } else if (toRegion == JP) {
-                if (complianceService.getJapanInvestorsCount() >= complianceConfigurationService.getJapanInvestorsLimit()) {
+                if (
+                    complianceConfigurationService.getJapanInvestorsLimit() != 0 &&
+                    complianceService.getJapanInvestorsCount() >= complianceConfigurationService.getJapanInvestorsLimit()
+                ) {
                     return (40, MAX_INVESTORS_IN_CATEGORY);
                 }
             }
