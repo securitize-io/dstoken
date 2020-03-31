@@ -35,7 +35,8 @@ module.exports = {
     SPAIN: "spain",
     GERMANY: "germany",
     CHINA: "china",
-    ISRAEL: "israel"
+    ISRAEL: "israel",
+    JAPAN: "japan"
   },
   Compliance: {
     NONE: 0,
