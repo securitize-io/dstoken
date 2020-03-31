@@ -3,6 +3,7 @@ pragma solidity ^0.5.0;
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
+
 contract IDSComplianceService is Initializable, VersionedContract {
     constructor() internal {}
 
@@ -14,6 +15,7 @@ contract IDSComplianceService is Initializable, VersionedContract {
     uint256 internal constant US = 1;
     uint256 internal constant EU = 2;
     uint256 internal constant FORBIDDEN = 4;
+    uint256 internal constant JP = 8;
     string internal constant TOKEN_PAUSED = "Token Paused";
     string internal constant NOT_ENOUGH_TOKENS = "Not Enough Tokens";
     string internal constant TOKENS_LOCKED = "Tokens Locked";
@@ -83,5 +85,6 @@ contract IDSComplianceService is Initializable, VersionedContract {
     function preIssuanceCheck(address _to, uint256 _value) public view returns (uint256 code, string memory reason);
 
     function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason);
+
     function preInternalTransferCheck(address _from, address _to, uint256 _value, address _omnibusWallet) public view returns (uint256 code, string memory reason);
 }
