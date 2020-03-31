@@ -19,8 +19,7 @@ async function deployLibraries(deployer) {
   await deployer.deploy(TokenLibrary);
   await deployer.link(ComplianceServiceLibrary, ComplianceServiceRegulated);
   await deployer.link(TokenLibrary, DSToken);
-  console.log(`Is Partitioned: ${configurationManager.isPartitioned()}`)
-  if (configurationManager.isPartitioned()) {
+  if (configurationManager.isPartitioned() || configurationManager.isTestMode()) {
     await deployer.deploy(TokenPartitionsLibrary);
     await deployer.deploy(ComplianceServicePartitionedLibrary);
     await deployer.link(ComplianceServicePartitionedLibrary, ComplianceServiceRegulatedPartitioned);

@@ -20,11 +20,13 @@ module.exports = {
   complianceType: {
     NOT_REGULATED: 0,
     WHITELIST: 1,
-    NORMAL: 2
+    NORMAL: 2,
+    PARTITIONED: 4
   },
   lockManagerType: {
     WALLET: 0,
-    INVESTOR: 1
+    INVESTOR: 1,
+    PARTITIONED: 2
   },
   attributeType: {
     NONE: 0,

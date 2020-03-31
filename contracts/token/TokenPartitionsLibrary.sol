@@ -3,6 +3,7 @@ pragma solidity ^0.5.0;
 import "../zeppelin/math/SafeMath.sol";
 import "../zeppelin/math/Math.sol";
 import "../compliance/IDSComplianceServicePartitioned.sol";
+import "../compliance/IDSLockManagerPartitioned.sol";
 import "../registry/IDSRegistryService.sol";
 import "../compliance/IDSComplianceConfigurationService.sol";
 import "../compliance/IDSPartitionsManager.sol";
@@ -25,10 +26,14 @@ library TokenPartitionsLibrary {
     mapping (string => mapping (bytes32 => uint)) investorPartitionsBalances;
   }
 
-  function issueTokensCustom(TokenPartitions storage self, IDSRegistryService _registry, IDSComplianceConfigurationService _compConf, IDSPartitionsManager _partitionsManager, address _to, uint256 _value, uint256 _issuanceTime) public returns (bool) {
-    string memory country = _registry.getCountry(_registry.getInvestor(_to));
+  function issueTokensCustom(TokenPartitions storage self, IDSRegistryService _registry, IDSComplianceConfigurationService _compConf, IDSPartitionsManager _partitionsManager, IDSLockManagerPartitioned _lockManager, address _to, uint256 _value, uint256 _issuanceTime, uint256 _valueLocked, string memory _reason, uint64 _releaseTime) public returns (bool) {
+    string memory investor = _registry.getInvestor(_to);
+    string memory country = _registry.getCountry(investor);
     bytes32 partition = _partitionsManager.ensurePartition(_issuanceTime, _compConf.getCountryCompliance(country));
     transferPartition(self, _registry, address(0), _to, _value, partition);
+    if (_valueLocked > 0) {
+      _lockManager.createLockForInvestor(investor, _valueLocked, 0, _reason, _releaseTime, partition);
+    }
     emit IssueByPartition(_to, _value, partition);
   }
 
@@ -82,10 +87,11 @@ library TokenPartitionsLibrary {
   function transferPartitions(TokenPartitions storage self, address[] memory _services, address _from, address _to, uint256 _value) public returns (bool) {
     uint partitionCount = partitionCountOf(self, _from);
     uint index = 0;
+    bool skipComplianceCheck = shouldSkipComplianceCheck(IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to);
     while ( _value > 0 && index < partitionCount) {
       bytes32 partition = partitionOf(self, _from, index);
-
-      uint transferable = Math.min(_value, IDSComplianceServicePartitioned(_services[COMPLIANCE_SERVICE]).getComplianceTransferableTokens(_from, now, _to, partition));
+      uint transferableInPartition = skipComplianceCheck ? self.walletPartitions[_from].balances[partition] : IDSComplianceServicePartitioned(_services[COMPLIANCE_SERVICE]).getComplianceTransferableTokens(_from, now, _to, partition);
+      uint transferable = Math.min(_value, transferableInPartition);
       if (transferable > 0) {
         if (self.walletPartitions[_from].balances[partition] == transferable) {
           --index;
@@ -104,9 +110,11 @@ library TokenPartitionsLibrary {
 
   function transferPartitions(TokenPartitions storage self, address[] memory _services, address _from, address _to, uint256 _value, bytes32[] memory _partitions, uint256[] memory _values) public returns (bool) {
     require(_partitions.length == _values.length);
-
+    bool skipComplianceCheck = shouldSkipComplianceCheck(IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to);
     for (uint index = 0; index < _partitions.length; ++index) {
-      require(_values[index] <= IDSComplianceServicePartitioned(_services[COMPLIANCE_SERVICE]).getComplianceTransferableTokens(_from, now, _to, _partitions[index]));
+      if (!skipComplianceCheck) {
+        require(_values[index] <= IDSComplianceServicePartitioned(_services[COMPLIANCE_SERVICE]).getComplianceTransferableTokens(_from, now, _to, _partitions[index]));
+      }
       transferPartition(self, IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to, _values[index], _partitions[index]);
       _value -= _values[index];
     }
@@ -143,5 +151,9 @@ library TokenPartitionsLibrary {
       self.investorPartitionsBalances[investor][_partition] = balance;
     }
     return true;
+  }
+
+  function shouldSkipComplianceCheck(IDSRegistryService _registry, address _from, address _to) internal view returns(bool) {
+    return keccak256(abi.encodePacked(_registry.getInvestor(_from))) == keccak256(abi.encodePacked(_registry.getInvestor(_to)));
   }
 }
