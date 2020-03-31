@@ -9,6 +9,31 @@ import "../zeppelin/math/Math.sol";
 contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsumer, InvestorLockManagerDataStore {
     uint256 constant MAX_LOCKS_PER_INVESTOR = 30;
 
+    /*************** Legacy functions ***************/
+    function createLockForHolder(string memory _holder, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime)
+        public
+        onlyIssuerOrAboveOrToken
+    {
+        createLockForInvestor(_holder, _valueLocked, _reasonCode, _reasonString, _releaseTime);
+    }
+    function removeLockRecordForHolder(string memory _holderId, uint256 _lockIndex) public onlyIssuerOrAbove returns (bool) {
+        return removeLockRecordForInvestor(_holderId, _lockIndex);
+    }
+    function lockCountForHolder(string memory _holderId) public view returns (uint256) {
+        return lockCountForInvestor(_holderId);
+    }
+    function lockInfoForHolder(string memory _holderId, uint256 _lockIndex)
+        public
+        view
+        returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime)
+    {
+        return lockInfoForInvestor(_holderId, _lockIndex);
+    }
+    function getTransferableTokensForHolder(string memory _holderId, uint64 _time) public view returns (uint256) {
+        return getTransferableTokensForInvestor(_holderId, _time);
+    }
+    /******************************/
+
     function initialize() public initializer onlyFromProxy {
         IDSLockManager.initialize();
         ServiceConsumer.initialize();
