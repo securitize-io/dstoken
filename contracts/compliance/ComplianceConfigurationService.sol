@@ -5,6 +5,7 @@ import "../data-stores/ComplianceConfigurationDataStore.sol";
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
 
+
 contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurationService, ServiceConsumer, ComplianceConfigurationDataStore {
     function initialize() public initializer onlyFromProxy {
         IDSComplianceConfigurationService.initialize();
@@ -50,6 +51,14 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
 
     function setUsInvestorsLimit(uint256 _value) public onlyIssuerOrAbove {
         usInvestorsLimit = _value;
+    }
+
+    function getJapanInvestorsLimit() public view returns (uint256) {
+        return jpInvestorsLimit;
+    }
+
+    function setJapanInvestorsLimit(uint256 _value) public onlyIssuerOrAbove {
+        jpInvestorsLimit = _value;
     }
 
     function getUsAccreditedInvestorsLimit() public view returns (uint256) {
@@ -157,7 +166,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setAll(uint256[] memory _uint_values, bool[] memory _bool_values) public onlyIssuerOrAbove {
-        require(_uint_values.length == 14);
+        require(_uint_values.length == 15);
         require(_bool_values.length == 3);
         setTotalInvestorsLimit(_uint_values[0]);
         setMinUsTokens(_uint_values[1]);
@@ -173,6 +182,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         setMaximumHoldingsPerInvestor(_uint_values[11]);
         setEuRetailLimit(_uint_values[12]);
         setUsLockPeriod(_uint_values[13]);
+        setJapanInvestorsLimit(_uint_values[14]);
         setForceFullTransfer(_bool_values[0]);
         setForceAccredited(_bool_values[1]);
         setForceAccreditedUS(_bool_values[2]);

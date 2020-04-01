@@ -36,6 +36,10 @@ contract("OmnibusWalletCompliance", function([
       country.FRANCE,
       compliance.EU
     );
+    await this.complianceConfiguration.setCountryCompliance(
+      country.JAPAN,
+      compliance.JP
+    );
     await this.registryService.registerInvestor(
       investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
       investorId.OMNIBUS_WALLET_INVESTOR_ID_1
@@ -89,8 +93,8 @@ contract("OmnibusWalletCompliance", function([
   });
 
   beforeEach(async function() {
-    snapshot = await snapshotsHelper.takeSnapshot()
-    snapshotId = snapshot['result'];
+    snapshot = await snapshotsHelper.takeSnapshot();
+    snapshotId = snapshot["result"];
   });
 
   afterEach(async function() {
@@ -584,6 +588,26 @@ contract("OmnibusWalletCompliance", function([
         assert.equal(res[1], "Max investors in category");
       });
 
+      it("Should fail the deposit if japan investors limit has been reached", async function() {
+        await this.registryService.setCountry(
+          investorId.GENERAL_INVESTOR_ID_1,
+          country.JAPAN
+        );
+        await this.registryService.setCountry(
+          investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
+          country.JAPAN
+        );
+        await this.complianceConfiguration.setJapanInvestorsLimit(1);
+        await this.token.issueTokens(investorWallet1, 1000);
+        const res = await this.complianceService.preTransferCheck(
+          investorWallet1,
+          omnibusWallet1,
+          500
+        );
+        assert.equal(res[0].toNumber(), 40);
+        assert.equal(res[1], "Max investors in category");
+      });
+
       it("Should fail the deposit if minimum total investors limit has not been reached", async function() {
         await this.token.issueTokens(investorWallet1, 1000);
         await this.token.transfer(omnibusWallet1, 500, {from: investorWallet1});
@@ -745,6 +769,72 @@ contract("OmnibusWalletCompliance", function([
         assert.equal(res[0].toNumber(), 40);
         assert.equal(res[1], "Max investors in category");
       });
+
+      it("Should fail the withdraw if japan investors limit has been reached", async function() {
+        await this.registryService.setCountry(
+          investorId.GENERAL_INVESTOR_ID_1,
+          country.JAPAN
+        );
+        await this.registryService.setCountry(
+          investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
+          country.JAPAN
+        );
+        await this.token.issueTokens(investorWallet1, 1000);
+        await this.token.transfer(omnibusWallet1, 1000, {
+          from: investorWallet1
+        });
+        await this.complianceConfiguration.setJapanInvestorsLimit(1);
+        const res = await this.complianceService.preTransferCheck(
+          omnibusWallet1,
+          investorWallet1,
+          500
+        );
+        assert.equal(res[0].toNumber(), 40);
+        assert.equal(res[1], "Max investors in category");
+      });
+
+      it("Should fail the withdraw if maximum eu retail investors limit has been reached", async function() {
+        await this.token.issueTokens(investorWallet1, 1000);
+        await this.token.transfer(omnibusWallet1, 1000, {
+          from: investorWallet1
+        });
+        await this.complianceConfiguration.setEuRetailLimit(0);
+        await this.registryService.setCountry(
+          investorId.GENERAL_INVESTOR_ID_1,
+          country.FRANCE
+        );
+        const res = await this.complianceService.preTransferCheck(
+          omnibusWallet1,
+          investorWallet1,
+          500
+        );
+        assert.equal(res[0].toNumber(), 40);
+        assert.equal(res[1], "Max investors in category");
+      });
+
+      it("Should fail the withdraw if maximum non accredited investors limit has been reached", async function() {
+        await this.registryService.registerInvestor(
+          investorId.GENERAL_INVESTOR_ID_2,
+          investorId.GENERAL_INVESTOR_ID_2
+        );
+        await this.registryService.addWallet(
+          investorWallet2,
+          investorId.GENERAL_INVESTOR_ID_2
+        );
+        await this.token.issueTokens(investorWallet1, 1000);
+        await this.token.issueTokens(investorWallet2, 1000);
+        await this.token.transfer(omnibusWallet1, 1000, {
+          from: investorWallet2
+        });
+        await this.complianceConfiguration.setNonAccreditedInvestorsLimit(1);
+        const res = await this.complianceService.preTransferCheck(
+          omnibusWallet1,
+          investorWallet2,
+          500
+        );
+        assert.equal(res[0].toNumber(), 40);
+        assert.equal(res[1], "Max investors in category");
+      });
     });
 
     describe("Internal transfer", function() {
@@ -880,6 +970,66 @@ contract("OmnibusWalletCompliance", function([
           investorId.GENERAL_INVESTOR_ID_2,
           country.USA
         );
+        const res = await this.complianceService.preInternalTransferCheck(
+          investorWallet1,
+          investorWallet2,
+          500,
+          omnibusWallet2
+        );
+        assert.equal(res[0].toNumber(), 40);
+        assert.equal(res[1], "Max investors in category");
+      });
+
+      it("Should fail the transfer if maximum us investors limit has been reached", async function() {
+        await this.token.issueTokens(investorWallet1, 1000);
+        await this.token.transfer(omnibusWallet2, 1000, {
+          from: investorWallet1
+        });
+        await this.complianceConfiguration.setJapanInvestorsLimit(1);
+        await this.registryService.setCountry(
+          investorId.GENERAL_INVESTOR_ID_1,
+          country.JAPAN
+        );
+        await this.registryService.setCountry(
+          investorId.GENERAL_INVESTOR_ID_2,
+          country.JAPAN
+        );
+        const res = await this.complianceService.preInternalTransferCheck(
+          investorWallet1,
+          investorWallet2,
+          500,
+          omnibusWallet2
+        );
+        assert.equal(res[0].toNumber(), 40);
+        assert.equal(res[1], "Max investors in category");
+      });
+
+      it("Should fail the transfer if maximum eu retail investors limit has been reached", async function() {
+        await this.token.issueTokens(investorWallet1, 1000);
+        await this.token.transfer(omnibusWallet2, 1000, {
+          from: investorWallet1
+        });
+        await this.complianceConfiguration.setEuRetailLimit(0);
+        await this.registryService.setCountry(
+          investorId.GENERAL_INVESTOR_ID_2,
+          country.FRANCE
+        );
+        const res = await this.complianceService.preInternalTransferCheck(
+          investorWallet1,
+          investorWallet2,
+          500,
+          omnibusWallet2
+        );
+        assert.equal(res[0].toNumber(), 40);
+        assert.equal(res[1], "Max investors in category");
+      });
+
+      it("Should fail the transfer if maximum non accredited investors limit has been reached", async function() {
+        await this.complianceConfiguration.setNonAccreditedInvestorsLimit(1);
+        await this.token.issueTokens(investorWallet1, 1000);
+        await this.token.transfer(omnibusWallet2, 1000, {
+          from: investorWallet1
+        });
         const res = await this.complianceService.preInternalTransferCheck(
           investorWallet1,
           investorWallet2,

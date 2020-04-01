@@ -126,14 +126,14 @@ contract("DSToken (regulated)", function([
     );
 
     await this.complianceConfiguration.setAll(
-      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 1 * time.YEARS],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 1 * time.YEARS, 0],
       [true, false, false]
     );
   });
 
   beforeEach(async function() {
-    snapshot = await snapshotsHelper.takeSnapshot()
-    snapshotId = snapshot['result'];
+    snapshot = await snapshotsHelper.takeSnapshot();
+    snapshotId = snapshot["result"];
   });
 
   afterEach(async function() {
