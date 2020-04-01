@@ -15,6 +15,7 @@ import "../registry/IDSRegistryService.sol";
 import "../trust/IDSTrustService.sol";
 import "../utils/Ownable.sol";
 
+
 contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStore {
     constructor() internal {}
 
@@ -27,7 +28,7 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
 
     modifier onlyMaster {
         IDSTrustService trustManager = getTrustService();
-        require(this.contractOwner() == msg.sender || trustManager.getRole(msg.sender) == trustManager.MASTER(), "Insufficient trust level");
+        require(this.owner() == msg.sender || trustManager.getRole(msg.sender) == trustManager.MASTER(), "Insufficient trust level");
         _;
     }
 
