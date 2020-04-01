@@ -46,10 +46,9 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
 
     function createLockForInvestor(string memory _investor, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime)
         public
+        validLock(_valueLocked, _releaseTime)
         onlyIssuerOrAboveOrToken
     {
-        require(_valueLocked > 0);
-        require(_releaseTime == 0 || _releaseTime > uint256(now), "Release time is in the past");
         //Get total count
         uint256 lockCount = investorsLocksCounts[_investor];
         //Only allow MAX_LOCKS_PER_INVESTOR locks per address, to prevent out-of-gas at transfer scenarios

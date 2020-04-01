@@ -25,8 +25,10 @@ contract IDSLockManagerPartitioned is IDSLockManager {
   function getTransferableTokens(address _who, uint256 _time, bytes32 _partition) public view returns (uint);
   function getTransferableTokensForInvestor(string memory _investorId, uint256 _time, bytes32 _partition) public view returns (uint);
 
+  /*************** Legacy functions ***************/
   function createLockForHolder(string memory _holderId, uint _valueLocked, uint _reasonCode, string memory _reasonString, uint _releaseTime, bytes32 _partition) public;
   function removeLockRecordForHolder(string memory _holderId, uint _index, bytes32 _partition) /*issuerOrAbove*/ public returns (bool);
   function lockInfoForHolder(string memory _holderId, uint _index, bytes32 _partition) public view returns (uint reasonCode, string memory reasonString, uint value, uint autoReleaseTime);
   function lockCountForHolder(string memory _holderId, bytes32 _partition) public view returns (uint256);
+  /******************************/
 }

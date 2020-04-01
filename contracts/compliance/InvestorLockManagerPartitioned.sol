@@ -139,6 +139,8 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
     revertedFunction();
   }
 
+  /*************** Legacy functions ***************/
+
   function removeLockRecordForHolder(string memory _holderId, uint _lockIndex, bytes32 _partition) public returns (bool) {
     return removeLockRecordForInvestor(_holderId, _lockIndex, _partition);
   }
@@ -158,6 +160,8 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
   function lockCountForHolder(string memory _holderId, bytes32 _partition) public view returns (uint){
     return lockCountForInvestor(_holderId, _partition);
   }
+
+  /******************************/
 
   function revertedFunction() internal pure {
     revert('Must specify partition');
