@@ -20,8 +20,6 @@ contract Ownable is Initializable {
         return contractOwner();
     }
 
-    //
-
     function contractOwner() public view returns (address) {
         return _owner;
     }
