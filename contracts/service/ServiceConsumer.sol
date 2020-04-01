@@ -28,7 +28,7 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
 
     modifier onlyMaster {
         IDSTrustService trustManager = getTrustService();
-        require(this.owner() == msg.sender || trustManager.getRole(msg.sender) == trustManager.MASTER(), "Insufficient trust level");
+        require(this.contractOwner() == msg.sender || trustManager.getRole(msg.sender) == trustManager.MASTER(), "Insufficient trust level");
         _;
     }
 

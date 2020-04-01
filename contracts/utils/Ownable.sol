@@ -15,7 +15,14 @@ contract Ownable is Initializable {
         emit OwnershipTransferred(address(0), _owner);
     }
 
+    //Legacy function
     function owner() public view returns (address) {
+        return contractOwner();
+    }
+
+    //
+
+    function contractOwner() public view returns (address) {
         return _owner;
     }
 
