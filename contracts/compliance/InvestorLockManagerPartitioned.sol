@@ -21,10 +21,6 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
     emit LockedPartition(_to,_valueLocked,_reasonCode,_reasonString,_releaseTime,_partition);
   }
 
-  function createLockForHolder(string memory _investorId, uint _valueLocked, uint _reasonCode, string memory _reasonString, uint _releaseTime, bytes32 _partition) public {
-    return createLockForInvestor(_investorId, _valueLocked, _reasonCode, _reasonString, _releaseTime, _partition);
-  }
-
   function createLockForInvestor(string memory _investorId, uint _valueLocked, uint _reasonCode, string memory _reasonString, uint _releaseTime, bytes32 _partition)
   public
   validLock(_valueLocked, _releaseTime)
@@ -56,9 +52,6 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
     return removeLockRecordForInvestor(investor, _lockIndex, _partition);
   }
 
-  function removeLockRecordForHolder(string memory _investorId, uint _lockIndex, bytes32 _partition) public returns (bool) {
-    return removeLockRecordForInvestor(_investorId, _lockIndex, _partition);
-  }
 
   function removeLockRecordForInvestor(string memory _investorId, uint _lockIndex, bytes32 _partition) onlyIssuerOrAbove public returns (bool) {
     //Put the last lock instead of the lock to remove (this will work even with 1 lock in the list)
@@ -81,10 +74,6 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
     return lockCountForInvestor(getRegistryService().getInvestor(_who), _partition);
   }
 
-  function lockCountForHolder(string memory _investorId, bytes32 _partition) public view returns (uint){
-    return lockCountForInvestor(_investorId, _partition);
-  }
-
   function lockCountForInvestor(string memory _investorId, bytes32 _partition) public view returns (uint){
     return investorsLocksCounts[_investorId][_partition];
   }
@@ -92,10 +81,6 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
   function lockInfo(address _who, uint _lockIndex, bytes32 _partition) public view returns (uint reasonCode, string memory reasonString, uint value, uint autoReleaseTime) {
     require (_who != address(0));
     return lockInfoForInvestor(getRegistryService().getInvestor(_who), _lockIndex, _partition);
-  }
-
-  function lockInfoForHolder(string memory _investorId, uint _lockIndex, bytes32 _partition) public view returns (uint reasonCode, string memory reasonString, uint value, uint autoReleaseTime) {
-    return lockInfoForInvestor(_investorId, _lockIndex, _partition);
   }
 
   function lockInfoForInvestor(string memory _investorId, uint _lockIndex, bytes32 _partition) public view returns (uint reasonCode, string memory reasonString, uint value, uint autoReleaseTime) {
@@ -110,10 +95,6 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
 
   function getTransferableTokens(address _who, uint256 _time, bytes32 _partition) public view returns (uint) {
     return getTransferableTokensForInvestor(getRegistryService().getInvestor(_who), _time, _partition);
-  }
-
-  function getTransferableTokensForHolder(string memory _investorId, uint256 _time, bytes32 _partition) public view returns (uint) {
-    return getTransferableTokensForInvestor(_investorId, _time, _partition);
   }
 
   function getTransferableTokensForInvestor(string memory _investorId, uint256 _time, bytes32 _partition) public view returns (uint) {
@@ -134,7 +115,6 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
     //there may be more locked tokens than actual tokens, so the minimum between the two
     return SafeMath.sub(balanceOfHolderByPartition, Math.min(totalLockedTokens, balanceOfHolderByPartition));
   }
-
 
   function getTransferableTokens(address _who, uint256 _time) public view returns (uint transferable) {
     uint countOfPartitions = getTokenPartitioned().partitionCountOf(_who);
@@ -157,6 +137,26 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
 
   function lockInfo(address /*_who*/, uint /*_index*/) public view returns (uint /*reasonCode*/, string memory /*reasonString*/, uint /*value*/, uint /*autoReleaseTime*/) {
     revertedFunction();
+  }
+
+  function removeLockRecordForHolder(string memory _holderId, uint _lockIndex, bytes32 _partition) public returns (bool) {
+    return removeLockRecordForInvestor(_holderId, _lockIndex, _partition);
+  }
+
+  function createLockForHolder(string memory _holderId, uint _valueLocked, uint _reasonCode, string memory _reasonString, uint _releaseTime, bytes32 _partition) public {
+    return createLockForInvestor(_holderId, _valueLocked, _reasonCode, _reasonString, _releaseTime, _partition);
+  }
+
+  function lockInfoForHolder(string memory _holderId, uint _lockIndex, bytes32 _partition) public view returns (uint reasonCode, string memory reasonString, uint value, uint autoReleaseTime) {
+    return lockInfoForInvestor(_holderId, _lockIndex, _partition);
+  }
+
+  function getTransferableTokensForHolder(string memory _holderId, uint256 _time, bytes32 _partition) public view returns (uint) {
+    return getTransferableTokensForInvestor(_holderId, _time, _partition);
+  }
+
+  function lockCountForHolder(string memory _holderId, bytes32 _partition) public view returns (uint){
+    return lockCountForInvestor(_holderId, _partition);
   }
 
   function revertedFunction() internal pure {
