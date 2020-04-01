@@ -239,6 +239,15 @@ library ComplianceServicePartitionedLibrary {
         uint256 toInvestorBalance = balanceOfInvestor(_services, _to);
         string memory toCountry = getCountry(_services, _to);
 
+        if (fromRegion == EU && isNotBeneficiaryOrHolderOfRecord) {
+            if (fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens() && fromInvestorBalance > _value) {
+                return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+            }
+        }
+
+        if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccredited() && !isAccredited(_services, _to)) {
+            return (61, ONLY_ACCREDITED);
+        }
         if (toRegion == JP) {
             if (
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getJapanInvestorsLimit() != 0 &&
@@ -250,9 +259,7 @@ library ComplianceServicePartitionedLibrary {
             ) {
                 return (40, MAX_INVESTORS_IN_CATEGORY);
             }
-        }
-
-        if (toRegion == EU) {
+        } else if (toRegion == EU) {
             if (
                 isRetail(_services, _to) &&
                 ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).getEURetailInvestorsCount(toCountry) >=
@@ -270,19 +277,7 @@ library ComplianceServicePartitionedLibrary {
             ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
-        }
-
-        if (fromRegion == EU && isNotBeneficiaryOrHolderOfRecord) {
-            if (fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens() && fromInvestorBalance > _value) {
-                return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
-            }
-        }
-
-        if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccredited() && !isAccredited(_services, _to)) {
-            return (61, ONLY_ACCREDITED);
-        }
-
-        if (toRegion == US) {
+        } else if (toRegion == US) {
             if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccreditedUS() && !isAccredited(_services, _to)) {
                 return (61, ONLY_US_ACCREDITED);
             }
