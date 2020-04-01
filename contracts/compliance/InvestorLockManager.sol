@@ -12,11 +12,10 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
     /*************** Legacy functions ***************/
     function createLockForHolder(string memory _holder, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime)
         public
-        onlyIssuerOrAboveOrToken
     {
         createLockForInvestor(_holder, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
-    function removeLockRecordForHolder(string memory _holderId, uint256 _lockIndex) public onlyIssuerOrAbove returns (bool) {
+    function removeLockRecordForHolder(string memory _holderId, uint256 _lockIndex) public returns (bool) {
         return removeLockRecordForInvestor(_holderId, _lockIndex);
     }
     function lockCountForHolder(string memory _holderId) public view returns (uint256) {
@@ -47,6 +46,7 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
 
     function createLockForInvestor(string memory _investor, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime)
         public
+        validLock(_valueLocked, _releaseTime)
         onlyIssuerOrAboveOrToken
     {
         //Get total count
@@ -66,8 +66,6 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
 
     function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime) public onlyIssuerOrAboveOrToken {
         require(_to != address(0));
-        require(_valueLocked > 0);
-        require(_releaseTime == 0 || _releaseTime > uint256(now), "Release time is in the past");
         createLock(_to, _valueLocked, 0, _reason, _releaseTime);
     }
 

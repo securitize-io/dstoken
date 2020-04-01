@@ -10,6 +10,12 @@ contract IDSLockManager is Initializable, VersionedContract {
         VERSIONS.push(2);
     }
 
+    modifier validLock(uint256 _valueLocked, uint _releaseTime) {
+        require(_valueLocked > 0);
+        require(_releaseTime == 0 || _releaseTime > uint256(now), "Release time is in the past");
+        _;
+    }
+
     event Locked(address indexed who, uint256 value, uint256 indexed reason, string reasonString, uint256 releaseTime);
     event Unlocked(address indexed who, uint256 value, uint256 indexed reason, string reasonString, uint256 releaseTime);
 
