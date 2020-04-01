@@ -15,6 +15,7 @@ import "../registry/IDSRegistryService.sol";
 import "../trust/IDSTrustService.sol";
 import "../utils/Ownable.sol";
 
+
 contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStore {
     constructor() internal {}
 

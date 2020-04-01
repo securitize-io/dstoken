@@ -2,6 +2,7 @@ pragma solidity ^0.5.0;
 
 import "./Initializable.sol";
 
+
 contract Ownable is Initializable {
     address private _owner;
 
@@ -12,6 +13,11 @@ contract Ownable is Initializable {
     function initialize() public isNotInitialized {
         _owner = msg.sender;
         emit OwnershipTransferred(address(0), _owner);
+    }
+
+    //Legacy function
+    function owner() public view returns (address) {
+        return contractOwner();
     }
 
     function contractOwner() public view returns (address) {
