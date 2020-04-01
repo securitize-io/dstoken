@@ -189,7 +189,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function getAll() public view returns (uint256[] memory, bool[] memory) {
-        uint256[] memory uintValues = new uint256[](14);
+        uint256[] memory uintValues = new uint256[](15);
         bool[] memory boolValues = new bool[](3);
 
         uintValues[0] = getTotalInvestorsLimit();
@@ -206,6 +206,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         uintValues[11] = getMaximumHoldingsPerInvestor();
         uintValues[12] = getEuRetailLimit();
         uintValues[13] = getUsLockPeriod();
+        uintValues[14] = getJapanInvestorsLimit();
         boolValues[0] = getForceFullTransfer();
         boolValues[1] = getForceAccredited();
         boolValues[2] = getForceAccreditedUS();
