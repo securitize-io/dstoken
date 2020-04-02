@@ -7,7 +7,7 @@ import "../utils/Initializable.sol";
 contract IDSComplianceConfigurationService is Initializable, VersionedContract {
     constructor() internal {}
 
-    function initialize() public isNotInitialized {
+    function initialize() public {
         VERSIONS.push(4);
     }
 

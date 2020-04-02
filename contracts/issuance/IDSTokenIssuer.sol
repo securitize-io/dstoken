@@ -3,10 +3,11 @@ pragma solidity ^0.5.0;
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
+
 contract IDSTokenIssuer is Initializable, VersionedContract {
     constructor() internal {}
 
-    function initialize() public isNotInitialized {
+    function initialize() public {
         VERSIONS.push(2);
     }
 

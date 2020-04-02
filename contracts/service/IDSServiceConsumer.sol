@@ -4,10 +4,11 @@ import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 import "../omnibus/IDSOmnibusWalletController.sol";
 
+
 contract IDSServiceConsumer is Initializable, VersionedContract {
     constructor() internal {}
 
-    function initialize() public isNotInitialized {
+    function initialize() public {
         VERSIONS.push(3);
     }
 
@@ -59,6 +60,7 @@ contract IDSServiceConsumer is Initializable, VersionedContract {
     }
 
     function getDSService(uint256 _serviceId) public view returns (address);
+
     function setDSService(
         uint256 _serviceId,
         address _address /*onlyMaster*/

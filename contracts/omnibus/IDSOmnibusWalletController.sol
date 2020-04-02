@@ -3,13 +3,14 @@ pragma solidity ^0.5.0;
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
+
 contract IDSOmnibusWalletController is Initializable, VersionedContract {
     uint8 public constant BENEFICIARY = 0;
     uint8 public constant HOLDER_OF_RECORD = 1;
 
     constructor() internal {}
 
-    function initialize() public isNotInitialized {
+    function initialize() public {
         VERSIONS.push(1);
     }
 
