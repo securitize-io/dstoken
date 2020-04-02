@@ -4,7 +4,7 @@ import "../service/ServiceConsumer.sol";
 import "../data-stores/TokenDataStore.sol";
 
 
-contract StandardToken is IERC20, VersionedContract, Ownable, ServiceConsumer, TokenDataStore {
+contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataStore {
     event Pause();
     event Unpause();
 
