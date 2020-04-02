@@ -19,7 +19,7 @@ import "../utils/Ownable.sol";
 contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStore {
     constructor() internal {}
 
-    function initialize() public isNotInitialized {
+    function initialize() public {
         IDSServiceConsumer.initialize();
         Ownable.initialize();
 

@@ -3,13 +3,14 @@ pragma solidity ^0.5.0;
 import "../service/ServiceConsumer.sol";
 import "../data-stores/TokenDataStore.sol";
 
+
 contract StandardToken is IERC20, VersionedContract, Ownable, ServiceConsumer, TokenDataStore {
     event Pause();
     event Unpause();
 
     constructor() internal {}
 
-    function initialize() public isNotInitialized {
+    function initialize() public {
         ServiceConsumer.initialize();
         VERSIONS.push(2);
     }
@@ -39,10 +40,10 @@ contract StandardToken is IERC20, VersionedContract, Ownable, ServiceConsumer, T
     }
 
     /**
-  * @dev transfer token for a specified address
-  * @param _to The address to transfer to.
-  * @param _value The amount to be transferred.
-  */
+     * @dev transfer token for a specified address
+     * @param _to The address to transfer to.
+     * @param _value The amount to be transferred.
+     */
     function transfer(address _to, uint256 _value) public returns (bool) {
         require(_to != address(0));
         require(_value <= tokenData.walletsBalances[msg.sender]);
@@ -55,10 +56,10 @@ contract StandardToken is IERC20, VersionedContract, Ownable, ServiceConsumer, T
     }
 
     /**
-  * @dev Gets the balance of the specified address.
-  * @param _owner The address to query the the balance of.
-  * @return An uint256 representing the amount owned by the passed address.
-  */
+     * @dev Gets the balance of the specified address.
+     * @param _owner The address to query the the balance of.
+     * @return An uint256 representing the amount owned by the passed address.
+     */
     function balanceOf(address _owner) public view returns (uint256) {
         return tokenData.walletsBalances[_owner];
     }

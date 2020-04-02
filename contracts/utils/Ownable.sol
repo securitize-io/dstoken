@@ -10,7 +10,7 @@ contract Ownable is Initializable {
 
     constructor() internal {}
 
-    function initialize() public isNotInitialized {
+    function initialize() public {
         _owner = msg.sender;
         emit OwnershipTransferred(address(0), _owner);
     }

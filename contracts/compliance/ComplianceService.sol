@@ -5,18 +5,19 @@ import "./IDSComplianceService.sol";
 import "../service/ServiceConsumer.sol";
 import "../data-stores/ComplianceServiceDataStore.sol";
 
+
 /**
-*   @title Compliance service main implementation.
-*
-*   Combines the different implementation files for the compliance service and serves as a base class for
-*   concrete implementation.
-*
-*   To create a concrete implementation of a compliance service, one should inherit from this contract,
-*   and implement the five functions - recordIssuance,checkTransfer,recordTransfer,recordBurn and recordSeize.
-*   The rest of the functions should only be overridden in rare circumstances.
-*/
+ *   @title Compliance service main implementation.
+ *
+ *   Combines the different implementation files for the compliance service and serves as a base class for
+ *   concrete implementation.
+ *
+ *   To create a concrete implementation of a compliance service, one should inherit from this contract,
+ *   and implement the five functions - recordIssuance,checkTransfer,recordTransfer,recordBurn and recordSeize.
+ *   The rest of the functions should only be overridden in rare circumstances.
+ */
 contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, ServiceConsumer, ComplianceServiceDataStore {
-    function initialize() public isNotInitialized onlyFromProxy {
+    function initialize() public onlyFromProxy {
         IDSComplianceService.initialize();
         ServiceConsumer.initialize();
         VERSIONS.push(3);
@@ -149,10 +150,16 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
 
     // These functions should be implemented by the concrete compliance manager
     function recordIssuance(address _to, uint256 _value, uint256 _issuanceTime) internal returns (bool);
+
     function recordTransfer(address _from, address _to, uint256 _value) internal returns (bool);
+
     function recordBurn(address _who, uint256 _value) internal returns (bool);
+
     function recordOmnibusBurn(address _omnibusWallet, address _who, uint256 _value) internal returns (bool);
+
     function recordSeize(address _from, address _to, uint256 _value) internal returns (bool);
+
     function recordOmnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value) internal returns (bool);
+
     function checkTransfer(address _from, address _to, uint256 _value) internal view returns (uint256, string memory);
 }
