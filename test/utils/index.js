@@ -12,8 +12,8 @@ const complianceTypeToString = {
 const lockManagerTypeToString = {
   [lockManager.INVESTOR]: "InvestorLockManager",
   [lockManager.WALLET]: "LockManager",
-  [lockManager.PARTITIONED]: "InvestorLockManagerPartitioned",
-}
+  [lockManager.PARTITIONED]: "InvestorLockManagerPartitioned"
+};
 
 async function deployContracts(
   testObject,
@@ -23,7 +23,6 @@ async function deployContracts(
   omnibusWalletAddresses = undefined,
   partitionsSupport = false
 ) {
-  console.log('Deploying trust');
   await deployContractBehindProxy(
     artifacts.require("Proxy"),
     artifacts.require("TrustService"),
@@ -31,7 +30,6 @@ async function deployContracts(
     "trustService"
   );
 
-  console.log('Deploying registryService');
   await deployContractBehindProxy(
     artifacts.require("Proxy"),
     artifacts.require("RegistryService"),
@@ -39,7 +37,6 @@ async function deployContracts(
     "registryService"
   );
 
-  console.log(`Deploying compliance: ${complianceTypeToString[complianceType]}`);
   await deployContractBehindProxy(
     artifacts.require("Proxy"),
     artifacts.require(complianceTypeToString[complianceType]),
@@ -47,30 +44,13 @@ async function deployContracts(
     "complianceService"
   );
 
-  console.log(`Deploying lockManager: ${lockManagerTypeToString[lockManagerType]}`);
   await deployContractBehindProxy(
     artifacts.require("Proxy"),
     artifacts.require(lockManagerTypeToString[lockManagerType]),
     testObject,
     "lockManager"
   );
-  // if (lockManagerType === lockManager.WALLET) {
-  //   await deployContractBehindProxy(
-  //     artifacts.require("Proxy"),
-  //     artifacts.require("LockManager"),
-  //     testObject,
-  //     "lockManager"
-  //   );
-  // } else {
-  //   await deployContractBehindProxy(
-  //     artifacts.require("Proxy"),
-  //     artifacts.require("InvestorLockManager"),
-  //     testObject,
-  //     "lockManager"
-  //   );
-  // }
 
-  console.log('Deploying compliance configuration');
   await deployContractBehindProxy(
     artifacts.require("Proxy"),
     artifacts.require("ComplianceConfigurationService"),
@@ -78,7 +58,6 @@ async function deployContracts(
     "complianceConfiguration"
   );
 
-  console.log('Deploying compliance walletManager');
   await deployContractBehindProxy(
     artifacts.require("Proxy"),
     artifacts.require("WalletManager"),
@@ -86,10 +65,7 @@ async function deployContracts(
     "walletManager"
   );
 
-
-  tokenClass = partitionsSupport ? "DSTokenPartitioned" : "DSToken"
-  console.log(`partitionsSupport: ${partitionsSupport}`);
-  console.log(`tokenClass: ${tokenClass}`);
+  tokenClass = partitionsSupport ? "DSTokenPartitioned" : "DSToken";
 
   await deployContractBehindProxy(
     artifacts.require("Proxy"),
@@ -108,22 +84,16 @@ async function deployContracts(
 
   if (partitionsSupport) {
     await deployContractBehindProxy(
-    artifacts.require("Proxy"),
-    artifacts.require("PartitionsManager"),
-    testObject,
-    "partitionsManager"
+      artifacts.require("Proxy"),
+      artifacts.require("PartitionsManager"),
+      testObject,
+      "partitionsManager"
     );
 
     await setServicesDependencies(
       testObject.partitionsManager,
-      [
-        services.DS_TOKEN,
-        services.TRUST_SERVICE
-      ],
-      [
-        testObject.token.address,
-        testObject.trustService.address
-      ]
+      [services.DS_TOKEN, services.TRUST_SERVICE],
+      [testObject.token.address, testObject.trustService.address]
     );
   }
 
@@ -153,8 +123,12 @@ async function deployContracts(
     }
   }
 
-  const partitionsService = partitionsSupport ? [services.PARTITIONS_MANAGER] : [];
-  const partitionsServiceAddress = partitionsSupport ? [testObject.partitionsManager.address] : [];
+  const partitionsService = partitionsSupport
+    ? [services.PARTITIONS_MANAGER]
+    : [];
+  const partitionsServiceAddress = partitionsSupport
+    ? [testObject.partitionsManager.address]
+    : [];
 
   await setServicesDependencies(
     testObject.registryService,

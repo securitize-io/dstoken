@@ -163,6 +163,7 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
     }
 
     function getTransferableTokens(address _who, uint64 _time) public view returns (uint256 transferable) {
+        require(_time > 0, "time must be greater than zero");
         uint256 countOfPartitions = getTokenPartitioned().partitionCountOf(_who);
         for (uint256 index = 0; index < countOfPartitions; ++index) {
             transferable = SafeMath.add(transferable, getTransferableTokens(_who, _time, getTokenPartitioned().partitionOf(_who, index)));

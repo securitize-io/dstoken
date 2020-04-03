@@ -11,7 +11,6 @@ const time = fixtures.Time;
 const complianceType = require("../../utils/globals").complianceType;
 const lockManagerType = require("../../utils/globals").lockManagerType;
 
-
 contract("DSToken (regulated)", function([
   owner,
   issuerWallet,
@@ -25,7 +24,9 @@ contract("DSToken (regulated)", function([
 ]) {
   before(async function() {
     // Setting up the environment
-    await deployContracts(this, artifacts,
+    await deployContracts(
+      this,
+      artifacts,
       complianceType.PARTITIONED,
       lockManagerType.PARTITIONED,
       undefined,
@@ -140,8 +141,8 @@ contract("DSToken (regulated)", function([
   });
 
   beforeEach(async function() {
-    snapshot = await snapshotsHelper.takeSnapshot()
-    snapshotId = snapshot['result'];
+    snapshot = await snapshotsHelper.takeSnapshot();
+    snapshotId = snapshot["result"];
   });
 
   afterEach(async function() {
@@ -200,13 +201,34 @@ contract("DSToken (regulated)", function([
 
     it("Should create a partition with the given time and region", async function() {
       await this.token.issueTokensCustom(usInvestorWallet, 100, 1, 0, "", 0);
-      const partition = await this.token.partitionOf(usInvestorWallet,0);
-      const issuanceTime = await this.partitionsManager.getPartitionIssuanceDate(partition);
+      const partition = await this.token.partitionOf(usInvestorWallet, 0);
+      const issuanceTime = await this.partitionsManager.getPartitionIssuanceDate(
+        partition
+      );
       const region = await this.partitionsManager.getPartitionRegion(partition);
       assert.equal(issuanceTime, 1);
       assert.equal(region, compliance.US);
     });
 
+    it("Should return the correct balance of investor by partition", async function() {
+      await this.token.issueTokensCustom(usInvestorWallet, 100, 1, 0, "", 0);
+      const partition = await this.token.partitionOf(usInvestorWallet, 0);
+      const balance = await this.token.balanceOfInvestorByPartition(
+        US_INVESTOR_ID,
+        partition
+      );
+      assert.equal(balance, 100);
+    });
+
+    it("Should return the correct balance of wallet by partition", async function() {
+      await this.token.issueTokensCustom(usInvestorWallet, 100, 1, 0, "", 0);
+      const partition = await this.token.partitionOf(usInvestorWallet, 0);
+      const balance = await this.token.balanceOfByPartition(
+        usInvestorWallet,
+        partition
+      );
+      assert.equal(balance, 100);
+    });
   });
 
   describe("Locking", function() {
@@ -263,36 +285,120 @@ contract("DSToken (regulated)", function([
       );
       assert.equal(usInvestorSecondaryWalletBalance.toNumber(), 50);
     });
-
   });
 
   describe("Transfer", function() {
+    const partitions = [];
+    beforeEach(async function() {
+      await this.token.issueTokensCustom(
+        israelInvestorWallet,
+        100,
+        1, // TIME = 1
+        0,
+        "",
+        0
+      );
+
+      await this.token.issueTokensCustom(
+        israelInvestorWallet,
+        100,
+        2, // TIME = 2
+        0,
+        "",
+        0
+      );
+
+      await this.token.issueTokensCustom(
+        israelInvestorWallet,
+        100,
+        3, // TIME = 3
+        0,
+        "",
+        0
+      );
+      partitions.push(await this.token.partitionOf(israelInvestorWallet, 0));
+      partitions.push(await this.token.partitionOf(israelInvestorWallet, 1));
+      partitions.push(await this.token.partitionOf(israelInvestorWallet, 2));
+    });
+
     it("Should transfer from more than one partition", async function() {
-
+      await this.token.transfer(germanyInvestorWallet, 300, {
+        from: israelInvestorWallet
+      });
+      const partition0Balance = await this.token.balanceOfByPartition(
+        germanyInvestorWallet,
+        partitions[0]
+      );
+      const partition1Balance = await this.token.balanceOfByPartition(
+        germanyInvestorWallet,
+        partitions[1]
+      );
+      const partition2Balance = await this.token.balanceOfByPartition(
+        germanyInvestorWallet,
+        partitions[2]
+      );
+      assert.equal(partition0Balance, 100);
+      assert.equal(partition1Balance, 100);
+      assert.equal(partition2Balance, 100);
     });
 
-    it("Should transfer by specific partition", async function() {
-
+    it("Should transfer by specific partitions", async function() {
+      await this.token.transferByPartitions(
+        germanyInvestorWallet,
+        150,
+        [partitions[0], partitions[2]],
+        [100, 50],
+        {
+          from: israelInvestorWallet
+        }
+      );
+      const germanyInvestorPartition0Balance = await this.token.balanceOfByPartition(
+        germanyInvestorWallet,
+        partitions[0]
+      );
+      assert.equal(germanyInvestorPartition0Balance, 100);
+      const israelInvestorPartition0Balance = await this.token.balanceOfByPartition(
+        israelInvestorWallet,
+        partitions[0]
+      );
+      assert.equal(israelInvestorPartition0Balance, 0); // Partition doesn't exist anymore
+      const germanyInvestorPartition2Balance = await this.token.balanceOfByPartition(
+        germanyInvestorWallet,
+        partitions[2]
+      );
+      assert.equal(germanyInvestorPartition2Balance, 50);
+      const israelInvestorPartition2Balance = await this.token.balanceOfByPartition(
+        israelInvestorWallet,
+        partitions[2]
+      );
+      assert.equal(israelInvestorPartition2Balance, 50);
+      const partitionCountOfIsraelInvestor = await this.token.partitionCountOf(
+        israelInvestorWallet
+      );
+      assert.equal(partitionCountOfIsraelInvestor, 2);
+      const partitionCountOfGermanyInvestor = await this.token.partitionCountOf(
+        germanyInvestorWallet
+      );
+      assert.equal(partitionCountOfGermanyInvestor, 2);
     });
-
-    it("Should return the balance of a wallet partition correctly", async function() {
-      // test by wallet and investor
-    });
-  })
+  });
 
   describe("Burn", function() {
     it("Should not allow burn without specifying a partition", async function() {
       await this.token.issueTokens(usInvestorWallet, 100);
-      await assertRevert(
-        this.token.burn(usInvestorWallet, 50, "test burn")
-      );
+      await assertRevert(this.token.burn(usInvestorWallet, 50, "test burn"));
     });
 
     it("Should burn tokens of a partition correctly", async function() {
       await this.token.issueTokens(usInvestorWallet, 100);
       // get the partition identifier
-      const partition = await this.token.partitionOf(usInvestorWallet,0);
-      await this.token.burnByPartition(usInvestorWallet, 50, "test burn", partition);
+      const partition = await this.token.partitionOf(usInvestorWallet, 0);
+      await this.token.burnByPartition(
+        usInvestorWallet,
+        50,
+        "test burn",
+        partition
+      );
 
       const balance = await this.token.balanceOf(usInvestorWallet);
       assert.equal(balance, 50);
@@ -301,8 +407,13 @@ contract("DSToken (regulated)", function([
     it("Should record the number of total issued token correctly after burn", async function() {
       await this.token.issueTokens(usInvestorWallet, 100);
       await this.token.issueTokens(usInvestorWallet, 100);
-      const partition = await this.token.partitionOf(usInvestorWallet,0);
-      await this.token.burnByPartition(usInvestorWallet, 100, "test burn", partition);
+      const partition = await this.token.partitionOf(usInvestorWallet, 0);
+      await this.token.burnByPartition(
+        usInvestorWallet,
+        100,
+        "test burn",
+        partition
+      );
 
       const totalIssued = await this.token.totalIssued();
       assert.equal(totalIssued, 200);
@@ -322,8 +433,14 @@ contract("DSToken (regulated)", function([
     });
 
     it("Should seize tokens correctly by partition", async function() {
-      const partition = await this.token.partitionOf(usInvestorWallet,0);
-      await this.token.seizeByPartition(usInvestorWallet, issuerWallet, 50, "test seize", partition);
+      const partition = await this.token.partitionOf(usInvestorWallet, 0);
+      await this.token.seizeByPartition(
+        usInvestorWallet,
+        issuerWallet,
+        50,
+        "test seize",
+        partition
+      );
 
       const usInvestorBalance = await this.token.balanceOf(usInvestorWallet);
       assert.equal(usInvestorBalance, 50);
@@ -332,9 +449,15 @@ contract("DSToken (regulated)", function([
     });
 
     it("Cannot seize more than balance", async function() {
-      const partition = await this.token.partitionOf(usInvestorWallet,0);
+      const partition = await this.token.partitionOf(usInvestorWallet, 0);
       await assertRevert(
-        this.token.seizeByPartition(usInvestorWallet, issuerWallet, 150, "test seize", partition)
+        this.token.seizeByPartition(
+          usInvestorWallet,
+          issuerWallet,
+          150,
+          "test seize",
+          partition
+        )
       );
     });
   });
