@@ -9,7 +9,6 @@ library ComplianceServicePartitionedLibrary {
     uint256 internal constant US = 1;
     uint256 internal constant EU = 2;
     uint256 internal constant FORBIDDEN = 4;
-    uint256 internal constant JP = 8;
     uint256 internal constant DS_TOKEN = 0;
     uint256 internal constant REGISTRY_SERVICE = 1;
     uint256 internal constant WALLET_MANAGER = 2;
@@ -239,27 +238,7 @@ library ComplianceServicePartitionedLibrary {
         uint256 toInvestorBalance = balanceOfInvestor(_services, _to);
         string memory toCountry = getCountry(_services, _to);
 
-        if (fromRegion == EU && isNotBeneficiaryOrHolderOfRecord) {
-            if (fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens() && fromInvestorBalance > _value) {
-                return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
-            }
-        }
-
-        if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccredited() && !isAccredited(_services, _to)) {
-            return (61, ONLY_ACCREDITED);
-        }
-        if (toRegion == JP) {
-            if (
-                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getJapanInvestorsLimit() != 0 &&
-                ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getJapanInvestorsCount() >=
-                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getJapanInvestorsLimit() &&
-                isNewInvestor(_services, _to) &&
-                !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
-                (keccak256(abi.encodePacked(getCountry(_services, _from))) != keccak256(abi.encodePacked(toCountry)) || (fromInvestorBalance > _value))
-            ) {
-                return (40, MAX_INVESTORS_IN_CATEGORY);
-            }
-        } else if (toRegion == EU) {
+        if (toRegion == EU) {
             if (
                 isRetail(_services, _to) &&
                 ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).getEURetailInvestorsCount(toCountry) >=
@@ -277,7 +256,19 @@ library ComplianceServicePartitionedLibrary {
             ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
-        } else if (toRegion == US) {
+        }
+
+        if (fromRegion == EU && isNotBeneficiaryOrHolderOfRecord) {
+            if (fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens() && fromInvestorBalance > _value) {
+                return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+            }
+        }
+
+        if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccredited() && !isAccredited(_services, _to)) {
+            return (61, ONLY_ACCREDITED);
+        }
+
+        if (toRegion == US) {
             if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccreditedUS() && !isAccredited(_services, _to)) {
                 return (61, ONLY_US_ACCREDITED);
             }
@@ -417,7 +408,7 @@ contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitione
             return 0;
         }
 
-        return getLockManagerPartitioned().getTransferableTokens(_who, _time, _partition);
+        return getLockManagerPartitioned().getTransferableTokens(_who, uint64(_time), _partition);
     }
 
     function getComplianceTransferableTokens(address _who, uint256 _time, address _to) public view returns (uint256 transferable) {
