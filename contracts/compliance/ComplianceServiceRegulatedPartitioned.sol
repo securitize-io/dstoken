@@ -9,6 +9,7 @@ library ComplianceServicePartitionedLibrary {
     uint256 internal constant US = 1;
     uint256 internal constant EU = 2;
     uint256 internal constant FORBIDDEN = 4;
+    uint256 internal constant JP = 8;
     uint256 internal constant DS_TOKEN = 0;
     uint256 internal constant REGISTRY_SERVICE = 1;
     uint256 internal constant WALLET_MANAGER = 2;
