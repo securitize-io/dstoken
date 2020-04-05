@@ -417,7 +417,7 @@ contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitione
             return 0;
         }
 
-        return getLockManagerPartitioned().getTransferableTokens(_who, _time, _partition);
+        return getLockManagerPartitioned().getTransferableTokens(_who, uint64(_time), _partition);
     }
 
     function getComplianceTransferableTokens(address _who, uint256 _time, address _to) public view returns (uint256 transferable) {
