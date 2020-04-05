@@ -6,7 +6,6 @@ import "./IDSLockManager.sol";
 contract IDSLockManagerPartitioned is IDSLockManager {
     constructor() internal {}
 
-contract IDSLockManagerPartitioned is IDSLockManager {
     function initialize() public {
         VERSIONS.push(1);
     }
