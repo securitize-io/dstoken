@@ -4,10 +4,11 @@ import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 import "../omnibus/IDSOmnibusWalletController.sol";
 
+
 contract IDSRegistryService is Initializable, VersionedContract {
     constructor() internal {}
 
-    function initialize() public isNotInitialized {
+    function initialize() public {
         VERSIONS.push(3);
     }
 
@@ -69,6 +70,7 @@ contract IDSRegistryService is Initializable, VersionedContract {
         string memory _id,
         string memory _collision_hash /*onlyExchangeOrAbove newInvestor(_id)*/
     ) public returns (bool);
+
     function updateInvestor(
         string memory _id,
         string memory _collisionHash,
@@ -78,15 +80,20 @@ contract IDSRegistryService is Initializable, VersionedContract {
         uint256[] memory _attributeValues,
         uint256[] memory _attributeExpirations /*onlyIssuerOrAbove*/
     ) public returns (bool);
+
     function removeInvestor(
         string memory _id /*onlyExchangeOrAbove investorExists(_id)*/
     ) public returns (bool);
+
     function setCountry(
         string memory _id,
         string memory _country /*onlyExchangeOrAbove investorExists(_id)*/
     ) public returns (bool);
+
     function getCountry(string memory _id) public view returns (string memory);
+
     function getCollisionHash(string memory _id) public view returns (string memory);
+
     function setAttribute(
         string memory _id,
         uint8 _attributeId,
@@ -94,35 +101,48 @@ contract IDSRegistryService is Initializable, VersionedContract {
         uint256 _expiry,
         string memory _proofHash /*onlyExchangeOrAbove investorExists(_id)*/
     ) public returns (bool);
+
     function getAttributeValue(string memory _id, uint8 _attributeId) public view returns (uint256);
+
     function getAttributeExpiry(string memory _id, uint8 _attributeId) public view returns (uint256);
+
     function getAttributeProofHash(string memory _id, uint8 _attributeId) public view returns (string memory);
+
     function addWallet(
         address _address,
         string memory _id /*onlyExchangeOrAbove newWallet(_address)*/
     ) public returns (bool);
+
     function removeWallet(
         address _address,
         string memory _id /*onlyExchangeOrAbove walletExists walletBelongsToInvestor(_address, _id)*/
     ) public returns (bool);
+
     function addOmnibusWallet(
         string memory _id,
         address _omnibusWallet,
         IDSOmnibusWalletController _omnibusWalletController /*onlyIssuerOrAbove newOmnibusWallet*/
     ) public;
+
     function removeOmnibusWallet(
         string memory _id,
         address _omnibusWallet /*onlyIssuerOrAbove omnibusWalletControllerExists*/
     ) public;
+
     function getOmnibusWalletController(address _omnibusWallet) public view returns (IDSOmnibusWalletController);
+
     function isOmnibusWallet(address _omnibusWallet) public view returns (bool);
+
     function getInvestor(address _address) public view returns (string memory);
+
     function getInvestorDetails(address _address) public view returns (string memory, string memory);
+
     function getInvestorDetailsFull(string memory _id)
         public
         view
         returns (string memory, uint256[] memory, uint256[] memory, string memory, string memory, string memory, string memory);
 
     function isInvestor(string memory _id) public view returns (bool);
+
     function isWallet(address _address) public view returns (bool);
 }

@@ -40,15 +40,19 @@ contract("ComplianceServiceRegulated", function([
       country.FRANCE,
       compliance.EU
     );
+    await this.complianceConfiguration.setCountryCompliance(
+      country.JAPAN,
+      compliance.JP
+    );
     await this.complianceConfiguration.setAll(
-      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, time.YEARS],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, time.YEARS, 0],
       [true, false, false]
     );
   });
 
   beforeEach(async function() {
-    snapshot = await snapshotsHelper.takeSnapshot()
-    snapshotId = snapshot['result'];
+    snapshot = await snapshotsHelper.takeSnapshot();
+    snapshotId = snapshot["result"];
   });
 
   afterEach(async function() {
@@ -992,6 +996,42 @@ contract("ComplianceServiceRegulated", function([
       assert.equal(res[1], "Valid");
     });
 
+    it("should not transfer tokens to an investor if japan investor limit is reached", async function() {
+      await this.complianceConfiguration.setJapanInvestorsLimit(1);
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+      );
+      await this.registryService.addWallet(
+        owner,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.registryService.setCountry(
+        investorId.GENERAL_INVESTOR_ID_1,
+        country.JAPAN
+      );
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_2,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+      );
+      await this.registryService.addWallet(
+        wallet1,
+        investorId.GENERAL_INVESTOR_ID_2
+      );
+      await this.registryService.setCountry(
+        investorId.GENERAL_INVESTOR_ID_2,
+        country.JAPAN
+      );
+      await this.token.issueTokens(owner, 100);
+      const res = await this.complianceService.preTransferCheck(
+        owner,
+        wallet1,
+        10
+      );
+      assert.equal(res[0].toNumber(), 40);
+      assert.equal(res[1], "Max investors in category");
+    });
+
     it("Pre transfer check when transfer ok", async function() {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
@@ -1090,6 +1130,36 @@ contract("ComplianceServiceRegulated", function([
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_2,
         country.USA
+      );
+      await this.token.issueTokens(owner, 100);
+      await assertRevert(this.token.issueTokens(wallet1, 100));
+    });
+
+    it.only("should not issue tokens to a new investor if japan investor limit is exceeded", async function() {
+      await this.complianceConfiguration.setJapanInvestorsLimit(1);
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+      );
+      await this.registryService.addWallet(
+        owner,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.registryService.setCountry(
+        investorId.GENERAL_INVESTOR_ID_1,
+        country.JAPAN
+      );
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_2,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+      );
+      await this.registryService.addWallet(
+        wallet1,
+        investorId.GENERAL_INVESTOR_ID_2
+      );
+      await this.registryService.setCountry(
+        investorId.GENERAL_INVESTOR_ID_2,
+        country.JAPAN
       );
       await this.token.issueTokens(owner, 100);
       await assertRevert(this.token.issueTokens(wallet1, 100));

@@ -1,5 +1,6 @@
 pragma solidity ^0.5.0;
 
+
 contract Initializable {
     bool public initialized = false;
 
@@ -9,11 +10,5 @@ contract Initializable {
         _;
 
         initialized = true;
-    }
-
-    modifier isNotInitialized() {
-        require(!initialized, "Contract instance has already been initialized");
-
-        _;
     }
 }

@@ -3,6 +3,7 @@ pragma solidity ^0.5.0;
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
+
 /**
  * @title IDSTrustService
  * @dev An interface for a trust service which allows role-based access control for other contracts.
@@ -10,16 +11,17 @@ import "../utils/Initializable.sol";
 contract IDSTrustService is Initializable, VersionedContract {
     constructor() internal {}
 
-    function initialize() public isNotInitialized {
+    function initialize() public {
         VERSIONS.push(2);
     }
+
     /**
-   * @dev Should be emitted when a role is set for a user.
-   */
+     * @dev Should be emitted when a role is set for a user.
+     */
     event DSTrustServiceRoleAdded(address targetAddress, uint8 role, address sender);
     /**
-   * @dev Should be emitted when a role is removed for a user.
-   */
+     * @dev Should be emitted when a role is removed for a user.
+     */
     event DSTrustServiceRoleRemoved(address targetAddress, uint8 role, address sender);
 
     // Role constants
@@ -29,16 +31,16 @@ contract IDSTrustService is Initializable, VersionedContract {
     uint8 public constant EXCHANGE = 4;
 
     /**
-   * @dev Allow invoking of functions only by the user who has the MASTER role.
-   */
+     * @dev Allow invoking of functions only by the user who has the MASTER role.
+     */
     modifier onlyMaster() {
         assert(false);
         _;
     }
 
     /**
-   * @dev Allow invoking of functions only by the users who have the MASTER role or the ISSUER role.
-   */
+     * @dev Allow invoking of functions only by the users who have the MASTER role or the ISSUER role.
+     */
     modifier onlyMasterOrIssuer() {
         assert(false);
         _;
@@ -90,74 +92,89 @@ contract IDSTrustService is Initializable, VersionedContract {
     }
 
     /**
-   * @dev Sets or removes a role for a wallet. (internal)
-   * @param _address The wallet whose role needs to be set or removed.
-   * @param _role The role to be set. NONE (0) indicates role removal.
-   * @return A boolean that indicates if the operation was successful.
-   */
+     * @dev Sets or removes a role for a wallet. (internal)
+     * @param _address The wallet whose role needs to be set or removed.
+     * @param _role The role to be set. NONE (0) indicates role removal.
+     * @return A boolean that indicates if the operation was successful.
+     */
     function setRoleImpl(address _address, uint8 _role) internal returns (bool);
+
     /**
-   * @dev Transfers the ownership (MASTER role) of the contract.
-   * @param _address The address which the ownership needs to be transferred to.
-   * @return A boolean that indicates if the operation was successful.
-   */
+     * @dev Transfers the ownership (MASTER role) of the contract.
+     * @param _address The address which the ownership needs to be transferred to.
+     * @return A boolean that indicates if the operation was successful.
+     */
     function setServiceOwner(
         address _address /*onlyMaster*/
     ) public returns (bool);
+
     /**
-   * @dev Sets a role for a wallet.
-   * @dev Should not be used for setting MASTER (use setServiceOwner) or role removal (use removeRole).
-   * @param _address The wallet whose role needs to be set.
-   * @param _role The role to be set.
-   * @return A boolean that indicates if the operation was successful.
-   */
+     * @dev Sets a role for a wallet.
+     * @dev Should not be used for setting MASTER (use setServiceOwner) or role removal (use removeRole).
+     * @param _address The wallet whose role needs to be set.
+     * @param _role The role to be set.
+     * @return A boolean that indicates if the operation was successful.
+     */
     function setRole(
         address _address,
         uint8 _role /*onlyMasterOrIssuer*/
     ) public returns (bool);
+
     /**
-   * @dev Removes the role for a wallet.
-   * @dev Should not be used to remove MASTER (use setServiceOwner).
-   * @param _address The wallet whose role needs to be removed.
-   * @return A boolean that indicates if the operation was successful.
-   */
+     * @dev Removes the role for a wallet.
+     * @dev Should not be used to remove MASTER (use setServiceOwner).
+     * @param _address The wallet whose role needs to be removed.
+     * @return A boolean that indicates if the operation was successful.
+     */
     function removeRole(
         address _address /*onlyMasterOrIssuer*/
     ) public returns (bool);
+
     /**
-   * @dev Gets the role for a wallet.
-   * @param _address The wallet whose role needs to be fetched.
-   * @return A boolean that indicates if the operation was successful.
-   */
+     * @dev Gets the role for a wallet.
+     * @param _address The wallet whose role needs to be fetched.
+     * @return A boolean that indicates if the operation was successful.
+     */
     function getRole(address _address) public view returns (uint8);
+
     function addEntity(
         string memory _name,
         address _owner /*onlyMasterOrIssuer onlyNewEntity onlyNewEntityOwner*/
     ) public;
+
     function changeEntityOwner(
         string memory _name,
         address _oldOwner,
         address _newOwner /*onlyMasterOrIssuer onlyExistingEntityOwner*/
     ) public;
+
     function addOperator(
         string memory _name,
         address _operator /*onlyEntityOwnerOrAbove onlyNewOperator*/
     ) public;
+
     function removeOperator(
         string memory _name,
         address _operator /*onlyEntityOwnerOrAbove onlyExistingOperator*/
     ) public;
+
     function addResource(
         string memory _name,
         address _resource /*onlyMasterOrIssuer onlyExistingEntity onlyNewResource*/
     ) public;
+
     function removeResource(
         string memory _name,
         address _resource /*onlyMasterOrIssuer onlyExistingResource*/
     ) public;
+
     function getEntityByOwner(address _owner) public view returns (string memory);
+
     function getEntityByOperator(address _operator) public view returns (string memory);
+
     function getEntityByResource(address _resource) public view returns (string memory);
+
     function isResourceOwner(address _resource, address _owner) public view returns (bool);
+
     function isResourceOperator(address _resource, address _operator) public view returns (bool);
 }
