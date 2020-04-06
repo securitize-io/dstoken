@@ -597,7 +597,7 @@ contract("OmnibusWalletCompliance", function([
           investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
           country.JAPAN
         );
-        await this.complianceConfiguration.setJapanInvestorsLimit(1);
+        await this.complianceConfiguration.setJPInvestorsLimit(1);
         await this.token.issueTokens(investorWallet1, 1000);
         const res = await this.complianceService.preTransferCheck(
           investorWallet1,
@@ -783,7 +783,7 @@ contract("OmnibusWalletCompliance", function([
         await this.token.transfer(omnibusWallet1, 1000, {
           from: investorWallet1
         });
-        await this.complianceConfiguration.setJapanInvestorsLimit(1);
+        await this.complianceConfiguration.setJPInvestorsLimit(1);
         const res = await this.complianceService.preTransferCheck(
           omnibusWallet1,
           investorWallet1,
@@ -985,7 +985,7 @@ contract("OmnibusWalletCompliance", function([
         await this.token.transfer(omnibusWallet2, 1000, {
           from: investorWallet1
         });
-        await this.complianceConfiguration.setJapanInvestorsLimit(1);
+        await this.complianceConfiguration.setJPInvestorsLimit(1);
         await this.registryService.setCountry(
           investorId.GENERAL_INVESTOR_ID_1,
           country.JAPAN

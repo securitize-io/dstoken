@@ -997,7 +997,7 @@ contract("ComplianceServiceRegulated", function([
     });
 
     it("should not transfer tokens to an investor if japan investor limit is reached", async function() {
-      await this.complianceConfiguration.setJapanInvestorsLimit(1);
+      await this.complianceConfiguration.setJPInvestorsLimit(1);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -1136,7 +1136,7 @@ contract("ComplianceServiceRegulated", function([
     });
 
     it.only("should not issue tokens to a new investor if japan investor limit is exceeded", async function() {
-      await this.complianceConfiguration.setJapanInvestorsLimit(1);
+      await this.complianceConfiguration.setJPInvestorsLimit(1);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1

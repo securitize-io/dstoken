@@ -53,11 +53,11 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         usInvestorsLimit = _value;
     }
 
-    function getJapanInvestorsLimit() public view returns (uint256) {
+    function getJPInvestorsLimit() public view returns (uint256) {
         return jpInvestorsLimit;
     }
 
-    function setJapanInvestorsLimit(uint256 _value) public onlyIssuerOrAbove {
+    function setJPInvestorsLimit(uint256 _value) public onlyIssuerOrAbove {
         jpInvestorsLimit = _value;
     }
 
@@ -182,7 +182,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         setMaximumHoldingsPerInvestor(_uint_values[11]);
         setEuRetailLimit(_uint_values[12]);
         setUsLockPeriod(_uint_values[13]);
-        setJapanInvestorsLimit(_uint_values[14]);
+        setJPInvestorsLimit(_uint_values[14]);
         setForceFullTransfer(_bool_values[0]);
         setForceAccredited(_bool_values[1]);
         setForceAccreditedUS(_bool_values[2]);
@@ -206,7 +206,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         uintValues[11] = getMaximumHoldingsPerInvestor();
         uintValues[12] = getEuRetailLimit();
         uintValues[13] = getUsLockPeriod();
-        uintValues[14] = getJapanInvestorsLimit();
+        uintValues[14] = getJPInvestorsLimit();
         boolValues[0] = getForceFullTransfer();
         boolValues[1] = getForceAccredited();
         boolValues[2] = getForceAccreditedUS();

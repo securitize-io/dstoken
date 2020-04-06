@@ -42,9 +42,9 @@ contract IDSComplianceConfigurationService is Initializable, VersionedContract {
         uint256 _value /*onlyIssuerOrAbove*/
     ) public;
 
-    function getJapanInvestorsLimit() public view returns (uint256);
+    function getJPInvestorsLimit() public view returns (uint256);
 
-    function setJapanInvestorsLimit(
+    function setJPInvestorsLimit(
         uint256 _value /*onlyIssuerOrAbove*/
     ) public;
 

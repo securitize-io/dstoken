@@ -269,9 +269,9 @@ library ComplianceServiceLibrary {
 
         if (toRegion == JP) {
             if (
-                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getJapanInvestorsLimit() != 0 &&
-                ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getJapanInvestorsCount() >=
-                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getJapanInvestorsLimit() &&
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getJPInvestorsLimit() != 0 &&
+                ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getJPInvestorsCount() >=
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getJPInvestorsLimit() &&
                 isNewInvestor(_services, _to) &&
                 !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
                 (keccak256(abi.encodePacked(getCountry(_services, _from))) != keccak256(abi.encodePacked(toCountry)) || (fromInvestorBalance > _value))
@@ -445,10 +445,7 @@ library ComplianceServiceLibrary {
                     return (40, MAX_INVESTORS_IN_CATEGORY);
                 }
             } else if (toRegion == JP) {
-                if (
-                    complianceConfigurationService.getJapanInvestorsLimit() != 0 &&
-                    complianceService.getJapanInvestorsCount() >= complianceConfigurationService.getJapanInvestorsLimit()
-                ) {
+                if (complianceConfigurationService.getJPInvestorsLimit() != 0 && complianceService.getJPInvestorsCount() >= complianceConfigurationService.getJPInvestorsLimit()) {
                     return (40, MAX_INVESTORS_IN_CATEGORY);
                 }
             }
@@ -663,7 +660,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return euRetailInvestorsCount[_country];
     }
 
-    function getJapanInvestorsCount() public view returns (uint256) {
+    function getJPInvestorsCount() public view returns (uint256) {
         return jpInvestorsCount;
     }
 
@@ -697,7 +694,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return true;
     }
 
-    function setJapanInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+    function setJPInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
         jpInvestorsCount = _value;
 
         return true;
