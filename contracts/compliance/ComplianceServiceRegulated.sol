@@ -691,7 +691,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return true;
     }
 
-    function setEuRetailInvestorsCount(string memory _country, uint256 _value) public onlyMaster returns (bool) {
+    function setEURetailInvestorsCount(string memory _country, uint256 _value) public onlyMaster returns (bool) {
         euRetailInvestorsCount[_country] = _value;
 
         return true;
