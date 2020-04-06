@@ -89,19 +89,19 @@ library ComplianceServicePartitionedLibrary {
         return registryService.isOmnibusWallet(_omnibusWallet) && registryService.getOmnibusWalletController(_omnibusWallet).isHolderOfRecord();
     }
 
-    function getUsInvestorsLimit(address[] memory _services) internal view returns (uint256) {
+    function getUSInvestorsLimit(address[] memory _services) internal view returns (uint256) {
         ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
         IDSComplianceConfigurationService compConfService = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]);
 
-        if (compConfService.getMaxUsInvestorsPercentage() == 0) {
-            return compConfService.getUsInvestorsLimit();
+        if (compConfService.getMaxUSInvestorsPercentage() == 0) {
+            return compConfService.getUSInvestorsLimit();
         }
 
-        if (compConfService.getUsInvestorsLimit() == 0) {
-            return compConfService.getMaxUsInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100);
+        if (compConfService.getUSInvestorsLimit() == 0) {
+            return compConfService.getMaxUSInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100);
         }
 
-        return Math.min(compConfService.getUsInvestorsLimit(), compConfService.getMaxUsInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100));
+        return Math.min(compConfService.getUSInvestorsLimit(), compConfService.getMaxUSInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100));
     }
 
     function isOmnibusInternalTransfer(address _omnibusWallet) internal pure returns (bool) {
@@ -112,9 +112,9 @@ library ComplianceServicePartitionedLibrary {
         ComplianceServiceRegulatedPartitioned complianceService = ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]);
         uint64 lockPeriod;
         if (isUSLockPeriod) {
-            lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsLockPeriod());
+            lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSLockPeriod());
         } else {
-            lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUsLockPeriod());
+            lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUSLockPeriod());
         }
 
         return
@@ -207,7 +207,7 @@ library ComplianceServicePartitionedLibrary {
             if (
                 (!isBeneficiaryDepositOrWithdrawl(IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to) &&
                     fromInvestorBalance > _value &&
-                    fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens())
+                    fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUSTokens())
             ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
@@ -240,7 +240,7 @@ library ComplianceServicePartitionedLibrary {
         string memory toCountry = getCountry(_services, _to);
 
         if (fromRegion == EU && isNotBeneficiaryOrHolderOfRecord) {
-            if (fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens() && fromInvestorBalance > _value) {
+            if (fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEUTokens() && fromInvestorBalance > _value) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
         }
@@ -250,9 +250,9 @@ library ComplianceServicePartitionedLibrary {
         }
         if (toRegion == JP) {
             if (
-                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getJapanInvestorsLimit() != 0 &&
-                ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getJapanInvestorsCount() >=
-                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getJapanInvestorsLimit() &&
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getJPInvestorsLimit() != 0 &&
+                ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getJPInvestorsCount() >=
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getJPInvestorsLimit() &&
                 isNewInvestor(_services, _to) &&
                 !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
                 (keccak256(abi.encodePacked(getCountry(_services, _from))) != keccak256(abi.encodePacked(toCountry)) || (fromInvestorBalance > _value))
@@ -263,7 +263,7 @@ library ComplianceServicePartitionedLibrary {
             if (
                 isRetail(_services, _to) &&
                 ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).getEURetailInvestorsCount(toCountry) >=
-                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getEuRetailLimit() &&
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getEURetailInvestorsLimit() &&
                 isNewInvestor(_services, _to) &&
                 !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
                 (keccak256(abi.encodePacked(getCountry(_services, _from))) != keccak256(abi.encodePacked(toCountry)) ||
@@ -273,7 +273,7 @@ library ComplianceServicePartitionedLibrary {
             }
 
             if (
-                isNotBeneficiaryOrHolderOfRecord && toInvestorBalance.add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens()
+                isNotBeneficiaryOrHolderOfRecord && toInvestorBalance.add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEUTokens()
             ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
@@ -282,7 +282,7 @@ library ComplianceServicePartitionedLibrary {
                 return (61, ONLY_US_ACCREDITED);
             }
 
-            uint256 usInvestorsLimit = getUsInvestorsLimit(_services);
+            uint256 usInvestorsLimit = getUSInvestorsLimit(_services);
             if (
                 usInvestorsLimit != 0 &&
                 fromInvestorBalance > _value &&
@@ -294,10 +294,10 @@ library ComplianceServicePartitionedLibrary {
             }
 
             if (
-                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() != 0 &&
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSAccreditedInvestorsLimit() != 0 &&
                 isAccredited(_services, _to) &&
                 ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).getUSAccreditedInvestorsCount() >=
-                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() &&
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSAccreditedInvestorsLimit() &&
                 isNewInvestor(_services, _to) &&
                 !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
                 (fromRegion != US || !isAccredited(_services, _from) || fromInvestorBalance > _value)
@@ -306,7 +306,7 @@ library ComplianceServicePartitionedLibrary {
             }
 
             if (
-                isNotBeneficiaryOrHolderOfRecord && toInvestorBalance.add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()
+                isNotBeneficiaryOrHolderOfRecord && toInvestorBalance.add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUSTokens()
             ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
@@ -368,9 +368,9 @@ library ComplianceServicePartitionedLibrary {
 
     function getLockTime(IDSComplianceConfigurationService _complianceConfiguration, uint256 _partitionRegion, bool _checkFlowback) public view returns (uint256) {
         if (_partitionRegion == US) {
-            return _complianceConfiguration.getUsLockPeriod();
+            return _complianceConfiguration.getUSLockPeriod();
         } else {
-            uint256 lockTime = _complianceConfiguration.getNonUsLockPeriod();
+            uint256 lockTime = _complianceConfiguration.getNonUSLockPeriod();
             if (_checkFlowback) {
                 lockTime = Math.max(lockTime, _complianceConfiguration.getBlockFlowbackEndTime());
             }
