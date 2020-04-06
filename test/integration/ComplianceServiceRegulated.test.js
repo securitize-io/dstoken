@@ -1226,7 +1226,7 @@ contract("ComplianceServiceRegulated", function([
     });
 
     it("should not issue tokens to a new investor if US Accredited investors limit is exceeded", async function() {
-      await this.complianceConfiguration.setUsAccreditedInvestorsLimit(1);
+      await this.complianceConfiguration.setUSAccreditedInvestorsLimit(1);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1

@@ -81,15 +81,15 @@ library ComplianceServiceLibrary {
         ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
         IDSComplianceConfigurationService compConfService = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]);
 
-        if (compConfService.getMaxUsInvestorsPercentage() == 0) {
+        if (compConfService.getMaxUSInvestorsPercentage() == 0) {
             return compConfService.getUSInvestorsLimit();
         }
 
         if (compConfService.getUSInvestorsLimit() == 0) {
-            return compConfService.getMaxUsInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100);
+            return compConfService.getMaxUSInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100);
         }
 
-        return Math.min(compConfService.getUSInvestorsLimit(), compConfService.getMaxUsInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100));
+        return Math.min(compConfService.getUSInvestorsLimit(), compConfService.getMaxUSInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100));
     }
 
     function isBeneficiaryDepositOrWithdrawl(IDSRegistryService _registryService, address _from, address _to) public view returns (bool) {
@@ -118,9 +118,9 @@ library ComplianceServiceLibrary {
         ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
         uint64 lockPeriod;
         if (isUSLockPeriod) {
-            lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsLockPeriod());
+            lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSLockPeriod());
         } else {
-            lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUsLockPeriod());
+            lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUSLockPeriod());
         }
 
         return
@@ -218,7 +218,7 @@ library ComplianceServiceLibrary {
             if (
                 isNotBeneficiaryOrHolderOfRecord &&
                 fromInvestorBalance > _value &&
-                fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()
+                fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUSTokens()
             ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
@@ -256,7 +256,7 @@ library ComplianceServiceLibrary {
         string memory toCountry = getCountry(_services, _to);
 
         if (fromRegion == EU && isNotBeneficiaryOrHolderOfRecord) {
-            if (fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens() && fromInvestorBalance > _value) {
+            if (fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEUTokens() && fromInvestorBalance > _value) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
         }
@@ -292,7 +292,7 @@ library ComplianceServiceLibrary {
             }
 
             if (
-                isNotBeneficiaryOrHolderOfRecord && toInvestorBalance.add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEuTokens()
+                isNotBeneficiaryOrHolderOfRecord && toInvestorBalance.add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEUTokens()
             ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
@@ -317,10 +317,10 @@ library ComplianceServiceLibrary {
             }
 
             if (
-                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() != 0 &&
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSAccreditedInvestorsLimit() != 0 &&
                 isAccredited(_services, _to) &&
                 ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getUSAccreditedInvestorsCount() >=
-                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUsAccreditedInvestorsLimit() &&
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSAccreditedInvestorsLimit() &&
                 isNewInvestor(_services, _to) &&
                 !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
                 (fromRegion != US || !isAccredited(_services, _from) || fromInvestorBalance > _value)
@@ -329,7 +329,7 @@ library ComplianceServiceLibrary {
             }
 
             if (
-                isNotBeneficiaryOrHolderOfRecord && toInvestorBalance.add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUsTokens()
+                isNotBeneficiaryOrHolderOfRecord && toInvestorBalance.add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUSTokens()
             ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
@@ -434,9 +434,9 @@ library ComplianceServiceLibrary {
                 }
                 // verify accredited US limit is not exceeded
                 if (
-                    complianceConfigurationService.getUsAccreditedInvestorsLimit() != 0 &&
+                    complianceConfigurationService.getUSAccreditedInvestorsLimit() != 0 &&
                     isAccredited(_services, _to) &&
-                    complianceService.getUSAccreditedInvestorsCount() >= complianceConfigurationService.getUsAccreditedInvestorsLimit()
+                    complianceService.getUSAccreditedInvestorsCount() >= complianceConfigurationService.getUSAccreditedInvestorsLimit()
                 ) {
                     return (40, MAX_INVESTORS_IN_CATEGORY);
                 }
