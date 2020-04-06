@@ -30,19 +30,19 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function getMinUSTokens() public view returns (uint256) {
-        return minUsTokens;
+        return minUSTokens;
     }
 
     function setMinUSTokens(uint256 _value) public onlyIssuerOrAbove {
-        minUsTokens = _value;
+        minUSTokens = _value;
     }
 
     function getMinEUTokens() public view returns (uint256) {
-        return minEuTokens;
+        return minEUTokens;
     }
 
     function setMinEUTokens(uint256 _value) public onlyIssuerOrAbove {
-        minEuTokens = _value;
+        minEUTokens = _value;
     }
 
     function getUSInvestorsLimit() public view returns (uint256) {
@@ -94,11 +94,11 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function getNonUSLockPeriod() public view returns (uint256) {
-        return nonUsLockPeriod;
+        return nonUSLockPeriod;
     }
 
     function setNonUSLockPeriod(uint256 _value) public onlyIssuerOrAbove {
-        nonUsLockPeriod = _value;
+        nonUSLockPeriod = _value;
     }
 
     function getMinimumTotalInvestors() public view returns (uint256) {
@@ -126,11 +126,11 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function getEURetailInvestorsLimit() public view returns (uint256) {
-        return euRetailLimit;
+        return euRetailInvestorsLimit;
     }
 
     function setEURetailInvestorsLimit(uint256 _value) public onlyIssuerOrAbove {
-        euRetailLimit = _value;
+        euRetailInvestorsLimit = _value;
     }
 
     function getUSLockPeriod() public view returns (uint256) {
