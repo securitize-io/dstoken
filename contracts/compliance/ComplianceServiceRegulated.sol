@@ -77,19 +77,19 @@ library ComplianceServiceLibrary {
         return IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getCountryCompliance(getCountry(_services, _wallet));
     }
 
-    function getUsInvestorsLimit(address[] memory _services) internal view returns (uint256) {
+    function getUSInvestorsLimit(address[] memory _services) internal view returns (uint256) {
         ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
         IDSComplianceConfigurationService compConfService = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]);
 
         if (compConfService.getMaxUsInvestorsPercentage() == 0) {
-            return compConfService.getUsInvestorsLimit();
+            return compConfService.getUSInvestorsLimit();
         }
 
-        if (compConfService.getUsInvestorsLimit() == 0) {
+        if (compConfService.getUSInvestorsLimit() == 0) {
             return compConfService.getMaxUsInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100);
         }
 
-        return Math.min(compConfService.getUsInvestorsLimit(), compConfService.getMaxUsInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100));
+        return Math.min(compConfService.getUSInvestorsLimit(), compConfService.getMaxUsInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100));
     }
 
     function isBeneficiaryDepositOrWithdrawl(IDSRegistryService _registryService, address _from, address _to) public view returns (bool) {
@@ -305,7 +305,7 @@ library ComplianceServiceLibrary {
                 return (62, ONLY_US_ACCREDITED);
             }
 
-            uint256 usInvestorsLimit = getUsInvestorsLimit(_services);
+            uint256 usInvestorsLimit = getUSInvestorsLimit(_services);
             if (
                 usInvestorsLimit != 0 &&
                 fromInvestorBalance > _value &&
@@ -429,7 +429,7 @@ library ComplianceServiceLibrary {
 
             if (toRegion == US) {
                 // verify US investors limit is not exceeded
-                if (complianceConfigurationService.getUsInvestorsLimit() != 0 && complianceService.getUSInvestorsCount() >= complianceConfigurationService.getUsInvestorsLimit()) {
+                if (complianceConfigurationService.getUSInvestorsLimit() != 0 && complianceService.getUSInvestorsCount() >= complianceConfigurationService.getUSInvestorsLimit()) {
                     return (40, MAX_INVESTORS_IN_CATEGORY);
                 }
                 // verify accredited US limit is not exceeded

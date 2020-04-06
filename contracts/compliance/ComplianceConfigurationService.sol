@@ -45,11 +45,11 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         minEuTokens = _value;
     }
 
-    function getUsInvestorsLimit() public view returns (uint256) {
+    function getUSInvestorsLimit() public view returns (uint256) {
         return usInvestorsLimit;
     }
 
-    function setUsInvestorsLimit(uint256 _value) public onlyIssuerOrAbove {
+    function setUSInvestorsLimit(uint256 _value) public onlyIssuerOrAbove {
         usInvestorsLimit = _value;
     }
 
@@ -171,7 +171,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         setTotalInvestorsLimit(_uint_values[0]);
         setMinUsTokens(_uint_values[1]);
         setMinEuTokens(_uint_values[2]);
-        setUsInvestorsLimit(_uint_values[3]);
+        setUSInvestorsLimit(_uint_values[3]);
         setUsAccreditedInvestorsLimit(_uint_values[4]);
         setNonAccreditedInvestorsLimit(_uint_values[5]);
         setMaxUsInvestorsPercentage(_uint_values[6]);
@@ -195,7 +195,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         uintValues[0] = getTotalInvestorsLimit();
         uintValues[1] = getMinUsTokens();
         uintValues[2] = getMinEuTokens();
-        uintValues[3] = getUsInvestorsLimit();
+        uintValues[3] = getUSInvestorsLimit();
         uintValues[4] = getUsAccreditedInvestorsLimit();
         uintValues[5] = getNonAccreditedInvestorsLimit();
         uintValues[6] = getMaxUsInvestorsPercentage();

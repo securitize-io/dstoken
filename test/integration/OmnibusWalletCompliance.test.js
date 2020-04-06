@@ -634,7 +634,7 @@ contract("OmnibusWalletCompliance", function([
       });
 
       it("Should fail the deposit if maximum us investors limit has been reached", async function() {
-        await this.complianceConfiguration.setUsInvestorsLimit(1);
+        await this.complianceConfiguration.setUSInvestorsLimit(1);
         await this.registryService.setCountry(
           investorId.GENERAL_INVESTOR_ID_1,
           country.USA
@@ -752,7 +752,7 @@ contract("OmnibusWalletCompliance", function([
         await this.token.transfer(omnibusWallet1, 1000, {
           from: investorWallet1
         });
-        await this.complianceConfiguration.setUsInvestorsLimit(1);
+        await this.complianceConfiguration.setUSInvestorsLimit(1);
         await this.registryService.setCountry(
           investorId.GENERAL_INVESTOR_ID_1,
           country.USA
@@ -961,7 +961,7 @@ contract("OmnibusWalletCompliance", function([
         await this.token.transfer(omnibusWallet2, 1000, {
           from: investorWallet1
         });
-        await this.complianceConfiguration.setUsInvestorsLimit(1);
+        await this.complianceConfiguration.setUSInvestorsLimit(1);
         await this.registryService.setCountry(
           investorId.GENERAL_INVESTOR_ID_1,
           country.USA
