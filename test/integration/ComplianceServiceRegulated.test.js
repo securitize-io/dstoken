@@ -1270,7 +1270,7 @@ contract("ComplianceServiceRegulated", function([
     });
 
     it("should not issue tokens to a new investor if EU Retail limit is exceeded", async function() {
-      await this.complianceConfiguration.setEuRetailLimit(0);
+      await this.complianceConfiguration.setEURetailInvestorsLimit(0);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1

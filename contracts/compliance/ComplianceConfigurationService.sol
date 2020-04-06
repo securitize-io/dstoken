@@ -125,11 +125,11 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         maximumHoldingsPerInvestor = _value;
     }
 
-    function getEuRetailLimit() public view returns (uint256) {
+    function getEURetailInvestorsLimit() public view returns (uint256) {
         return euRetailLimit;
     }
 
-    function setEuRetailLimit(uint256 _value) public onlyIssuerOrAbove {
+    function setEURetailInvestorsLimit(uint256 _value) public onlyIssuerOrAbove {
         euRetailLimit = _value;
     }
 
@@ -180,7 +180,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         setMinimumTotalInvestors(_uint_values[9]);
         setMinimumHoldingsPerInvestor(_uint_values[10]);
         setMaximumHoldingsPerInvestor(_uint_values[11]);
-        setEuRetailLimit(_uint_values[12]);
+        setEURetailInvestorsLimit(_uint_values[12]);
         setUsLockPeriod(_uint_values[13]);
         setJPInvestorsLimit(_uint_values[14]);
         setForceFullTransfer(_bool_values[0]);
@@ -204,7 +204,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         uintValues[9] = getMinimumTotalInvestors();
         uintValues[10] = getMinimumHoldingsPerInvestor();
         uintValues[11] = getMaximumHoldingsPerInvestor();
-        uintValues[12] = getEuRetailLimit();
+        uintValues[12] = getEURetailInvestorsLimit();
         uintValues[13] = getUsLockPeriod();
         uintValues[14] = getJPInvestorsLimit();
         boolValues[0] = getForceFullTransfer();

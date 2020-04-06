@@ -282,7 +282,7 @@ library ComplianceServiceLibrary {
             if (
                 isRetail(_services, _to) &&
                 ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getEURetailInvestorsCount(toCountry) >=
-                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getEuRetailLimit() &&
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getEURetailInvestorsLimit() &&
                 isNewInvestor(_services, _to) &&
                 !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
                 (keccak256(abi.encodePacked(getCountry(_services, _from))) != keccak256(abi.encodePacked(toCountry)) ||
@@ -441,7 +441,10 @@ library ComplianceServiceLibrary {
                     return (40, MAX_INVESTORS_IN_CATEGORY);
                 }
             } else if (toRegion == EU) {
-                if (isRetail(_services, _to) && complianceService.getEURetailInvestorsCount(getCountry(_services, _to)) >= complianceConfigurationService.getEuRetailLimit()) {
+                if (
+                    isRetail(_services, _to) &&
+                    complianceService.getEURetailInvestorsCount(getCountry(_services, _to)) >= complianceConfigurationService.getEURetailInvestorsLimit()
+                ) {
                     return (40, MAX_INVESTORS_IN_CATEGORY);
                 }
             } else if (toRegion == JP) {
