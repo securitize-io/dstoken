@@ -6,21 +6,23 @@ import "../utils/ProxyTarget.sol";
 import "../service/ServiceConsumer.sol";
 import "../zeppelin/math/Math.sol";
 
+
 contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsumer, InvestorLockManagerDataStore {
     uint256 constant MAX_LOCKS_PER_INVESTOR = 30;
 
     /*************** Legacy functions ***************/
-    function createLockForHolder(string memory _holder, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime)
-        public
-    {
+    function createLockForHolder(string memory _holder, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime) public {
         createLockForInvestor(_holder, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
+
     function removeLockRecordForHolder(string memory _holderId, uint256 _lockIndex) public returns (bool) {
         return removeLockRecordForInvestor(_holderId, _lockIndex);
     }
+
     function lockCountForHolder(string memory _holderId) public view returns (uint256) {
         return lockCountForInvestor(_holderId);
     }
+
     function lockInfoForHolder(string memory _holderId, uint256 _lockIndex)
         public
         view
@@ -28,9 +30,11 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
     {
         return lockInfoForInvestor(_holderId, _lockIndex);
     }
-    function getTransferableTokensForHolder(string memory _holderId, uint64 _time) public view returns (uint256) {
+
+    function getTransferableTokensForHolder(string memory _holderId, uint256 _time) public view returns (uint256) {
         return getTransferableTokensForInvestor(_holderId, _time);
     }
+
     /******************************/
 
     function initialize() public initializer onlyFromProxy {
@@ -57,8 +61,8 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
         lockCount += 1;
         investorsLocksCounts[_investor] = lockCount;
         emit HolderLocked(_investor, _valueLocked, _reasonCode, _reasonString, _releaseTime);
-
     }
+
     function createLock(address _to, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime) internal {
         createLockForInvestor(getRegistryService().getInvestor(_to), _valueLocked, _reasonCode, _reasonString, _releaseTime);
         emit Locked(_to, _valueLocked, _reasonCode, _reasonString, _releaseTime);
@@ -105,13 +109,13 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
     }
 
     /**
-  * @dev Releases a specific lock record
-  * @param _to address to release the tokens for
-  * @param _lockIndex the index of the lock
-  *
-  * note - this may change the order of the locks on an address, so if iterating the iteration should be restarted.
-  * @return true on success
-  */
+     * @dev Releases a specific lock record
+     * @param _to address to release the tokens for
+     * @param _lockIndex the index of the lock
+     *
+     * note - this may change the order of the locks on an address, so if iterating the iteration should be restarted.
+     * @return true on success
+     */
     function removeLockRecord(address _to, uint256 _lockIndex) public onlyIssuerOrAbove returns (bool) {
         require(_to != address(0));
         string memory investor = getRegistryService().getInvestor(_to);
@@ -127,13 +131,13 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
     }
 
     /**
-  * @dev Get number of locks currently associated with an address
-  * @param _who address to get token lock for
-  *
-  * @return number of locks
-  *
-  * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
-  */
+     * @dev Get number of locks currently associated with an address
+     * @param _who address to get token lock for
+     *
+     * @return number of locks
+     *
+     * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
+     */
     function lockCount(address _who) public view returns (uint256) {
         require(_who != address(0));
         string memory investor = getRegistryService().getInvestor(_who);
@@ -145,18 +149,18 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
     }
 
     /**
-  * @dev Get details of a specific lock associated with an address
-  * can be used to iterate through the locks of a user
-  * @param _who address to get token lock for
-  * @param _lockIndex the 0 based index of the lock.
-  * @return id the unique lock id
-  * @return type the lock type (manual or other)
-  * @return reason the reason for the lock
-  * @return value the value of tokens locked
-  * @return autoReleaseTime the timestamp in which the lock will be inactive (or 0 if it's always active until removed)
-  *
-  * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
-  */
+     * @dev Get details of a specific lock associated with an address
+     * can be used to iterate through the locks of a user
+     * @param _who address to get token lock for
+     * @param _lockIndex the 0 based index of the lock.
+     * @return id the unique lock id
+     * @return type the lock type (manual or other)
+     * @return reason the reason for the lock
+     * @return value the value of tokens locked
+     * @return autoReleaseTime the timestamp in which the lock will be inactive (or 0 if it's always active until removed)
+     *
+     * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
+     */
     function lockInfo(address _who, uint256 _lockIndex) public view returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime) {
         require(_who != address(0));
         string memory investor = getRegistryService().getInvestor(_who);
@@ -176,12 +180,12 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
         autoReleaseTime = investorsLocks[_investorId][_lockIndex].releaseTime;
     }
 
-    function getTransferableTokens(address _who, uint64 _time) public view returns (uint256) {
+    function getTransferableTokens(address _who, uint256 _time) public view returns (uint256) {
         string memory investor = getRegistryService().getInvestor(_who);
         return getTransferableTokensForInvestor(investor, _time);
     }
 
-    function getTransferableTokensForInvestor(string memory _investorId, uint64 _time) public view returns (uint256) {
+    function getTransferableTokensForInvestor(string memory _investorId, uint256 _time) public view returns (uint256) {
         require(_time > 0, "time must be greater than zero");
 
         uint256 balanceOfInvestor = getToken().balanceOfInvestor(_investorId);

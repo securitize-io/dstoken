@@ -7,6 +7,7 @@ import "../zeppelin/math/SafeMath.sol";
 import "../utils/ProxyTarget.sol";
 import "../data-stores/LockManagerDataStore.sol";
 
+
 /**
  * @title LockManager
  * @dev An interface for controlling and getting information about locked funds in a compliance manager
@@ -21,12 +22,15 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
     {
         createLockForInvestor(_holder, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
+
     function removeLockRecordForHolder(string memory _holderId, uint256 _lockIndex) public onlyIssuerOrAbove returns (bool) {
         return removeLockRecordForInvestor(_holderId, _lockIndex);
     }
+
     function lockCountForHolder(string memory _holderId) public view returns (uint256) {
         return lockCountForInvestor(_holderId);
     }
+
     function lockInfoForHolder(string memory _holderId, uint256 _lockIndex)
         public
         view
@@ -34,9 +38,11 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
     {
         return lockInfoForInvestor(_holderId, _lockIndex);
     }
-    function getTransferableTokensForHolder(string memory _holderId, uint64 _time) public view returns (uint256) {
+
+    function getTransferableTokensForHolder(string memory _holderId, uint256 _time) public view returns (uint256) {
         return getTransferableTokensForInvestor(_holderId, _time);
     }
+
     /******************************/
 
     function initialize() public initializer onlyFromProxy {
@@ -68,21 +74,22 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
     }
 
     function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime)
-    onlyIssuerOrAboveOrToken
-    validLock(_valueLocked, _releaseTime)
-    public {
+        public
+        onlyIssuerOrAboveOrToken
+        validLock(_valueLocked, _releaseTime)
+    {
         require(_to != address(0));
         createLock(_to, _valueLocked, 0, _reason, _releaseTime);
     }
 
     /**
-  * @dev Releases a specific lock record
-  * @param _to address to release the tokens for
-  * @param _lockIndex the index of the lock
-  *
-  * note - this may change the order of the locks on an address, so if iterating the iteration should be restarted.
-  * @return true on success
-  */
+     * @dev Releases a specific lock record
+     * @param _to address to release the tokens for
+     * @param _lockIndex the index of the lock
+     *
+     * note - this may change the order of the locks on an address, so if iterating the iteration should be restarted.
+     * @return true on success
+     */
     function removeLockRecord(address _to, uint256 _lockIndex) public onlyIssuerOrAbove returns (bool) {
         require(_to != address(0));
         //Put the last lock instead of the lock to remove (this will work even with 1 lock in the list)
@@ -109,31 +116,31 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
     }
 
     /**
-   * @dev Get number of locks currently associated with an address
-   * @param _who address to get token lock for
-   *
-   * @return number of locks
-   *
-   * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
-   */
+     * @dev Get number of locks currently associated with an address
+     * @param _who address to get token lock for
+     *
+     * @return number of locks
+     *
+     * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
+     */
     function lockCount(address _who) public view returns (uint256) {
         require(_who != address(0));
         return locksCounts[_who];
     }
 
     /**
-  * @dev Get details of a specific lock associated with an address
-  * can be used to iterate through the locks of a user
-  * @param _who address to get token lock for
-  * @param _lockIndex the 0 based index of the lock.
-  * @return id the unique lock id
-  * @return type the lock type (manual or other)
-  * @return reason the reason for the lock
-  * @return value the value of tokens locked
-  * @return autoReleaseTime the timestamp in which the lock will be inactive (or 0 if it's always active until removed)
-  *
-  * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
-  */
+     * @dev Get details of a specific lock associated with an address
+     * can be used to iterate through the locks of a user
+     * @param _who address to get token lock for
+     * @param _lockIndex the 0 based index of the lock.
+     * @return id the unique lock id
+     * @return type the lock type (manual or other)
+     * @return reason the reason for the lock
+     * @return value the value of tokens locked
+     * @return autoReleaseTime the timestamp in which the lock will be inactive (or 0 if it's always active until removed)
+     *
+     * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
+     */
     function lockInfo(address _who, uint256 _lockIndex) public view returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime) {
         require(_who != address(0));
         uint256 lastLockNumber = locksCounts[_who];
@@ -144,7 +151,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         autoReleaseTime = locks[_who][_lockIndex].releaseTime;
     }
 
-    function getTransferableTokens(address _who, uint64 _time) public view returns (uint256) {
+    function getTransferableTokens(address _who, uint256 _time) public view returns (uint256) {
         require(_time > 0, "time must be greater than zero");
 
         uint256 balanceOfInvestor = getToken().balanceOf(_who);
@@ -171,7 +178,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         return transferable;
     }
 
-    function getTransferableTokensForInvestor(string memory, uint64) public view returns (uint256) {
+    function getTransferableTokensForInvestor(string memory, uint256) public view returns (uint256) {
         return 0;
     }
 
@@ -189,6 +196,5 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
 
     function removeLockRecordForInvestor(string memory, uint256) public onlyIssuerOrAbove returns (bool) {
         revert("lock manager supports only wallet locks");
-
     }
 }

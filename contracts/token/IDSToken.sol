@@ -70,7 +70,7 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
         uint256 _issuanceTime,
         uint256 _valueLocked,
         string memory _reason,
-        uint64 _releaseTime /*onlyIssuerOrAbove*/
+        uint256 _releaseTime /*onlyIssuerOrAbove*/
     ) public returns (bool);
 
     //*********************

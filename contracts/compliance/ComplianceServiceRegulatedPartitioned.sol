@@ -110,18 +110,18 @@ library ComplianceServicePartitionedLibrary {
 
     function checkHoldUp(address[] memory _services, address _omnibusWallet, address _from, uint256 _value, bool isUSLockPeriod) internal view returns (bool) {
         ComplianceServiceRegulatedPartitioned complianceService = ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]);
-        uint64 lockPeriod;
+        uint256 lockPeriod;
         if (isUSLockPeriod) {
-            lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSLockPeriod());
+            lockPeriod = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSLockPeriod();
         } else {
-            lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUSLockPeriod());
+            lockPeriod = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUSLockPeriod();
         }
 
         return
             !isOmnibusInternalTransfer(_omnibusWallet) &&
             !IDSRegistryService(_services[REGISTRY_SERVICE]).isOmnibusWallet(_from) &&
             IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) != WALLET_TYPE_PLATFORM &&
-            complianceService.getComplianceTransferableTokens(_from, uint64(now), false) < _value;
+            complianceService.getComplianceTransferableTokens(_from, now, false) < _value;
     }
 
     function maxInvestorsInCategoryForNonAccredited(address[] memory _services, address _from, address _to, uint256 _value, address _omnibusWallet, uint256 fromInvestorBalance)
@@ -184,7 +184,7 @@ library ComplianceServicePartitionedLibrary {
             !isOmnibusInternalTransfer(_omnibusWallet) &&
             !isFromOmnibusWallet &&
             IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) != WALLET_TYPE_PLATFORM &&
-            IDSLockManager(_services[LOCK_MANAGER]).getTransferableTokens(_from, uint64(now)) < _value
+            IDSLockManager(_services[LOCK_MANAGER]).getTransferableTokens(_from, now) < _value
         ) {
             return (16, TOKENS_LOCKED);
         }
@@ -417,7 +417,7 @@ contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitione
             return 0;
         }
 
-        return getLockManagerPartitioned().getTransferableTokens(_who, uint64(_time), _partition);
+        return getLockManagerPartitioned().getTransferableTokens(_who, _time, _partition);
     }
 
     function getComplianceTransferableTokens(address _who, uint256 _time, address _to) public view returns (uint256 transferable) {
