@@ -392,17 +392,24 @@ contract("InvestorLockManagerPartitioned", function([
     });
 
     it("Should return 0 when all tokens are locked", async function() {
-      await this.token.issueTokens(owner, 100);
+      await this.token.issueTokens(owner, 50);
       const partition = await this.token.partitionOf(owner, 0);
+      await this.token.issueTokens(owner, 50);
+      const partition2 = await this.token.partitionOf(owner, 1);
       assert.equal(await this.token.balanceOf(owner), 100);
       await this.lockManager.methods[
         "addManualLockRecord(address,uint256,string,uint256,bytes32)"
-      ](owner, 100, REASON_STRING, this.releaseTime, partition);
+      ](owner, 50, REASON_STRING, this.releaseTime, partition);
+      await this.lockManager.methods[
+        "addManualLockRecord(address,uint256,string,uint256,bytes32)"
+      ](owner, 50, REASON_STRING, this.releaseTime, partition2);
       assert.equal(
-        await this.lockManager.getTransferableTokens(
-          owner,
-          this.releaseTime - 100
-        ),
+        (
+          await this.lockManager.getTransferableTokens(
+            owner,
+            this.releaseTime - 100
+          )
+        ).toNumber(),
         0
       );
     });

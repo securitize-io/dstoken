@@ -45,6 +45,14 @@ contract("ComplianceServiceRegulatedPartitioned", function([
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, time.YEARS, 0],
       [true, false, false]
     );
+    await this.registryService.registerInvestor(
+      investorId.GENERAL_INVESTOR_ID_1,
+      investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+    );
+    await this.registryService.registerInvestor(
+      investorId.GENERAL_INVESTOR_ID_2,
+      investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+    );
   });
 
   beforeEach(async function() {
@@ -58,17 +66,9 @@ contract("ComplianceServiceRegulatedPartitioned", function([
 
   describe("Pre transfer check", function() {
     it("Pre transfer check with paused token", async function() {
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_1,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
-      );
       await this.registryService.addWallet(
         owner,
         investorId.GENERAL_INVESTOR_ID_1
-      );
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_2,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_2
       );
       await this.registryService.addWallet(
         wallet,
@@ -86,17 +86,9 @@ contract("ComplianceServiceRegulatedPartitioned", function([
     });
 
     it("Pre transfer check with not enough tokens", async function() {
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_1,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
-      );
       await this.registryService.addWallet(
         owner,
         investorId.GENERAL_INVESTOR_ID_1
-      );
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_2,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_2
       );
       await this.registryService.addWallet(
         wallet,
@@ -113,10 +105,6 @@ contract("ComplianceServiceRegulatedPartitioned", function([
     });
 
     it("Pre transfer check when transfer myself", async function() {
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_1,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
-      );
       await this.registryService.addWallet(
         noneWallet1,
         investorId.GENERAL_INVESTOR_ID_1
@@ -132,10 +120,6 @@ contract("ComplianceServiceRegulatedPartitioned", function([
     });
 
     it("Should revert due to Wallet Not In Registry Service", async function() {
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_1,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
-      );
       await this.registryService.addWallet(
         noneWallet1,
         investorId.GENERAL_INVESTOR_ID_1
@@ -151,10 +135,6 @@ contract("ComplianceServiceRegulatedPartitioned", function([
     });
 
     it("Pre transfer check with tokens locked", async function() {
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_1,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
-      );
       await this.registryService.addWallet(
         wallet,
         investorId.GENERAL_INVESTOR_ID_1
@@ -178,14 +158,6 @@ contract("ComplianceServiceRegulatedPartitioned", function([
     });
 
     it("Pre transfer check with tokens locked for 1 year (For Us investors)", async function() {
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_1,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
-      );
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_2,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_2
-      );
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_1,
         country.USA
@@ -223,14 +195,6 @@ contract("ComplianceServiceRegulatedPartitioned", function([
     });
 
     it("Pre transfer check with force accredited", async function() {
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_1,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
-      );
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_2,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_2
-      );
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_1,
         country.FRANCE
@@ -269,14 +233,6 @@ contract("ComplianceServiceRegulatedPartitioned", function([
     });
 
     it("Pre transfer check with US force accredited", async function() {
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_1,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
-      );
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_2,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_2
-      );
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_1,
         country.FRANCE
@@ -315,14 +271,6 @@ contract("ComplianceServiceRegulatedPartitioned", function([
     });
 
     it("Pre transfer check for full transfer - should return code 50", async function() {
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_1,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
-      );
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_2,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_2
-      );
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_1,
         country.USA
@@ -360,14 +308,6 @@ contract("ComplianceServiceRegulatedPartitioned", function([
     });
 
     it("Pre transfer check from nonUs investor to US - should return code 25", async function() {
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_1,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
-      );
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_2,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_2
-      );
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_1,
         country.FRANCE
@@ -407,14 +347,6 @@ contract("ComplianceServiceRegulatedPartitioned", function([
     });
 
     it("Pre transfer check from US to US through EU - should pass", async function() {
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_1,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
-      );
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_2,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_2
-      );
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_1,
         country.FRANCE
@@ -454,14 +386,6 @@ contract("ComplianceServiceRegulatedPartitioned", function([
     });
 
     it("Pre transfer check from EU to EU through US - should not hold up 1y", async function() {
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_1,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
-      );
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_2,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_2
-      );
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_1,
         country.FRANCE
@@ -499,14 +423,6 @@ contract("ComplianceServiceRegulatedPartitioned", function([
     });
 
     it("Pre transfer check for platform account", async function() {
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_1,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
-      );
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_2,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_2
-      );
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_1,
         country.USA
@@ -544,14 +460,6 @@ contract("ComplianceServiceRegulatedPartitioned", function([
     });
 
     it("Pre transfer check when transfer ok", async function() {
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_1,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
-      );
-      await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_2,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_2
-      );
       await this.registryService.addWallet(
         owner,
         investorId.GENERAL_INVESTOR_ID_1
