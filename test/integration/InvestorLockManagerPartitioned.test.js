@@ -354,7 +354,11 @@ contract("InvestorLockManagerPartitioned", function([
         1
       );
       await assertRevert(
-        this.lockManager.lockInfo(wallet, 1, this.ensuredPartition)
+        this.lockManager.methods["lockInfo(address,uint256,bytes32)"].call(
+          wallet,
+          1,
+          this.ensuredPartition
+        )
       );
     });
 
@@ -372,11 +376,9 @@ contract("InvestorLockManagerPartitioned", function([
         1
       );
 
-      let info = await this.lockManager.lockInfo(
-        wallet,
-        LOCK_INDEX,
-        this.ensuredPartition
-      );
+      let info = await this.lockManager.methods[
+        "lockInfo(address,uint256,bytes32)"
+      ].call(wallet, LOCK_INDEX, this.ensuredPartition);
       assert.equal(info[0], REASON_CODE);
       assert.equal(info[1], REASON_STRING);
       assert.equal(info[2], 100);
@@ -421,7 +423,7 @@ contract("InvestorLockManagerPartitioned", function([
       );
       assert.equal(
         await this.lockManager.methods[
-          "getTransferableTokens(address,uint64,bytes32)"
+          "getTransferableTokens(address,uint256,bytes32)"
         ].call(owner, this.releaseTime + 1000, partition),
         100
       );

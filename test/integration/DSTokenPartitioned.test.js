@@ -167,13 +167,13 @@ contract("DSTokenPartitioned (regulated)", function([
     it("Should issue tokens to a us wallet", async function() {
       await this.token.issueTokens(usInvestorWallet, 100);
       const balance = await this.token.balanceOf(usInvestorWallet);
-      assert.equal(balance, 100);
+      assert.equal(balance.toNumber(), 100);
     });
 
     it("Should issue tokens to a eu wallet", async function() {
       await this.token.issueTokens(germanyInvestorWallet, 100);
       const balance = await this.token.balanceOf(germanyInvestorWallet);
-      assert.equal(balance, 100);
+      assert.equal(balance.toNumber(), 100);
     });
 
     it("Should not issue tokens to a forbidden wallet", async function() {
@@ -183,7 +183,7 @@ contract("DSTokenPartitioned (regulated)", function([
     it("Should issue tokens to a none wallet", async function() {
       await this.token.issueTokens(israelInvestorWallet, 100);
       const balance = await this.token.balanceOf(israelInvestorWallet);
-      assert.equal(balance, 100);
+      assert.equal(balance.toNumber(), 100);
     });
 
     it("Should record the number of total issued token correctly", async function() {
@@ -196,7 +196,7 @@ contract("DSTokenPartitioned (regulated)", function([
 
       const totalIssued = await this.token.totalIssued();
 
-      assert.equal(totalIssued, 600);
+      assert.equal(totalIssued.toNumber(), 600);
     });
 
     it("Should create a partition with the given time and region", async function() {
@@ -205,7 +205,9 @@ contract("DSTokenPartitioned (regulated)", function([
       const issuanceTime = await this.partitionsManager.getPartitionIssuanceDate(
         partition
       );
-      const region = await this.partitionsManager.getPartitionRegion(partition);
+      const region = await this.partitionsManager.getPartitionRegion.call(
+        partition
+      );
       assert.equal(issuanceTime, 1);
       assert.equal(region, compliance.US);
     });
@@ -213,21 +215,21 @@ contract("DSTokenPartitioned (regulated)", function([
     it("Should return the correct balance of investor by partition", async function() {
       await this.token.issueTokensCustom(usInvestorWallet, 100, 1, 0, "", 0);
       const partition = await this.token.partitionOf(usInvestorWallet, 0);
-      const balance = await this.token.balanceOfInvestorByPartition(
+      const balance = await this.token.balanceOfInvestorByPartition.call(
         investorId.US_INVESTOR_ID,
         partition
       );
-      assert.equal(balance, 100);
+      assert.equal(balance.toNumber(), 100);
     });
 
     it("Should return the correct balance of wallet by partition", async function() {
       await this.token.issueTokensCustom(usInvestorWallet, 100, 1, 0, "", 0);
       const partition = await this.token.partitionOf(usInvestorWallet, 0);
-      const balance = await this.token.balanceOfByPartition(
+      const balance = await this.token.balanceOfByPartition.call(
         usInvestorWallet,
         partition
       );
-      assert.equal(balance, 100);
+      assert.equal(balance.toNumber(), 100);
     });
   });
 
@@ -261,9 +263,9 @@ contract("DSTokenPartitioned (regulated)", function([
         from: israelInvestorWallet
       });
       const israelBalance = await this.token.balanceOf(israelInvestorWallet);
-      assert.equal(israelBalance, 50);
+      assert.equal(israelBalance.toNumber(), 50);
       const germanyBalance = await this.token.balanceOf(germanyInvestorWallet);
-      assert.equal(germanyBalance, 50);
+      assert.equal(germanyBalance.toNumber(), 50);
     });
 
     it("Should allow investors to move locked tokens between their own wallets", async function() {
