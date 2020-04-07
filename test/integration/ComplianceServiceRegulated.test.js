@@ -1135,7 +1135,7 @@ contract("ComplianceServiceRegulated", function([
       await assertRevert(this.token.issueTokens(wallet1, 100));
     });
 
-    it.only("should not issue tokens to a new investor if japan investor limit is exceeded", async function() {
+    it("should not issue tokens to a new investor if japan investor limit is exceeded", async function() {
       await this.complianceConfiguration.setJPInvestorsLimit(1);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,

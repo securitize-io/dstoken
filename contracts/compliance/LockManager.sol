@@ -152,7 +152,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
     }
 
     function getTransferableTokens(address _who, uint256 _time) public view returns (uint256) {
-        require(_time > 0, "time must be greater than zero");
+        require(_time > 0, "Time must be greater than zero");
 
         uint256 balanceOfInvestor = getToken().balanceOf(_who);
 

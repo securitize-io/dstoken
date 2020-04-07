@@ -30,7 +30,7 @@ library ComplianceServicePartitionedLibrary {
     string internal constant DESTINATION_RESTRICTED = "Destination restricted";
     string internal constant MAX_INVESTORS_IN_CATEGORY = "Max investors in category";
     string internal constant ONLY_ACCREDITED = "Only accredited";
-    string internal constant ONLY_US_ACCREDITED = "Only US accredited";
+    string internal constant ONLY_US_ACCREDITED = "Only us accredited";
     string internal constant NOT_ENOUGH_INVESTORS = "Not enough investors";
     string internal constant OMNIBUS_TO_OMNIBUS_TRANSFER = "Omnibus to omnibus transfer";
     // Special wallets constants
@@ -108,15 +108,8 @@ library ComplianceServicePartitionedLibrary {
         return _omnibusWallet != address(0);
     }
 
-    function checkHoldUp(address[] memory _services, address _omnibusWallet, address _from, uint256 _value, bool isUSLockPeriod) internal view returns (bool) {
+    function checkHoldUp(address[] memory _services, address _omnibusWallet, address _from, uint256 _value) internal view returns (bool) {
         ComplianceServiceRegulatedPartitioned complianceService = ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]);
-        uint256 lockPeriod;
-        if (isUSLockPeriod) {
-            lockPeriod = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSLockPeriod();
-        } else {
-            lockPeriod = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUSLockPeriod();
-        }
-
         return
             !isOmnibusInternalTransfer(_omnibusWallet) &&
             !IDSRegistryService(_services[REGISTRY_SERVICE]).isOmnibusWallet(_from) &&
@@ -200,7 +193,7 @@ library ComplianceServicePartitionedLibrary {
             !isHolderOfRecordInternalTransfer(_services, _omnibusWallet);
 
         if (fromRegion == US) {
-            if (checkHoldUp(_services, _omnibusWallet, _from, _value, true)) {
+            if (checkHoldUp(_services, _omnibusWallet, _from, _value)) {
                 return (32, HOLD_UP_1Y);
             }
 
@@ -216,7 +209,7 @@ library ComplianceServicePartitionedLibrary {
                 return (50, ONLY_FULL_TRANSFER);
             }
         } else {
-            if (checkHoldUp(_services, _omnibusWallet, _from, _value, false)) {
+            if (checkHoldUp(_services, _omnibusWallet, _from, _value)) {
                 return (33, HOLD_UP);
             }
 
@@ -279,7 +272,7 @@ library ComplianceServicePartitionedLibrary {
             }
         } else if (toRegion == US) {
             if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccreditedUS() && !isAccredited(_services, _to)) {
-                return (61, ONLY_US_ACCREDITED);
+                return (62, ONLY_US_ACCREDITED);
             }
 
             uint256 usInvestorsLimit = getUSInvestorsLimit(_services);

@@ -21,8 +21,19 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
         string memory _reason,
         uint256 _releaseTime /*onlyIssuerOrAbove*/
     ) public returns (bool) {
-        super.issueTokensCustom(_to, _value, _issuanceTime, _valueLocked, _reason, _releaseTime);
-        partitionsManagement.issueTokensCustom(getRegistryService(), getComplianceConfigurationService(), getPartitionsManager(), _to, _value, _issuanceTime);
+        super.issueTokensCustom(_to, _value, _issuanceTime, 0, "", 0);
+        partitionsManagement.issueTokensCustom(
+            getRegistryService(),
+            getComplianceConfigurationService(),
+            getPartitionsManager(),
+            getLockManagerPartitioned(),
+            _to,
+            _value,
+            _issuanceTime,
+            _valueLocked,
+            _reason,
+            _releaseTime
+        );
         return true;
     }
 
@@ -48,8 +59,8 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
 
     function burnByPartition(address _who, uint256 _value, string memory _reason, bytes32 _partition) public onlyIssuerOrAbove {
         DSToken.burn(_who, _value, _reason);
-        partitionsManagement.transferPartition(getRegistryService(), _who, address(0), _value, _partition);
         emit BurnByPartition(_who, _value, _reason, _partition);
+        partitionsManagement.transferPartition(getRegistryService(), _who, address(0), _value, _partition);
     }
 
     function seize(address, address, uint256, string memory) public {
@@ -58,8 +69,8 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
 
     function seizeByPartition(address _from, address _to, uint256 _value, string memory _reason, bytes32 _partition) public onlyIssuerOrAbove {
         DSToken.seize(_from, _to, _value, _reason);
-        partitionsManagement.transferPartition(getRegistryService(), _from, _to, _value, _partition);
         emit SeizeByPartition(_from, _to, _value, _reason, _partition);
+        partitionsManagement.transferPartition(getRegistryService(), _from, _to, _value, _partition);
     }
 
     function balanceOfByPartition(address _who, bytes32 _partition) public view returns (uint256) {

@@ -186,7 +186,7 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
     }
 
     function getTransferableTokensForInvestor(string memory _investorId, uint256 _time) public view returns (uint256) {
-        require(_time > 0, "time must be greater than zero");
+        require(_time > 0, "Time must be greater than zero");
 
         uint256 balanceOfInvestor = getToken().balanceOfInvestor(_investorId);
         uint256 investorLockCount = investorsLocksCounts[_investorId];

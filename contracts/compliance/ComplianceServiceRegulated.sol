@@ -612,7 +612,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function getComplianceTransferableTokens(address _who, uint256 _time, uint256 _lockTime) public view returns (uint256) {
-        require(_time != 0, "time must be greater than zero");
+        require(_time != 0, "Time must be greater than zero");
         string memory investor = getRegistryService().getInvestor(_who);
 
         uint256 balanceOfInvestor = getLockManager().getTransferableTokens(_who, _time);
