@@ -60,7 +60,7 @@ contract("LockManager", function([
       );
     });
 
-    it("Trying to Add ManualLock Record with NONE permissions - should be error", async function() {
+    it("Should revert when trying to Add ManualLock Record with NONE permissions", async function() {
       await assertRevert(
         this.lockManager.addManualLockRecord(
           wallet,
@@ -72,7 +72,7 @@ contract("LockManager", function([
       );
     });
 
-    it("Trying to Add ManualLock Record with EXCHANGE permissions - should be error", async function() {
+    it("Should revert when trying to Add ManualLock Record with EXCHANGE permissions", async function() {
       await assertRevert(
         this.lockManager.addManualLockRecord(
           wallet,
@@ -85,7 +85,6 @@ contract("LockManager", function([
     });
 
     it("Trying to Add ManualLock Record with ISSUER permissions - should pass", async function() {
-      await this.token.setCap(1000);
       await this.token.issueTokens(owner, 100);
       assert.equal(await this.token.balanceOf(owner), 100);
       assert.equal(
@@ -120,7 +119,7 @@ contract("LockManager", function([
       await assertRevert(this.lockManager.removeLockRecord(wallet, 2));
     });
 
-    it("Trying to Remove ManualLock Record with NONE permissions - should be error", async function() {
+    it("Should revert when trying to Remove ManualLock Record with NONE permissions", async function() {
       await this.lockManager.addManualLockRecord(
         wallet,
         100,
@@ -136,7 +135,7 @@ contract("LockManager", function([
       );
     });
 
-    it("Trying to Remove ManualLock Record with EXCHANGE permissions - should be error", async function() {
+    it("Should revert when trying to Remove ManualLock Record with EXCHANGE permissions", async function() {
       await this.lockManager.addManualLockRecord(
         wallet,
         100,
@@ -153,7 +152,6 @@ contract("LockManager", function([
     });
 
     it("Trying to Remove ManualLock Record with ISSUER permissions - should pass", async function() {
-      await this.token.setCap(1000);
       await this.token.issueTokens(owner, 100);
       assert.equal(await this.token.balanceOf(owner), 100);
       assert.equal(
@@ -235,7 +233,6 @@ contract("LockManager", function([
 
     it("Should return 0 because tokens will be locked", async function() {
       let releaseTime = (await latestTime()) + 1000;
-      await this.token.setCap(1000);
       await this.token.issueTokens(owner, 100);
       assert.equal(await this.token.balanceOf(owner), 100);
       await this.lockManager.addManualLockRecord(
@@ -252,7 +249,6 @@ contract("LockManager", function([
 
     it("Should return 100 because tokens will be unlocked", async function() {
       let releaseTime = (await latestTime()) + 1000;
-      await this.token.setCap(1000);
       await this.token.issueTokens(owner, 100);
       assert.equal(await this.token.balanceOf(owner), 100);
       await this.lockManager.addManualLockRecord(
@@ -269,7 +265,6 @@ contract("LockManager", function([
 
     it("Should return correct values when tokens will be locked with multiple locks", async function() {
       let releaseTime = (await latestTime()) + 1000;
-      await this.token.setCap(1000);
       await this.token.issueTokens(owner, 300);
       assert.equal(await this.token.balanceOf(owner), 300);
       await this.lockManager.addManualLockRecord(

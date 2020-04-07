@@ -111,7 +111,7 @@ contract("InvestorLockManagerPartitioned", function([
       );
     });
 
-    it("Trying to Add ManualLock Record with roles.EXCHANGE permissions - should be error", async function() {
+    it("Should revert when trying to Add ManualLock Record with roles.EXCHANGE permissions", async function() {
       await assertRevert(
         this.lockManager.methods[
           "addManualLockRecord(address,uint256,string,uint256,bytes32)"
@@ -178,7 +178,7 @@ contract("InvestorLockManagerPartitioned", function([
       );
     });
 
-    it("Trying to Remove ManualLock Record with NONE permissions - should be error", async function() {
+    it("Should revert when trying to Remove ManualLock Record with NONE permissions", async function() {
       await this.lockManager.methods[
         "addManualLockRecord(address,uint256,string,uint256,bytes32)"
       ](
@@ -208,7 +208,7 @@ contract("InvestorLockManagerPartitioned", function([
       );
     });
 
-    it("Trying to Remove ManualLock Record with roles.EXCHANGE permissions - should be error", async function() {
+    it("Should revert when trying to Remove ManualLock Record with roles.EXCHANGE permissions", async function() {
       await this.lockManager.methods[
         "addManualLockRecord(address,uint256,string,uint256,bytes32)"
       ](
@@ -393,8 +393,8 @@ contract("InvestorLockManagerPartitioned", function([
 
     it("Should return 0 when all tokens are locked", async function() {
       await this.token.issueTokens(owner, 50);
-      const partition = await this.token.partitionOf(owner, 0);
       await this.token.issueTokens(owner, 50);
+      const partition = await this.token.partitionOf(owner, 0);
       const partition2 = await this.token.partitionOf(owner, 1);
       assert.equal(await this.token.balanceOf(owner), 100);
       await this.lockManager.methods[
