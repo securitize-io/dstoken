@@ -395,7 +395,7 @@ contract("InvestorLockManagerPartitioned", function([
       await this.token.issueTokensCustom(
         owner,
         50,
-        this.releaseTime - 100,
+        this.releaseTime - 1000,
         0,
         "",
         0
@@ -403,7 +403,7 @@ contract("InvestorLockManagerPartitioned", function([
       await this.token.issueTokensCustom(
         owner,
         50,
-        this.releaseTime - 90,
+        this.releaseTime - 900,
         0,
         "",
         0
