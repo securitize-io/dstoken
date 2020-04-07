@@ -138,7 +138,7 @@ contract("OmnibusWalletCompliance", function([
       });
 
       it("Should not allow deposit if us lock period has not expired", async function() {
-        await this.complianceConfiguration.setUsLockPeriod(time.YEARS);
+        await this.complianceConfiguration.setUSLockPeriod(time.YEARS);
         await this.registryService.setCountry(
           investorId.GENERAL_INVESTOR_ID_1,
           country.USA
@@ -154,7 +154,7 @@ contract("OmnibusWalletCompliance", function([
       });
 
       it("Should not allow deposit if non us lock period has not expired", async function() {
-        await this.complianceConfiguration.setNonUsLockPeriod(time.YEARS);
+        await this.complianceConfiguration.setNonUSLockPeriod(time.YEARS);
         await this.token.issueTokens(investorWallet1, 1000);
         const res = await this.complianceService.preTransferCheck(
           investorWallet1,
@@ -185,7 +185,7 @@ contract("OmnibusWalletCompliance", function([
   describe("Tokens amounts restrictions", function() {
     describe("Deposit", function() {
       it("Should fail the deposit if the us investor balance is below the minimal us tokens limit", async function() {
-        await this.complianceConfiguration.setMinUsTokens(500);
+        await this.complianceConfiguration.setMinUSTokens(500);
         await this.registryService.setCountry(
           investorId.GENERAL_INVESTOR_ID_1,
           country.USA
@@ -201,7 +201,7 @@ contract("OmnibusWalletCompliance", function([
       });
 
       it("Should fail the deposit if the us omnibus investor balance is below the minimal us tokens limit", async function() {
-        await this.complianceConfiguration.setMinUsTokens(500);
+        await this.complianceConfiguration.setMinUSTokens(500);
         await this.complianceConfiguration.setBlockFlowbackEndTime(1);
         await this.registryService.setCountry(
           investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
@@ -218,8 +218,8 @@ contract("OmnibusWalletCompliance", function([
       });
 
       it("Should fail the deposit if the eu investor balance is below the minimal eu tokens limit", async function() {
-        await this.complianceConfiguration.setMinEuTokens(500);
-        await this.complianceConfiguration.setEuRetailLimit(1);
+        await this.complianceConfiguration.setMinEUTokens(500);
+        await this.complianceConfiguration.setEURetailInvestorsLimit(1);
         await this.registryService.setCountry(
           investorId.GENERAL_INVESTOR_ID_1,
           country.FRANCE
@@ -235,7 +235,7 @@ contract("OmnibusWalletCompliance", function([
       });
 
       it("Should fail the deposit if the eu omnibus investor balance is below the minimal eu tokens limit", async function() {
-        await this.complianceConfiguration.setMinEuTokens(500);
+        await this.complianceConfiguration.setMinEUTokens(500);
         await this.registryService.setCountry(
           investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
           country.FRANCE
@@ -293,7 +293,7 @@ contract("OmnibusWalletCompliance", function([
         await this.token.transfer(omnibusWallet1, 1000, {
           from: investorWallet1
         });
-        await this.complianceConfiguration.setMinUsTokens(500);
+        await this.complianceConfiguration.setMinUSTokens(500);
         await this.registryService.setCountry(
           investorId.GENERAL_INVESTOR_ID_1,
           country.USA
@@ -313,7 +313,7 @@ contract("OmnibusWalletCompliance", function([
         await this.token.transfer(omnibusWallet1, 1000, {
           from: investorWallet1
         });
-        await this.complianceConfiguration.setMinUsTokens(500);
+        await this.complianceConfiguration.setMinUSTokens(500);
         await this.complianceConfiguration.setBlockFlowbackEndTime(1);
         await this.registryService.setCountry(
           investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
@@ -333,8 +333,8 @@ contract("OmnibusWalletCompliance", function([
         await this.token.transfer(omnibusWallet1, 1000, {
           from: investorWallet1
         });
-        await this.complianceConfiguration.setMinEuTokens(500);
-        await this.complianceConfiguration.setEuRetailLimit(1);
+        await this.complianceConfiguration.setMinEUTokens(500);
+        await this.complianceConfiguration.setEURetailInvestorsLimit(1);
         await this.registryService.setCountry(
           investorId.GENERAL_INVESTOR_ID_1,
           country.FRANCE
@@ -353,7 +353,7 @@ contract("OmnibusWalletCompliance", function([
         await this.token.transfer(omnibusWallet1, 1000, {
           from: investorWallet1
         });
-        await this.complianceConfiguration.setMinEuTokens(500);
+        await this.complianceConfiguration.setMinEUTokens(500);
         await this.registryService.setCountry(
           investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
           country.FRANCE
@@ -430,7 +430,7 @@ contract("OmnibusWalletCompliance", function([
         await this.token.transfer(omnibusWallet2, 1000, {
           from: investorWallet1
         });
-        await this.complianceConfiguration.setMinUsTokens(500);
+        await this.complianceConfiguration.setMinUSTokens(500);
         await this.registryService.setCountry(
           investorId.GENERAL_INVESTOR_ID_1,
           country.USA
@@ -451,7 +451,7 @@ contract("OmnibusWalletCompliance", function([
         await this.token.transfer(omnibusWallet2, 1000, {
           from: investorWallet1
         });
-        await this.complianceConfiguration.setMinUsTokens(500);
+        await this.complianceConfiguration.setMinUSTokens(500);
         await this.complianceConfiguration.setBlockFlowbackEndTime(1);
         await this.registryService.setCountry(
           investorId.GENERAL_INVESTOR_ID_2,
@@ -472,8 +472,8 @@ contract("OmnibusWalletCompliance", function([
         await this.token.transfer(omnibusWallet2, 1000, {
           from: investorWallet1
         });
-        await this.complianceConfiguration.setMinEuTokens(500);
-        await this.complianceConfiguration.setEuRetailLimit(1);
+        await this.complianceConfiguration.setMinEUTokens(500);
+        await this.complianceConfiguration.setEURetailInvestorsLimit(1);
         await this.registryService.setCountry(
           investorId.GENERAL_INVESTOR_ID_1,
           country.FRANCE
@@ -493,8 +493,8 @@ contract("OmnibusWalletCompliance", function([
         await this.token.transfer(omnibusWallet2, 1000, {
           from: investorWallet1
         });
-        await this.complianceConfiguration.setMinEuTokens(500);
-        await this.complianceConfiguration.setEuRetailLimit(1);
+        await this.complianceConfiguration.setMinEUTokens(500);
+        await this.complianceConfiguration.setEURetailInvestorsLimit(1);
         await this.registryService.setCountry(
           investorId.GENERAL_INVESTOR_ID_2,
           country.FRANCE
@@ -577,7 +577,7 @@ contract("OmnibusWalletCompliance", function([
           investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
           country.USA
         );
-        await this.complianceConfiguration.setUsAccreditedInvestorsLimit(1);
+        await this.complianceConfiguration.setUSAccreditedInvestorsLimit(1);
         await this.token.issueTokens(investorWallet1, 1000);
         const res = await this.complianceService.preTransferCheck(
           investorWallet1,
@@ -597,7 +597,7 @@ contract("OmnibusWalletCompliance", function([
           investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
           country.JAPAN
         );
-        await this.complianceConfiguration.setJapanInvestorsLimit(1);
+        await this.complianceConfiguration.setJPInvestorsLimit(1);
         await this.token.issueTokens(investorWallet1, 1000);
         const res = await this.complianceService.preTransferCheck(
           investorWallet1,
@@ -634,7 +634,7 @@ contract("OmnibusWalletCompliance", function([
       });
 
       it("Should fail the deposit if maximum us investors limit has been reached", async function() {
-        await this.complianceConfiguration.setUsInvestorsLimit(1);
+        await this.complianceConfiguration.setUSInvestorsLimit(1);
         await this.registryService.setCountry(
           investorId.GENERAL_INVESTOR_ID_1,
           country.USA
@@ -709,7 +709,7 @@ contract("OmnibusWalletCompliance", function([
         await this.token.transfer(omnibusWallet1, 1000, {
           from: investorWallet1
         });
-        await this.complianceConfiguration.setUsAccreditedInvestorsLimit(1);
+        await this.complianceConfiguration.setUSAccreditedInvestorsLimit(1);
         const res = await this.complianceService.preTransferCheck(
           omnibusWallet1,
           investorWallet1,
@@ -752,7 +752,7 @@ contract("OmnibusWalletCompliance", function([
         await this.token.transfer(omnibusWallet1, 1000, {
           from: investorWallet1
         });
-        await this.complianceConfiguration.setUsInvestorsLimit(1);
+        await this.complianceConfiguration.setUSInvestorsLimit(1);
         await this.registryService.setCountry(
           investorId.GENERAL_INVESTOR_ID_1,
           country.USA
@@ -783,7 +783,7 @@ contract("OmnibusWalletCompliance", function([
         await this.token.transfer(omnibusWallet1, 1000, {
           from: investorWallet1
         });
-        await this.complianceConfiguration.setJapanInvestorsLimit(1);
+        await this.complianceConfiguration.setJPInvestorsLimit(1);
         const res = await this.complianceService.preTransferCheck(
           omnibusWallet1,
           investorWallet1,
@@ -798,7 +798,7 @@ contract("OmnibusWalletCompliance", function([
         await this.token.transfer(omnibusWallet1, 1000, {
           from: investorWallet1
         });
-        await this.complianceConfiguration.setEuRetailLimit(0);
+        await this.complianceConfiguration.setEURetailInvestorsLimit(0);
         await this.registryService.setCountry(
           investorId.GENERAL_INVESTOR_ID_1,
           country.FRANCE
@@ -912,7 +912,7 @@ contract("OmnibusWalletCompliance", function([
         await this.token.transfer(omnibusWallet2, 1000, {
           from: investorWallet1
         });
-        await this.complianceConfiguration.setUsAccreditedInvestorsLimit(1);
+        await this.complianceConfiguration.setUSAccreditedInvestorsLimit(1);
         const res = await this.complianceService.preInternalTransferCheck(
           investorWallet1,
           investorWallet2,
@@ -961,7 +961,7 @@ contract("OmnibusWalletCompliance", function([
         await this.token.transfer(omnibusWallet2, 1000, {
           from: investorWallet1
         });
-        await this.complianceConfiguration.setUsInvestorsLimit(1);
+        await this.complianceConfiguration.setUSInvestorsLimit(1);
         await this.registryService.setCountry(
           investorId.GENERAL_INVESTOR_ID_1,
           country.USA
@@ -985,7 +985,7 @@ contract("OmnibusWalletCompliance", function([
         await this.token.transfer(omnibusWallet2, 1000, {
           from: investorWallet1
         });
-        await this.complianceConfiguration.setJapanInvestorsLimit(1);
+        await this.complianceConfiguration.setJPInvestorsLimit(1);
         await this.registryService.setCountry(
           investorId.GENERAL_INVESTOR_ID_1,
           country.JAPAN
@@ -1009,7 +1009,7 @@ contract("OmnibusWalletCompliance", function([
         await this.token.transfer(omnibusWallet2, 1000, {
           from: investorWallet1
         });
-        await this.complianceConfiguration.setEuRetailLimit(0);
+        await this.complianceConfiguration.setEURetailInvestorsLimit(0);
         await this.registryService.setCountry(
           investorId.GENERAL_INVESTOR_ID_2,
           country.FRANCE

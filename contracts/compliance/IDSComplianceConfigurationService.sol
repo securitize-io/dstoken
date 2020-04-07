@@ -24,33 +24,33 @@ contract IDSComplianceConfigurationService is Initializable, VersionedContract {
         uint256 _value /*onlyIssuerOrAbove*/
     ) public;
 
-    function getMinUsTokens() public view returns (uint256);
+    function getMinUSTokens() public view returns (uint256);
 
-    function setMinUsTokens(
+    function setMinUSTokens(
         uint256 _value /*onlyIssuerOrAbove*/
     ) public;
 
-    function getMinEuTokens() public view returns (uint256);
+    function getMinEUTokens() public view returns (uint256);
 
-    function setMinEuTokens(
+    function setMinEUTokens(
         uint256 _value /*onlyIssuerOrAbove*/
     ) public;
 
-    function getUsInvestorsLimit() public view returns (uint256);
+    function getUSInvestorsLimit() public view returns (uint256);
 
-    function setUsInvestorsLimit(
+    function setUSInvestorsLimit(
         uint256 _value /*onlyIssuerOrAbove*/
     ) public;
 
-    function getJapanInvestorsLimit() public view returns (uint256);
+    function getJPInvestorsLimit() public view returns (uint256);
 
-    function setJapanInvestorsLimit(
+    function setJPInvestorsLimit(
         uint256 _value /*onlyIssuerOrAbove*/
     ) public;
 
-    function getUsAccreditedInvestorsLimit() public view returns (uint256);
+    function getUSAccreditedInvestorsLimit() public view returns (uint256);
 
-    function setUsAccreditedInvestorsLimit(
+    function setUSAccreditedInvestorsLimit(
         uint256 _value /*onlyIssuerOrAbove*/
     ) public;
 
@@ -60,9 +60,9 @@ contract IDSComplianceConfigurationService is Initializable, VersionedContract {
         uint256 _value /*onlyIssuerOrAbove*/
     ) public;
 
-    function getMaxUsInvestorsPercentage() public view returns (uint256);
+    function getMaxUSInvestorsPercentage() public view returns (uint256);
 
-    function setMaxUsInvestorsPercentage(
+    function setMaxUSInvestorsPercentage(
         uint256 _value /*onlyIssuerOrAbove*/
     ) public;
 
@@ -72,9 +72,9 @@ contract IDSComplianceConfigurationService is Initializable, VersionedContract {
         uint256 _value /*onlyIssuerOrAbove*/
     ) public;
 
-    function getNonUsLockPeriod() public view returns (uint256);
+    function getNonUSLockPeriod() public view returns (uint256);
 
-    function setNonUsLockPeriod(
+    function setNonUSLockPeriod(
         uint256 _value /*onlyIssuerOrAbove*/
     ) public;
 
@@ -96,15 +96,15 @@ contract IDSComplianceConfigurationService is Initializable, VersionedContract {
         uint256 _value /*onlyIssuerOrAbove*/
     ) public;
 
-    function getEuRetailLimit() public view returns (uint256);
+    function getEURetailInvestorsLimit() public view returns (uint256);
 
-    function setEuRetailLimit(
+    function setEURetailInvestorsLimit(
         uint256 _value /*onlyIssuerOrAbove*/
     ) public;
 
-    function getUsLockPeriod() public view returns (uint256);
+    function getUSLockPeriod() public view returns (uint256);
 
-    function setUsLockPeriod(
+    function setUSLockPeriod(
         uint256 _value /*onlyIssuerOrAbove*/
     ) public;
 

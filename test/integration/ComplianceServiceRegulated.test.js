@@ -997,7 +997,7 @@ contract("ComplianceServiceRegulated", function([
     });
 
     it("should not transfer tokens to an investor if japan investor limit is reached", async function() {
-      await this.complianceConfiguration.setJapanInvestorsLimit(1);
+      await this.complianceConfiguration.setJPInvestorsLimit(1);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -1136,7 +1136,7 @@ contract("ComplianceServiceRegulated", function([
     });
 
     it.only("should not issue tokens to a new investor if japan investor limit is exceeded", async function() {
-      await this.complianceConfiguration.setJapanInvestorsLimit(1);
+      await this.complianceConfiguration.setJPInvestorsLimit(1);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -1196,7 +1196,7 @@ contract("ComplianceServiceRegulated", function([
     });
 
     it("should not issue tokens to a new investor if US investors limit is exceeded", async function() {
-      await this.complianceConfiguration.setUsInvestorsLimit(1);
+      await this.complianceConfiguration.setUSInvestorsLimit(1);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -1226,7 +1226,7 @@ contract("ComplianceServiceRegulated", function([
     });
 
     it("should not issue tokens to a new investor if US Accredited investors limit is exceeded", async function() {
-      await this.complianceConfiguration.setUsAccreditedInvestorsLimit(1);
+      await this.complianceConfiguration.setUSAccreditedInvestorsLimit(1);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -1270,7 +1270,7 @@ contract("ComplianceServiceRegulated", function([
     });
 
     it("should not issue tokens to a new investor if EU Retail limit is exceeded", async function() {
-      await this.complianceConfiguration.setEuRetailLimit(0);
+      await this.complianceConfiguration.setEURetailInvestorsLimit(0);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
