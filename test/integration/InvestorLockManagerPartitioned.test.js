@@ -392,8 +392,22 @@ contract("InvestorLockManagerPartitioned", function([
     });
 
     it("Should return 0 when all tokens are locked", async function() {
-      await this.token.issueTokens(owner, 50);
-      await this.token.issueTokens(owner, 50);
+      await this.token.issueTokensCustom(
+        owner,
+        50,
+        this.releaseTime - 1000,
+        0,
+        "",
+        0
+      );
+      await this.token.issueTokensCustom(
+        owner,
+        50,
+        this.releaseTime - 900,
+        0,
+        "",
+        0
+      );
       const partition = await this.token.partitionOf(owner, 0);
       const partition2 = await this.token.partitionOf(owner, 1);
       assert.equal(await this.token.balanceOf(owner), 100);

@@ -78,11 +78,11 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function getMaxUSInvestorsPercentage() public view returns (uint256) {
-        return maxUsInvestorsPercentage;
+        return maxUSInvestorsPercentage;
     }
 
     function setMaxUSInvestorsPercentage(uint256 _value) public onlyIssuerOrAbove {
-        maxUsInvestorsPercentage = _value;
+        maxUSInvestorsPercentage = _value;
     }
 
     function getBlockFlowbackEndTime() public view returns (uint256) {
