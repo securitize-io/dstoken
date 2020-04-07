@@ -165,9 +165,25 @@ contract("DSTokenPartitioned (regulated)", function([
 
   describe("Issuance", function() {
     it("Should issue tokens to a us wallet", async function() {
-      await this.token.issueTokens(usInvestorWallet, 100);
+      const result = await this.token.issueTokens(usInvestorWallet, 100);
+      const partition = await this.token.partitionOf(usInvestorWallet, 0);
       const balance = await this.token.balanceOf(usInvestorWallet);
       assert.equal(balance.toNumber(), 100);
+      assert.equal(result.logs.length, 4);
+      assert.equal(result.logs[0].event, "Issue");
+      assert.equal(result.logs[1].event, "Transfer");
+      assert.equal(result.logs[2].event, "IssueByPartition");
+      assert.equal(result.logs[2].args["to"], usInvestorWallet);
+      assert.equal(result.logs[2].args["value"], 100);
+      assert.equal(result.logs[2].args["partition"], partition);
+      assert.equal(result.logs[3].event, "TransferByPartition");
+      assert.equal(
+        result.logs[3].args["from"],
+        "0x0000000000000000000000000000000000000000"
+      );
+      assert.equal(result.logs[3].args["to"], usInvestorWallet);
+      assert.equal(result.logs[3].args["value"], 100);
+      assert.equal(result.logs[3].args["partition"], partition);
     });
 
     it("Should issue tokens to a eu wallet", async function() {
@@ -250,7 +266,7 @@ contract("DSTokenPartitioned (regulated)", function([
       );
     });
 
-    it("Should allow transferring tokens when other are locked", async function() {
+    it("Should allow transferring tokens when enough tokens are unlocked", async function() {
       await this.token.issueTokensCustom(
         israelInvestorWallet,
         100,
@@ -345,7 +361,7 @@ contract("DSTokenPartitioned (regulated)", function([
     });
 
     it("Should transfer by specific partitions", async function() {
-      await this.token.transferByPartitions(
+      const result = await this.token.transferByPartitions(
         germanyInvestorWallet,
         150,
         [partitions[0], partitions[2]],
@@ -382,6 +398,20 @@ contract("DSTokenPartitioned (regulated)", function([
         germanyInvestorWallet
       );
       assert.equal(partitionCountOfGermanyInvestor, 2);
+      assert.equal(result.logs[0].event, "Transfer");
+      assert.equal(result.logs[0].args["from"], israelInvestorWallet);
+      assert.equal(result.logs[0].args["to"], germanyInvestorWallet);
+      assert.equal(result.logs[0].args["value"], 150);
+      assert.equal(result.logs[1].event, "TransferByPartition");
+      assert.equal(result.logs[1].args["from"], israelInvestorWallet);
+      assert.equal(result.logs[1].args["to"], germanyInvestorWallet);
+      assert.equal(result.logs[1].args["value"], 100);
+      assert.equal(result.logs[1].args["partition"], partitions[0]);
+      assert.equal(result.logs[2].event, "TransferByPartition");
+      assert.equal(result.logs[2].args["from"], israelInvestorWallet);
+      assert.equal(result.logs[2].args["to"], germanyInvestorWallet);
+      assert.equal(result.logs[2].args["value"], 50);
+      assert.equal(result.logs[2].args["partition"], partitions[2]);
     });
   });
 
@@ -395,7 +425,7 @@ contract("DSTokenPartitioned (regulated)", function([
       await this.token.issueTokens(usInvestorWallet, 100);
       // get the partition identifier
       const partition = await this.token.partitionOf(usInvestorWallet, 0);
-      await this.token.burnByPartition(
+      const result = await this.token.burnByPartition(
         usInvestorWallet,
         50,
         "test burn",
@@ -403,7 +433,28 @@ contract("DSTokenPartitioned (regulated)", function([
       );
 
       const balance = await this.token.balanceOf(usInvestorWallet);
+      const partitionBalance = await this.token.balanceOfByPartition(
+        usInvestorWallet,
+        partition
+      );
       assert.equal(balance, 50);
+      assert.equal(partitionBalance, 50);
+      assert.equal(result.logs.length, 4);
+      assert.equal(result.logs[0].event, "Burn");
+      assert.equal(result.logs[1].event, "Transfer");
+      assert.equal(result.logs[2].event, "BurnByPartition");
+      assert.equal(result.logs[2].args["burner"], usInvestorWallet);
+      assert.equal(result.logs[2].args["value"], 50);
+      assert.equal(result.logs[2].args["reason"], "test burn");
+      assert.equal(result.logs[2].args["partition"], partition);
+      assert.equal(result.logs[3].event, "TransferByPartition");
+      assert.equal(result.logs[3].args["from"], usInvestorWallet);
+      assert.equal(
+        result.logs[3].args["to"],
+        "0x0000000000000000000000000000000000000000"
+      );
+      assert.equal(result.logs[3].args["value"], 50);
+      assert.equal(result.logs[3].args["partition"], partition);
     });
 
     it("Should record the number of total issued token correctly after burn", async function() {
@@ -436,7 +487,7 @@ contract("DSTokenPartitioned (regulated)", function([
 
     it("Should seize tokens correctly by partition", async function() {
       const partition = await this.token.partitionOf(usInvestorWallet, 0);
-      await this.token.seizeByPartition(
+      const result = await this.token.seizeByPartition(
         usInvestorWallet,
         issuerWallet,
         50,
@@ -445,9 +496,32 @@ contract("DSTokenPartitioned (regulated)", function([
       );
 
       const usInvestorBalance = await this.token.balanceOf(usInvestorWallet);
+      const usInvestorPartitionBalance = await this.token.balanceOfByPartition(
+        usInvestorWallet,
+        partition
+      );
       assert.equal(usInvestorBalance, 50);
+      assert.equal(usInvestorPartitionBalance, 50);
       const issuerWalletBalance = await this.token.balanceOf(issuerWallet);
       assert.equal(issuerWalletBalance, 50);
+      const issuerWalletPartitionBalance = await this.token.balanceOfByPartition(
+        issuerWallet,
+        partition
+      );
+      assert.equal(issuerWalletPartitionBalance, 50);
+      assert.equal(result.logs.length, 4);
+      assert.equal(result.logs[0].event, "Seize");
+      assert.equal(result.logs[1].event, "Transfer");
+      assert.equal(result.logs[2].event, "SeizeByPartition");
+      assert.equal(result.logs[2].args["from"], usInvestorWallet);
+      assert.equal(result.logs[2].args["to"], issuerWallet);
+      assert.equal(result.logs[2].args["value"], 50);
+      assert.equal(result.logs[2].args["partition"], partition);
+      assert.equal(result.logs[3].event, "TransferByPartition");
+      assert.equal(result.logs[3].args["from"], usInvestorWallet);
+      assert.equal(result.logs[3].args["to"], issuerWallet);
+      assert.equal(result.logs[3].args["value"], 50);
+      assert.equal(result.logs[3].args["partition"], partition);
     });
 
     it("Cannot seize more than balance", async function() {

@@ -43,11 +43,11 @@ library TokenPartitionsLibrary {
         string memory investor = _registry.getInvestor(_to);
         string memory country = _registry.getCountry(investor);
         bytes32 partition = _partitionsManager.ensurePartition(_issuanceTime, _compConf.getCountryCompliance(country));
+        emit IssueByPartition(_to, _value, partition);
         transferPartition(self, _registry, address(0), _to, _value, partition);
         if (_valueLocked > 0) {
             _lockManager.createLockForInvestor(investor, _valueLocked, 0, _reason, _releaseTime, partition);
         }
-        emit IssueByPartition(_to, _value, partition);
     }
 
     function setPartitionToAddressImpl(TokenPartitions storage self, address _who, uint256 _index, bytes32 _partition) internal returns (bool) {
