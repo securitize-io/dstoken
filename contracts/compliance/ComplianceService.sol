@@ -114,7 +114,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
             return (15, NOT_ENOUGH_TOKENS);
         }
 
-        if (getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
+        if (getLockManager().getTransferableTokens(_from, now) < _value) {
             return (16, TOKENS_LOCKED);
         }
 

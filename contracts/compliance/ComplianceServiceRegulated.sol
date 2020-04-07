@@ -116,18 +116,18 @@ library ComplianceServiceLibrary {
 
     function checkHoldUp(address[] memory _services, address _omnibusWallet, address _from, uint256 _value, bool isUSLockPeriod) internal view returns (bool) {
         ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
-        uint64 lockPeriod;
+        uint256 lockPeriod;
         if (isUSLockPeriod) {
-            lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSLockPeriod());
+            lockPeriod = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSLockPeriod();
         } else {
-            lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUSLockPeriod());
+            lockPeriod = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUSLockPeriod();
         }
 
         return
             !isOmnibusInternalTransfer(_omnibusWallet) &&
             !IDSRegistryService(_services[REGISTRY_SERVICE]).isOmnibusWallet(_from) &&
             IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) != WALLET_TYPE_PLATFORM &&
-            complianceService.getComplianceTransferableTokens(_from, uint64(now), lockPeriod) < _value;
+            complianceService.getComplianceTransferableTokens(_from, now, lockPeriod) < _value;
     }
 
     function maxInvestorsInCategoryForNonAccredited(address[] memory _services, address _from, address _to, uint256 _value, address _omnibusWallet, uint256 fromInvestorBalance)
@@ -195,7 +195,7 @@ library ComplianceServiceLibrary {
             !isOmnibusInternalTransfer(_omnibusWallet) &&
             !isFromOmnibusWallet &&
             IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) != WALLET_TYPE_PLATFORM &&
-            IDSLockManager(_services[LOCK_MANAGER]).getTransferableTokens(_from, uint64(now)) < _value
+            IDSLockManager(_services[LOCK_MANAGER]).getTransferableTokens(_from, now) < _value
         ) {
             return (16, TOKENS_LOCKED);
         }
@@ -611,7 +611,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return ComplianceServiceLibrary.preTransferCheck(getServices(), _from, _to, _value, _omnibusWallet);
     }
 
-    function getComplianceTransferableTokens(address _who, uint64 _time, uint64 _lockTime) public view returns (uint256) {
+    function getComplianceTransferableTokens(address _who, uint256 _time, uint256 _lockTime) public view returns (uint256) {
         require(_time != 0, "time must be greater than zero");
         string memory investor = getRegistryService().getInvestor(_who);
 

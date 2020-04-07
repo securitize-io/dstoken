@@ -4,9 +4,11 @@ import "./IDSToken.sol";
 import "../utils/ProxyTarget.sol";
 import "./StandardToken.sol";
 
+
 contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     // using FeaturesLibrary for SupportedFeatures;
-    uint internal constant OMNIBUS_NO_ACTION = 0;
+    uint256 internal constant OMNIBUS_NO_ACTION = 0;
+
     function initialize(string memory _name, string memory _symbol, uint8 _decimals) public initializer onlyFromProxy {
         IDSToken.initialize();
         StandardToken.initialize();
@@ -44,30 +46,33 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
    *******************************/
 
     /**
-  * @dev Issues unlocked tokens
-  * @param _to address The address which is going to receive the newly issued tokens
-  * @param _value uint256 the value of tokens to issue
-  * @return true if successful
-  */
+     * @dev Issues unlocked tokens
+     * @param _to address The address which is going to receive the newly issued tokens
+     * @param _value uint256 the value of tokens to issue
+     * @return true if successful
+     */
 
-    function issueTokens(address _to, uint256 _value) public /*onlyIssuerOrAbove*/ returns (bool) {
+    function issueTokens(
+        address _to,
+        uint256 _value /*onlyIssuerOrAbove*/
+    ) public returns (bool) {
         issueTokensCustom(_to, _value, now, 0, "", 0);
     }
+
     /**
-  * @dev Issuing tokens from the fund
-  * @param _to address The address which is going to receive the newly issued tokens
-  * @param _value uint256 the value of tokens to issue
-  * @param _valueLocked uint256 value of tokens, from those issued, to lock immediately.
-  * @param _reason reason for token locking
-  * @param _releaseTime timestamp to release the lock (or 0 for locks which can only released by an unlockTokens call)
-  * @return true if successful
-  */
-    function issueTokensCustom(address _to, uint256 _value, uint256 _issuanceTime, uint256 _valueLocked, string memory _reason, uint64 _releaseTime)
+     * @dev Issuing tokens from the fund
+     * @param _to address The address which is going to receive the newly issued tokens
+     * @param _value uint256 the value of tokens to issue
+     * @param _valueLocked uint256 value of tokens, from those issued, to lock immediately.
+     * @param _reason reason for token locking
+     * @param _releaseTime timestamp to release the lock (or 0 for locks which can only released by an unlockTokens call)
+     * @return true if successful
+     */
+    function issueTokensCustom(address _to, uint256 _value, uint256 _issuanceTime, uint256 _valueLocked, string memory _reason, uint256 _releaseTime)
         public
         onlyIssuerOrAbove
         returns (bool)
     {
-
         emit Issue(_to, _value, _valueLocked);
         emit Transfer(address(0), _to, _value);
         TokenLibrary.issueTokensCustom(tokenData, getCommonServices(), getLockManager(), _to, _value, _issuanceTime, _valueLocked, _releaseTime, _reason, cap);
@@ -107,10 +112,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         checkWalletsForList(_from, _to);
     }
 
-    function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string memory _reason)
-        public
-        onlyIssuerOrAbove
-    {
+    function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
         TokenLibrary.omnibusSeize(tokenData, getCommonServices(), _omnibusWallet, _from, _to, _value);
         emit OmnibusSeize(_omnibusWallet, _from, _value, _reason, getAssetTrackingMode(_omnibusWallet));
         emit Seize(_omnibusWallet, _to, _value, _reason);
@@ -123,20 +125,20 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     //*********************
 
     /**
-  * @dev Checks whether it can transfer with the compliance manager, if not -throws.
-  */
+     * @dev Checks whether it can transfer with the compliance manager, if not -throws.
+     */
     modifier canTransfer(address _sender, address _receiver, uint256 _value) {
         getComplianceService().validateTransfer(_sender, _receiver, _value);
         _;
     }
 
     /**
-   * @dev override for transfer with modifiers:
-   * whether the token is not paused (checked in super class) 
-   * and that the sender is allowed to transfer tokens
-   * @param _to The address that will receive the tokens.
-   * @param _value The amount of tokens to be transferred.
-   */
+     * @dev override for transfer with modifiers:
+     * whether the token is not paused (checked in super class)
+     * and that the sender is allowed to transfer tokens
+     * @param _to The address that will receive the tokens.
+     * @param _value The amount of tokens to be transferred.
+     */
     function transfer(address _to, uint256 _value) public canTransfer(msg.sender, _to, _value) returns (bool) {
         bool result = super.transfer(_to, _value);
 
@@ -150,13 +152,13 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     }
 
     /**
-  * @dev override for transfer with modifiers:
-  * whether the token is not paused (checked in super class) 
-  * and that the sender is allowed to transfer tokens
-  * @param _from The address that will send the tokens.
-  * @param _to The address that will receive the tokens.
-  * @param _value The amount of tokens to be transferred.
-  */
+     * @dev override for transfer with modifiers:
+     * whether the token is not paused (checked in super class)
+     * and that the sender is allowed to transfer tokens
+     * @param _from The address that will send the tokens.
+     * @param _to The address that will receive the tokens.
+     * @param _value The amount of tokens to be transferred.
+     */
 
     function transferFrom(address _from, address _to, uint256 _value) public canTransfer(_from, _to, _value) returns (bool) {
         bool result = super.transferFrom(_from, _to, _value);
@@ -227,7 +229,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         return tokenData.investorsBalances[_id];
     }
 
-    function getAssetTrackingMode(address _omnibusWallet) internal view returns(uint8) {
+    function getAssetTrackingMode(address _omnibusWallet) internal view returns (uint8) {
         return getRegistryService().getOmnibusWalletController(_omnibusWallet).getAssetTrackingMode();
     }
 
@@ -247,7 +249,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     }
 
     function updateInvestorsBalancesOnTransfer(address _from, address _to, uint256 _value) internal {
-        uint omnibusEvent = TokenLibrary.applyOmnibusBalanceUpdatesOnTransfer(tokenData, getRegistryService(), _from, _to, _value);
+        uint256 omnibusEvent = TokenLibrary.applyOmnibusBalanceUpdatesOnTransfer(tokenData, getRegistryService(), _from, _to, _value);
         if (omnibusEvent == OMNIBUS_NO_ACTION) {
             updateInvestorBalance(_from, _value, false);
             updateInvestorBalance(_to, _value, true);
@@ -273,11 +275,10 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         return getComplianceService().preTransferCheck(_from, _to, _value);
     }
 
-    function getCommonServices() internal view returns(address[] memory) {
+    function getCommonServices() internal view returns (address[] memory) {
         address[] memory services = new address[](2);
         services[0] = getDSService(COMPLIANCE_SERVICE);
         services[1] = getDSService(REGISTRY_SERVICE);
         return services;
     }
-
 }
