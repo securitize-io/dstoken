@@ -432,7 +432,7 @@ contract("ComplianceServiceRegulatedPartitioned", function([
         investorId.GENERAL_INVESTOR_ID_2
       );
       await this.token.issueTokens(owner, 100);
-      await this.complianceConfiguration.setUsLockPeriod(0);
+      await this.complianceConfiguration.setUSLockPeriod(0);
       await this.complianceConfiguration.setCountryCompliance(
         country.USA,
         compliance.US

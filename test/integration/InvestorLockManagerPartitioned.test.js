@@ -62,18 +62,17 @@ contract("InvestorLockManagerPartitioned", function([
   describe("Add Manual Lock Record", function() {
     it("should revert when not specifying partition", async function() {
       await assertRevert(
-        this.lockManager.addManualLockRecord(
-          owner,
-          100,
-          REASON_STRING,
-          (await latestTime()) + 1000
-        )
+        this.lockManager.methods[
+          "addManualLockRecord(address,uint256,string,uint256)"
+        ](owner, 100, REASON_STRING, (await latestTime()) + 1000)
       );
     });
 
     it("Should revert due to valueLocked = 0", async function() {
       await assertRevert(
-        this.lockManager.addManualLockRecord(
+        this.lockManager.methods[
+          "addManualLockRecord(address,uint256,string,uint256,bytes32)"
+        ](
           owner,
           0,
           REASON_STRING,
@@ -85,7 +84,9 @@ contract("InvestorLockManagerPartitioned", function([
 
     it("Should revert due to release time < now && > 0", async function() {
       await assertRevert(
-        this.lockManager.addManualLockRecord(
+        this.lockManager.methods[
+          "addManualLockRecord(address,uint256,string,uint256,bytes32)"
+        ](
           wallet,
           0,
           REASON_STRING,
@@ -97,7 +98,9 @@ contract("InvestorLockManagerPartitioned", function([
 
     it("Should revert when trying to addManualLockRecord with NONE permissions", async function() {
       await assertRevert(
-        this.lockManager.addManualLockRecord(
+        this.lockManager.methods[
+          "addManualLockRecord(address,uint256,string,uint256,bytes32)"
+        ](
           wallet,
           100,
           REASON_STRING,
@@ -110,7 +113,9 @@ contract("InvestorLockManagerPartitioned", function([
 
     it("Trying to Add ManualLock Record with roles.EXCHANGE permissions - should be error", async function() {
       await assertRevert(
-        this.lockManager.addManualLockRecord(
+        this.lockManager.methods[
+          "addManualLockRecord(address,uint256,string,uint256,bytes32)"
+        ](
           wallet,
           100,
           REASON_STRING,
@@ -129,14 +134,11 @@ contract("InvestorLockManagerPartitioned", function([
         await this.lockManager.getTransferableTokens(owner, await latestTime()),
         100
       );
-      await this.lockManager.addManualLockRecord(
-        owner,
-        100,
-        REASON_STRING,
-        (await latestTime()) + 1000,
-        partition,
-        {from: issuerWallet}
-      );
+      await this.lockManager.methods[
+        "addManualLockRecord(address,uint256,string,uint256,bytes32)"
+      ](owner, 100, REASON_STRING, (await latestTime()) + 1000, partition, {
+        from: issuerWallet
+      });
       const lockCount = await this.lockManager.methods[
         "lockCount(address,bytes32)"
       ].call(owner, partition);
@@ -154,7 +156,9 @@ contract("InvestorLockManagerPartitioned", function([
     });
 
     it("Should revert due to lockIndex > lastLockNumber", async function() {
-      await this.lockManager.addManualLockRecord(
+      await this.lockManager.methods[
+        "addManualLockRecord(address,uint256,string,uint256,bytes32)"
+      ](
         wallet,
         100,
         REASON_STRING,
@@ -175,7 +179,9 @@ contract("InvestorLockManagerPartitioned", function([
     });
 
     it("Trying to Remove ManualLock Record with NONE permissions - should be error", async function() {
-      await this.lockManager.addManualLockRecord(
+      await this.lockManager.methods[
+        "addManualLockRecord(address,uint256,string,uint256,bytes32)"
+      ](
         wallet,
         100,
         REASON_STRING,
@@ -203,7 +209,9 @@ contract("InvestorLockManagerPartitioned", function([
     });
 
     it("Trying to Remove ManualLock Record with roles.EXCHANGE permissions - should be error", async function() {
-      await this.lockManager.addManualLockRecord(
+      await this.lockManager.methods[
+        "addManualLockRecord(address,uint256,string,uint256,bytes32)"
+      ](
         wallet,
         100,
         REASON_STRING,
@@ -238,14 +246,11 @@ contract("InvestorLockManagerPartitioned", function([
         await this.lockManager.getTransferableTokens(owner, await latestTime()),
         100
       );
-      await this.lockManager.addManualLockRecord(
-        owner,
-        100,
-        REASON_STRING,
-        (await latestTime()) + 1000,
-        partition,
-        {from: issuerWallet}
-      );
+      await this.lockManager.methods[
+        "addManualLockRecord(address,uint256,string,uint256,bytes32)"
+      ](owner, 100, REASON_STRING, (await latestTime()) + 1000, partition, {
+        from: issuerWallet
+      });
       assert.equal(
         await this.lockManager.methods["lockCount(address,bytes32)"].call(
           owner,
@@ -295,7 +300,9 @@ contract("InvestorLockManagerPartitioned", function([
     });
 
     it("Should return the number of locks on a partition - 1", async function() {
-      await this.lockManager.addManualLockRecord(
+      await this.lockManager.methods[
+        "addManualLockRecord(address,uint256,string,uint256,bytes32)"
+      ](
         wallet,
         100,
         REASON_STRING,
@@ -315,7 +322,9 @@ contract("InvestorLockManagerPartitioned", function([
 
   describe("LockInfo", function() {
     it("Should revert when no partition is specified", async function() {
-      await this.lockManager.addManualLockRecord(
+      await this.lockManager.methods[
+        "addManualLockRecord(address,uint256,string,uint256,bytes32)"
+      ](
         wallet,
         100,
         REASON_STRING,
@@ -327,7 +336,9 @@ contract("InvestorLockManagerPartitioned", function([
     });
 
     it("Should revert due to lockIndex > lastLockNumber", async function() {
-      await this.lockManager.addManualLockRecord(
+      await this.lockManager.methods[
+        "addManualLockRecord(address,uint256,string,uint256,bytes32)"
+      ](
         wallet,
         100,
         REASON_STRING,
@@ -348,14 +359,11 @@ contract("InvestorLockManagerPartitioned", function([
     });
 
     it("Should pass", async function() {
-      await this.lockManager.addManualLockRecord(
-        wallet,
-        100,
-        REASON_STRING,
-        this.releaseTime,
-        this.ensuredPartition,
-        {from: issuerWallet}
-      );
+      await this.lockManager.methods[
+        "addManualLockRecord(address,uint256,string,uint256,bytes32)"
+      ](wallet, 100, REASON_STRING, this.releaseTime, this.ensuredPartition, {
+        from: issuerWallet
+      });
       assert.equal(
         await this.lockManager.methods["lockCount(address,bytes32)"].call(
           wallet,
@@ -385,13 +393,9 @@ contract("InvestorLockManagerPartitioned", function([
       await this.token.issueTokens(owner, 100);
       const partition = await this.token.partitionOf(owner, 0);
       assert.equal(await this.token.balanceOf(owner), 100);
-      await this.lockManager.addManualLockRecord(
-        owner,
-        100,
-        REASON_STRING,
-        this.releaseTime,
-        partition
-      );
+      await this.lockManager.methods[
+        "addManualLockRecord(address,uint256,string,uint256,bytes32)"
+      ](owner, 100, REASON_STRING, this.releaseTime, partition);
       assert.equal(
         await this.lockManager.getTransferableTokens(
           owner,
@@ -405,13 +409,9 @@ contract("InvestorLockManagerPartitioned", function([
       await this.token.issueTokens(owner, 100);
       const partition = await this.token.partitionOf(owner, 0);
       assert.equal(await this.token.balanceOf(owner), 100);
-      await this.lockManager.addManualLockRecord(
-        owner,
-        100,
-        REASON_STRING,
-        this.releaseTime,
-        partition
-      );
+      await this.lockManager.methods[
+        "addManualLockRecord(address,uint256,string,uint256,bytes32)"
+      ](owner, 100, REASON_STRING, this.releaseTime, partition);
       assert.equal(
         await this.lockManager.getTransferableTokens(
           owner,
@@ -431,20 +431,12 @@ contract("InvestorLockManagerPartitioned", function([
       await this.token.issueTokens(owner, 300);
       const partition = await this.token.partitionOf(owner, 0);
       assert.equal(await this.token.balanceOf(owner), 300);
-      await this.lockManager.addManualLockRecord(
-        owner,
-        100,
-        REASON_STRING,
-        this.releaseTime + 100,
-        partition
-      );
-      await this.lockManager.addManualLockRecord(
-        owner,
-        100,
-        REASON_STRING,
-        this.releaseTime + 200,
-        partition
-      );
+      await this.lockManager.methods[
+        "addManualLockRecord(address,uint256,string,uint256,bytes32)"
+      ](owner, 100, REASON_STRING, this.releaseTime + 100, partition);
+      await this.lockManager.methods[
+        "addManualLockRecord(address,uint256,string,uint256,bytes32)"
+      ](owner, 100, REASON_STRING, this.releaseTime + 200, partition);
       assert.equal(
         await this.lockManager.getTransferableTokens(owner, await latestTime()),
         100

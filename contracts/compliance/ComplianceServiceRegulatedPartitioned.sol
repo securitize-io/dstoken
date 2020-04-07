@@ -272,7 +272,7 @@ library ComplianceServicePartitionedLibrary {
             }
         } else if (toRegion == US) {
             if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceAccreditedUS() && !isAccredited(_services, _to)) {
-                return (61, ONLY_US_ACCREDITED);
+                return (62, ONLY_US_ACCREDITED);
             }
 
             uint256 usInvestorsLimit = getUSInvestorsLimit(_services);
