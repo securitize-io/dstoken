@@ -214,7 +214,7 @@ contract("DSTokenPartitioned (regulated)", function([
       await this.token.issueTokensCustom(usInvestorWallet, 100, 1, 0, "", 0);
       const partition = await this.token.partitionOf(usInvestorWallet, 0);
       const balance = await this.token.balanceOfInvestorByPartition(
-        US_INVESTOR_ID,
+        investorId.US_INVESTOR_ID,
         partition
       );
       assert.equal(balance, 100);
