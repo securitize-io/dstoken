@@ -31,7 +31,7 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
         return lockInfoForInvestor(_holderId, _lockIndex);
     }
 
-    function getTransferableTokensForHolder(string memory _holderId, uint64 _time) public view returns (uint256) {
+    function getTransferableTokensForHolder(string memory _holderId, uint256 _time) public view returns (uint256) {
         return getTransferableTokensForInvestor(_holderId, _time);
     }
 
@@ -180,12 +180,12 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
         autoReleaseTime = investorsLocks[_investorId][_lockIndex].releaseTime;
     }
 
-    function getTransferableTokens(address _who, uint64 _time) public view returns (uint256) {
+    function getTransferableTokens(address _who, uint256 _time) public view returns (uint256) {
         string memory investor = getRegistryService().getInvestor(_who);
         return getTransferableTokensForInvestor(investor, _time);
     }
 
-    function getTransferableTokensForInvestor(string memory _investorId, uint64 _time) public view returns (uint256) {
+    function getTransferableTokensForInvestor(string memory _investorId, uint256 _time) public view returns (uint256) {
         require(_time > 0, "Time must be greater than zero");
 
         uint256 balanceOfInvestor = getToken().balanceOfInvestor(_investorId);
