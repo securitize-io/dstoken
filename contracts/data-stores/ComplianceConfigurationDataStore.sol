@@ -12,7 +12,7 @@ contract ComplianceConfigurationDataStore is ServiceConsumerDataStore {
     uint256 public jpInvestorsLimit;
     uint256 public usAccreditedInvestorsLimit;
     uint256 public nonAccreditedInvestorsLimit;
-    uint256 public maxUsInvestorsPercentage;
+    uint256 public maxUSInvestorsPercentage;
     uint256 public blockFlowbackEndTime;
     uint256 public nonUSLockPeriod;
     uint256 public minimumTotalInvestors;
