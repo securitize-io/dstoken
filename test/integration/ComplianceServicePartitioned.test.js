@@ -12,7 +12,7 @@ const country = fixtures.Country;
 const compliance = fixtures.Compliance;
 const time = fixtures.Time;
 
-contract("ComplianceServiceRegulated", function([
+contract("ComplianceServiceRegulatedPartitioned", function([
   owner,
   wallet,
   wallet1,
@@ -28,7 +28,7 @@ contract("ComplianceServiceRegulated", function([
       artifacts,
       complianceType.PARTITIONED,
       lockManagerType.PARTITIONED,
-      [omnibusWallet],
+      undefined,
       true
     );
     await this.trustService.setRole(issuerWallet, roles.ISSUER);
@@ -57,7 +57,7 @@ contract("ComplianceServiceRegulated", function([
   });
 
   describe("Pre transfer check", function() {
-    it("Pre transfer check with paused", async function() {
+    it("Pre transfer check with paused token", async function() {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -74,7 +74,6 @@ contract("ComplianceServiceRegulated", function([
         wallet,
         investorId.GENERAL_INVESTOR_ID_2
       );
-      await this.token.setCap(1000);
       await this.token.issueTokens(owner, 100, {gas: 2e6});
       await this.token.pause();
       const res = await this.complianceService.preTransferCheck(
@@ -103,7 +102,6 @@ contract("ComplianceServiceRegulated", function([
         wallet,
         investorId.GENERAL_INVESTOR_ID_1
       );
-      await this.token.setCap(1000);
       await this.token.issueTokens(owner, 100);
       const res = await this.complianceService.preTransferCheck(
         wallet,
@@ -123,7 +121,6 @@ contract("ComplianceServiceRegulated", function([
         noneWallet1,
         investorId.GENERAL_INVESTOR_ID_1
       );
-      await this.token.setCap(1000);
       await this.token.issueTokens(noneWallet1, 100);
       const res = await this.complianceService.preTransferCheck(
         noneWallet1,
@@ -143,7 +140,6 @@ contract("ComplianceServiceRegulated", function([
         noneWallet1,
         investorId.GENERAL_INVESTOR_ID_1
       );
-      await this.token.setCap(1000);
       await this.token.issueTokens(noneWallet1, 100);
       const res = await this.complianceService.preTransferCheck(
         noneWallet1,
@@ -163,7 +159,6 @@ contract("ComplianceServiceRegulated", function([
         wallet,
         investorId.GENERAL_INVESTOR_ID_1
       );
-      await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       const partition = await this.token.partitionOf(wallet, 0);
       await this.lockManager.addManualLockRecord(
@@ -215,7 +210,6 @@ contract("ComplianceServiceRegulated", function([
         country.FRANCE,
         compliance.EU
       );
-      await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
 
       assert.equal(await this.token.balanceOf(wallet), 100);
@@ -253,7 +247,6 @@ contract("ComplianceServiceRegulated", function([
         owner,
         investorId.GENERAL_INVESTOR_ID_2
       );
-      await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       await this.complianceConfiguration.setCountryCompliance(
         country.USA,
@@ -300,7 +293,6 @@ contract("ComplianceServiceRegulated", function([
         owner,
         investorId.GENERAL_INVESTOR_ID_2
       );
-      await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       await this.complianceConfiguration.setCountryCompliance(
         country.USA,
@@ -347,7 +339,6 @@ contract("ComplianceServiceRegulated", function([
         owner,
         investorId.GENERAL_INVESTOR_ID_2
       );
-      await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       await this.complianceConfiguration.setCountryCompliance(
         country.USA,
@@ -393,7 +384,6 @@ contract("ComplianceServiceRegulated", function([
         owner,
         investorId.GENERAL_INVESTOR_ID_2
       );
-      await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       await this.complianceConfiguration.setCountryCompliance(
         country.USA,
@@ -441,7 +431,6 @@ contract("ComplianceServiceRegulated", function([
         owner,
         investorId.GENERAL_INVESTOR_ID_2
       );
-      await this.token.setCap(1000);
       await this.token.issueTokens(owner, 100);
       await this.complianceConfiguration.setUsLockPeriod(0);
       await this.complianceConfiguration.setCountryCompliance(
@@ -489,7 +478,6 @@ contract("ComplianceServiceRegulated", function([
         owner,
         investorId.GENERAL_INVESTOR_ID_2
       );
-      await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       await this.complianceConfiguration.setCountryCompliance(
         country.USA,
@@ -536,7 +524,6 @@ contract("ComplianceServiceRegulated", function([
         investorId.GENERAL_INVESTOR_ID_2
       );
       await this.walletManager.addPlatformWallet(platformWallet);
-      await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       await this.complianceConfiguration.setCountryCompliance(
         country.USA,
@@ -582,7 +569,6 @@ contract("ComplianceServiceRegulated", function([
         country.FRANCE
       );
       await this.complianceConfiguration.setForceAccreditedUS(true); // Should still pass
-      await this.token.setCap(1000);
       await this.token.issueTokens(owner, 100);
       const res = await this.complianceService.preTransferCheck(
         owner,

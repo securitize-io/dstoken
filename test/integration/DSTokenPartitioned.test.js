@@ -11,7 +11,7 @@ const time = fixtures.Time;
 const complianceType = require("../../utils/globals").complianceType;
 const lockManagerType = require("../../utils/globals").lockManagerType;
 
-contract("DSToken (regulated)", function([
+contract("DSTokenPartitioned (regulated)", function([
   owner,
   issuerWallet,
   usInvestorWallet,

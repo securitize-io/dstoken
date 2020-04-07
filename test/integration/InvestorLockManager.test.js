@@ -30,8 +30,8 @@ contract("InvestorLockManager", function([
   });
 
   beforeEach(async function() {
-    snapshot = await snapshotsHelper.takeSnapshot()
-    snapshotId = snapshot['result'];
+    snapshot = await snapshotsHelper.takeSnapshot();
+    snapshotId = snapshot["result"];
   });
 
   afterEach(async function() {
@@ -126,7 +126,6 @@ contract("InvestorLockManager", function([
         owner,
         investorId.GENERAL_INVESTOR_ID_1
       );
-      await this.token.setCap(1000);
       await this.token.issueTokens(owner, 100);
       assert.equal(await this.token.balanceOf(owner), 100);
       assert.equal(
@@ -226,7 +225,6 @@ contract("InvestorLockManager", function([
         owner,
         investorId.GENERAL_INVESTOR_ID_1
       );
-      await this.token.setCap(1000);
       await this.token.issueTokens(owner, 100);
       assert.equal(await this.token.balanceOf(owner), 100);
       assert.equal(
@@ -315,12 +313,12 @@ contract("InvestorLockManager", function([
         wallet,
         investorId.GENERAL_INVESTOR_ID_1
       );
-      let realeseTime = (await latestTime()) + 1000;
+      let releaseTime = (await latestTime()) + 1000;
       await this.lockManager.addManualLockRecord(
         wallet,
         100,
         REASON_STRING,
-        realeseTime,
+        releaseTime,
         {from: issuerWallet}
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
@@ -329,7 +327,7 @@ contract("InvestorLockManager", function([
       assert.equal(info[0], REASON_CODE);
       assert.equal(info[1], REASON_STRING);
       assert.equal(info[2], 100);
-      assert.equal(info[3], realeseTime);
+      assert.equal(info[3], releaseTime);
     });
   });
 
@@ -355,18 +353,17 @@ contract("InvestorLockManager", function([
         owner,
         investorId.GENERAL_INVESTOR_ID_1
       );
-      let realeseTime = (await latestTime()) + 1000;
-      await this.token.setCap(1000);
+      let releaseTime = (await latestTime()) + 1000;
       await this.token.issueTokens(owner, 100);
       assert.equal(await this.token.balanceOf(owner), 100);
       await this.lockManager.addManualLockRecord(
         owner,
         100,
         REASON_STRING,
-        realeseTime
+        releaseTime
       );
       assert.equal(
-        await this.lockManager.getTransferableTokens(owner, realeseTime - 100),
+        await this.lockManager.getTransferableTokens(owner, releaseTime - 100),
         0
       );
     });
@@ -380,18 +377,17 @@ contract("InvestorLockManager", function([
         owner,
         investorId.GENERAL_INVESTOR_ID_1
       );
-      let realeseTime = (await latestTime()) + 1000;
-      await this.token.setCap(1000);
+      let releaseTime = (await latestTime()) + 1000;
       await this.token.issueTokens(owner, 100);
       assert.equal(await this.token.balanceOf(owner), 100);
       await this.lockManager.addManualLockRecord(
         owner,
         100,
         REASON_STRING,
-        realeseTime
+        releaseTime
       );
       assert.equal(
-        await this.lockManager.getTransferableTokens(owner, realeseTime + 1000),
+        await this.lockManager.getTransferableTokens(owner, releaseTime + 1000),
         100
       );
     });
@@ -405,32 +401,31 @@ contract("InvestorLockManager", function([
         owner,
         investorId.GENERAL_INVESTOR_ID_1
       );
-      let realeseTime = (await latestTime()) + 1000;
-      await this.token.setCap(1000);
+      let releaseTime = (await latestTime()) + 1000;
       await this.token.issueTokens(owner, 300);
       assert.equal(await this.token.balanceOf(owner), 300);
       await this.lockManager.addManualLockRecord(
         owner,
         100,
         REASON_STRING,
-        realeseTime + 100
+        releaseTime + 100
       );
       await this.lockManager.addManualLockRecord(
         owner,
         100,
         REASON_STRING,
-        realeseTime + 200
+        releaseTime + 200
       );
       assert.equal(
         await this.lockManager.getTransferableTokens(owner, await latestTime()),
         100
       );
       assert.equal(
-        await this.lockManager.getTransferableTokens(owner, realeseTime + 101),
+        await this.lockManager.getTransferableTokens(owner, releaseTime + 101),
         200
       );
       assert.equal(
-        await this.lockManager.getTransferableTokens(owner, realeseTime + 201),
+        await this.lockManager.getTransferableTokens(owner, releaseTime + 201),
         300
       );
     });

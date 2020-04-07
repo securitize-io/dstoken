@@ -29,8 +29,8 @@ contract("LockManager", function([
   });
 
   beforeEach(async function() {
-    snapshot = await snapshotsHelper.takeSnapshot()
-    snapshotId = snapshot['result'];
+    snapshot = await snapshotsHelper.takeSnapshot();
+    snapshotId = snapshot["result"];
   });
 
   afterEach(async function() {
@@ -210,12 +210,12 @@ contract("LockManager", function([
     });
 
     it("Should pass", async function() {
-      let realeseTime = (await latestTime()) + 1000;
+      let releaseTime = (await latestTime()) + 1000;
       await this.lockManager.addManualLockRecord(
         wallet,
         100,
         REASON_STRING,
-        realeseTime,
+        releaseTime,
         {from: issuerWallet}
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
@@ -224,7 +224,7 @@ contract("LockManager", function([
       assert.equal(info[0], REASON_CODE);
       assert.equal(info[1], REASON_STRING);
       assert.equal(info[2], 100);
-      assert.equal(info[3], realeseTime);
+      assert.equal(info[3], releaseTime);
     });
   });
 
@@ -251,7 +251,7 @@ contract("LockManager", function([
     });
 
     it("Should return 100 because tokens will be unlocked", async function() {
-      let realeseTime = (await latestTime()) + 1000;
+      let releaseTime = (await latestTime()) + 1000;
       await this.token.setCap(1000);
       await this.token.issueTokens(owner, 100);
       assert.equal(await this.token.balanceOf(owner), 100);
@@ -259,16 +259,16 @@ contract("LockManager", function([
         owner,
         100,
         REASON_STRING,
-        realeseTime
+        releaseTime
       );
       assert.equal(
-        await this.lockManager.getTransferableTokens(owner, realeseTime + 1000),
+        await this.lockManager.getTransferableTokens(owner, releaseTime + 1000),
         100
       );
     });
 
     it("Should return correct values when tokens will be locked with multiple locks", async function() {
-      let realeseTime = (await latestTime()) + 1000;
+      let releaseTime = (await latestTime()) + 1000;
       await this.token.setCap(1000);
       await this.token.issueTokens(owner, 300);
       assert.equal(await this.token.balanceOf(owner), 300);
@@ -276,24 +276,24 @@ contract("LockManager", function([
         owner,
         100,
         REASON_STRING,
-        realeseTime + 100
+        releaseTime + 100
       );
       await this.lockManager.addManualLockRecord(
         owner,
         100,
         REASON_STRING,
-        realeseTime + 200
+        releaseTime + 200
       );
       assert.equal(
         await this.lockManager.getTransferableTokens(owner, await latestTime()),
         100
       );
       assert.equal(
-        await this.lockManager.getTransferableTokens(owner, realeseTime + 101),
+        await this.lockManager.getTransferableTokens(owner, releaseTime + 101),
         200
       );
       assert.equal(
-        await this.lockManager.getTransferableTokens(owner, realeseTime + 201),
+        await this.lockManager.getTransferableTokens(owner, releaseTime + 201),
         300
       );
     });

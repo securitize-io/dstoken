@@ -113,7 +113,7 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
     }
 
     function getTransferableTokensForInvestor(string memory _investorId, uint64 _time, bytes32 _partition) public view returns (uint256) {
-        require(_time > 0, "time must be greater than zero");
+        require(_time > 0, "Time must be greater than zero");
         uint256 balanceOfHolderByPartition = getTokenPartitioned().balanceOfInvestorByPartition(_investorId, _partition);
 
         if (investorsLocksCounts[_investorId][_partition] == 0) {
@@ -132,7 +132,7 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
     }
 
     function getTransferableTokens(address _who, uint64 _time) public view returns (uint256 transferable) {
-        require(_time > 0, "time must be greater than zero");
+        require(_time > 0, "Time must be greater than zero");
         uint256 countOfPartitions = getTokenPartitioned().partitionCountOf(_who);
         for (uint256 index = 0; index < countOfPartitions; ++index) {
             transferable = SafeMath.add(transferable, getTransferableTokens(_who, _time, getTokenPartitioned().partitionOf(_who, index)));
