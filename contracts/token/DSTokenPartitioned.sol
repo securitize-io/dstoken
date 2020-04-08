@@ -19,7 +19,7 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
         uint256 _issuanceTime,
         uint256 _valueLocked,
         string memory _reason,
-        uint256 _releaseTime /*onlyIssuerOrAbove*/
+        uint64 _releaseTime /*onlyIssuerOrAbove*/
     ) public returns (bool) {
         super.issueTokensCustom(_to, _value, _issuanceTime, 0, "", 0);
         partitionsManagement.issueTokensCustom(

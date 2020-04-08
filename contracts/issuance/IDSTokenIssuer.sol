@@ -17,7 +17,7 @@ contract IDSTokenIssuer is Initializable, VersionedContract {
         uint256[] memory _issuanceValues,
         string memory _reason,
         uint256[] memory _locksValues,
-        uint256[] memory _releaseTimes,
+        uint64[] memory _releaseTimes,
         string memory _collisionHash,
         string memory _country,
         uint256[] memory attributeValues,

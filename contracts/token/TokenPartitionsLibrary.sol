@@ -38,7 +38,7 @@ library TokenPartitionsLibrary {
         uint256 _issuanceTime,
         uint256 _valueLocked,
         string memory _reason,
-        uint256 _releaseTime
+        uint64 _releaseTime
     ) public returns (bool) {
         string memory investor = _registry.getInvestor(_to);
         string memory country = _registry.getCountry(investor);
