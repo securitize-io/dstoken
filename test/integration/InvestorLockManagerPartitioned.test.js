@@ -444,7 +444,7 @@ contract("InvestorLockManagerPartitioned", function([
       );
       assert.equal(
         await this.lockManager.methods[
-          "getTransferableTokens(address,uint256,bytes32)"
+          "getTransferableTokens(address,uint64,bytes32)"
         ].call(owner, this.releaseTime + 1000, partition),
         100
       );

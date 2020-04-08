@@ -39,7 +39,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         return lockInfoForInvestor(_holderId, _lockIndex);
     }
 
-    function getTransferableTokensForHolder(string memory _holderId, uint256 _time) public view returns (uint256) {
+    function getTransferableTokensForHolder(string memory _holderId, uint64 _time) public view returns (uint256) {
         return getTransferableTokensForInvestor(_holderId, _time);
     }
 
@@ -151,7 +151,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         autoReleaseTime = locks[_who][_lockIndex].releaseTime;
     }
 
-    function getTransferableTokens(address _who, uint256 _time) public view returns (uint256) {
+    function getTransferableTokens(address _who, uint64 _time) public view returns (uint256) {
         require(_time > 0, "Time must be greater than zero");
 
         uint256 balanceOfInvestor = getToken().balanceOf(_who);
@@ -178,7 +178,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         return transferable;
     }
 
-    function getTransferableTokensForInvestor(string memory, uint256) public view returns (uint256) {
+    function getTransferableTokensForInvestor(string memory, uint64) public view returns (uint256) {
         return 0;
     }
 

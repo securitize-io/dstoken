@@ -68,7 +68,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
      * @param _releaseTime timestamp to release the lock (or 0 for locks which can only released by an unlockTokens call)
      * @return true if successful
      */
-    function issueTokensCustom(address _to, uint256 _value, uint256 _issuanceTime, uint256 _valueLocked, string memory _reason, uint256 _releaseTime)
+    function issueTokensCustom(address _to, uint256 _value, uint256 _issuanceTime, uint256 _valueLocked, string memory _reason, uint64 _releaseTime)
         public
         onlyIssuerOrAbove
         returns (bool)

@@ -18,7 +18,7 @@ contract TokenIssuer is ProxyTarget, Initializable, IDSTokenIssuer, ServiceConsu
         uint256[] memory _issuanceValues,
         string memory _reason,
         uint256[] memory _locksValues,
-        uint256[] memory _lockReleaseTimes,
+        uint64[] memory _lockReleaseTimes,
         string memory _collisionHash,
         string memory _country,
         uint256[] memory _attributeValues,

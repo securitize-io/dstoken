@@ -145,12 +145,12 @@ contract IDSLockManager is Initializable, VersionedContract {
      * @param _who address to get number of transferable tokens for
      * @param _time time to calculate for
      */
-    function getTransferableTokens(address _who, uint256 _time) public view returns (uint256);
+    function getTransferableTokens(address _who, uint64 _time) public view returns (uint256);
 
     /**
      * @dev get total number of transferable tokens for a investor, at a certain time
      * @param _investorId investor id
      * @param _time time to calculate for
      */
-    function getTransferableTokensForInvestor(string memory _investorId, uint256 _time) public view returns (uint256);
+    function getTransferableTokensForInvestor(string memory _investorId, uint64 _time) public view returns (uint256);
 }
