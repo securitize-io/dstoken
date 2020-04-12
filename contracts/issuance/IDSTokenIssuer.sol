@@ -3,7 +3,6 @@ pragma solidity ^0.5.0;
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
-
 contract IDSTokenIssuer is Initializable, VersionedContract {
     constructor() internal {}
 
@@ -17,7 +16,7 @@ contract IDSTokenIssuer is Initializable, VersionedContract {
         uint256[] memory _issuanceValues,
         string memory _reason,
         uint256[] memory _locksValues,
-        uint64[] memory _releaseTimes,
+        uint64[] memory _lockReleaseTimes,
         string memory _collisionHash,
         string memory _country,
         uint256[] memory attributeValues,
