@@ -4,7 +4,6 @@ import "./IDSTokenIssuer.sol";
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
 
-
 contract TokenIssuer is ProxyTarget, Initializable, IDSTokenIssuer, ServiceConsumer {
     function initialize() public initializer onlyFromProxy {
         IDSTokenIssuer.initialize();
