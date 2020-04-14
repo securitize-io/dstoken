@@ -3,7 +3,6 @@ pragma solidity ^0.5.0;
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
-
 contract IDSLockManager is Initializable, VersionedContract {
     constructor() internal {}
 
@@ -153,4 +152,22 @@ contract IDSLockManager is Initializable, VersionedContract {
      * @param _time time to calculate for
      */
     function getTransferableTokensForInvestor(string memory _investorId, uint64 _time) public view returns (uint256);
+
+    /**
+     * @dev Add an investor lock - Locks any token for unlimited time for an investor
+     * @param _investorId investor id
+     */
+    function addInvestorLock(string memory _investorId) public view returns (bool);
+
+    /**
+     * @dev Remove an investor lock
+     * @param _investorId investor id
+     */
+    function removeInvestorLock(string memory _investorId) public view returns (bool);
+
+    /**
+     * @dev Returns true if the investor has an investorLock active. otherwise, false
+     * @param _investorId investor id
+     */
+    function isInvestorLocked(string memory _investorId) public view returns (bool);
 }

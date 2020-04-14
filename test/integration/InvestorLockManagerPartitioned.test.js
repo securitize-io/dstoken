@@ -480,4 +480,110 @@ contract("InvestorLockManagerPartitioned", function([
       );
     });
   });
+
+  describe("Investor Level Lock", function() {
+    before(async function() {
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+      );
+      await this.registryService.addWallet(
+        owner,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.token.issueTokens(owner, 100);
+    });
+
+    beforeEach(async function() {
+      investorLockSnapshot = await snapshotsHelper.takeSnapshot();
+      investorLockSnapshotId = snapshot["result"];
+    });
+
+    afterEach(async function() {
+      await snapshotsHelper.revertToSnapshot(investorLockSnapshotId);
+    });
+
+    it("Should lock an unlocked investor", async function() {
+      const success = await this.lockManager.addInvestorLock(
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      assert.equal(success, true);
+    });
+
+    it("Should not lock an investor if already locked", async function() {
+      const success = await this.lockManager.addInvestorLock(
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      assert.equal(success, true);
+      await assertRevert(
+        this.lockManager.addInvestorLock(investorId.GENERAL_INVESTOR_ID_1)
+      );
+    });
+
+    it("Should unlock an investor", async function() {
+      await this.lockManager.addInvestorLock(investorId.GENERAL_INVESTOR_ID_1);
+      const success = await this.lockManager.removeInvestorLock(
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      assert.equal(success, true);
+    });
+
+    it("Should not unlock an investor if already unlocked", async function() {
+      await assertRevert(
+        this.lockManager.removeInvestorLock(investorId.GENERAL_INVESTOR_ID_1)
+      );
+    });
+
+    it("Should return the lock state of investor", async function() {
+      const lockStateBeforeLock = await this.lockManager.isInvestorLocked.call(
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      assert.equal(lockStateBeforeLock, false);
+      await this.lockManager.addInvestorLock(investorId.GENERAL_INVESTOR_ID_1);
+      const lockStateAfterLock = await this.lockManager.isInvestorLocked.call(
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      assert.equal(lockStateAfterLock, true);
+      await this.lockManager.removeInvestorLock(
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      const lockStateAfterUnlock = await this.lockManager.isInvestorLocked.call(
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      assert.equal(lockStateAfterUnlock, false);
+    });
+
+    it("Should return 0 transferable tokens if an investor is locked", async function() {
+      const currentTime = await latestTime();
+      const partition = await this.token.getPartitionOf(owner, 0);
+      assert.equal(
+        await this.lockManager.getTransferableTokens(
+          owner,
+          currentTime,
+          partition
+        ),
+        100
+      );
+      await this.lockManager.addInvestorLock(investorId.GENERAL_INVESTOR_ID_1);
+      assert.equal(
+        await this.lockManager.getTransferableTokens(
+          owner,
+          currentTime,
+          partition
+        ),
+        0
+      );
+      await this.lockManager.removeInvestorLock(
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      assert.equal(
+        await this.lockManager.getTransferableTokens(
+          owner,
+          currentTime,
+          partition
+        ),
+        100
+      );
+    });
+  });
 });

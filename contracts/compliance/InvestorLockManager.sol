@@ -6,7 +6,6 @@ import "../utils/ProxyTarget.sol";
 import "../service/ServiceConsumer.sol";
 import "../zeppelin/math/Math.sol";
 
-
 contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsumer, InvestorLockManagerDataStore {
     uint256 constant MAX_LOCKS_PER_INVESTOR = 30;
 
@@ -187,6 +186,9 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
 
     function getTransferableTokensForInvestor(string memory _investorId, uint64 _time) public view returns (uint256) {
         require(_time > 0, "Time must be greater than zero");
+        if (investorsLocked[_investorId]) {
+            return 0;
+        }
 
         uint256 balanceOfInvestor = getToken().balanceOfInvestor(_investorId);
         uint256 investorLockCount = investorsLocksCounts[_investorId];
@@ -209,5 +211,21 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
         uint256 transferable = SafeMath.sub(balanceOfInvestor, Math.min(totalLockedTokens, balanceOfInvestor));
 
         return transferable;
+    }
+
+    function addInvestorLock(string memory _investorId) public view returns (bool) {
+        require(!investorsLocked[_investorId], "Investor is already locked");
+        investorsLocked[_investorId] = true;
+        return true;
+    }
+
+    function removeInvestorLock(string memory _investorId) public view returns (bool) {
+        require(investorsLocked[_investorId], "Investor is not locked");
+        delete investorsLocked[_investorId];
+        return true;
+    }
+
+    function isInvestorLocked(string memory _investorId) public view returns (bool) {
+        return investorsLocked[_investorId];
     }
 }

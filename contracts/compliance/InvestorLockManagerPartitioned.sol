@@ -7,7 +7,6 @@ import "../zeppelin/math/Math.sol";
 import "../service/ServiceConsumer.sol";
 import "../data-stores/LockManagerPartitionedDataStore.sol";
 
-
 contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockManagerPartitioned, ServiceConsumer, LockManagerPartitionedDataStore {
     uint256 constant MAX_LOCKS_PER_INVESTOR_PARTITION = 30;
 
@@ -114,6 +113,10 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
 
     function getTransferableTokensForInvestor(string memory _investorId, uint64 _time, bytes32 _partition) public view returns (uint256) {
         require(_time > 0, "Time must be greater than zero");
+        if (investorsLocked[_investorId]) {
+            return 0;
+        }
+
         uint256 balanceOfHolderByPartition = getTokenPartitioned().balanceOfInvestorByPartition(_investorId, _partition);
 
         if (investorsLocksCounts[_investorId][_partition] == 0) {
@@ -258,5 +261,21 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
 
     function revertedFunction() internal pure {
         revert("Must specify partition");
+    }
+
+    function addInvestorLock(string memory _investorId) public view returns (bool) {
+        require(!investorsLocked[_investorId], "Investor is already locked");
+        investorsLocked[_investorId] = true;
+        return true;
+    }
+
+    function removeInvestorLock(string memory _investorId) public view returns (bool) {
+        require(investorsLocked[_investorId], "Investor is not locked");
+        delete investorsLocked[_investorId];
+        return true;
+    }
+
+    function isInvestorLocked(string memory _investorId) public view returns (bool) {
+        return investorsLocked[_investorId];
     }
 }
