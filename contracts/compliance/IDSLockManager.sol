@@ -157,13 +157,13 @@ contract IDSLockManager is Initializable, VersionedContract {
      * @dev Add an investor lock - Locks any token for unlimited time for an investor
      * @param _investorId investor id
      */
-    function addInvestorLock(string memory _investorId) public view returns (bool);
+    function addInvestorLock(string memory _investorId) public returns (bool);
 
     /**
      * @dev Remove an investor lock
      * @param _investorId investor id
      */
-    function removeInvestorLock(string memory _investorId) public view returns (bool);
+    function removeInvestorLock(string memory _investorId) public returns (bool);
 
     /**
      * @dev Returns true if the investor has an investorLock active. otherwise, false

@@ -190,21 +190,27 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
     }
 
     function createLockForInvestor(string memory, uint256, uint256, string memory, uint256) public onlyIssuerOrAboveOrToken {
-        revertInvestorLevelMethod()
+        revertInvestorLevelMethod();
     }
 
     function removeLockRecordForInvestor(string memory, uint256) public onlyIssuerOrAbove returns (bool) {
-        revertInvestorLevelMethod()
+        revertInvestorLevelMethod();
     }
 
-    function addInvestorLock(string memory _investorId) public view returns (bool) {
-        revertInvestorLevelMethod()
+    function addInvestorLock(
+        string memory /*_investorId*/
+    ) public returns (bool) {
+        revertInvestorLevelMethod();
     }
-    function removeInvestorLock(string memory _investorId) public view returns (bool) {
-        revertInvestorLevelMethod()
+    function removeInvestorLock(
+        string memory /*_investorId*/
+    ) public returns (bool) {
+        revertInvestorLevelMethod();
     }
-    function isInvestorLocked(string memory _investorId) public view returns (bool) {
-        revertInvestorLevelMethod()
+    function isInvestorLocked(
+        string memory /*_investorId*/
+    ) public view returns (bool) {
+        revertInvestorLevelMethod();
     }
 
     function revertInvestorLevelMethod() internal view {

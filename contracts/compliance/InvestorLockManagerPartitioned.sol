@@ -263,13 +263,13 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
         revert("Must specify partition");
     }
 
-    function addInvestorLock(string memory _investorId) public view returns (bool) {
+    function addInvestorLock(string memory _investorId) public returns (bool) {
         require(!investorsLocked[_investorId], "Investor is already locked");
         investorsLocked[_investorId] = true;
         return true;
     }
 
-    function removeInvestorLock(string memory _investorId) public view returns (bool) {
+    function removeInvestorLock(string memory _investorId) public returns (bool) {
         require(investorsLocked[_investorId], "Investor is not locked");
         delete investorsLocked[_investorId];
         return true;
