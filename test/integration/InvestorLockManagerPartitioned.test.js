@@ -500,7 +500,10 @@ contract("InvestorLockManagerPartitioned", function([
         investorId.GENERAL_INVESTOR_ID_1
       );
       assert.equal(result.logs[0].event, "InvestorPaused");
-      assert.equal(result.logs[0].args, investorId.GENERAL_INVESTOR_ID_1);
+      assert.equal(
+        result.logs[0].args["investorId"],
+        investorId.GENERAL_INVESTOR_ID_1
+      );
     });
 
     it("Should not lock an investor if already locked", async function() {
@@ -516,7 +519,10 @@ contract("InvestorLockManagerPartitioned", function([
         investorId.GENERAL_INVESTOR_ID_1
       );
       assert.equal(result.logs[0].event, "InvestorUnpaused");
-      assert.equal(result.logs[0].args, investorId.GENERAL_INVESTOR_ID_1);
+      assert.equal(
+        result.logs[0].args["investorId"],
+        investorId.GENERAL_INVESTOR_ID_1
+      );
     });
 
     it("Should not unlock an investor if already unlocked", async function() {
@@ -544,7 +550,7 @@ contract("InvestorLockManagerPartitioned", function([
 
     it("Should return 0 transferable tokens if an investor is locked", async function() {
       const currentTime = await latestTime();
-      const partition = await this.token.getPartitionOf(owner, 0);
+      const partition = await this.token.partitionOf(owner, 0);
       assert.equal(
         await this.lockManager.getTransferableTokens(
           owner,

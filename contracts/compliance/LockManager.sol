@@ -213,7 +213,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         revertInvestorLevelMethod();
     }
 
-    function revertInvestorLevelMethod() internal view {
+    function revertInvestorLevelMethod() internal pure {
         revert("lock manager supports only wallet locks");
     }
 }

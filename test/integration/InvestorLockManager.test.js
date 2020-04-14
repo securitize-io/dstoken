@@ -458,7 +458,10 @@ contract("InvestorLockManager", function([
         investorId.GENERAL_INVESTOR_ID_1
       );
       assert.equal(result.logs[0].event, "InvestorPaused");
-      assert.equal(result.logs[0].args, investorId.GENERAL_INVESTOR_ID_1);
+      assert.equal(
+        result.logs[0].args["investorId"],
+        investorId.GENERAL_INVESTOR_ID_1
+      );
     });
 
     it("Should not lock an investor if already locked", async function() {
@@ -474,7 +477,10 @@ contract("InvestorLockManager", function([
         investorId.GENERAL_INVESTOR_ID_1
       );
       assert.equal(result.logs[0].event, "InvestorUnpaused");
-      assert.equal(result.logs[0].args, investorId.GENERAL_INVESTOR_ID_1);
+      assert.equal(
+        result.logs[0].args["investorId"],
+        investorId.GENERAL_INVESTOR_ID_1
+      );
     });
 
     it("Should not unlock an investor if already unlocked", async function() {
