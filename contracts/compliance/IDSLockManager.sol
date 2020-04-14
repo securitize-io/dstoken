@@ -22,6 +22,9 @@ contract IDSLockManager is Initializable, VersionedContract {
     event HolderLocked(string holderId, uint256 value, uint256 indexed reason, string reasonString, uint256 releaseTime);
     event HolderUnlocked(string holderId, uint256 value, uint256 indexed reason, string reasonString, uint256 releaseTime);
 
+    event InvestorPaused(string investorId);
+    event InvestorUnpaused(string investorId);
+
     /**
      * @dev creates a lock record for wallet address
      * @param _to address to lock the tokens at
@@ -154,20 +157,20 @@ contract IDSLockManager is Initializable, VersionedContract {
     function getTransferableTokensForInvestor(string memory _investorId, uint64 _time) public view returns (uint256);
 
     /**
-     * @dev Add an investor lock - Locks any token for unlimited time for an investor
+     * @dev pause investor
      * @param _investorId investor id
      */
-    function addInvestorLock(string memory _investorId) public returns (bool);
+    function pauseInvestor(string memory _investorId) public returns (bool);
 
     /**
-     * @dev Remove an investor lock
+     * @dev unpauses investor
      * @param _investorId investor id
      */
-    function removeInvestorLock(string memory _investorId) public returns (bool);
+    function unpauseInvestor(string memory _investorId) public returns (bool);
 
     /**
-     * @dev Returns true if the investor has an investorLock active. otherwise, false
+     * @dev Returns true if paused, otherwise false
      * @param _investorId investor id
      */
-    function isInvestorLocked(string memory _investorId) public view returns (bool);
+    function isInvestorPaused(string memory _investorId) public view returns (bool);
 }

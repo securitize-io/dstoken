@@ -431,7 +431,7 @@ contract("InvestorLockManager", function([
     });
   });
 
-  describe("Investor Level Lock", function() {
+  describe("Investor Pause", function() {
     before(async function() {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
@@ -454,50 +454,47 @@ contract("InvestorLockManager", function([
     });
 
     it("Should lock an unlocked investor", async function() {
-      const success = await this.lockManager.addInvestorLock(
+      const result = await this.lockManager.pauseInvestor(
         investorId.GENERAL_INVESTOR_ID_1
       );
-      assert.equal(success, true);
+      assert.equal(result.logs[0].event, "InvestorPaused");
+      assert.equal(result.logs[0].args, investorId.GENERAL_INVESTOR_ID_1);
     });
 
     it("Should not lock an investor if already locked", async function() {
-      const success = await this.lockManager.addInvestorLock(
-        investorId.GENERAL_INVESTOR_ID_1
-      );
-      assert.equal(success, true);
+      await this.lockManager.pauseInvestor(investorId.GENERAL_INVESTOR_ID_1);
       await assertRevert(
-        this.lockManager.addInvestorLock(investorId.GENERAL_INVESTOR_ID_1)
+        this.lockManager.pauseInvestor(investorId.GENERAL_INVESTOR_ID_1)
       );
     });
 
     it("Should unlock an investor", async function() {
-      await this.lockManager.addInvestorLock(investorId.GENERAL_INVESTOR_ID_1);
-      const success = await this.lockManager.removeInvestorLock(
+      await this.lockManager.pauseInvestor(investorId.GENERAL_INVESTOR_ID_1);
+      const result = await this.lockManager.unpauseInvestor(
         investorId.GENERAL_INVESTOR_ID_1
       );
-      assert.equal(success, true);
+      assert.equal(result.logs[0].event, "InvestorUnpaused");
+      assert.equal(result.logs[0].args, investorId.GENERAL_INVESTOR_ID_1);
     });
 
     it("Should not unlock an investor if already unlocked", async function() {
       await assertRevert(
-        this.lockManager.removeInvestorLock(investorId.GENERAL_INVESTOR_ID_1)
+        this.lockManager.unpauseInvestor(investorId.GENERAL_INVESTOR_ID_1)
       );
     });
 
     it("Should return the lock state of investor", async function() {
-      const lockStateBeforeLock = await this.lockManager.isInvestorLocked.call(
+      const lockStateBeforeLock = await this.lockManager.isInvestorPaused.call(
         investorId.GENERAL_INVESTOR_ID_1
       );
       assert.equal(lockStateBeforeLock, false);
-      await this.lockManager.addInvestorLock(investorId.GENERAL_INVESTOR_ID_1);
-      const lockStateAfterLock = await this.lockManager.isInvestorLocked.call(
+      await this.lockManager.pauseInvestor(investorId.GENERAL_INVESTOR_ID_1);
+      const lockStateAfterLock = await this.lockManager.isInvestorPaused.call(
         investorId.GENERAL_INVESTOR_ID_1
       );
       assert.equal(lockStateAfterLock, true);
-      await this.lockManager.removeInvestorLock(
-        investorId.GENERAL_INVESTOR_ID_1
-      );
-      const lockStateAfterUnlock = await this.lockManager.isInvestorLocked.call(
+      await this.lockManager.unpauseInvestor(investorId.GENERAL_INVESTOR_ID_1);
+      const lockStateAfterUnlock = await this.lockManager.isInvestorPaused.call(
         investorId.GENERAL_INVESTOR_ID_1
       );
       assert.equal(lockStateAfterUnlock, false);
@@ -509,14 +506,12 @@ contract("InvestorLockManager", function([
         await this.lockManager.getTransferableTokens(owner, currentTime),
         100
       );
-      await this.lockManager.addInvestorLock(investorId.GENERAL_INVESTOR_ID_1);
+      await this.lockManager.pauseInvestor(investorId.GENERAL_INVESTOR_ID_1);
       assert.equal(
         await this.lockManager.getTransferableTokens(owner, currentTime),
         0
       );
-      await this.lockManager.removeInvestorLock(
-        investorId.GENERAL_INVESTOR_ID_1
-      );
+      await this.lockManager.unpauseInvestor(investorId.GENERAL_INVESTOR_ID_1);
       assert.equal(
         await this.lockManager.getTransferableTokens(owner, currentTime),
         100
