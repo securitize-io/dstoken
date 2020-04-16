@@ -2,12 +2,12 @@ pragma solidity ^0.5.0;
 
 import "./LockManager.sol";
 import "./IDSLockManagerPartitioned.sol";
-import "./InvestorLockManagerCommon.sol";
+import "./InvestorLockManagerBase.sol";
 import "../zeppelin/math/Math.sol";
 
 // import "../data-stores/LockManagerPartitionedDataStore.sol";
 
-contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLockManagerCommon {
+contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLockManagerBase {
     uint256 constant MAX_LOCKS_PER_INVESTOR_PARTITION = 30;
 
     function initialize() public initializer onlyFromProxy {

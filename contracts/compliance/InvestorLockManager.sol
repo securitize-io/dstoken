@@ -1,13 +1,13 @@
 pragma solidity ^0.5.0;
 
 import "./IDSLockManager.sol";
-import "./InvestorLockManagerCommon.sol";
+import "./InvestorLockManagerBase.sol";
 import "../data-stores/InvestorLockManagerDataStore.sol";
 import "../utils/ProxyTarget.sol";
 import "../service/ServiceConsumer.sol";
 import "../zeppelin/math/Math.sol";
 
-contract InvestorLockManager is IDSLockManager, InvestorLockManagerCommon {
+contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
     uint256 constant MAX_LOCKS_PER_INVESTOR = 30;
 
     /*************** Legacy functions ***************/

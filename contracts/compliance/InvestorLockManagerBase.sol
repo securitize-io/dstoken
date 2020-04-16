@@ -5,7 +5,7 @@ import "../utils/ProxyTarget.sol";
 import "../service/ServiceConsumer.sol";
 import "../zeppelin/math/Math.sol";
 
-contract InvestorLockManagerCommon is ProxyTarget, Initializable, ServiceConsumer, InvestorLockManagerDataStore {
+contract InvestorLockManagerBase is ProxyTarget, Initializable, ServiceConsumer, InvestorLockManagerDataStore {
     event InvestorFullyLocked(string investorId);
     event InvestorFullyUnlocked(string investorId);
 
