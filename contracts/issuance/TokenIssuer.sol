@@ -43,11 +43,7 @@ contract TokenIssuer is ProxyTarget, Initializable, IDSTokenIssuer, ServiceConsu
         getRegistryService().setAttribute(_id, getRegistryService().ACCREDITED(), _attributeValues[1], _attributeExpirations[1], "");
         getRegistryService().setAttribute(_id, getRegistryService().QUALIFIED(), _attributeValues[2], _attributeExpirations[2], "");
 
-        getToken().issueTokensCustom(_to, _issuanceValues[0], _issuanceValues[1], 0, "", 0);
-
-        for (uint256 i = 0; i < _locksValues.length; i++) {
-            getLockManager().addManualLockRecord(_to, _locksValues[i], _reason, _lockReleaseTimes[i]);
-        }
+        getToken().issueTokensWithMultipleLocks(_to, _issuanceValues[0], _issuanceValues[1], _locksValues, _reason, _lockReleaseTimes);
 
         return true;
     }

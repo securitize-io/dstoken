@@ -5,7 +5,6 @@ import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 import "../omnibus/IDSOmnibusWalletController.sol";
 
-
 contract IDSToken is IERC20, Initializable, VersionedContract {
     event Issue(address indexed to, uint256 value, uint256 valueLocked);
     event Burn(address indexed burner, uint256 value, string reason);
@@ -71,6 +70,15 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
         uint256 _valueLocked,
         string memory _reason,
         uint64 _releaseTime /*onlyIssuerOrAbove*/
+    ) public returns (bool);
+
+    function issueTokensWithMultipleLocks(
+        address _to,
+        uint256 _value,
+        uint256 _issuanceTime,
+        uint256[] memory _valuesLocked,
+        string memory _reason,
+        uint64[] memory _releaseTimes /*onlyIssuerOrAbove*/
     ) public returns (bool);
 
     //*********************

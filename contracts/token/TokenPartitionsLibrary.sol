@@ -8,7 +8,6 @@ import "../registry/IDSRegistryService.sol";
 import "../compliance/IDSComplianceConfigurationService.sol";
 import "../compliance/IDSPartitionsManager.sol";
 
-
 library TokenPartitionsLibrary {
     uint256 internal constant COMPLIANCE_SERVICE = 0;
     uint256 internal constant REGISTRY_SERVICE = 1;
@@ -36,18 +35,21 @@ library TokenPartitionsLibrary {
         address _to,
         uint256 _value,
         uint256 _issuanceTime,
-        uint256 _valueLocked,
+        uint256[] memory _valuesLocked,
         string memory _reason,
-        uint64 _releaseTime
+        uint64[] memory _releaseTimes
     ) public returns (bool) {
         string memory investor = _registry.getInvestor(_to);
         string memory country = _registry.getCountry(investor);
         bytes32 partition = _partitionsManager.ensurePartition(_issuanceTime, _compConf.getCountryCompliance(country));
         emit IssueByPartition(_to, _value, partition);
         transferPartition(self, _registry, address(0), _to, _value, partition);
-        if (_valueLocked > 0) {
-            _lockManager.createLockForInvestor(investor, _valueLocked, 0, _reason, _releaseTime, partition);
+        uint256 totalLocked = 0;
+        for (uint256 i = 0; i < _valuesLocked.length; i++) {
+            totalLocked += _valuesLocked[i];
+            _lockManager.createLockForInvestor(investor, _valuesLocked[i], 0, _reason, _releaseTimes[i], partition);
         }
+        require(totalLocked <= _value, "valueLocked must be smaller than value");
     }
 
     function setPartitionToAddressImpl(TokenPartitions storage self, address _who, uint256 _index, bytes32 _partition) internal returns (bool) {

@@ -5,12 +5,34 @@ import "./IDSTokenPartitioned.sol";
 import "../compliance/IDSPartitionsManager.sol";
 import "./TokenPartitionsLibrary.sol";
 
-
 contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
     function initialize(string memory _name, string memory _symbol, uint8 _decimals) public initializer onlyFromProxy {
         DSToken.initialize(_name, _symbol, _decimals);
-        IDSTokenPartitioned.initialize();
         VERSIONS.push(1);
+    }
+
+    function issueTokensWithMultipleLocks(
+        address _to,
+        uint256 _value,
+        uint256 _issuanceTime,
+        uint256[] memory _valuesLocked,
+        string memory _reason,
+        uint64[] memory _releaseTimes /*onlyIssuerOrAbove*/
+    ) public returns (bool) {
+        super.issueTokensWithMultipleLocks(_to, _value, _issuanceTime, new uint256[](0), "", new uint64[](0));
+        partitionsManagement.issueTokensCustom(
+            getRegistryService(),
+            getComplianceConfigurationService(),
+            getPartitionsManager(),
+            getLockManagerPartitioned(),
+            _to,
+            _value,
+            _issuanceTime,
+            _valuesLocked,
+            _reason,
+            _releaseTimes
+        );
+        return true;
     }
 
     function issueTokensCustom(
@@ -21,19 +43,15 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
         string memory _reason,
         uint64 _releaseTime /*onlyIssuerOrAbove*/
     ) public returns (bool) {
-        super.issueTokensCustom(_to, _value, _issuanceTime, 0, "", 0);
-        partitionsManagement.issueTokensCustom(
-            getRegistryService(),
-            getComplianceConfigurationService(),
-            getPartitionsManager(),
-            getLockManagerPartitioned(),
-            _to,
-            _value,
-            _issuanceTime,
-            _valueLocked,
-            _reason,
-            _releaseTime
-        );
+        uint256[] memory valuesLocked;
+        uint64[] memory releaseTimes;
+        if (_valueLocked > 0) {
+            valuesLocked = new uint256[](1);
+            releaseTimes = new uint64[](1);
+            valuesLocked[0] = _valueLocked;
+            releaseTimes[0] = _releaseTime;
+        }
+        issueTokensWithMultipleLocks(_to, _value, _issuanceTime, valuesLocked, _reason, releaseTimes);
         return true;
     }
 

@@ -5,16 +5,16 @@ import "../service/ServiceConsumer.sol";
 library TokenLibrary {
     event OmnibusDeposit(address indexed omnibusWallet, address to, uint256 value, uint8 assetTrackingMode);
     event OmnibusWithdraw(address indexed omnibusWallet, address from, uint256 value, uint8 assetTrackingMode);
+    event Issue(address indexed to, uint256 value, uint256 valueLocked);
 
-    uint internal constant COMPLIANCE_SERVICE = 0;
-    uint internal constant REGISTRY_SERVICE = 1;
-    uint internal constant OMNIBUS_NO_ACTION = 0;
-    uint internal constant OMNIBUS_DEPOSIT = 1;
-    uint internal constant OMNIBUS_WITHDRAW = 2;
+    uint256 internal constant COMPLIANCE_SERVICE = 0;
+    uint256 internal constant REGISTRY_SERVICE = 1;
+    uint256 internal constant OMNIBUS_NO_ACTION = 0;
+    uint256 internal constant OMNIBUS_DEPOSIT = 1;
+    uint256 internal constant OMNIBUS_WITHDRAW = 2;
     using SafeMath for uint256;
 
-    struct TokenData
-    {
+    struct TokenData {
         mapping(address => uint256) walletsBalances;
         mapping(string => uint256) investorsBalances;
         uint256 totalSupply;
@@ -25,26 +25,35 @@ library TokenLibrary {
         uint256 value;
     }
 
-   function setFeature(SupportedFeatures storage supportedFeatures, uint8 featureIndex, bool enable) public {
-      uint256 base = 2;
-      uint256 mask = base**featureIndex;
+    function setFeature(SupportedFeatures storage supportedFeatures, uint8 featureIndex, bool enable) public {
+        uint256 base = 2;
+        uint256 mask = base**featureIndex;
 
-      // Enable only if the feature is turned off and disable only if the feature is turned on
-      if (enable && (supportedFeatures.value & mask == 0)) {
-          supportedFeatures.value = supportedFeatures.value ^ mask;
-      } else if (!enable && (supportedFeatures.value & mask >= 1)) {
-          supportedFeatures.value = supportedFeatures.value ^ mask;
-      }
+        // Enable only if the feature is turned off and disable only if the feature is turned on
+        if (enable && (supportedFeatures.value & mask == 0)) {
+            supportedFeatures.value = supportedFeatures.value ^ mask;
+        } else if (!enable && (supportedFeatures.value & mask >= 1)) {
+            supportedFeatures.value = supportedFeatures.value ^ mask;
+        }
     }
 
-    function issueTokensCustom(TokenData storage _tokenData, address[] memory _services, IDSLockManager _lockManager, address _to, uint256 _value, uint256 _issuanceTime, uint256 _valueLocked, uint256 _releaseTime, string memory _reason, uint256 _cap)
-        public
-        returns (bool)
-    {
+    function issueTokensCustom(
+        TokenData storage _tokenData,
+        address[] memory _services,
+        IDSLockManager _lockManager,
+        address _to,
+        uint256 _value,
+        uint256 _issuanceTime,
+        uint256[] memory _valuesLocked,
+        uint64[] memory _releaseTimes,
+        string memory _reason,
+        uint256 _cap
+    ) public returns (bool) {
         //Check input values
         require(_to != address(0));
         require(_value > 0);
-        require(_valueLocked <= _value, "valueLocked must be smaller than value");
+        require(_valuesLocked.length == _releaseTimes.length);
+
         //Make sure we are not hitting the cap
         require(_cap == 0 || _tokenData.totalIssued.add(_value) <= _cap, "Token Cap Hit");
 
@@ -57,9 +66,13 @@ library TokenLibrary {
         _tokenData.walletsBalances[_to] = _tokenData.walletsBalances[_to].add(_value);
         updateInvestorBalance(_tokenData, IDSRegistryService(_services[REGISTRY_SERVICE]), _to, _value, true);
 
-        if (_valueLocked > 0) {
-            _lockManager.addManualLockRecord(_to, _valueLocked, _reason, _releaseTime);
+        uint256 totalLocked = 0;
+        for (uint256 i = 0; i < _valuesLocked.length; i++) {
+            totalLocked += _valuesLocked[i];
+            _lockManager.addManualLockRecord(_to, _valuesLocked[i], _reason, _releaseTimes[i]);
         }
+        require(totalLocked <= _value, "valueLocked must be smaller than value");
+        emit Issue(_to, _value, totalLocked);
         return true;
     }
 
@@ -83,7 +96,10 @@ library TokenLibrary {
         _tokenData.totalSupply = _tokenData.totalSupply.sub(_value);
     }
 
-    function seize(TokenData storage _tokenData, address[] memory _services, address _from, address _to, uint256 _value) public  validSeizeParameters(_tokenData, _from, _to, _value) {
+    function seize(TokenData storage _tokenData, address[] memory _services, address _from, address _to, uint256 _value)
+        public
+        validSeizeParameters(_tokenData, _from, _to, _value)
+    {
         IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
         IDSComplianceService(_services[COMPLIANCE_SERVICE]).validateSeize(_from, _to, _value);
         _tokenData.walletsBalances[_from] = _tokenData.walletsBalances[_from].sub(_value);
@@ -103,7 +119,8 @@ library TokenLibrary {
     }
 
     function omnibusSeize(TokenData storage _tokenData, address[] memory _services, address _omnibusWallet, address _from, address _to, uint256 _value)
-        public validSeizeParameters(_tokenData, _omnibusWallet, _to, _value)
+        public
+        validSeizeParameters(_tokenData, _omnibusWallet, _to, _value)
     {
         IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
         IDSOmnibusWalletController omnibusController = registryService.getOmnibusWalletController(_omnibusWallet);
@@ -116,7 +133,14 @@ library TokenLibrary {
         updateInvestorBalance(_tokenData, registryService, _to, _value, true);
     }
 
-    function decreaseInvestorBalanceOnOmnibusSeizeOrBurn(TokenData storage _tokenData, IDSRegistryService _registryService, IDSOmnibusWalletController _omnibusController, address _omnibusWallet, address _from, uint256 _value) internal {
+    function decreaseInvestorBalanceOnOmnibusSeizeOrBurn(
+        TokenData storage _tokenData,
+        IDSRegistryService _registryService,
+        IDSOmnibusWalletController _omnibusController,
+        address _omnibusWallet,
+        address _from,
+        uint256 _value
+    ) internal {
         if (_omnibusController.isHolderOfRecord()) {
             updateInvestorBalance(_tokenData, _registryService, _omnibusWallet, _value, false);
         } else {
@@ -124,8 +148,11 @@ library TokenLibrary {
         }
     }
 
-    function applyOmnibusBalanceUpdatesOnTransfer(TokenData storage _tokenData, IDSRegistryService _registryService, address _from, address _to, uint256 _value) public returns (uint) {
-      if (_registryService.isOmnibusWallet(_to)) {
+    function applyOmnibusBalanceUpdatesOnTransfer(TokenData storage _tokenData, IDSRegistryService _registryService, address _from, address _to, uint256 _value)
+        public
+        returns (uint256)
+    {
+        if (_registryService.isOmnibusWallet(_to)) {
             IDSOmnibusWalletController omnibusWalletController = _registryService.getOmnibusWalletController(_to);
             omnibusWalletController.deposit(_from, _value);
             emit OmnibusDeposit(_to, _from, _value, omnibusWalletController.getAssetTrackingMode());
@@ -149,7 +176,7 @@ library TokenLibrary {
         return OMNIBUS_NO_ACTION;
     }
 
-    function updateInvestorBalance(TokenData storage _tokenData, IDSRegistryService _registryService ,address _wallet, uint256 _value, bool _increase) internal returns (bool) {
+    function updateInvestorBalance(TokenData storage _tokenData, IDSRegistryService _registryService, address _wallet, uint256 _value, bool _increase) internal returns (bool) {
         string memory investor = _registryService.getInvestor(_wallet);
         if (keccak256(abi.encodePacked(investor)) != keccak256("")) {
             uint256 balance = _tokenData.investorsBalances[investor];
