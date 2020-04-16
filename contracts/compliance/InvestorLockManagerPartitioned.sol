@@ -2,12 +2,12 @@ pragma solidity ^0.5.0;
 
 import "./LockManager.sol";
 import "./IDSLockManagerPartitioned.sol";
-import "../utils/ProxyTarget.sol";
+import "./InvestorLockManagerCommon.sol";
 import "../zeppelin/math/Math.sol";
-import "../service/ServiceConsumer.sol";
+
 // import "../data-stores/LockManagerPartitionedDataStore.sol";
 
-contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockManagerPartitioned, ServiceConsumer, InvestorLockManagerDataStore {
+contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLockManagerCommon {
     uint256 constant MAX_LOCKS_PER_INVESTOR_PARTITION = 30;
 
     function initialize() public initializer onlyFromProxy {
@@ -263,21 +263,4 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
         revert("Must specify partition");
     }
 
-    function lockInvestor(string memory _investorId) public returns (bool) {
-        require(!investorsLocked[_investorId], "Investor is already locked");
-        investorsLocked[_investorId] = true;
-        emit InvestorFullyLocked(_investorId);
-        return true;
-    }
-
-    function unlockInvestor(string memory _investorId) public returns (bool) {
-        require(investorsLocked[_investorId], "Investor is not locked");
-        delete investorsLocked[_investorId];
-        emit InvestorUnpaused(_investorId);
-        return true;
-    }
-
-    function isInvestorLocked(string memory _investorId) public view returns (bool) {
-        return investorsLocked[_investorId];
-    }
 }

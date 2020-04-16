@@ -21,10 +21,6 @@ contract IDSLockManager is Initializable, VersionedContract {
 
     event HolderLocked(string holderId, uint256 value, uint256 indexed reason, string reasonString, uint256 releaseTime);
     event HolderUnlocked(string holderId, uint256 value, uint256 indexed reason, string reasonString, uint256 releaseTime);
-
-    event InvestorFullyLocked(string investorId);
-    event InvestorFullyUnlocked(string investorId);
-
     /**
      * @dev creates a lock record for wallet address
      * @param _to address to lock the tokens at

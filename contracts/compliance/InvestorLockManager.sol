@@ -1,12 +1,13 @@
 pragma solidity ^0.5.0;
 
 import "./IDSLockManager.sol";
+import "./InvestorLockManagerCommon.sol";
 import "../data-stores/InvestorLockManagerDataStore.sol";
 import "../utils/ProxyTarget.sol";
 import "../service/ServiceConsumer.sol";
 import "../zeppelin/math/Math.sol";
 
-contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsumer, InvestorLockManagerDataStore {
+contract InvestorLockManager is IDSLockManager, InvestorLockManagerCommon {
     uint256 constant MAX_LOCKS_PER_INVESTOR = 30;
 
     /*************** Legacy functions ***************/
@@ -211,23 +212,5 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
         uint256 transferable = SafeMath.sub(balanceOfInvestor, Math.min(totalLockedTokens, balanceOfInvestor));
 
         return transferable;
-    }
-
-    function lockInvestor(string memory _investorId) public onlyIssuerOrAbove returns (bool) {
-        require(!investorsLocked[_investorId], "Investor is already locked");
-        investorsLocked[_investorId] = true;
-        emit InvestorFullyLocked(_investorId);
-        return true;
-    }
-
-    function unlockInvestor(string memory _investorId) public onlyIssuerOrAbove returns (bool) {
-        require(investorsLocked[_investorId], "Investor is not locked");
-        delete investorsLocked[_investorId];
-        emit InvestorFullyUnlocked(_investorId);
-        return true;
-    }
-
-    function isInvestorLocked(string memory _investorId) public view returns (bool) {
-        return investorsLocked[_investorId];
     }
 }
