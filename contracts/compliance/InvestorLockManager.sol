@@ -1,13 +1,13 @@
 pragma solidity ^0.5.0;
 
 import "./IDSLockManager.sol";
+import "./InvestorLockManagerBase.sol";
 import "../data-stores/InvestorLockManagerDataStore.sol";
 import "../utils/ProxyTarget.sol";
 import "../service/ServiceConsumer.sol";
 import "../zeppelin/math/Math.sol";
 
-
-contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsumer, InvestorLockManagerDataStore {
+contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
     uint256 constant MAX_LOCKS_PER_INVESTOR = 30;
 
     /*************** Legacy functions ***************/
@@ -187,6 +187,9 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
 
     function getTransferableTokensForInvestor(string memory _investorId, uint64 _time) public view returns (uint256) {
         require(_time > 0, "Time must be greater than zero");
+        if (investorsLocked[_investorId]) {
+            return 0;
+        }
 
         uint256 balanceOfInvestor = getToken().balanceOfInvestor(_investorId);
         uint256 investorLockCount = investorsLocksCounts[_investorId];

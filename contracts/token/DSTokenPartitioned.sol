@@ -5,7 +5,6 @@ import "./IDSTokenPartitioned.sol";
 import "../compliance/IDSPartitionsManager.sol";
 import "./TokenPartitionsLibrary.sol";
 
-
 contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
     function initialize(string memory _name, string memory _symbol, uint8 _decimals) public initializer onlyFromProxy {
         DSToken.initialize(_name, _symbol, _decimals);

@@ -3,7 +3,6 @@ pragma solidity ^0.5.0;
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
-
 contract IDSLockManager is Initializable, VersionedContract {
     constructor() internal {}
 
@@ -22,7 +21,6 @@ contract IDSLockManager is Initializable, VersionedContract {
 
     event HolderLocked(string holderId, uint256 value, uint256 indexed reason, string reasonString, uint256 releaseTime);
     event HolderUnlocked(string holderId, uint256 value, uint256 indexed reason, string reasonString, uint256 releaseTime);
-
     /**
      * @dev creates a lock record for wallet address
      * @param _to address to lock the tokens at
@@ -153,4 +151,26 @@ contract IDSLockManager is Initializable, VersionedContract {
      * @param _time time to calculate for
      */
     function getTransferableTokensForInvestor(string memory _investorId, uint64 _time) public view returns (uint256);
+
+    /**
+     * @dev pause investor
+     * @param _investorId investor id
+     */
+    function lockInvestor(
+        string memory _investorId /*issuerOrAbove*/
+    ) public returns (bool);
+
+    /**
+     * @dev unpauses investor
+     * @param _investorId investor id
+     */
+    function unlockInvestor(
+        string memory _investorId /*issuerOrAbove*/
+    ) public returns (bool);
+
+    /**
+     * @dev Returns true if paused, otherwise false
+     * @param _investorId investor id
+     */
+    function isInvestorLocked(string memory _investorId) public view returns (bool);
 }

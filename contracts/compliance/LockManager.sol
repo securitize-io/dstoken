@@ -7,7 +7,6 @@ import "../zeppelin/math/SafeMath.sol";
 import "../utils/ProxyTarget.sol";
 import "../data-stores/LockManagerDataStore.sol";
 
-
 /**
  * @title LockManager
  * @dev An interface for controlling and getting information about locked funds in a compliance manager
@@ -191,10 +190,30 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
     }
 
     function createLockForInvestor(string memory, uint256, uint256, string memory, uint256) public onlyIssuerOrAboveOrToken {
-        revert("lock manager supports only wallet locks");
+        revertInvestorLevelMethod();
     }
 
     function removeLockRecordForInvestor(string memory, uint256) public onlyIssuerOrAbove returns (bool) {
+        revertInvestorLevelMethod();
+    }
+
+    function lockInvestor(
+        string memory /*_investorId*/
+    ) public returns (bool) {
+        revertInvestorLevelMethod();
+    }
+    function unlockInvestor(
+        string memory /*_investorId*/
+    ) public returns (bool) {
+        revertInvestorLevelMethod();
+    }
+    function isInvestorLocked(
+        string memory /*_investorId*/
+    ) public view returns (bool) {
+        revertInvestorLevelMethod();
+    }
+
+    function revertInvestorLevelMethod() internal pure {
         revert("lock manager supports only wallet locks");
     }
 }
