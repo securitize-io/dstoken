@@ -457,7 +457,7 @@ contract("InvestorLockManager", function([
       const result = await this.lockManager.lockInvestor(
         investorId.GENERAL_INVESTOR_ID_1
       );
-      assert.equal(result.logs[0].event, "InvestorPaused");
+      assert.equal(result.logs[0].event, "InvestorFullyLocked");
       assert.equal(
         result.logs[0].args["investorId"],
         investorId.GENERAL_INVESTOR_ID_1
