@@ -4,7 +4,6 @@ import "./IDSToken.sol";
 import "../utils/ProxyTarget.sol";
 import "./StandardToken.sol";
 
-
 contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     // using FeaturesLibrary for SupportedFeatures;
     uint256 internal constant OMNIBUS_NO_ACTION = 0;
@@ -70,12 +69,31 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
      */
     function issueTokensCustom(address _to, uint256 _value, uint256 _issuanceTime, uint256 _valueLocked, string memory _reason, uint64 _releaseTime)
         public
+        returns (
+            /*onlyIssuerOrAbove*/
+            bool
+        )
+    {
+        uint256[] memory valuesLocked;
+        uint64[] memory releaseTimes;
+        if (_valueLocked > 0) {
+            valuesLocked = new uint256[](1);
+            releaseTimes = new uint64[](1);
+            valuesLocked[0] = _valueLocked;
+            releaseTimes[0] = _releaseTime;
+        }
+
+        issueTokensWithMultipleLocks(_to, _value, _issuanceTime, valuesLocked, _reason, releaseTimes);
+        return true;
+    }
+
+    function issueTokensWithMultipleLocks(address _to, uint256 _value, uint256 _issuanceTime, uint256[] memory _valuesLocked, string memory _reason, uint64[] memory _releaseTimes)
+        public
         onlyIssuerOrAbove
         returns (bool)
     {
-        emit Issue(_to, _value, _valueLocked);
+        TokenLibrary.issueTokensCustom(tokenData, getCommonServices(), getLockManager(), _to, _value, _issuanceTime, _valuesLocked, _releaseTimes, _reason, cap);
         emit Transfer(address(0), _to, _value);
-        TokenLibrary.issueTokensCustom(tokenData, getCommonServices(), getLockManager(), _to, _value, _issuanceTime, _valueLocked, _releaseTime, _reason, cap);
 
         checkWalletsForList(address(0), _to);
         return true;
