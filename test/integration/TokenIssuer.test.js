@@ -7,8 +7,6 @@ const lockManagerType = require("../../utils/globals").lockManagerType;
 const investorId = require("../fixtures").InvestorId;
 const roles = require("../../utils/globals").roles;
 
-// const country = fixtures.Country;
-
 const LOCK_INDEX = 0;
 const REASON_CODE = 0;
 const REASON_STRING = "Test";
@@ -56,16 +54,20 @@ contract("TokenIssuer", function([
         [0, 0, 0]
       );
       assert.equal(await this.token.balanceOf.call(owner), 100);
+      const partition = await this.token.partitionOf(owner, 0);
+      const numOfLocks = await this.lockManager.lockCount(owner, partition);
+      assert.equal(numOfLocks, 0);
     });
 
     it("Should issue tokens to a new investor with locks successfully", async function() {
+      const releaseTime = (await latestTime()) + 1000;
       await this.issuer.issueTokens(
         investorId.GENERAL_INVESTOR_ID_1,
         owner,
         [100, 1],
         "a",
         [50],
-        [(await latestTime()) + 1000],
+        [releaseTime],
         investorId.GENERAL_INVESTOR_ID_1,
         "US",
         [0, 0, 0],
@@ -77,6 +79,14 @@ contract("TokenIssuer", function([
         await latestTime()
       );
       assert.equal(transferable.toNumber(), 50);
+      const partition = await this.token.partitionOf(owner, 0);
+      const numOfLocks = await this.lockManager.lockCount(owner, partition);
+      const lockInfo = await this.lockManager.methods[
+        "lockInfo(address,uint256,bytes32)"
+      ].call(owner, 0, partition);
+      assert.equal(lockInfo[2].toNumber(), 50);
+      assert.equal(lockInfo[3].toNumber(), releaseTime);
+      assert.equal(numOfLocks, 1);
     });
   });
 
@@ -109,16 +119,19 @@ contract("TokenIssuer", function([
         [0, 0, 0]
       );
       assert.equal(await this.token.balanceOf.call(owner), 100);
+      const numOfLocks = await this.lockManager.lockCount(owner);
+      assert.equal(numOfLocks, 0);
     });
 
     it("Should issue tokens to a new investor with locks successfully", async function() {
+      const releaseTime = (await latestTime()) + 1000;
       await this.issuer.issueTokens(
         investorId.GENERAL_INVESTOR_ID_1,
         owner,
         [100, 1],
         "a",
         [50],
-        [(await latestTime()) + 1000],
+        [releaseTime],
         investorId.GENERAL_INVESTOR_ID_1,
         "US",
         [0, 0, 0],
@@ -130,6 +143,13 @@ contract("TokenIssuer", function([
         await latestTime()
       );
       assert.equal(transferable.toNumber(), 50);
+      const numOfLocks = await this.lockManager.lockCount(owner);
+      assert.equal(numOfLocks, 1);
+      const lockInfo = await this.lockManager.methods[
+        "lockInfo(address,uint256)"
+      ].call(owner, 0);
+      assert.equal(lockInfo[2].toNumber(), 50);
+      assert.equal(lockInfo[3].toNumber(), releaseTime);
     });
   });
 });

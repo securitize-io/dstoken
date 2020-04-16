@@ -68,7 +68,7 @@ library TokenLibrary {
 
         uint256 totalLocked = 0;
         for (uint256 i = 0; i < _valuesLocked.length; i++) {
-            totalLocked += _valuesLocked[i];
+            totalLocked = totalLocked.add(_valuesLocked[i]);
             _lockManager.addManualLockRecord(_to, _valuesLocked[i], _reason, _releaseTimes[i]);
         }
         require(totalLocked <= _value, "valueLocked must be smaller than value");

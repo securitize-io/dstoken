@@ -9,6 +9,8 @@ import "../compliance/IDSComplianceConfigurationService.sol";
 import "../compliance/IDSPartitionsManager.sol";
 
 library TokenPartitionsLibrary {
+    using SafeMath for uint256;
+
     uint256 internal constant COMPLIANCE_SERVICE = 0;
     uint256 internal constant REGISTRY_SERVICE = 1;
 
@@ -46,7 +48,7 @@ library TokenPartitionsLibrary {
         transferPartition(self, _registry, address(0), _to, _value, partition);
         uint256 totalLocked = 0;
         for (uint256 i = 0; i < _valuesLocked.length; i++) {
-            totalLocked += _valuesLocked[i];
+            totalLocked = totalLocked.add(_valuesLocked[i]);
             _lockManager.createLockForInvestor(investor, _valuesLocked[i], 0, _reason, _releaseTimes[i], partition);
         }
         require(totalLocked <= _value, "valueLocked must be smaller than value");
