@@ -496,7 +496,7 @@ contract("InvestorLockManagerPartitioned", function([
     });
 
     it("Should lock an unlocked investor", async function() {
-      const result = await this.lockManager.pauseInvestor(
+      const result = await this.lockManager.lockInvestor(
         investorId.GENERAL_INVESTOR_ID_1
       );
       assert.equal(result.logs[0].event, "InvestorPaused");
@@ -507,15 +507,15 @@ contract("InvestorLockManagerPartitioned", function([
     });
 
     it("Should not lock an investor if already locked", async function() {
-      await this.lockManager.pauseInvestor(investorId.GENERAL_INVESTOR_ID_1);
+      await this.lockManager.lockInvestor(investorId.GENERAL_INVESTOR_ID_1);
       await assertRevert(
-        this.lockManager.pauseInvestor(investorId.GENERAL_INVESTOR_ID_1)
+        this.lockManager.lockInvestor(investorId.GENERAL_INVESTOR_ID_1)
       );
     });
 
     it("Should unlock an investor", async function() {
-      await this.lockManager.pauseInvestor(investorId.GENERAL_INVESTOR_ID_1);
-      const result = await this.lockManager.unpauseInvestor(
+      await this.lockManager.lockInvestor(investorId.GENERAL_INVESTOR_ID_1);
+      const result = await this.lockManager.unlockInvestor(
         investorId.GENERAL_INVESTOR_ID_1
       );
       assert.equal(result.logs[0].event, "InvestorUnpaused");
@@ -527,22 +527,22 @@ contract("InvestorLockManagerPartitioned", function([
 
     it("Should not unlock an investor if already unlocked", async function() {
       await assertRevert(
-        this.lockManager.unpauseInvestor(investorId.GENERAL_INVESTOR_ID_1)
+        this.lockManager.unlockInvestor(investorId.GENERAL_INVESTOR_ID_1)
       );
     });
 
     it("Should return the lock state of investor", async function() {
-      const lockStateBeforeLock = await this.lockManager.isInvestorPaused.call(
+      const lockStateBeforeLock = await this.lockManager.isInvestorLocked.call(
         investorId.GENERAL_INVESTOR_ID_1
       );
       assert.equal(lockStateBeforeLock, false);
-      await this.lockManager.pauseInvestor(investorId.GENERAL_INVESTOR_ID_1);
-      const lockStateAfterLock = await this.lockManager.isInvestorPaused.call(
+      await this.lockManager.lockInvestor(investorId.GENERAL_INVESTOR_ID_1);
+      const lockStateAfterLock = await this.lockManager.isInvestorLocked.call(
         investorId.GENERAL_INVESTOR_ID_1
       );
       assert.equal(lockStateAfterLock, true);
-      await this.lockManager.unpauseInvestor(investorId.GENERAL_INVESTOR_ID_1);
-      const lockStateAfterUnlock = await this.lockManager.isInvestorPaused.call(
+      await this.lockManager.unlockInvestor(investorId.GENERAL_INVESTOR_ID_1);
+      const lockStateAfterUnlock = await this.lockManager.isInvestorLocked.call(
         investorId.GENERAL_INVESTOR_ID_1
       );
       assert.equal(lockStateAfterUnlock, false);
@@ -559,7 +559,7 @@ contract("InvestorLockManagerPartitioned", function([
         ),
         100
       );
-      await this.lockManager.pauseInvestor(investorId.GENERAL_INVESTOR_ID_1);
+      await this.lockManager.lockInvestor(investorId.GENERAL_INVESTOR_ID_1);
       assert.equal(
         await this.lockManager.getTransferableTokens(
           owner,
@@ -568,7 +568,7 @@ contract("InvestorLockManagerPartitioned", function([
         ),
         0
       );
-      await this.lockManager.unpauseInvestor(investorId.GENERAL_INVESTOR_ID_1);
+      await this.lockManager.unlockInvestor(investorId.GENERAL_INVESTOR_ID_1);
       assert.equal(
         await this.lockManager.getTransferableTokens(
           owner,

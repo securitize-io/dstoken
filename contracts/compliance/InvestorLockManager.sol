@@ -213,21 +213,21 @@ contract InvestorLockManager is ProxyTarget, Initializable, IDSLockManager, Serv
         return transferable;
     }
 
-    function pauseInvestor(string memory _investorId) public returns (bool) {
+    function lockInvestor(string memory _investorId) public onlyIssuerOrAbove returns (bool) {
         require(!investorsLocked[_investorId], "Investor is already locked");
         investorsLocked[_investorId] = true;
-        emit InvestorPaused(_investorId);
+        emit InvestorFullyLocked(_investorId);
         return true;
     }
 
-    function unpauseInvestor(string memory _investorId) public returns (bool) {
+    function unlockInvestor(string memory _investorId) public onlyIssuerOrAbove returns (bool) {
         require(investorsLocked[_investorId], "Investor is not locked");
         delete investorsLocked[_investorId];
-        emit InvestorUnpaused(_investorId);
+        emit InvestorFullyUnlocked(_investorId);
         return true;
     }
 
-    function isInvestorPaused(string memory _investorId) public view returns (bool) {
+    function isInvestorLocked(string memory _investorId) public view returns (bool) {
         return investorsLocked[_investorId];
     }
 }

@@ -37,6 +37,30 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
         return true;
     }
 
+    function issueTokensCustomWithLocksArray(
+        address _to,
+        uint256 _value,
+        uint256 _issuanceTime,
+        uint256 _valueLocked[],
+        string memory _reason,
+        uint64 _releaseTime[] /*onlyIssuerOrAbove*/
+    ) internal returns (bool) {
+        super.issueTokensCustom(_to, _value, _issuanceTime, 0, "", 0);
+        partitionsManagement.issueTokensCustom(
+            getRegistryService(),
+            getComplianceConfigurationService(),
+            getPartitionsManager(),
+            getLockManagerPartitioned(),
+            _to,
+            _value,
+            _issuanceTime,
+            _valueLocked,
+            _reason,
+            _releaseTime
+        );
+        return true;
+    }
+
     function transfer(address _to, uint256 _value) public returns (bool) {
         return DSToken.transfer(_to, _value) && partitionsManagement.transferPartitions(getCommonServices(), msg.sender, _to, _value);
     }

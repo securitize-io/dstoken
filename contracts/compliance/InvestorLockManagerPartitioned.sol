@@ -5,9 +5,9 @@ import "./IDSLockManagerPartitioned.sol";
 import "../utils/ProxyTarget.sol";
 import "../zeppelin/math/Math.sol";
 import "../service/ServiceConsumer.sol";
-import "../data-stores/LockManagerPartitionedDataStore.sol";
+// import "../data-stores/LockManagerPartitionedDataStore.sol";
 
-contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockManagerPartitioned, ServiceConsumer, LockManagerPartitionedDataStore {
+contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockManagerPartitioned, ServiceConsumer, InvestorLockManagerDataStore {
     uint256 constant MAX_LOCKS_PER_INVESTOR_PARTITION = 30;
 
     function initialize() public initializer onlyFromProxy {
@@ -21,13 +21,13 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
         validLock(_valueLocked, _releaseTime)
         onlyIssuerOrAboveOrToken
     {
-        uint256 lockCount = investorsLocksCounts[_investorId][_partition];
+        uint256 lockCount = investorsPartitionsLocksCounts[_investorId][_partition];
 
         //Only allow MAX_LOCKS_PER_INVESTOR locks per address, to prevent out-of-gas at transfer scenarios
         require(lockCount < MAX_LOCKS_PER_INVESTOR_PARTITION, "Too many locks for this investor partition");
 
-        investorsLocks[_investorId][_partition][lockCount] = Lock(_valueLocked, _reasonCode, _reasonString, _releaseTime);
-        investorsLocksCounts[_investorId][_partition] += 1;
+        investorsPartitionsLocks[_investorId][_partition][lockCount] = Lock(_valueLocked, _reasonCode, _reasonString, _releaseTime);
+        investorsPartitionsLocksCounts[_investorId][_partition] += 1;
 
         emit HolderLockedPartition(_investorId, _valueLocked, _reasonCode, _reasonString, _releaseTime, _partition);
     }
@@ -43,10 +43,10 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
         string memory investorId = getRegistryService().getInvestor(_to);
         emit UnlockedPartition(
             _to,
-            investorsLocks[investorId][_partition][_lockIndex].value,
-            investorsLocks[investorId][_partition][_lockIndex].reason,
-            investorsLocks[investorId][_partition][_lockIndex].reasonString,
-            investorsLocks[investorId][_partition][_lockIndex].releaseTime,
+            investorsPartitionsLocks[investorId][_partition][_lockIndex].value,
+            investorsPartitionsLocks[investorId][_partition][_lockIndex].reason,
+            investorsPartitionsLocks[investorId][_partition][_lockIndex].reasonString,
+            investorsPartitionsLocks[investorId][_partition][_lockIndex].releaseTime,
             _partition
         );
         return removeLockRecordForInvestor(investorId, _lockIndex, _partition);
@@ -54,7 +54,7 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
 
     function removeLockRecordForInvestor(string memory _investorId, uint256 _lockIndex, bytes32 _partition) public onlyIssuerOrAbove returns (bool) {
         //Put the last lock instead of the lock to remove (this will work even with 1 lock in the list)
-        uint256 lastLockNumber = investorsLocksCounts[_investorId][_partition];
+        uint256 lastLockNumber = investorsPartitionsLocksCounts[_investorId][_partition];
 
         require(_lockIndex < lastLockNumber, "Index is greater than the number of locks");
         lastLockNumber -= 1;
@@ -62,17 +62,17 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
         //Emit must be done on start ,because we're going to overwrite this value
         emit HolderUnlockedPartition(
             _investorId,
-            investorsLocks[_investorId][_partition][_lockIndex].value,
-            investorsLocks[_investorId][_partition][_lockIndex].reason,
-            investorsLocks[_investorId][_partition][_lockIndex].reasonString,
-            investorsLocks[_investorId][_partition][_lockIndex].releaseTime,
+            investorsPartitionsLocks[_investorId][_partition][_lockIndex].value,
+            investorsPartitionsLocks[_investorId][_partition][_lockIndex].reason,
+            investorsPartitionsLocks[_investorId][_partition][_lockIndex].reasonString,
+            investorsPartitionsLocks[_investorId][_partition][_lockIndex].releaseTime,
             _partition
         );
-        investorsLocks[_investorId][_partition][_lockIndex] = investorsLocks[_investorId][_partition][lastLockNumber];
+        investorsPartitionsLocks[_investorId][_partition][_lockIndex] = investorsPartitionsLocks[_investorId][_partition][lastLockNumber];
 
         //delete the last _lock
-        delete investorsLocks[_investorId][_partition][lastLockNumber];
-        investorsLocksCounts[_investorId][_partition] = lastLockNumber;
+        delete investorsPartitionsLocks[_investorId][_partition][lastLockNumber];
+        investorsPartitionsLocksCounts[_investorId][_partition] = lastLockNumber;
     }
 
     function lockCount(address _who, bytes32 _partition) public view returns (uint256) {
@@ -81,7 +81,7 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
     }
 
     function lockCountForInvestor(string memory _investorId, bytes32 _partition) public view returns (uint256) {
-        return investorsLocksCounts[_investorId][_partition];
+        return investorsPartitionsLocksCounts[_investorId][_partition];
     }
 
     function lockInfo(address _who, uint256 _lockIndex, bytes32 _partition)
@@ -98,13 +98,13 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
         view
         returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime)
     {
-        uint256 lastLockNumber = investorsLocksCounts[_investorId][_partition];
+        uint256 lastLockNumber = investorsPartitionsLocksCounts[_investorId][_partition];
         require(_lockIndex < lastLockNumber, "Index is greater than the number of locks");
 
-        reasonCode = investorsLocks[_investorId][_partition][_lockIndex].reason;
-        reasonString = investorsLocks[_investorId][_partition][_lockIndex].reasonString;
-        value = investorsLocks[_investorId][_partition][_lockIndex].value;
-        autoReleaseTime = investorsLocks[_investorId][_partition][_lockIndex].releaseTime;
+        reasonCode = investorsPartitionsLocks[_investorId][_partition][_lockIndex].reason;
+        reasonString = investorsPartitionsLocks[_investorId][_partition][_lockIndex].reasonString;
+        value = investorsPartitionsLocks[_investorId][_partition][_lockIndex].value;
+        autoReleaseTime = investorsPartitionsLocks[_investorId][_partition][_lockIndex].releaseTime;
     }
 
     function getTransferableTokens(address _who, uint64 _time, bytes32 _partition) public view returns (uint256) {
@@ -119,15 +119,15 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
 
         uint256 balanceOfHolderByPartition = getTokenPartitioned().balanceOfInvestorByPartition(_investorId, _partition);
 
-        if (investorsLocksCounts[_investorId][_partition] == 0) {
+        if (investorsPartitionsLocksCounts[_investorId][_partition] == 0) {
             return balanceOfHolderByPartition;
         }
 
         uint256 totalLockedTokens = 0;
-        for (uint256 i = 0; i < investorsLocksCounts[_investorId][_partition]; i++) {
-            uint256 autoReleaseTime = investorsLocks[_investorId][_partition][i].releaseTime;
+        for (uint256 i = 0; i < investorsPartitionsLocksCounts[_investorId][_partition]; i++) {
+            uint256 autoReleaseTime = investorsPartitionsLocks[_investorId][_partition][i].releaseTime;
             if (autoReleaseTime == 0 || autoReleaseTime > _time) {
-                totalLockedTokens = totalLockedTokens.add(investorsLocks[_investorId][_partition][i].value);
+                totalLockedTokens = totalLockedTokens.add(investorsPartitionsLocks[_investorId][_partition][i].value);
             }
         }
         //there may be more locked tokens than actual tokens, so the minimum between the two
@@ -263,21 +263,21 @@ contract InvestorLockManagerPartitioned is ProxyTarget, Initializable, IDSLockMa
         revert("Must specify partition");
     }
 
-    function pauseInvestor(string memory _investorId) public returns (bool) {
+    function lockInvestor(string memory _investorId) public returns (bool) {
         require(!investorsLocked[_investorId], "Investor is already locked");
         investorsLocked[_investorId] = true;
-        emit InvestorPaused(_investorId);
+        emit InvestorFullyLocked(_investorId);
         return true;
     }
 
-    function unpauseInvestor(string memory _investorId) public returns (bool) {
+    function unlockInvestor(string memory _investorId) public returns (bool) {
         require(investorsLocked[_investorId], "Investor is not locked");
         delete investorsLocked[_investorId];
         emit InvestorUnpaused(_investorId);
         return true;
     }
 
-    function isInvestorPaused(string memory _investorId) public view returns (bool) {
+    function isInvestorLocked(string memory _investorId) public view returns (bool) {
         return investorsLocked[_investorId];
     }
 }

@@ -197,17 +197,17 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         revertInvestorLevelMethod();
     }
 
-    function pauseInvestor(
+    function lockInvestor(
         string memory /*_investorId*/
     ) public returns (bool) {
         revertInvestorLevelMethod();
     }
-    function unpauseInvestor(
+    function unlockInvestor(
         string memory /*_investorId*/
     ) public returns (bool) {
         revertInvestorLevelMethod();
     }
-    function isInvestorPaused(
+    function isInvestorLocked(
         string memory /*_investorId*/
     ) public view returns (bool) {
         revertInvestorLevelMethod();
