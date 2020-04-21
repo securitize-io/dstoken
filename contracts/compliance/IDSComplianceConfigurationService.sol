@@ -3,13 +3,16 @@ pragma solidity ^0.5.0;
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
-
 contract IDSComplianceConfigurationService is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
         VERSIONS.push(4);
     }
+
+    event DSComplianceUIntRuleSet(string ruleName, uint256 prevValue, uint256 newValue);
+    event DSComplianceBoolRuleSet(string ruleName, bool prevValue, bool newValue);
+    event DSComplianceStringToUIntMapRuleSet(string ruleName, string keyValue, uint256 prevValue, uint256 newValue);
 
     function getCountryCompliance(string memory _country) public view returns (uint256);
 

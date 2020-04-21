@@ -5,7 +5,6 @@ import "../data-stores/ComplianceConfigurationDataStore.sol";
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
 
-
 contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurationService, ServiceConsumer, ComplianceConfigurationDataStore {
     function initialize() public initializer onlyFromProxy {
         IDSComplianceConfigurationService.initialize();
@@ -14,6 +13,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setCountryCompliance(string memory _country, uint256 _value) public onlyIssuerOrAbove {
+        emit DSComplianceStringToUIntMapRuleSet("countryCompliance", _country, countriesCompliances[_country], _value);
         countriesCompliances[_country] = _value;
     }
 
@@ -26,6 +26,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setTotalInvestorsLimit(uint256 _value) public onlyIssuerOrAbove {
+        emit DSComplianceUIntRuleSet("totalInvestorsLimit", totalInvestorLimit, _value);
         totalInvestorLimit = _value;
     }
 
@@ -34,6 +35,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setMinUSTokens(uint256 _value) public onlyIssuerOrAbove {
+        emit DSComplianceUIntRuleSet("minUSTokens", minUSTokens, _value);
         minUSTokens = _value;
     }
 
@@ -42,6 +44,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setMinEUTokens(uint256 _value) public onlyIssuerOrAbove {
+        emit DSComplianceUIntRuleSet("minEUTokens", minEUTokens, _value);
         minEUTokens = _value;
     }
 
@@ -50,6 +53,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setUSInvestorsLimit(uint256 _value) public onlyIssuerOrAbove {
+        emit DSComplianceUIntRuleSet("usInvestorsLimit", usInvestorsLimit, _value);
         usInvestorsLimit = _value;
     }
 
@@ -58,6 +62,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setJPInvestorsLimit(uint256 _value) public onlyIssuerOrAbove {
+        emit DSComplianceUIntRuleSet("jpInvestorsLimit", jpInvestorsLimit, _value);
         jpInvestorsLimit = _value;
     }
 
@@ -66,6 +71,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setUSAccreditedInvestorsLimit(uint256 _value) public onlyIssuerOrAbove {
+        emit DSComplianceUIntRuleSet("usAccreditedInvestorsLimit", usAccreditedInvestorsLimit, _value);
         usAccreditedInvestorsLimit = _value;
     }
 
@@ -74,6 +80,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setNonAccreditedInvestorsLimit(uint256 _value) public onlyIssuerOrAbove {
+        emit DSComplianceUIntRuleSet("nonAccreditedInvestorsLimit", nonAccreditedInvestorsLimit, _value);
         nonAccreditedInvestorsLimit = _value;
     }
 
@@ -82,6 +89,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setMaxUSInvestorsPercentage(uint256 _value) public onlyIssuerOrAbove {
+        emit DSComplianceUIntRuleSet("maxUSInvestorsPercentage", maxUSInvestorsPercentage, _value);
         maxUSInvestorsPercentage = _value;
     }
 
@@ -90,6 +98,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setBlockFlowbackEndTime(uint256 _value) public onlyIssuerOrAbove {
+        emit DSComplianceUIntRuleSet("blockFlowbackEndTime", blockFlowbackEndTime, _value);
         blockFlowbackEndTime = _value;
     }
 
@@ -98,6 +107,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setNonUSLockPeriod(uint256 _value) public onlyIssuerOrAbove {
+        emit DSComplianceUIntRuleSet("nonUSLockPeriod", nonUSLockPeriod, _value);
         nonUSLockPeriod = _value;
     }
 
@@ -106,6 +116,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setMinimumTotalInvestors(uint256 _value) public onlyIssuerOrAbove {
+        emit DSComplianceUIntRuleSet("minimumTotalInvestors", minimumTotalInvestors, _value);
         minimumTotalInvestors = _value;
     }
 
@@ -114,6 +125,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setMinimumHoldingsPerInvestor(uint256 _value) public onlyIssuerOrAbove {
+        emit DSComplianceUIntRuleSet("minimumHoldingsPerInvestor", minimumHoldingsPerInvestor, _value);
         minimumHoldingsPerInvestor = _value;
     }
 
@@ -122,6 +134,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setMaximumHoldingsPerInvestor(uint256 _value) public onlyIssuerOrAbove {
+        emit DSComplianceUIntRuleSet("maximumHoldingsPerInvestor", maximumHoldingsPerInvestor, _value);
         maximumHoldingsPerInvestor = _value;
     }
 
@@ -130,6 +143,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setEURetailInvestorsLimit(uint256 _value) public onlyIssuerOrAbove {
+        emit DSComplianceUIntRuleSet("euRetailInvestorsLimit", euRetailInvestorsLimit, _value);
         euRetailInvestorsLimit = _value;
     }
 
@@ -138,6 +152,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setUSLockPeriod(uint256 _value) public onlyIssuerOrAbove {
+        emit DSComplianceUIntRuleSet("usLockPeriod", usLockPeriod, _value);
         usLockPeriod = _value;
     }
 
@@ -146,6 +161,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setForceFullTransfer(bool _value) public onlyIssuerOrAbove {
+        emit DSComplianceBoolRuleSet("forceFullTransfer", forceFullTransfer, _value);
         forceFullTransfer = _value;
     }
 
@@ -154,6 +170,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setForceAccreditedUS(bool _value) public onlyIssuerOrAbove {
+        emit DSComplianceBoolRuleSet("forceAccreditedUS", forceAccreditedUS, _value);
         forceAccreditedUS = _value;
     }
 
@@ -162,6 +179,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setForceAccredited(bool _value) public onlyIssuerOrAbove {
+        emit DSComplianceBoolRuleSet("forceAccredited", forceAccredited, _value);
         forceAccredited = _value;
     }
 
