@@ -22,12 +22,12 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function getTotalInvestorsLimit() public view returns (uint256) {
-        return totalInvestorLimit;
+        return totalInvestorsLimit;
     }
 
     function setTotalInvestorsLimit(uint256 _value) public onlyIssuerOrAbove {
-        emit DSComplianceUIntRuleSet("totalInvestorsLimit", totalInvestorLimit, _value);
-        totalInvestorLimit = _value;
+        emit DSComplianceUIntRuleSet("totalInvestorsLimit", totalInvestorsLimit, _value);
+        totalInvestorsLimit = _value;
     }
 
     function getMinUSTokens() public view returns (uint256) {
