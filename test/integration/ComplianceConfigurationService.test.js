@@ -130,7 +130,9 @@ contract("ComplianceConfigurationService", function([owner]) {
 
       assert.deepEqual(result[1], [true, true, true]);
     });
+  });
 
+  describe("setCountryCompliance", function() {
     it("Should set country compliance correctly", async function() {
       const tx = await this.complianceConfiguration.setCountryCompliance(
         country.USA,
