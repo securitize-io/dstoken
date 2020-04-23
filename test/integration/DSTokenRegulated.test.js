@@ -1,254 +1,179 @@
-const assertRevert = require('../utils/assertRevert');
-const utils = require('../utils');
-const services = require('../../utils/globals').services;
-const DSEternalStorage = artifacts.require('DSEternalStorageVersioned');
-const DSToken = artifacts.require('DSTokenVersioned');
-const ESComplianceServiceRegulated = artifacts.require('ESComplianceServiceRegulatedVersioned');
-const ESWalletManager = artifacts.require('ESWalletManagerVersioned');
-const ESInvestorLockManager = artifacts.require('ESInvestorLockManagerVersioned');
-const ESTrustService = artifacts.require('ESTrustServiceVersioned');
-const ESRegistryService = artifacts.require('ESRegistryServiceVersioned');
-const ESComplianceConfigurationService = artifacts.require(
-  'ESComplianceConfigurationServiceVersioned'
-);
+const DSToken = artifacts.require("DSToken");
+const assertRevert = require("../utils/assertRevert");
+const latestTime = require("../utils/latestTime");
+const snapshotsHelper = require("../utils/snapshots");
+const deployContracts = require("../utils").deployContracts;
+const fixtures = require("../fixtures");
+const investorId = fixtures.InvestorId;
+const country = fixtures.Country;
+const compliance = fixtures.Compliance;
+const time = fixtures.Time;
 
-const Proxy = artifacts.require('ProxyVersioned');
-
-const NONE = 0;
-const MASTER = 1;
-const ISSUER = 2;
-const EXCHANGE = 4;
-
-const US = 1;
-const EU = 2;
-const FORBIDDEN = 4;
-
-const US_INVESTOR_ID = 'usInvestorId';
-const US_INVESTOR_COLLISION_HASH = 'usInvestorCollisionHash';
-
-const US_INVESTOR_ID_2 = 'usInvestorId2';
-const US_INVESTOR_COLLISION_HASH_2 = 'usInvestorCollisionHash2';
-
-const SPAIN_INVESTOR_ID = 'spainInvestorId';
-const SPAIN_INVESTOR_COLLISION_HASH = 'spainInvestorCollisionHash';
-
-const GERMANY_INVESTOR_ID = 'germanyInvestorId';
-const GERMANY_INVESTOR_COLLISION_HASH = 'germanyInvestorCollisionHash';
-
-const CHINA_INVESTOR_ID = 'chinaInvestorId';
-const CHINA_INVESTOR_COLLISION_HASH = 'chinaInvestorCollisionHash';
-
-const ISRAEL_INVESTOR_ID = 'israelInvestorId';
-const ISRAEL_INVESTOR_COLLISION_HASH = 'israelInvestorCollisionHash';
-
-const MINUTES = 60;
-const HOURS = 60 * MINUTES;
-const DAYS = 24 * HOURS;
-const WEEKS = 7 * DAYS;
-const YEARS = 365 * DAYS;
-
-const latestTime = require('../utils/latestTime');
-
-contract('DSToken (regulated)', function([
-  _,
+contract("DSToken (regulated)", function([
+  owner,
   issuerWallet,
-  usInvestor,
+  usInvestorWallet,
   usInvestorSecondaryWallet,
-  usInvestor2,
-  spainInvestor,
-  germanyInvestor,
-  chinaInvestor,
-  israelInvestor,
+  usInvestor2Wallet,
+  spainInvestorWallet,
+  germanyInvestorWallet,
+  chinaInvestorWallet,
+  israelInvestorWallet
 ]) {
-  const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
-
-  beforeEach(async function() {
+  before(async function() {
     // Setting up the environment
-    this.storage = await DSEternalStorage.new();
-    this.trustService = await ESTrustService.new(this.storage.address, 'DSTokenTestTrustManager');
-    this.complianceService = await ESComplianceServiceRegulated.new(
-      this.storage.address,
-      'DSTokenTestComplianceManager'
-    );
-    this.complianceConfiguration = await ESComplianceConfigurationService.new(
-      this.storage.address,
-      'DSTokenTestComplianceConfiguration'
-    );
-    this.walletManager = await ESWalletManager.new(
-      this.storage.address,
-      'DSTokenTestWalletManager'
-    );
-    this.lockManager = await ESInvestorLockManager.new(
-      this.storage.address,
-      'DSTokenTestLockManager'
-    );
-    this.tokenImpl = await DSToken.new();
-    this.proxy = await Proxy.new();
-    this.registryService = await ESRegistryService.new(
-      this.storage.address,
-      'DSTokenTestRegistryService'
-    );
-    await this.proxy.setTarget(this.tokenImpl.address);
-    this.token = await DSToken.at(this.proxy.address);
-    await this.token.initialize('DSTokenMock', 'DST', 18, this.storage.address, 'DSTokenMock');
+    await deployContracts(this, artifacts);
 
-    await utils.addWriteRoles(this.storage, [
-      this.trustService.address,
-      this.complianceService.address,
-      this.walletManager.address,
-      this.lockManager.address,
-      this.registryService.address,
-      this.token.address,
-      this.complianceConfiguration.address,
-    ]);
-
-    await this.trustService.initialize();
-
-    await utils.setServicesDependencies(
-      this.registryService,
-      [
-        services.TRUST_SERVICE,
-        services.WALLET_MANAGER,
-        services.DS_TOKEN,
-        services.COMPLIANCE_SERVICE,
-      ],
-      [
-        this.trustService.address,
-        this.walletManager.address,
-        this.token.address,
-        this.complianceService.address,
-      ]
+    // // Basic seed
+    await this.complianceConfiguration.setCountryCompliance(
+      country.USA,
+      compliance.US
     );
-
-    await utils.setServicesDependencies(
-      this.complianceService,
-      [
-        services.TRUST_SERVICE,
-        services.WALLET_MANAGER,
-        services.LOCK_MANAGER,
-        services.COMPLIANCE_CONFIGURATION_SERVICE,
-        services.REGISTRY_SERVICE,
-        services.DS_TOKEN,
-      ],
-      [
-        this.trustService.address,
-        this.walletManager.address,
-        this.lockManager.address,
-        this.complianceConfiguration.address,
-        this.registryService.address,
-        this.token.address,
-      ]
+    await this.complianceConfiguration.setCountryCompliance(
+      country.SPAIN,
+      compliance.EU
     );
-
-    await utils.setServicesDependencies(
-      this.complianceConfiguration,
-      [services.TRUST_SERVICE],
-      [this.trustService.address]
+    await this.complianceConfiguration.setCountryCompliance(
+      country.GERMANY,
+      compliance.EU
     );
-
-    await utils.setServicesDependencies(
-      this.token,
-      [
-        services.TRUST_SERVICE,
-        services.COMPLIANCE_SERVICE,
-        services.WALLET_MANAGER,
-        services.LOCK_MANAGER,
-        services.REGISTRY_SERVICE,
-      ],
-      [
-        this.trustService.address,
-        this.complianceService.address,
-        this.walletManager.address,
-        this.lockManager.address,
-        this.registryService.address,
-      ]
+    await this.complianceConfiguration.setCountryCompliance(
+      country.CHINA,
+      compliance.FORBIDDEN
     );
-
-    await utils.setServicesDependencies(
-      this.walletManager,
-      [services.TRUST_SERVICE, services.REGISTRY_SERVICE],
-      [this.trustService.address, this.registryService.address]
-    );
-
-    await utils.setServicesDependencies(
-      this.lockManager,
-      [
-        services.REGISTRY_SERVICE,
-        services.COMPLIANCE_SERVICE,
-        services.DS_TOKEN,
-        services.TRUST_SERVICE,
-      ],
-      [
-        this.registryService.address,
-        this.complianceService.address,
-        this.token.address,
-        this.trustService.address,
-      ]
-    );
-
-    // Basic seed
-    await this.complianceConfiguration.setCountryCompliance('USA', US);
-    await this.complianceConfiguration.setCountryCompliance('Spain', EU);
-    await this.complianceConfiguration.setCountryCompliance('Germany', EU);
-    await this.complianceConfiguration.setCountryCompliance('China', FORBIDDEN);
 
     // Registering the investors and wallets
-    await this.registryService.registerInvestor(US_INVESTOR_ID, US_INVESTOR_COLLISION_HASH);
-    await this.registryService.setCountry(US_INVESTOR_ID, 'USA');
-    await this.registryService.addWallet(usInvestor, US_INVESTOR_ID);
-    await this.registryService.addWallet(usInvestorSecondaryWallet, US_INVESTOR_ID);
-
-    await this.registryService.registerInvestor(US_INVESTOR_ID_2, US_INVESTOR_COLLISION_HASH_2);
-    await this.registryService.setCountry(US_INVESTOR_ID_2, 'USA');
-    await this.registryService.addWallet(usInvestor2, US_INVESTOR_ID_2);
-
-    await this.registryService.registerInvestor(SPAIN_INVESTOR_ID, SPAIN_INVESTOR_COLLISION_HASH);
-    await this.registryService.setCountry(SPAIN_INVESTOR_ID, 'Spain');
-    await this.registryService.addWallet(spainInvestor, SPAIN_INVESTOR_ID);
+    await this.registryService.registerInvestor(
+      investorId.US_INVESTOR_ID,
+      investorId.US_INVESTOR_COLLISION_HASH
+    );
+    await this.registryService.setCountry(
+      investorId.US_INVESTOR_ID,
+      country.USA
+    );
+    await this.registryService.addWallet(
+      usInvestorWallet,
+      investorId.US_INVESTOR_ID
+    );
+    await this.registryService.addWallet(
+      usInvestorSecondaryWallet,
+      investorId.US_INVESTOR_ID
+    );
 
     await this.registryService.registerInvestor(
-      GERMANY_INVESTOR_ID,
-      GERMANY_INVESTOR_COLLISION_HASH
+      investorId.US_INVESTOR_ID_2,
+      investorId.US_INVESTOR_COLLISION_HASH_2
     );
-    await this.registryService.setCountry(GERMANY_INVESTOR_ID, 'Germany');
-    await this.registryService.addWallet(germanyInvestor, GERMANY_INVESTOR_ID);
+    await this.registryService.setCountry(
+      investorId.US_INVESTOR_ID_2,
+      country.USA
+    );
+    await this.registryService.addWallet(
+      usInvestor2Wallet,
+      investorId.US_INVESTOR_ID_2
+    );
 
-    await this.registryService.registerInvestor(CHINA_INVESTOR_ID, CHINA_INVESTOR_COLLISION_HASH);
-    await this.registryService.setCountry(CHINA_INVESTOR_ID, 'China');
-    await this.registryService.addWallet(chinaInvestor, CHINA_INVESTOR_ID);
+    await this.registryService.registerInvestor(
+      investorId.SPAIN_INVESTOR_ID,
+      investorId.SPAIN_INVESTOR_COLLISION_HASH
+    );
+    await this.registryService.setCountry(
+      investorId.SPAIN_INVESTOR_ID,
+      country.SPAIN
+    );
+    await this.registryService.addWallet(
+      spainInvestorWallet,
+      investorId.SPAIN_INVESTOR_ID
+    );
 
-    await this.registryService.registerInvestor(ISRAEL_INVESTOR_ID, ISRAEL_INVESTOR_COLLISION_HASH);
-    await this.registryService.setCountry(ISRAEL_INVESTOR_ID, 'Israel');
-    await this.registryService.addWallet(israelInvestor, ISRAEL_INVESTOR_ID);
+    await this.registryService.registerInvestor(
+      investorId.GERMANY_INVESTOR_ID,
+      investorId.GERMANY_INVESTOR_COLLISION_HASH
+    );
+    await this.registryService.setCountry(
+      investorId.GERMANY_INVESTOR_ID,
+      country.GERMANY
+    );
+    await this.registryService.addWallet(
+      germanyInvestorWallet,
+      investorId.GERMANY_INVESTOR_ID
+    );
+
+    await this.registryService.registerInvestor(
+      investorId.CHINA_INVESTOR_ID,
+      investorId.CHINA_INVESTOR_COLLISION_HASH
+    );
+    await this.registryService.setCountry(
+      investorId.CHINA_INVESTOR_ID,
+      country.CHINA
+    );
+    await this.registryService.addWallet(
+      chinaInvestorWallet,
+      investorId.CHINA_INVESTOR_ID
+    );
+
+    await this.registryService.registerInvestor(
+      investorId.ISRAEL_INVESTOR_ID,
+      investorId.ISRAEL_INVESTOR_COLLISION_HASH
+    );
+    await this.registryService.setCountry(
+      investorId.ISRAEL_INVESTOR_ID,
+      country.ISRAEL
+    );
+    await this.registryService.addWallet(
+      israelInvestorWallet,
+      investorId.ISRAEL_INVESTOR_ID
+    );
 
     await this.complianceConfiguration.setAll(
-      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 1 * YEARS],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 1 * time.YEARS, 0],
       [true, false, false]
     );
   });
 
-  describe('creation', function() {
-    it('should get the basic details of the token correctly', async function() {
+  beforeEach(async function() {
+    snapshot = await snapshotsHelper.takeSnapshot();
+    snapshotId = snapshot["result"];
+  });
+
+  afterEach(async function() {
+    await snapshotsHelper.revertToSnapshot(snapshotId);
+  });
+
+  describe("Creation", function() {
+    it("Should get the basic details of the token correctly", async function() {
       const name = await this.token.name.call();
       const symbol = await this.token.symbol.call();
       const decimals = await this.token.decimals.call();
       const totalSupply = await this.token.totalSupply.call();
 
-      assert.equal(name, 'DSTokenMock');
-      assert.equal(symbol, 'DST');
+      assert.equal(name, "DSTokenMock");
+      assert.equal(symbol, "DST");
       assert.equal(decimals, 18);
       assert.equal(totalSupply, 0);
     });
-    it('should not allow instantiating the token without a proxy', async function() {
+    it("Should not allow instantiating the token without a proxy", async function() {
       const token = await DSToken.new();
-      await assertRevert(
-        token.initialize('DSTokenMock', 'DST', 18, this.storage.address, 'DSTokenMock')
-      );
+      await assertRevert(token.initialize("DSTokenMock", "DST", 18));
     });
   });
 
-  describe('Features flag', function() {
-    it('Should enable/disable features correctly', async function() {
+  describe("Ownership", function() {
+    it("Should allow to transfer ownership and return the correct owner address", async function() {
+      await this.token.transferOwnership(issuerWallet);
+      let changedOwner = await this.token.contractOwner();
+      assert.equal(changedOwner, issuerWallet);
+
+      // Check that ownership can be transferred from new owner to previous owner
+      await this.token.transferOwnership(owner, {from: issuerWallet});
+      changedOwner = await this.token.contractOwner();
+
+      assert.equal(changedOwner, owner);
+    });
+  });
+
+  describe("Features flag", function() {
+    it("Should enable/disable features correctly", async function() {
       let supportedFeatures = await this.token.supportedFeatures.call();
 
       assert.equal(supportedFeatures.toNumber(), 0);
@@ -264,7 +189,10 @@ contract('DSToken (regulated)', function([
       await this.token.setFeature(31, true);
       await this.token.setFeature(32, true);
       supportedFeatures = await this.token.supportedFeatures.call();
-      assert.equal(supportedFeatures.toNumber(), Math.pow(2, 31) + Math.pow(2, 32));
+      assert.equal(
+        supportedFeatures.toNumber(),
+        Math.pow(2, 31) + Math.pow(2, 32)
+      );
 
       await this.token.setFeature(31, false);
       await this.token.setFeature(32, false);
@@ -283,7 +211,7 @@ contract('DSToken (regulated)', function([
       assert.equal(supportedFeatures.toNumber(), 0);
     });
 
-    it('Should set features member correctly', async function() {
+    it("Should set features member correctly", async function() {
       let supportedFeatures = await this.token.supportedFeatures.call();
 
       assert.equal(supportedFeatures.toNumber(), 0);
@@ -295,56 +223,56 @@ contract('DSToken (regulated)', function([
     });
   });
 
-  describe('cap', function() {
+  describe("Cap", function() {
     beforeEach(async function() {
       await this.token.setCap(1000);
     });
 
-    it('cannot be set twice', async function() {
+    it("Cannot be set twice", async function() {
       await assertRevert(this.token.setCap(1000));
     });
 
-    it("doesn't prevent issuing tokens within limit", async function() {
-      await this.token.issueTokens(usInvestor, 500);
-      await this.token.issueTokens(usInvestor, 500);
+    it("Doesn't prevent issuing tokens within limit", async function() {
+      await this.token.issueTokens(usInvestorWallet, 500);
+      await this.token.issueTokens(usInvestorWallet, 500);
     });
 
-    it('prevents issuing too many tokens', async function() {
-      await this.token.issueTokens(usInvestor, 500);
-      await assertRevert(this.token.issueTokens(usInvestor, 501));
+    it("Prevents issuing too many tokens", async function() {
+      await this.token.issueTokens(usInvestorWallet, 500);
+      await assertRevert(this.token.issueTokens(usInvestorWallet, 501));
     });
   });
 
-  describe('issuance', function() {
-    it('should issue tokens to a us wallet', async function() {
-      await this.token.issueTokens(usInvestor, 100);
-      const balance = await this.token.balanceOf(usInvestor);
+  describe("Issuance", function() {
+    it("Should issue tokens to a us wallet", async function() {
+      await this.token.issueTokens(usInvestorWallet, 100);
+      const balance = await this.token.balanceOf(usInvestorWallet);
       assert.equal(balance, 100);
     });
 
-    it('should issue tokens to a eu wallet', async function() {
-      await this.token.issueTokens(germanyInvestor, 100);
-      const balance = await this.token.balanceOf(germanyInvestor);
+    it("Should issue tokens to a eu wallet", async function() {
+      await this.token.issueTokens(germanyInvestorWallet, 100);
+      const balance = await this.token.balanceOf(germanyInvestorWallet);
       assert.equal(balance, 100);
     });
 
-    it('should not issue tokens to a forbidden wallet', async function() {
-      await assertRevert(this.token.issueTokens(chinaInvestor, 100));
+    it("Should not issue tokens to a forbidden wallet", async function() {
+      await assertRevert(this.token.issueTokens(chinaInvestorWallet, 100));
     });
 
-    it('should issue tokens to a none wallet', async function() {
-      await this.token.issueTokens(israelInvestor, 100);
-      const balance = await this.token.balanceOf(israelInvestor);
+    it("Should issue tokens to a none wallet", async function() {
+      await this.token.issueTokens(israelInvestorWallet, 100);
+      const balance = await this.token.balanceOf(israelInvestorWallet);
       assert.equal(balance, 100);
     });
 
-    it('should record the number of total issued token correctly', async function() {
-      await this.token.issueTokens(usInvestor, 100);
+    it("Should record the number of total issued token correctly", async function() {
+      await this.token.issueTokens(usInvestorWallet, 100);
       await this.token.issueTokens(usInvestorSecondaryWallet, 100);
-      await this.token.issueTokens(usInvestor2, 100);
-      await this.token.issueTokens(usInvestor, 100);
-      await this.token.issueTokens(germanyInvestor, 100);
-      await this.token.issueTokens(israelInvestor, 100);
+      await this.token.issueTokens(usInvestor2Wallet, 100);
+      await this.token.issueTokens(usInvestorWallet, 100);
+      await this.token.issueTokens(germanyInvestorWallet, 100);
+      await this.token.issueTokens(israelInvestorWallet, 100);
 
       const totalIssued = await this.token.totalIssued();
 
@@ -352,48 +280,54 @@ contract('DSToken (regulated)', function([
     });
   });
 
-  describe('locking', function() {
-    it('should not allow transferring any tokens when all locked', async function() {
+  describe("Locking", function() {
+    it("Should not allow transferring any tokens when all locked", async function() {
       await this.token.issueTokensCustom(
-        israelInvestor,
+        israelInvestorWallet,
         100,
         await latestTime(),
         100,
-        'TEST',
-        (await latestTime()) + 1 * WEEKS
+        "TEST",
+        (await latestTime()) + 1 * time.WEEKS
       );
-      await assertRevert(this.token.transfer(germanyInvestor, 1, {from: israelInvestor}));
+      await assertRevert(
+        this.token.transfer(germanyInvestorWallet, 1, {
+          from: israelInvestorWallet
+        })
+      );
     });
 
-    it('should allow transferring tokens when other are locked', async function() {
+    it("Should allow transferring tokens when other are locked", async function() {
       await this.token.issueTokensCustom(
-        israelInvestor,
+        israelInvestorWallet,
         100,
         await latestTime(),
         50,
-        'TEST',
-        (await latestTime()) + 1 * WEEKS
+        "TEST",
+        (await latestTime()) + 1 * time.WEEKS
       );
-      await this.token.transfer(germanyInvestor, 50, {from: israelInvestor});
-      const israelBalance = await this.token.balanceOf(israelInvestor);
+      await this.token.transfer(germanyInvestorWallet, 50, {
+        from: israelInvestorWallet
+      });
+      const israelBalance = await this.token.balanceOf(israelInvestorWallet);
       assert.equal(israelBalance, 50);
-      const germanyBalance = await this.token.balanceOf(germanyInvestor);
+      const germanyBalance = await this.token.balanceOf(germanyInvestorWallet);
       assert.equal(germanyBalance, 50);
     });
 
-    it('should allow investors to move locked tokens between their own wallets', async function() {
+    it("Should allow investors to move locked tokens between their own wallets", async function() {
       await this.token.issueTokensCustom(
-        usInvestor,
+        usInvestorWallet,
         100,
         await latestTime(),
         100,
-        'TEST',
-        (await latestTime()) + 1 * WEEKS
+        "TEST",
+        (await latestTime()) + 1 * time.WEEKS
       );
       await this.token.transfer(usInvestorSecondaryWallet, 50, {
-        from: usInvestor,
+        from: usInvestorWallet
       });
-      const usInvestorBalance = await this.token.balanceOf(usInvestor);
+      const usInvestorBalance = await this.token.balanceOf(usInvestorWallet);
       assert.equal(usInvestorBalance.toNumber(), 50);
       const usInvestorSecondaryWalletBalance = await this.token.balanceOf(
         usInvestorSecondaryWallet
@@ -402,42 +336,44 @@ contract('DSToken (regulated)', function([
     });
   });
 
-  describe('burn', function() {
-    it('should burn tokens from a specific wallet', async function() {
-      await this.token.issueTokens(usInvestor, 100);
-      await this.token.burn(usInvestor, 50, 'test burn');
+  describe("Burn", function() {
+    it("Should burn tokens from a specific wallet", async function() {
+      await this.token.issueTokens(usInvestorWallet, 100);
+      await this.token.burn(usInvestorWallet, 50, "test burn");
 
-      const balance = await this.token.balanceOf(usInvestor);
+      const balance = await this.token.balanceOf(usInvestorWallet);
       assert.equal(balance, 50);
     });
 
-    it('should record the number of total issued token correctly after burn', async function() {
-      await this.token.issueTokens(usInvestor, 100);
-      await this.token.issueTokens(usInvestor, 100);
-      await this.token.burn(usInvestor, 100, 'test burn');
+    it("Should record the number of total issued token correctly after burn", async function() {
+      await this.token.issueTokens(usInvestorWallet, 100);
+      await this.token.issueTokens(usInvestorWallet, 100);
+      await this.token.burn(usInvestorWallet, 100, "test burn");
 
       const totalIssued = await this.token.totalIssued();
       assert.equal(totalIssued, 200);
     });
   });
 
-  describe('seize', function() {
+  describe("Seize", function() {
     beforeEach(async function() {
       await this.walletManager.addIssuerWallet(issuerWallet);
-      await this.token.issueTokens(usInvestor, 100);
+      await this.token.issueTokens(usInvestorWallet, 100);
     });
 
-    it('should seize tokens correctly', async function() {
-      await this.token.seize(usInvestor, issuerWallet, 50, 'test seize');
+    it("Should seize tokens correctly", async function() {
+      await this.token.seize(usInvestorWallet, issuerWallet, 50, "test seize");
 
-      const usInvestorBalance = await this.token.balanceOf(usInvestor);
+      const usInvestorBalance = await this.token.balanceOf(usInvestorWallet);
       assert.equal(usInvestorBalance, 50);
       const issuerWalletBalance = await this.token.balanceOf(issuerWallet);
       assert.equal(issuerWalletBalance, 50);
     });
 
-    it('cannot seize more than balance', async function() {
-      await assertRevert(this.token.seize(usInvestor, issuerWallet, 150, 'test seize'));
+    it("Cannot seize more than balance", async function() {
+      await assertRevert(
+        this.token.seize(usInvestorWallet, issuerWallet, 150, "test seize")
+      );
     });
   });
 });

@@ -1,11 +1,24 @@
-const DSToken = artifacts.require('DSTokenVersioned');
+const deployContractBehindProxy = require("./utils").deployContractBehindProxy;
+const configurationManager = require("./utils/configurationManager");
 
-const configurationManager = require('./utils/configurationManager');
-
-module.exports = function(deployer) {
+module.exports = async function(deployer) {
   if (configurationManager.isTestMode()) {
     return;
   }
 
-  deployer.deploy(DSToken);
+  const abstractTokenContract = configurationManager.getAbstractTokenContract(
+    artifacts
+  );
+
+  await deployContractBehindProxy(
+    artifacts.require("Proxy"),
+    configurationManager,
+    deployer,
+    abstractTokenContract,
+    [
+      configurationManager.name,
+      configurationManager.symbol,
+      configurationManager.decimals
+    ]
+  );
 };

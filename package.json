@@ -1,11 +1,7 @@
 {
   "name": "Digital_Securities",
-  "version": "v0.9.0",
+  "version": "v2.0.0",
   "description": "Digital Securities Reference Implementation",
-  "main": "truffle.js",
-  "directories": {
-    "test": "test"
-  },
   "scripts": {
     "test": "npm run test:unitests && npm run test:integration",
     "test:unitests": "cross-env TEST_MODE=TRUE ./scripts/test.sh ./test/unitests/**",
@@ -14,7 +10,7 @@
     "compile": "truffle compile",
     "migrate": "truffle migrate",
     "generate": "node ./generators/EternalStorageClientGenerator.js",
-    "remixd": "./node_modules/.bin/remixd --remix-ide http://remix.ethereum.org -s ./"
+    "remixd": "./node_modules/.bin/remixd --remix-ide https://remix.ethereum.org -s ./"
   },
   "contributors": [
     {
@@ -32,6 +28,10 @@
     {
       "name": "Omri Perl",
       "email": "omri@securitize.io"
+    },
+    {
+      "name": "Niv Dadush",
+      "email": "niv@securitize.io"
     }
   ],
   "license": "ISC",
@@ -42,7 +42,6 @@
     "coveralls": "^2.13.1",
     "cross-env": "^5.2.0",
     "dotenv": "^4.0.0",
-    "ejs": "^2.6.1",
     "eslint": "^4.11.0",
     "eslint-config-standard": "^10.2.1",
     "eslint-plugin-import": "^2.8.0",
@@ -50,15 +49,14 @@
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-standard": "^3.0.1",
     "ethereumjs-util": "^5.1.2",
-    "ethjs-abi": "^0.2.1",
-    "ganache-cli": "6.1.0",
-    "js-yaml": "^3.12.0",
+    "ganache-cli": "^6.8.2",
     "minimist": "^1.2.0",
+    "prettier": "^1.19.1",
+    "prettier-plugin-solidity": "^1.0.0-alpha.36",
     "remixd": "^0.1.8-alpha.12",
     "solidity-coverage": "^0.5.0",
     "solium": "^1.1.7",
     "truffle": "^5.0.22",
     "truffle-hdwallet-provider": "^1.0.10"
-  },
-  "dependencies": {}
+  }
 }

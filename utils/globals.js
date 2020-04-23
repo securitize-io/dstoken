@@ -4,38 +4,40 @@ module.exports = {
     DS_TOKEN: 2,
     REGISTRY_SERVICE: 4,
     COMPLIANCE_SERVICE: 8,
-    COMMS_SERVICE: 16,
     WALLET_MANAGER: 32,
     LOCK_MANAGER: 64,
-    ISSUANCE_INFORMATION_MANAGER: 128,
+    PARTITIONS_MANAGER: 128,
     COMPLIANCE_CONFIGURATION_SERVICE: 256,
     TOKEN_ISSUER: 512,
-    WALLET_REGISTRAR: 1024,
+    WALLET_REGISTRAR: 1024
   },
   roles: {
     NONE: 0,
     MASTER: 1,
     ISSUER: 2,
-    EXCHANGE: 4,
+    EXCHANGE: 4
   },
-  countries: {
-    FRANCE: 'France',
-    USA: 'USA',
+  complianceType: {
+    NOT_REGULATED: 0,
+    WHITELIST: 1,
+    NORMAL: 2,
+    PARTITIONED: 4
   },
-  investorStatusIds: {
+  lockManagerType: {
+    WALLET: 0,
+    INVESTOR: 1,
+    PARTITIONED: 2
+  },
+  attributeType: {
     NONE: 0,
     KYC_APPROVED: 1,
     ACCREDITED: 2,
     QUALIFIED: 4,
-    PROFESSIONAL: 8,
+    PROFESSIONAL: 8
   },
-  investorStatuses: {
+  attributeStatus: {
     PENDING: 0,
     APPROVED: 1,
-    REJECTED: 2,
-  },
-  compliances: {
-    US: 1,
-    EU: 2,
-  },
+    REJECTED: 2
+  }
 };
