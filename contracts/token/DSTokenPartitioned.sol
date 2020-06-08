@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "./DSToken.sol";
 import "./IDSTokenPartitioned.sol";
@@ -6,9 +6,9 @@ import "../compliance/IDSPartitionsManager.sol";
 import "./TokenPartitionsLibrary.sol";
 
 contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
-    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public initializer onlyFromProxy {
+    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public initializer forceInitializeFromProxy {
         DSToken.initialize(_name, _symbol, _decimals);
-        VERSIONS.push(1);
+        VERSIONS.push(2);
     }
 
     function issueTokensWithMultipleLocks(

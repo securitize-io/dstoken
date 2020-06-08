@@ -1,14 +1,14 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "./IDSWalletRegistrar.sol";
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
 
 contract WalletRegistrar is ProxyTarget, Initializable, IDSWalletRegistrar, ServiceConsumer {
-    function initialize() public initializer onlyFromProxy {
+    function initialize() public initializer forceInitializeFromProxy {
         IDSWalletRegistrar.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(2);
+        VERSIONS.push(3);
     }
 
     function registerWallet(
@@ -20,14 +20,14 @@ contract WalletRegistrar is ProxyTarget, Initializable, IDSWalletRegistrar, Serv
         uint256[] memory _attributeValues,
         uint256[] memory _attributeExpirations
     ) public onlyOwner returns (bool) {
-        require(_attributeValues.length == _attributeIds.length);
-        require(_attributeIds.length == _attributeExpirations.length);
+        require(_attributeValues.length == _attributeIds.length, "Wrong length of parameters");
+        require(_attributeIds.length == _attributeExpirations.length, "Wrong length of parameters");
 
         IDSRegistryService registryService = getRegistryService();
 
         for (uint256 i = 0; i < _wallets.length; i++) {
             if (registryService.isWallet(_wallets[i])) {
-                require(keccak256(abi.encodePacked(registryService.getInvestor(_wallets[i]))) == keccak256(abi.encodePacked(_id)), "Wallet belongs to a different investor");
+                require(CommonUtils.isEqualString(registryService.getInvestor(_wallets[i]), _id), "Wallet belongs to a different investor");
             } else {
                 if (!registryService.isInvestor(_id)) {
                     registryService.registerInvestor(_id, _collisionHash);

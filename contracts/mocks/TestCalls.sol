@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 /// @title Contract for testing low-level calls issued from the multisig wallet
 contract TestCalls {

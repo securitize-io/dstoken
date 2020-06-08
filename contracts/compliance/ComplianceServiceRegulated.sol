@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "./ComplianceServiceWhitelisted.sol";
 import "../zeppelin/math/Math.sol";
@@ -163,9 +163,9 @@ library ComplianceServiceLibrary {
         }
 
         if (
-            keccak256(abi.encodePacked(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_from))) != keccak256("") &&
-            keccak256(abi.encodePacked(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_from))) ==
-            keccak256(abi.encodePacked(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to)))
+            !CommonUtils.isEmptyString(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_from)) &&
+            CommonUtils.isEqualString(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_from),
+                                      IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to))
         ) {
             return (0, VALID);
         }
@@ -274,7 +274,7 @@ library ComplianceServiceLibrary {
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getJPInvestorsLimit() &&
                 isNewInvestor(_services, _to) &&
                 !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
-                (keccak256(abi.encodePacked(getCountry(_services, _from))) != keccak256(abi.encodePacked(toCountry)) || (fromInvestorBalance > _value))
+                (!CommonUtils.isEqualString(getCountry(_services, _from), toCountry) || (fromInvestorBalance > _value))
             ) {
                 return (40, MAX_INVESTORS_IN_CATEGORY);
             }
@@ -285,7 +285,7 @@ library ComplianceServiceLibrary {
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getEURetailInvestorsLimit() &&
                 isNewInvestor(_services, _to) &&
                 !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
-                (keccak256(abi.encodePacked(getCountry(_services, _from))) != keccak256(abi.encodePacked(toCountry)) ||
+                (!CommonUtils.isEqualString(getCountry(_services, _from), toCountry) ||
                     (fromInvestorBalance > _value && isRetail(_services, _from)))
             ) {
                 return (40, MAX_INVESTORS_IN_CATEGORY);
@@ -475,7 +475,7 @@ library ComplianceServiceLibrary {
  */
 
 contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
-    function initialize() public initializer onlyFromProxy {
+    function initialize() public initializer forceInitializeFromProxy {
         super.initialize();
         VERSIONS.push(7);
     }
@@ -486,35 +486,33 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
     function recordTransfer(address _from, address _to, uint256 _value) internal returns (bool) {
         if (compareInvestorBalance(_from, _value, _value)) {
-            adjustTransferCounts(_from, _to, false);
+            adjustTransferCounts(_from, _to, CommonUtils.IncDec.Decrease);
         }
 
         if (compareInvestorBalance(_to, _value, 0)) {
-            adjustTransferCounts(_to, _from, true);
+            adjustTransferCounts(_to, _from, CommonUtils.IncDec.Increase);
         }
 
         return true;
     }
 
-    function adjustTransferCounts(address _from, address _to, bool increase) internal {
+    function adjustTransferCounts(address _from, address _to, CommonUtils.IncDec _increase) internal {
         if (!ComplianceServiceLibrary.isBeneficiaryDepositOrWithdrawl(getRegistryService(), _from, _to)) {
-            adjustTotalInvestorsCounts(_from, increase);
+            adjustTotalInvestorsCounts(_from, _increase);
         }
     }
 
     function recordIssuance(address _to, uint256 _value, uint256 _issuanceTime) internal returns (bool) {
         if (compareInvestorBalance(_to, _value, 0)) {
-            adjustTotalInvestorsCounts(_to, true);
+            adjustTotalInvestorsCounts(_to, CommonUtils.IncDec.Increase);
         }
 
-        require(createIssuanceInformation(getRegistryService().getInvestor(_to), _value, _issuanceTime));
-
-        return true;
+        return createIssuanceInformation(getRegistryService().getInvestor(_to), _value, _issuanceTime);
     }
 
     function recordBurn(address _who, uint256 _value) internal returns (bool) {
         if (compareInvestorBalance(_who, _value, _value)) {
-            adjustTotalInvestorsCounts(_who, false);
+            adjustTotalInvestorsCounts(_who, CommonUtils.IncDec.Decrease);
         }
         return true;
     }
@@ -551,17 +549,17 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
             return false;
         }
 
-        adjustInvestorsCountsByCountry(_prevCountry, _id, false);
-        adjustInvestorsCountsByCountry(_country, _id, true);
+        adjustInvestorsCountsByCountry(_prevCountry, _id, CommonUtils.IncDec.Decrease);
+        adjustInvestorsCountsByCountry(_country, _id, CommonUtils.IncDec.Increase);
 
         return true;
     }
 
-    function adjustTotalInvestorsCounts(address _wallet, bool _increase) internal {
+    function adjustTotalInvestorsCounts(address _wallet, CommonUtils.IncDec _increase) internal {
         uint8 walletType = getWalletManager().getWalletType(_wallet);
 
         if (walletType == getWalletManager().NONE()) {
-            totalInvestors = _increase ? totalInvestors.add(1) : totalInvestors.sub(1);
+            totalInvestors = _increase == CommonUtils.IncDec.Increase ? totalInvestors.add(1) : totalInvestors.sub(1);
 
             string memory id = getRegistryService().getInvestor(_wallet);
             string memory country = getRegistryService().getCountry(id);
@@ -570,23 +568,23 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         }
     }
 
-    function adjustInvestorsCountsByCountry(string memory _country, string memory _id, bool _increase) internal {
+    function adjustInvestorsCountsByCountry(string memory _country, string memory _id, CommonUtils.IncDec _increase) internal {
         uint256 countryCompliance = getComplianceConfigurationService().getCountryCompliance(_country);
 
         if (getRegistryService().getAttributeValue(_id, getRegistryService().ACCREDITED()) == getRegistryService().APPROVED()) {
-            accreditedInvestorsCount = _increase ? accreditedInvestorsCount.add(1) : accreditedInvestorsCount.sub(1);
+            accreditedInvestorsCount = _increase == CommonUtils.IncDec.Increase ? accreditedInvestorsCount.add(1) : accreditedInvestorsCount.sub(1);
 
             if (countryCompliance == US) {
-                usAccreditedInvestorsCount = _increase ? usAccreditedInvestorsCount.add(1) : usAccreditedInvestorsCount.sub(1);
+                usAccreditedInvestorsCount = _increase == CommonUtils.IncDec.Increase ? usAccreditedInvestorsCount.add(1) : usAccreditedInvestorsCount.sub(1);
             }
         }
 
         if (countryCompliance == US) {
-            usInvestorsCount = _increase ? usInvestorsCount.add(1) : usInvestorsCount.sub(1);
+            usInvestorsCount = _increase == CommonUtils.IncDec.Increase ? usInvestorsCount.add(1) : usInvestorsCount.sub(1);
         } else if (countryCompliance == EU && getRegistryService().getAttributeValue(_id, getRegistryService().QUALIFIED()) != getRegistryService().APPROVED()) {
-            euRetailInvestorsCount[_country] = _increase ? euRetailInvestorsCount[_country].add(1) : euRetailInvestorsCount[_country].sub(1);
+            euRetailInvestorsCount[_country] = _increase == CommonUtils.IncDec.Increase ? euRetailInvestorsCount[_country].add(1) : euRetailInvestorsCount[_country].sub(1);
         } else if (countryCompliance == JP) {
-            jpInvestorsCount = _increase ? jpInvestorsCount.add(1) : jpInvestorsCount.sub(1);
+            jpInvestorsCount = _increase == CommonUtils.IncDec.Increase ? jpInvestorsCount.add(1) : jpInvestorsCount.sub(1);
         }
     }
 

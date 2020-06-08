@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";

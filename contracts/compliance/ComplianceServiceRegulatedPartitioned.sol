@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "./ComplianceServiceRegulated.sol";
 import "../zeppelin/math/Math.sol";
@@ -150,9 +150,9 @@ library ComplianceServicePartitionedLibrary {
         }
 
         if (
-            keccak256(abi.encodePacked(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_from))) != keccak256("") &&
-            keccak256(abi.encodePacked(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_from))) ==
-            keccak256(abi.encodePacked(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to)))
+            !CommonUtils.isEmptyString(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_from)) &&
+            CommonUtils.isEqualString(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_from),
+                                      IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to))
         ) {
             return (0, VALID);
         }
@@ -248,7 +248,7 @@ library ComplianceServicePartitionedLibrary {
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getJPInvestorsLimit() &&
                 isNewInvestor(_services, _to) &&
                 !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
-                (keccak256(abi.encodePacked(getCountry(_services, _from))) != keccak256(abi.encodePacked(toCountry)) || (fromInvestorBalance > _value))
+                (!CommonUtils.isEqualString(getCountry(_services, _from), toCountry) || (fromInvestorBalance > _value))
             ) {
                 return (40, MAX_INVESTORS_IN_CATEGORY);
             }
@@ -259,7 +259,7 @@ library ComplianceServicePartitionedLibrary {
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getEURetailInvestorsLimit() &&
                 isNewInvestor(_services, _to) &&
                 !isHolderOfRecordInternalTransfer(_services, _omnibusWallet) &&
-                (keccak256(abi.encodePacked(getCountry(_services, _from))) != keccak256(abi.encodePacked(toCountry)) ||
+                (!CommonUtils.isEqualString(getCountry(_services, _from), toCountry) ||
                     (fromInvestorBalance > _value && isRetail(_services, _from)))
             ) {
                 return (40, MAX_INVESTORS_IN_CATEGORY);
@@ -382,7 +382,7 @@ library ComplianceServicePartitionedLibrary {
 contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitioned, ComplianceServiceRegulated {
     using SafeMath for uint256;
 
-    function initialize() public initializer onlyFromProxy {
+    function initialize() public initializer forceInitializeFromProxy {
         ComplianceServiceRegulated.initialize();
         IDSComplianceServicePartitioned.initialize();
         VERSIONS.push(2);

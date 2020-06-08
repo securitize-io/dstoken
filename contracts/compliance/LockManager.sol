@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "../service/ServiceConsumer.sol";
 import "./IDSLockManager.sol";
@@ -44,10 +44,10 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
 
     /******************************/
 
-    function initialize() public initializer onlyFromProxy {
+    function initialize() public initializer forceInitializeFromProxy {
         IDSLockManager.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(2);
+        VERSIONS.push(3);
     }
 
     uint256 constant MAX_LOCKS_PER_ADDRESS = 30;
@@ -77,7 +77,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         onlyIssuerOrAboveOrToken
         validLock(_valueLocked, _releaseTime)
     {
-        require(_to != address(0));
+        require(_to != address(0), "Invalid address");
         createLock(_to, _valueLocked, 0, _reason, _releaseTime);
     }
 
@@ -90,7 +90,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
      * @return true on success
      */
     function removeLockRecord(address _to, uint256 _lockIndex) public onlyIssuerOrAbove returns (bool) {
-        require(_to != address(0));
+        require(_to != address(0), "Invalid address");
         //Put the last lock instead of the lock to remove (this will work even with 1 lock in the list)
         uint256 lastLockNumber = locksCounts[_to];
 
@@ -123,7 +123,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
      * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
      */
     function lockCount(address _who) public view returns (uint256) {
-        require(_who != address(0));
+        require(_who != address(0), "Invalid address");
         return locksCounts[_who];
     }
 
@@ -141,7 +141,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
      * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
      */
     function lockInfo(address _who, uint256 _lockIndex) public view returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime) {
-        require(_who != address(0));
+        require(_who != address(0), "Invalid address");
         uint256 lastLockNumber = locksCounts[_who];
         require(_lockIndex < lastLockNumber, "Index is greater than the number of locks");
         reasonCode = locks[_who][_lockIndex].reason;
