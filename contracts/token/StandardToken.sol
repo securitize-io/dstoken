@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "../service/ServiceConsumer.sol";
 import "../data-stores/TokenDataStore.sol";
@@ -39,20 +39,25 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
         return paused;
     }
 
+    function transferImpl(address _from, address _to, uint256 _value) internal returns (bool) {
+        require(_to != address(0));
+        require(_value <= tokenData.walletsBalances[_from]);
+
+        tokenData.walletsBalances[_from] = tokenData.walletsBalances[_from].sub(_value);
+        tokenData.walletsBalances[_to] = tokenData.walletsBalances[_to].add(_value);
+
+        emit Transfer(_from, _to, _value);
+
+        return true;
+    }
+
     /**
      * @dev transfer token for a specified address
      * @param _to The address to transfer to.
      * @param _value The amount to be transferred.
      */
     function transfer(address _to, uint256 _value) public returns (bool) {
-        require(_to != address(0));
-        require(_value <= tokenData.walletsBalances[msg.sender]);
-
-        tokenData.walletsBalances[msg.sender] = tokenData.walletsBalances[msg.sender].sub(_value);
-        tokenData.walletsBalances[_to] = tokenData.walletsBalances[_to].add(_value);
-
-        emit Transfer(msg.sender, _to, _value);
-        return true;
+        return transferImpl(msg.sender, _to, _value);
     }
 
     /**
@@ -69,15 +74,10 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
     }
 
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
-        require(_to != address(0));
-        require(_value <= tokenData.walletsBalances[_from]);
         require(_value <= allowances[_from][msg.sender]);
-
-        tokenData.walletsBalances[_from] = tokenData.walletsBalances[_from].sub(_value);
-        tokenData.walletsBalances[_to] = tokenData.walletsBalances[_to].add(_value);
         allowances[_from][msg.sender] = allowances[_from][msg.sender].sub(_value);
-        emit Transfer(_from, _to, _value);
-        return true;
+
+        return transferImpl(msg.sender, _to, _value);
     }
 
     function approve(address _spender, uint256 _value) public returns (bool) {

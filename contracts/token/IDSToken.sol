@@ -1,5 +1,6 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
+import "../utils/CommonUtils.sol";
 import "../zeppelin/token/ERC20/IERC20.sol";
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
@@ -21,7 +22,7 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(2);
+        VERSIONS.push(3);
     }
 
     /******************************
@@ -137,7 +138,7 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
         address _omnibusWallet,
         address _wallet,
         uint256 _value,
-        bool _increase /*onlyOmnibusWalletController*/
+        CommonUtils.IncDec _increase /*onlyOmnibusWalletController*/
     ) public returns (bool);
 
     function emitOmnibusTransferEvent(
@@ -147,7 +148,7 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
         uint256 _value /*onlyOmnibusWalletController*/
     ) public;
 
-    function updateInvestorBalance(address _wallet, uint256 _value, bool _increase) internal returns (bool);
+    function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal returns (bool);
 
     function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason);
 }

@@ -1,5 +1,6 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
+import "../utils/CommonUtils.sol";
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 import "../omnibus/IDSOmnibusWalletController.sol";
@@ -9,7 +10,7 @@ contract IDSRegistryService is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(3);
+        VERSIONS.push(4);
     }
 
     event DSRegistryServiceInvestorAdded(string investorId, address sender);
@@ -37,32 +38,32 @@ contract IDSRegistryService is Initializable, VersionedContract {
     }
 
     modifier newInvestor(string memory _id) {
-        require(!isInvestor(_id));
+        require(!isInvestor(_id), "Investor already exists");
         _;
     }
 
     modifier walletExists(address _address) {
-        require(isWallet(_address));
+        require(isWallet(_address), "Unknown wallet");
         _;
     }
 
     modifier newWallet(address _address) {
-        require(!isWallet(_address));
+        require(!isWallet(_address), "Wallet already exists");
         _;
     }
 
     modifier newOmnibusWallet(address _omnibusWallet) {
-        require(!isOmnibusWallet(_omnibusWallet));
+        require(!isOmnibusWallet(_omnibusWallet), "Omnibus wallet already exists");
         _;
     }
 
     modifier omnibusWalletExists(address _omnibusWallet) {
-        require(isOmnibusWallet(_omnibusWallet));
+        require(isOmnibusWallet(_omnibusWallet), "Unknown omnibus wallet");
         _;
     }
 
     modifier walletBelongsToInvestor(address _address, string memory _id) {
-        require(keccak256(abi.encodePacked(getInvestor(_address))) == keccak256(abi.encodePacked(_id)));
+        require(CommonUtils.isEqualString(getInvestor(_address), _id), "Wallet does not belong to investor");
         _;
     }
 

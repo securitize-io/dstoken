@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "../service/ServiceConsumer.sol";
 
@@ -50,9 +50,9 @@ library TokenLibrary {
         uint256 _cap
     ) public returns (bool) {
         //Check input values
-        require(_to != address(0));
-        require(_value > 0);
-        require(_valuesLocked.length == _releaseTimes.length);
+        require(_to != address(0), "Invalid address");
+        require(_value > 0, "Value is zero");
+        require(_valuesLocked.length == _releaseTimes.length, "Wrong length of parameters");
 
         //Make sure we are not hitting the cap
         require(_cap == 0 || _tokenData.totalIssued.add(_value) <= _cap, "Token Cap Hit");
@@ -64,7 +64,7 @@ library TokenLibrary {
         _tokenData.totalSupply = _tokenData.totalSupply.add(_value);
         _tokenData.totalIssued = _tokenData.totalIssued.add(_value);
         _tokenData.walletsBalances[_to] = _tokenData.walletsBalances[_to].add(_value);
-        updateInvestorBalance(_tokenData, IDSRegistryService(_services[REGISTRY_SERVICE]), _to, _value, true);
+        updateInvestorBalance(_tokenData, IDSRegistryService(_services[REGISTRY_SERVICE]), _to, _value, CommonUtils.IncDec.Increase);
 
         uint256 totalLocked = 0;
         for (uint256 i = 0; i < _valuesLocked.length; i++) {
@@ -77,22 +77,22 @@ library TokenLibrary {
     }
 
     modifier validSeizeParameters(TokenData storage _tokenData, address _from, address _to, uint256 _value) {
-        require(_from != address(0));
-        require(_to != address(0));
-        require(_value <= _tokenData.walletsBalances[_from]);
+        require(_from != address(0), "Invalid address");
+        require(_to != address(0), "Invalid address");
+        require(_value <= _tokenData.walletsBalances[_from], "Not enough balance");
 
         _;
     }
 
     function burn(TokenData storage _tokenData, address[] memory _services, address _who, uint256 _value) public {
-        require(_value <= _tokenData.walletsBalances[_who]);
+        require(_value <= _tokenData.walletsBalances[_who], "Not enough balance");
         // no need to require value <= totalSupply, since that would imply the
         // sender's balance is greater than the totalSupply, which *should* be an assertion failure
 
         IDSComplianceService(_services[COMPLIANCE_SERVICE]).validateBurn(_who, _value);
 
         _tokenData.walletsBalances[_who] = _tokenData.walletsBalances[_who].sub(_value);
-        updateInvestorBalance(_tokenData, IDSRegistryService(_services[REGISTRY_SERVICE]), _who, _value, false);
+        updateInvestorBalance(_tokenData, IDSRegistryService(_services[REGISTRY_SERVICE]), _who, _value, CommonUtils.IncDec.Decrease);
         _tokenData.totalSupply = _tokenData.totalSupply.sub(_value);
     }
 
@@ -104,8 +104,8 @@ library TokenLibrary {
         IDSComplianceService(_services[COMPLIANCE_SERVICE]).validateSeize(_from, _to, _value);
         _tokenData.walletsBalances[_from] = _tokenData.walletsBalances[_from].sub(_value);
         _tokenData.walletsBalances[_to] = _tokenData.walletsBalances[_to].add(_value);
-        updateInvestorBalance(_tokenData, registryService, _from, _value, false);
-        updateInvestorBalance(_tokenData, registryService, _to, _value, true);
+        updateInvestorBalance(_tokenData, registryService, _from, _value, CommonUtils.IncDec.Decrease);
+        updateInvestorBalance(_tokenData, registryService, _to, _value, CommonUtils.IncDec.Increase);
     }
 
     function omnibusBurn(TokenData storage _tokenData, address[] memory _services, address _omnibusWallet, address _who, uint256 _value) public {
@@ -130,7 +130,7 @@ library TokenLibrary {
         _tokenData.walletsBalances[_to] = _tokenData.walletsBalances[_to].add(_value);
         omnibusController.seize(_from, _value);
         decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_tokenData, registryService, omnibusController, _omnibusWallet, _from, _value);
-        updateInvestorBalance(_tokenData, registryService, _to, _value, true);
+        updateInvestorBalance(_tokenData, registryService, _to, _value, CommonUtils.IncDec.Increase);
     }
 
     function decreaseInvestorBalanceOnOmnibusSeizeOrBurn(
@@ -142,9 +142,9 @@ library TokenLibrary {
         uint256 _value
     ) internal {
         if (_omnibusController.isHolderOfRecord()) {
-            updateInvestorBalance(_tokenData, _registryService, _omnibusWallet, _value, false);
+            updateInvestorBalance(_tokenData, _registryService, _omnibusWallet, _value, CommonUtils.IncDec.Decrease);
         } else {
-            updateInvestorBalance(_tokenData, _registryService, _from, _value, false);
+            updateInvestorBalance(_tokenData, _registryService, _from, _value, CommonUtils.IncDec.Decrease);
         }
     }
 
@@ -158,8 +158,8 @@ library TokenLibrary {
             emit OmnibusDeposit(_to, _from, _value, omnibusWalletController.getAssetTrackingMode());
 
             if (omnibusWalletController.isHolderOfRecord()) {
-                updateInvestorBalance(_tokenData, _registryService, _from, _value, false);
-                updateInvestorBalance(_tokenData, _registryService, _to, _value, true);
+                updateInvestorBalance(_tokenData, _registryService, _from, _value, CommonUtils.IncDec.Decrease);
+                updateInvestorBalance(_tokenData, _registryService, _to, _value, CommonUtils.IncDec.Increase);
             }
             return OMNIBUS_DEPOSIT;
         } else if (_registryService.isOmnibusWallet(_from)) {
@@ -168,19 +168,19 @@ library TokenLibrary {
             emit OmnibusWithdraw(_from, _to, _value, omnibusWalletController.getAssetTrackingMode());
 
             if (omnibusWalletController.isHolderOfRecord()) {
-                updateInvestorBalance(_tokenData, _registryService, _from, _value, false);
-                updateInvestorBalance(_tokenData, _registryService, _to, _value, true);
+                updateInvestorBalance(_tokenData, _registryService, _from, _value, CommonUtils.IncDec.Decrease);
+                updateInvestorBalance(_tokenData, _registryService, _to, _value, CommonUtils.IncDec.Increase);
             }
             return OMNIBUS_WITHDRAW;
         }
         return OMNIBUS_NO_ACTION;
     }
 
-    function updateInvestorBalance(TokenData storage _tokenData, IDSRegistryService _registryService, address _wallet, uint256 _value, bool _increase) internal returns (bool) {
+    function updateInvestorBalance(TokenData storage _tokenData, IDSRegistryService _registryService, address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal returns (bool) {
         string memory investor = _registryService.getInvestor(_wallet);
-        if (keccak256(abi.encodePacked(investor)) != keccak256("")) {
+        if (!CommonUtils.isEmptyString(investor)) {
             uint256 balance = _tokenData.investorsBalances[investor];
-            if (_increase) {
+            if (_increase == CommonUtils.IncDec.Increase) {
                 balance = balance.add(_value);
             } else {
                 balance = balance.sub(_value);

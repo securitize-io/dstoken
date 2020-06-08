@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "./IDSServiceConsumer.sol";
 import "../data-stores/ServiceConsumerDataStore.sol";
@@ -74,7 +74,7 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
     }
 
     modifier onlyOmnibusWalletController(address omnibusWallet, IDSOmnibusWalletController omnibusWalletController) {
-        require(getRegistryService().getOmnibusWalletController(omnibusWallet) == omnibusWalletController);
+        require(getRegistryService().getOmnibusWalletController(omnibusWallet) == omnibusWalletController, "Wrong controller address");
         _;
     }
 

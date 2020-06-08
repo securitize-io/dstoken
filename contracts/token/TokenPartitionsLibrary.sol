@@ -1,5 +1,6 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
+import "../utils/CommonUtils.sol";
 import "../zeppelin/math/SafeMath.sol";
 import "../zeppelin/math/Math.sol";
 import "../compliance/IDSComplianceServicePartitioned.sol";
@@ -82,7 +83,7 @@ library TokenPartitionsLibrary {
     function transferPartition(TokenPartitions storage self, IDSRegistryService _registry, address _from, address _to, uint256 _value, bytes32 _partition) public {
         if (_from != address(0)) {
             self.walletPartitions[_from].balances[_partition] = SafeMath.sub(self.walletPartitions[_from].balances[_partition], _value);
-            updateInvestorPartitionBalance(self, _registry, _from, _value, false, _partition);
+            updateInvestorPartitionBalance(self, _registry, _from, _value, CommonUtils.IncDec.Decrease, _partition);
             if (self.walletPartitions[_from].balances[_partition] == 0) {
                 removePartitionFromAddress(self, _from, _partition);
             }
@@ -93,7 +94,7 @@ library TokenPartitionsLibrary {
                 addPartitionToAddress(self, _to, _partition);
             }
             self.walletPartitions[_to].balances[_partition] = SafeMath.add(self.walletPartitions[_to].balances[_partition], _value);
-            updateInvestorPartitionBalance(self, _registry, _to, _value, true, _partition);
+            updateInvestorPartitionBalance(self, _registry, _to, _value, CommonUtils.IncDec.Increase, _partition);
         }
         emit TransferByPartition(_from, _to, _value, _partition);
     }
@@ -163,14 +164,14 @@ library TokenPartitionsLibrary {
         return self.walletPartitions[_who].partitions[_index];
     }
 
-    function updateInvestorPartitionBalance(TokenPartitions storage self, IDSRegistryService _registry, address _wallet, uint256 _value, bool _increase, bytes32 _partition)
+    function updateInvestorPartitionBalance(TokenPartitions storage self, IDSRegistryService _registry, address _wallet, uint256 _value, CommonUtils.IncDec _increase, bytes32 _partition)
         internal
         returns (bool)
     {
         string memory investor = _registry.getInvestor(_wallet);
-        if (keccak256(abi.encodePacked(investor)) != keccak256("")) {
+        if (!CommonUtils.isEmptyString(investor)) {
             uint256 balance = self.investorPartitionsBalances[investor][_partition];
-            if (_increase) {
+            if (_increase == CommonUtils.IncDec.Increase) {
                 balance = SafeMath.add(balance, _value);
             } else {
                 balance = SafeMath.sub(balance, _value);
@@ -181,6 +182,6 @@ library TokenPartitionsLibrary {
     }
 
     function shouldSkipComplianceCheck(IDSRegistryService _registry, address _from, address _to) internal view returns (bool) {
-        return keccak256(abi.encodePacked(_registry.getInvestor(_from))) == keccak256(abi.encodePacked(_registry.getInvestor(_to)));
+        return CommonUtils.isEqualString(_registry.getInvestor(_from), _registry.getInvestor(_to));
     }
 }

@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "./LockManager.sol";
 import "./IDSLockManagerPartitioned.sol";
@@ -10,10 +10,10 @@ import "../zeppelin/math/Math.sol";
 contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLockManagerBase {
     uint256 constant MAX_LOCKS_PER_INVESTOR_PARTITION = 30;
 
-    function initialize() public initializer onlyFromProxy {
+    function initialize() public initializer forceInitializeFromProxy {
         ServiceConsumer.initialize();
         IDSLockManagerPartitioned.initialize();
-        VERSIONS.push(1);
+        VERSIONS.push(2);
     }
 
     function createLockForInvestor(string memory _investorId, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime, bytes32 _partition)
@@ -33,13 +33,13 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
     }
 
     function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime, bytes32 _partition) public {
-        require(_to != address(0));
+        require(_to != address(0), "Invalid address");
         createLock(_to, _valueLocked, 0, _reason, _releaseTime, _partition);
     }
 
     function removeLockRecord(address _to, uint256 _lockIndex, bytes32 _partition) public returns (bool) {
         //Put the last lock instead of the lock to remove (this will work even with 1 lock in the list)
-        require(_to != address(0));
+        require(_to != address(0), "Invalid address");
         string memory investorId = getRegistryService().getInvestor(_to);
         emit UnlockedPartition(
             _to,
@@ -76,7 +76,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
     }
 
     function lockCount(address _who, bytes32 _partition) public view returns (uint256) {
-        require(_who != address(0));
+        require(_who != address(0), "Invalid address");
         return lockCountForInvestor(getRegistryService().getInvestor(_who), _partition);
     }
 
@@ -89,7 +89,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         view
         returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime)
     {
-        require(_who != address(0));
+        require(_who != address(0), "Invalid address");
         return lockInfoForInvestor(getRegistryService().getInvestor(_who), _lockIndex, _partition);
     }
 

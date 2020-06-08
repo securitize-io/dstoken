@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
@@ -11,16 +11,16 @@ contract IDSOmnibusWalletController is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(1);
+        VERSIONS.push(2);
     }
 
     modifier onlyOperatorOrAbove {
-        require(false);
+        require(false, "Not implemented");
         _;
     }
 
     modifier enoughBalance(address _who, uint256 _value) {
-        require(false);
+        require(false, "Not implemented");
         _;
     }
 

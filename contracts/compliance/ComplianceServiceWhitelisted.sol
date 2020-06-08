@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "./ComplianceService.sol";
 import "../registry/IDSRegistryService.sol";
@@ -10,15 +10,15 @@ import "../registry/IDSRegistryService.sol";
 */
 
 contract ComplianceServiceWhitelisted is ComplianceService {
-    function initialize() public initializer onlyFromProxy {
+    function initialize() public initializer forceInitializeFromProxy {
         ComplianceService.initialize();
-        VERSIONS.push(2);
+        VERSIONS.push(3);
     }
 
     function checkWhitelisted(address _who) public view returns (bool) {
         uint8 walletType = getWalletManager().getWalletType(_who);
 
-        return walletType != getWalletManager().NONE() || keccak256(abi.encodePacked(getRegistryService().getInvestor(_who))) != keccak256("");
+        return walletType != getWalletManager().NONE() || !CommonUtils.isEmptyString(getRegistryService().getInvestor(_who));
     }
 
     function recordIssuance(address, uint256, uint256) internal returns (bool) {

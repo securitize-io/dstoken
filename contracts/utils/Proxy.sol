@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 contract Proxy {
     address public owner;
@@ -15,7 +15,7 @@ contract Proxy {
    * @dev Throws if called by any account other than the owner.
    */
     modifier onlyOwner() {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "Not owner");
         _;
     }
 
@@ -31,7 +31,7 @@ contract Proxy {
 
     function() external payable {
         address _impl = target;
-        require(_impl != address(0));
+        require(_impl != address(0), "Target not set");
 
         assembly {
             let ptr := mload(0x40)
