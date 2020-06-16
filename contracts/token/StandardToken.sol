@@ -39,27 +39,6 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
         return paused;
     }
 
-    function transferImpl(address _from, address _to, uint256 _value) internal returns (bool) {
-        require(_to != address(0));
-        require(_value <= tokenData.walletsBalances[_from]);
-
-        tokenData.walletsBalances[_from] = tokenData.walletsBalances[_from].sub(_value);
-        tokenData.walletsBalances[_to] = tokenData.walletsBalances[_to].add(_value);
-
-        emit Transfer(_from, _to, _value);
-
-        return true;
-    }
-
-    /**
-     * @dev transfer token for a specified address
-     * @param _to The address to transfer to.
-     * @param _value The amount to be transferred.
-     */
-    function transfer(address _to, uint256 _value) public returns (bool) {
-        return transferImpl(msg.sender, _to, _value);
-    }
-
     /**
      * @dev Gets the balance of the specified address.
      * @param _owner The address to query the the balance of.
@@ -73,11 +52,32 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
         return tokenData.totalSupply;
     }
 
+    /**
+     * @dev transfer token for a specified address
+     * @param _to The address to transfer to.
+     * @param _value The amount to be transferred.
+     */
+    function transfer(address _to, uint256 _value) public returns (bool) {
+        return transferImpl(msg.sender, _to, _value);
+    }
+
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
         require(_value <= allowances[_from][msg.sender]);
         allowances[_from][msg.sender] = allowances[_from][msg.sender].sub(_value);
 
         return transferImpl(msg.sender, _to, _value);
+    }
+
+    function transferImpl(address _from, address _to, uint256 _value) internal returns (bool) {
+        require(_to != address(0));
+        require(_value <= tokenData.walletsBalances[_from]);
+
+        tokenData.walletsBalances[_from] = tokenData.walletsBalances[_from].sub(_value);
+        tokenData.walletsBalances[_to] = tokenData.walletsBalances[_to].add(_value);
+
+        emit Transfer(_from, _to, _value);
+
+        return true;
     }
 
     function approve(address _spender, uint256 _value) public returns (bool) {
