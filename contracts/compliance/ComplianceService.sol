@@ -52,7 +52,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
     }
 
     function validateIssuance(address _to, uint256 _value, uint256 _issuanceTime) public onlyToken returns (bool) {
-        require(!getRegistryService().isOmnibusWallet(_to), "Omnibus wallet");
+        require(!getRegistryService().isOmnibusWallet(_to), "Address is omnibus");
 
         uint256 code;
         string memory reason;
@@ -64,7 +64,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
     }
 
     function validateBurn(address _who, uint256 _value) public onlyToken returns (bool) {
-        require(!getRegistryService().isOmnibusWallet(_who), "Omnibus wallet");
+        require(!getRegistryService().isOmnibusWallet(_who), "Address is omnibus");
 
         return  recordBurn(_who, _value);
     }
@@ -80,7 +80,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
 
     function validateSeize(address _from, address _to, uint256 _value) public onlyToken returns (bool) {
         IDSWalletManager walletManager = getWalletManager();
-        require(!getRegistryService().isOmnibusWallet(_from), "Omnibus wallet");
+        require(!getRegistryService().isOmnibusWallet(_from), "Address is omnibus");
         require(walletManager.getWalletType(_to) == walletManager.ISSUER(), "Target wallet type error");
 
         return recordSeize(_from, _to, _value);
@@ -90,7 +90,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         IDSRegistryService registryService = getRegistryService();
         IDSWalletManager walletManager = getWalletManager();
         require(registryService.isOmnibusWallet(_omnibusWallet), "Not an omnibus wallet");
-        require(!registryService.isOmnibusWallet(_from), "address is omnibus");
+        require(!registryService.isOmnibusWallet(_from), "Address is omnibus");
         require(walletManager.getWalletType(_to) == walletManager.ISSUER(), "Target wallet type error");
         require(registryService.getOmnibusWalletController(_omnibusWallet).balanceOf(_from) >= _value, "Not enough balance");
 

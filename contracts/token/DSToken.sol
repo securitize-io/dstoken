@@ -150,16 +150,6 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         _;
     }
 
-    function postTransferImpl(bool _superResult, address _from, address _to, uint256 _value) internal returns (bool) {
-        if (_superResult) {
-            updateInvestorsBalancesOnTransfer(_from, _to, _value);
-        }
-
-        checkWalletsForList(_from, _to);
-
-        return _superResult;
-    }
-
     /**
      * @dev override for transfer with modifiers:
      * whether the token is not paused (checked in super class)
@@ -182,6 +172,16 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
 
     function transferFrom(address _from, address _to, uint256 _value) public canTransfer(_from, _to, _value) returns (bool) {
         return postTransferImpl(super.transferFrom(_from, _to, _value), _from, _to, _value);
+    }
+
+    function postTransferImpl(bool _superResult, address _from, address _to, uint256 _value) internal returns (bool) {
+        if (_superResult) {
+            updateInvestorsBalancesOnTransfer(_from, _to, _value);
+        }
+
+        checkWalletsForList(_from, _to);
+
+        return _superResult;
     }
 
     //*********************
