@@ -25,12 +25,12 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
         _;
     }
 
-    function pause() public onlyOwner whenNotPaused {
+    function pause() public onlyIssuerOrAbove whenNotPaused {
         paused = true;
         emit Pause();
     }
 
-    function unpause() public onlyOwner whenPaused {
+    function unpause() public onlyIssuerOrAbove whenPaused {
         paused = false;
         emit Unpause();
     }

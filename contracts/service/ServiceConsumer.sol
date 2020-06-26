@@ -19,6 +19,12 @@ import "../utils/Ownable.sol";
 contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStore {
     constructor() internal {}
 
+    // Bring role constants to save gas both in deployment (less bytecode) and usage
+    uint8 public constant ROLE_NONE = 0;
+    uint8 public constant ROLE_MASTER = 1;
+    uint8 public constant ROLE_ISSUER = 2;
+    uint8 public constant ROLE_EXCHANGE = 4;
+
     function initialize() public {
         IDSServiceConsumer.initialize();
         Ownable.initialize();
@@ -28,22 +34,22 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
 
     modifier onlyMaster {
         IDSTrustService trustManager = getTrustService();
-        require(this.contractOwner() == msg.sender || trustManager.getRole(msg.sender) == trustManager.MASTER(), "Insufficient trust level");
+        require(this.contractOwner() == msg.sender || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
         _;
     }
 
     modifier onlyIssuerOrAbove {
         IDSTrustService trustManager = getTrustService();
-        require(trustManager.getRole(msg.sender) == trustManager.ISSUER() || trustManager.getRole(msg.sender) == trustManager.MASTER(), "Insufficient trust level");
+        require(trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
         _;
     }
 
     modifier onlyExchangeOrAbove {
         IDSTrustService trustManager = getTrustService();
         require(
-            trustManager.getRole(msg.sender) == trustManager.EXCHANGE() ||
-                trustManager.getRole(msg.sender) == trustManager.ISSUER() ||
-                trustManager.getRole(msg.sender) == trustManager.MASTER(),
+            trustManager.getRole(msg.sender) == ROLE_EXCHANGE ||
+                trustManager.getRole(msg.sender) == ROLE_ISSUER ||
+                trustManager.getRole(msg.sender) == ROLE_MASTER,
             "Insufficient trust level"
         );
         _;
@@ -62,7 +68,7 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
     modifier onlyIssuerOrAboveOrToken {
         if (msg.sender != getDSService(DS_TOKEN)) {
             IDSTrustService trustManager = IDSTrustService(getDSService(TRUST_SERVICE));
-            require(trustManager.getRole(msg.sender) == trustManager.ISSUER() || trustManager.getRole(msg.sender) == trustManager.MASTER(), "Insufficient trust level");
+            require(trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
         }
         _;
     }

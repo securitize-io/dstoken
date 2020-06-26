@@ -133,10 +133,6 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         address, /*_to*/
         uint256 /*_value*/
     ) public view returns (uint256 code, string memory reason) {
-        if (getToken().isPaused()) {
-            return (10, TOKEN_PAUSED);
-        }
-
         return (0, VALID);
     }
 

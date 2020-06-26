@@ -20,7 +20,8 @@ contract("ComplianceServiceRegulated", function([
   noneWallet1,
   noneWallet2,
   platformWallet,
-  omnibusWallet
+  omnibusWallet,
+  walletForPausedToken,
 ]) {
   before(async function() {
     await deployContracts(
@@ -93,6 +94,21 @@ contract("ComplianceServiceRegulated", function([
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
+    });
+
+    it('Should issue tokens even when the token is paused - CIS976 / ST1408', async function() {
+      await this.token.pause();
+      await this.registryService.registerInvestor(
+          investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED,
+          investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED
+      );
+      await this.registryService.addWallet(
+          walletForPausedToken,
+          investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED
+      );
+      await this.token.issueTokens(walletForPausedToken, 1);
+      assert.equal(await this.token.balanceOf(walletForPausedToken), 1);
+      await this.token.unpause();
     });
   });
 

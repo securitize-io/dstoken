@@ -527,6 +527,27 @@ contract("Integration", function([
         from: germanyInvestor2Wallet
       });
     });
+    it("Should allow pausing and un-pausing the token for an ISSUER role", async function() {
+      // Should not allow a non-issuer to pause the token
+      await assertRevert(
+          this.token.pause({from: issuerWallet})
+      );
+      await this.trustService.setRole(issuerWallet, roles.ISSUER);
+      let tx = await this.token.pause({from: issuerWallet});
+      assert.equal(tx.logs[0].event, "Pause");
+      // should revert
+      await assertRevert(
+          this.token.transfer(germanyInvestorWallet, 2, {
+            from: germanyInvestor2Wallet
+          })
+      );
+      tx = await this.token.unpause({from: issuerWallet});
+      assert.equal(tx.logs[0].event, "Unpause");
+      // now it should be ok
+      await this.token.transfer(germanyInvestorWallet, 2, {
+        from: germanyInvestor2Wallet
+      });
+    });
     it("Should allow upgrading the compliance manager", async function() {
       // At first usInvestor should not be allowed to send any tokens to another us investor
       await assertRevert(
