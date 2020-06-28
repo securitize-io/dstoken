@@ -28,7 +28,9 @@ contract("Integration", function([
   usInvestor3Wallet,
   germanyInvestor2Wallet,
   platformWallet,
-  exchangeWallet
+  exchangeWallet,
+  nonIssuerWallet,
+  issuerWalletThatCanPause,
 ]) {
   before(async function() {
     await deployContracts(this, artifacts);
@@ -530,10 +532,10 @@ contract("Integration", function([
     it("Should allow pausing and un-pausing the token for an ISSUER role", async function() {
       // Should not allow a non-issuer to pause the token
       await assertRevert(
-          this.token.pause({from: issuerWallet})
+          this.token.pause({from: nonIssuerWallet})
       );
-      await this.trustService.setRole(issuerWallet, roles.ISSUER);
-      let tx = await this.token.pause({from: issuerWallet});
+      await this.trustService.setRole(issuerWalletThatCanPause, roles.ISSUER);
+      let tx = await this.token.pause({from: issuerWalletThatCanPause});
       assert.equal(tx.logs[0].event, "Pause");
       // should revert
       await assertRevert(
@@ -541,7 +543,7 @@ contract("Integration", function([
             from: germanyInvestor2Wallet
           })
       );
-      tx = await this.token.unpause({from: issuerWallet});
+      tx = await this.token.unpause({from: issuerWalletThatCanPause});
       assert.equal(tx.logs[0].event, "Unpause");
       // now it should be ok
       await this.token.transfer(germanyInvestorWallet, 2, {

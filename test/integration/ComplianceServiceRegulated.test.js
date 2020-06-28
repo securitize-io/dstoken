@@ -96,7 +96,7 @@ contract("ComplianceServiceRegulated", function([
       assert.equal(await this.token.balanceOf(wallet), 100);
     });
 
-    it('Should issue tokens even when the token is paused - CIS976 / ST1408', async function() {
+    it('Should issue tokens even when the token is paused', async function() {
       await this.token.pause();
       await this.registryService.registerInvestor(
           investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED,
@@ -106,6 +106,7 @@ contract("ComplianceServiceRegulated", function([
           walletForPausedToken,
           investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED
       );
+      assert.equal(await this.token.balanceOf(walletForPausedToken), 0);
       await this.token.issueTokens(walletForPausedToken, 1);
       assert.equal(await this.token.balanceOf(walletForPausedToken), 1);
       await this.token.unpause();
