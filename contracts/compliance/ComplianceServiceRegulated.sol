@@ -396,10 +396,6 @@ library ComplianceServiceLibrary {
         string memory toCountry = IDSRegistryService(_services[REGISTRY_SERVICE]).getCountry(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to));
         uint256 toRegion = complianceConfigurationService.getCountryCompliance(toCountry);
 
-        if (IDSToken(_services[DS_TOKEN]).isPaused()) {
-            return (10, TOKEN_PAUSED);
-        }
-
         if (toRegion == FORBIDDEN) {
             return (26, DESTINATION_RESTRICTED);
         }

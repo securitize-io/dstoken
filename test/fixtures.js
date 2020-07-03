@@ -27,7 +27,8 @@ module.exports = {
     ISRAEL_INVESTOR_ID: "israelInvestorId",
     ISRAEL_INVESTOR_COLLISION_HASH: "israelInvestorCollisionHash",
     OMNIBUS_WALLET_INVESTOR_ID_1: "omnibusWalletInvestorId1",
-    OMNIBUS_WALLET_INVESTOR_ID_2: "omnibusWalletInvestorId2"
+    OMNIBUS_WALLET_INVESTOR_ID_2: "omnibusWalletInvestorId2",
+    INVESTOR_TO_BE_ISSUED_WHEN_PAUSED: "investorToBeIssuedWhileTokenPaused",
   },
   Country: {
     FRANCE: "france",
