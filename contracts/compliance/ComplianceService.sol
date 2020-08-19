@@ -20,7 +20,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
     function initialize() public onlyFromProxy {
         IDSComplianceService.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(3);
+        VERSIONS.push(4);
     }
 
     function validateTransfer(address _from, address _to, uint256 _value) public onlyToken returns (bool) {

@@ -29,7 +29,7 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
         IDSServiceConsumer.initialize();
         Ownable.initialize();
 
-        VERSIONS.push(3);
+        VERSIONS.push(4);
     }
 
     modifier onlyMaster {
