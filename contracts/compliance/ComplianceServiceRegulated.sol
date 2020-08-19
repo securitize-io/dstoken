@@ -476,7 +476,7 @@ library ComplianceServiceLibrary {
 contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     function initialize() public initializer onlyFromProxy {
         super.initialize();
-        VERSIONS.push(5);
+        VERSIONS.push(6);
     }
 
     function compareInvestorBalance(address _who, uint256 _value, uint256 _compareTo) internal view returns (bool) {
