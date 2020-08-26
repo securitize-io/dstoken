@@ -3,12 +3,11 @@ pragma solidity 0.5.17;
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
-
 contract IDSWalletManager is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(2);
+        VERSIONS.push(3);
     }
 
     // Special wallets constants
@@ -101,5 +100,9 @@ contract IDSWalletManager is Initializable, VersionedContract {
      * @param _accreditationStatus the investors' accrediation status.
      * @return The number of reserved slots.
      */
-    function getReservedSlots(address _wallet, string memory _country, uint8 _accreditationStatus) public view returns (uint256);
+    function getReservedSlots(
+        address _wallet,
+        string memory _country,
+        uint8 _accreditationStatus
+    ) public view returns (uint256);
 }
