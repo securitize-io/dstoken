@@ -3,7 +3,6 @@ pragma solidity 0.5.17;
 import "../service/ServiceConsumer.sol";
 import "../data-stores/TokenDataStore.sol";
 
-
 contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataStore {
     event Pause();
     event Unpause();
@@ -12,7 +11,7 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
 
     function initialize() public {
         ServiceConsumer.initialize();
-        VERSIONS.push(3);
+        VERSIONS.push(4);
     }
 
     modifier whenNotPaused() {
@@ -61,14 +60,22 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
         return transferImpl(msg.sender, _to, _value);
     }
 
-    function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
+    function transferFrom(
+        address _from,
+        address _to,
+        uint256 _value
+    ) public returns (bool) {
         require(_value <= allowances[_from][msg.sender]);
         allowances[_from][msg.sender] = allowances[_from][msg.sender].sub(_value);
 
         return transferImpl(msg.sender, _to, _value);
     }
 
-    function transferImpl(address _from, address _to, uint256 _value) internal returns (bool) {
+    function transferImpl(
+        address _from,
+        address _to,
+        uint256 _value
+    ) internal returns (bool) {
         require(_to != address(0));
         require(_value <= tokenData.walletsBalances[_from]);
 

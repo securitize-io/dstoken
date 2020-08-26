@@ -7,7 +7,7 @@ contract IDSTokenIssuer is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(2);
+        VERSIONS.push(3);
     }
 
     function issueTokens(
