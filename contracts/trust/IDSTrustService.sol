@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
@@ -12,7 +12,7 @@ contract IDSTrustService is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(2);
+        VERSIONS.push(3);
     }
 
     /**
@@ -90,14 +90,6 @@ contract IDSTrustService is Initializable, VersionedContract {
         assert(false);
         _;
     }
-
-    /**
-     * @dev Sets or removes a role for a wallet. (internal)
-     * @param _address The wallet whose role needs to be set or removed.
-     * @param _role The role to be set. NONE (0) indicates role removal.
-     * @return A boolean that indicates if the operation was successful.
-     */
-    function setRoleImpl(address _address, uint8 _role) internal returns (bool);
 
     /**
      * @dev Transfers the ownership (MASTER role) of the contract.

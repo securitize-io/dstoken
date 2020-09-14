@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "./IDSToken.sol";
 import "../utils/ProxyTarget.sol";
@@ -8,11 +8,11 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     // using FeaturesLibrary for SupportedFeatures;
     uint256 internal constant OMNIBUS_NO_ACTION = 0;
 
-    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public initializer onlyFromProxy {
+    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public initializer forceInitializeFromProxy {
         IDSToken.initialize();
         StandardToken.initialize();
 
-        VERSIONS.push(3);
+        VERSIONS.push(4);
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
@@ -158,15 +158,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
      * @param _value The amount of tokens to be transferred.
      */
     function transfer(address _to, uint256 _value) public canTransfer(msg.sender, _to, _value) returns (bool) {
-        bool result = super.transfer(_to, _value);
-
-        if (result) {
-            updateInvestorsBalancesOnTransfer(msg.sender, _to, _value);
-        }
-
-        checkWalletsForList(msg.sender, _to);
-
-        return result;
+        return postTransferImpl(super.transfer(_to, _value), msg.sender, _to, _value);
     }
 
     /**
@@ -179,15 +171,17 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
      */
 
     function transferFrom(address _from, address _to, uint256 _value) public canTransfer(_from, _to, _value) returns (bool) {
-        bool result = super.transferFrom(_from, _to, _value);
+        return postTransferImpl(super.transferFrom(_from, _to, _value), _from, _to, _value);
+    }
 
-        if (result) {
+    function postTransferImpl(bool _superResult, address _from, address _to, uint256 _value) internal returns (bool) {
+        if (_superResult) {
             updateInvestorsBalancesOnTransfer(_from, _to, _value);
         }
 
         checkWalletsForList(_from, _to);
 
-        return result;
+        return _superResult;
     }
 
     //*********************
@@ -251,7 +245,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         return getRegistryService().getOmnibusWalletController(_omnibusWallet).getAssetTrackingMode();
     }
 
-    function updateOmnibusInvestorBalance(address _omnibusWallet, address _wallet, uint256 _value, bool _increase)
+    function updateOmnibusInvestorBalance(address _omnibusWallet, address _wallet, uint256 _value, CommonUtils.IncDec _increase)
         public
         onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
         returns (bool)
@@ -269,16 +263,16 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     function updateInvestorsBalancesOnTransfer(address _from, address _to, uint256 _value) internal {
         uint256 omnibusEvent = TokenLibrary.applyOmnibusBalanceUpdatesOnTransfer(tokenData, getRegistryService(), _from, _to, _value);
         if (omnibusEvent == OMNIBUS_NO_ACTION) {
-            updateInvestorBalance(_from, _value, false);
-            updateInvestorBalance(_to, _value, true);
+            updateInvestorBalance(_from, _value, CommonUtils.IncDec.Decrease);
+            updateInvestorBalance(_to, _value, CommonUtils.IncDec.Increase);
         }
     }
 
-    function updateInvestorBalance(address _wallet, uint256 _value, bool _increase) internal returns (bool) {
+    function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal returns (bool) {
         string memory investor = getRegistryService().getInvestor(_wallet);
-        if (keccak256(abi.encodePacked(investor)) != keccak256("")) {
+        if (!CommonUtils.isEmptyString(investor)) {
             uint256 balance = balanceOfInvestor(investor);
-            if (_increase) {
+            if (_increase == CommonUtils.IncDec.Increase) {
                 balance = balance.add(_value);
             } else {
                 balance = balance.sub(_value);

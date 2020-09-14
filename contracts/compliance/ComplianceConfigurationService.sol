@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "./IDSComplianceConfigurationService.sol";
 import "../data-stores/ComplianceConfigurationDataStore.sol";
@@ -6,10 +6,10 @@ import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
 
 contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurationService, ServiceConsumer, ComplianceConfigurationDataStore {
-    function initialize() public initializer onlyFromProxy {
+    function initialize() public initializer forceInitializeFromProxy {
         IDSComplianceConfigurationService.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(4);
+        VERSIONS.push(5);
     }
 
     function setCountryCompliance(string memory _country, uint256 _value) public onlyIssuerOrAbove {
@@ -184,8 +184,8 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setAll(uint256[] memory _uint_values, bool[] memory _bool_values) public onlyIssuerOrAbove {
-        require(_uint_values.length == 15);
-        require(_bool_values.length == 3);
+        require(_uint_values.length == 15, "Wrong length of parameters");
+        require(_bool_values.length == 3, "Wrong length of parameters");
         setTotalInvestorsLimit(_uint_values[0]);
         setMinUSTokens(_uint_values[1]);
         setMinEUTokens(_uint_values[2]);

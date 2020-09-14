@@ -1,14 +1,13 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "../service/IDSServiceConsumer.sol";
 import "../utils/Initializable.sol";
-
 
 contract IDSPartitionsManager is Initializable, IDSServiceConsumer {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(1);
+        VERSIONS.push(2);
     }
 
     function ensurePartition(

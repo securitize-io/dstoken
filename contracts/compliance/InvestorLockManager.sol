@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "./IDSLockManager.sol";
 import "./InvestorLockManagerBase.sol";
@@ -37,11 +37,11 @@ contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
 
     /******************************/
 
-    function initialize() public initializer onlyFromProxy {
+    function initialize() public initializer forceInitializeFromProxy {
         IDSLockManager.initialize();
         ServiceConsumer.initialize();
 
-        VERSIONS.push(2);
+        VERSIONS.push(3);
     }
 
     function setLockInfoImpl(string memory _investor, uint256 _lockIndex, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime) internal {
@@ -69,7 +69,7 @@ contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
     }
 
     function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime) public onlyIssuerOrAboveOrToken {
-        require(_to != address(0));
+        require(_to != address(0), "Invalid address");
         createLock(_to, _valueLocked, 0, _reason, _releaseTime);
     }
 
@@ -117,7 +117,7 @@ contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
      * @return true on success
      */
     function removeLockRecord(address _to, uint256 _lockIndex) public onlyIssuerOrAbove returns (bool) {
-        require(_to != address(0));
+        require(_to != address(0), "Invalid address");
         string memory investor = getRegistryService().getInvestor(_to);
         //Emit must be done on start ,because we're going to overwrite this value
         emit Unlocked(
@@ -139,7 +139,7 @@ contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
      * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
      */
     function lockCount(address _who) public view returns (uint256) {
-        require(_who != address(0));
+        require(_who != address(0), "Invalid address");
         string memory investor = getRegistryService().getInvestor(_who);
         return investorsLocksCounts[investor];
     }
@@ -162,7 +162,7 @@ contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
      * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
      */
     function lockInfo(address _who, uint256 _lockIndex) public view returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime) {
-        require(_who != address(0));
+        require(_who != address(0), "Invalid address");
         string memory investor = getRegistryService().getInvestor(_who);
         return lockInfoForInvestor(investor, _lockIndex);
     }

@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
@@ -7,7 +7,7 @@ contract IDSTokenIssuer is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(2);
+        VERSIONS.push(3);
     }
 
     function issueTokens(

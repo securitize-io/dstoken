@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
@@ -7,11 +7,11 @@ contract IDSLockManager is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(2);
+        VERSIONS.push(3);
     }
 
     modifier validLock(uint256 _valueLocked, uint256 _releaseTime) {
-        require(_valueLocked > 0);
+        require(_valueLocked > 0, "Value is zero");
         require(_releaseTime == 0 || _releaseTime > uint256(now), "Release time is in the past");
         _;
     }

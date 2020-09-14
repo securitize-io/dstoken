@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "./VersionedContract.sol";
 
@@ -112,7 +112,7 @@ contract MultiSigWallet is VersionedContract {
         }
         owners = _owners;
         required = _required;
-        VERSIONS.push(1);
+        VERSIONS.push(2);
     }
 
     /// @dev Allows to add a new owner. Transaction has to be sent by wallet.
@@ -132,7 +132,7 @@ contract MultiSigWallet is VersionedContract {
                 owners[i] = owners[owners.length - 1];
                 break;
             }
-        owners.length -= 1;
+        owners.pop();
         if (required > owners.length) changeRequirement(owners.length);
         emit OwnerRemoval(owner);
     }
@@ -265,8 +265,12 @@ contract MultiSigWallet is VersionedContract {
     function getTransactionCount(bool pending, bool executed) public view returns (uint256 count) {
         string memory transactionId;
 
-        for (uint256 i = 0; i < transactionCount; i++) transactionId = countedTransactionIds[i];
-        if ((pending && !transactions[transactionId].executed) || (executed && transactions[transactionId].executed)) count += 1;
+        for (uint256 i = 0; i < transactionCount; i++) {
+            transactionId = countedTransactionIds[i];
+            if ((pending && !transactions[transactionId].executed) || (executed && transactions[transactionId].executed)) {
+                count += 1;
+            }
+        }
     }
 
     /// @dev Returns list of owners.

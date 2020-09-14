@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "./IDSServiceConsumer.sol";
 import "../data-stores/ServiceConsumerDataStore.sol";
@@ -15,7 +15,6 @@ import "../registry/IDSRegistryService.sol";
 import "../trust/IDSTrustService.sol";
 import "../utils/Ownable.sol";
 
-
 contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStore {
     constructor() internal {}
 
@@ -29,7 +28,7 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
         IDSServiceConsumer.initialize();
         Ownable.initialize();
 
-        VERSIONS.push(4);
+        VERSIONS.push(5);
     }
 
     modifier onlyMaster {
@@ -47,9 +46,7 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
     modifier onlyExchangeOrAbove {
         IDSTrustService trustManager = getTrustService();
         require(
-            trustManager.getRole(msg.sender) == ROLE_EXCHANGE ||
-                trustManager.getRole(msg.sender) == ROLE_ISSUER ||
-                trustManager.getRole(msg.sender) == ROLE_MASTER,
+            trustManager.getRole(msg.sender) == ROLE_EXCHANGE || trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER,
             "Insufficient trust level"
         );
         _;
@@ -74,7 +71,7 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
     }
 
     modifier onlyOmnibusWalletController(address omnibusWallet, IDSOmnibusWalletController omnibusWalletController) {
-        require(getRegistryService().getOmnibusWalletController(omnibusWallet) == omnibusWalletController);
+        require(getRegistryService().getOmnibusWalletController(omnibusWallet) == omnibusWalletController, "Wrong controller address");
         _;
     }
 

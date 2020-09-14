@@ -1,11 +1,11 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "./VersionedContract.sol";
 
 contract Migrations is VersionedContract {
     constructor() public {
         owner = msg.sender;
-        VERSIONS.push(2);
+        VERSIONS.push(3);
     }
 
     address public owner;

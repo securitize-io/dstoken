@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "./IDSOmnibusWalletController.sol";
 import "../data-stores/OmnibusControllerDataStore.sol";
@@ -25,10 +25,10 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
         _;
     }
 
-    function initialize(address _omnibusWallet) public initializer onlyFromProxy {
+    function initialize(address _omnibusWallet) public initializer forceInitializeFromProxy {
         IDSOmnibusWalletController.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(1);
+        VERSIONS.push(2);
 
         omnibusWallet = _omnibusWallet;
     }
@@ -66,8 +66,8 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
         balances[_to] = balances[_to].add(_value);
 
         if (assetTrackingMode == BENEFICIARY) {
-            getToken().updateOmnibusInvestorBalance(omnibusWallet, _from, _value, false);
-            getToken().updateOmnibusInvestorBalance(omnibusWallet, _to, _value, true);
+            getToken().updateOmnibusInvestorBalance(omnibusWallet, _from, _value, CommonUtils.IncDec.Decrease);
+            getToken().updateOmnibusInvestorBalance(omnibusWallet, _to, _value, CommonUtils.IncDec.Increase);
         }
 
         getToken().emitOmnibusTransferEvent(omnibusWallet, _from, _to, _value);
