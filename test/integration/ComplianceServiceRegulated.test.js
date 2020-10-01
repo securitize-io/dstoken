@@ -1085,6 +1085,76 @@ contract("ComplianceServiceRegulated", function([
       assert.equal(0, res[0].toNumber());
       assert.equal("Valid", res[1]);
     });
+
+    it("should allow to full transfer funds even with minimumHoldingsPerInvestor rule set", async function() {
+      await this.complianceConfiguration.setMinimumHoldingsPerInvestor(50);
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+      );
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_2,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+      );
+      await this.registryService.addWallet(
+        wallet,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.registryService.addWallet(
+        wallet1, investorId.GENERAL_INVESTOR_ID_2
+      );
+      await this.registryService.setCountry(
+        investorId.GENERAL_INVESTOR_ID_1,
+        'MY'
+      );
+      await this.registryService.setCountry(
+        investorId.GENERAL_INVESTOR_ID_2,
+        'MY'
+      );
+      await this.token.issueTokens(wallet, 100);
+      const res = await this.complianceService.preTransferCheck(
+        wallet,
+        wallet1,
+        100
+      );
+      assert.equal(0, res[0].toNumber());
+      assert.equal("Valid", res[1]);
+    });
+
+    it("should NOT allow a partial transfer when below minimumHoldingsPerInvestor rule set", async function() {
+      await this.complianceConfiguration.setMinimumHoldingsPerInvestor(50);
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+      );
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_2,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+      );
+      await this.registryService.addWallet(
+        wallet,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.registryService.addWallet(
+        wallet1,
+        investorId.GENERAL_INVESTOR_ID_2
+      );
+      await this.registryService.setCountry(
+        investorId.GENERAL_INVESTOR_ID_1,
+        'MY'
+      );
+      await this.registryService.setCountry(
+        investorId.GENERAL_INVESTOR_ID_2,
+        'MY'
+      );
+      await this.token.issueTokens(wallet, 100);
+      const res = await this.complianceService.preTransferCheck(
+        wallet,
+        wallet1,
+        99
+      );
+      assert.equal(res[0].toNumber(), 51);
+    });
   });
 
   describe("Pre issuance check", function() {
