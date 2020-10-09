@@ -7,8 +7,7 @@ const ComplianceConfigurationService = artifacts.require(
   'ComplianceConfigurationService'
 );
 const OmnibusWalletController = artifacts.require('OmnibusWalletController');
-const MultiSigWallet = artifacts.require('MultiSigWallet');
-const OffChainMultisigWallet = artifacts.require('OffChainMultisigWallet');
+const MultisigWallet = artifacts.require('MultisigWallet');
 const PartitionsManager = artifacts.require('PartitionsManager');
 const configurationManager = require('./utils/configurationManager');
 const globals = require('../utils/globals');
@@ -61,10 +60,7 @@ module.exports = async function (deployer) {
     configurationManager.getProxyAddressForContractName('WalletRegistrar')
   );
 
-  const multisig = (configurationManager.multisigWalletType === 'ON-CHAIN')
-    ? await MultiSigWallet.deployed()
-    : await OffChainMultisigWallet.deployed();
-
+  const multisig = await MultisigWallet.deployed();
   let partitionsManager;
   if (configurationManager.isPartitioned()) {
     partitionsManager = await PartitionsManager.at(

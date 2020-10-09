@@ -43,9 +43,6 @@ class ConfigurationManager {
       console.log(
         '   --chain_id - the chainId of the network where the multisig wallet will be deployed'
       );
-      console.log(
-        '   --multisig_wallet_type - multisig wallet type (ON-CHAIN,OFF-CHAIN) - if omitted, OFF-CHAIN is selected'
-      );
       console.log('   --no_omnibus_wallet - skip omnibus wallet');
       console.log(
         '   --omnibus_wallet_investor_id - the investor id of the omnibus wallet in the registry'
@@ -69,7 +66,6 @@ class ConfigurationManager {
     this.owners = this.owners.split(' ');
     this.requiredConfirmations = argv.required_confirmations || 2;
     this.chainId = argv.chain_id || MAINNET_CHAIN_ID;
-    this.multisigWalletType = argv.multisig_wallet_type || 'OFF-CHAIN';
     this.complianceManagerType = argv.compliance || 'NORMAL';
     this.lockManagerType = argv.lock_manager || 'INVESTOR';
     this.noRegistry = argv.no_registry;
