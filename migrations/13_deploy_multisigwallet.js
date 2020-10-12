@@ -1,4 +1,4 @@
-const MultisigWallet = artifacts.require('MultisigWallet');
+const MultiSigWallet = artifacts.require('MultiSigWallet');
 const configurationManager = require('./utils/configurationManager');
 
 module.exports = async function (deployer) {
@@ -7,7 +7,7 @@ module.exports = async function (deployer) {
   }
 
   deployer.deploy(
-    MultisigWallet,
+    MultiSigWallet,
     configurationManager.owners,
     configurationManager.requiredConfirmations,
     configurationManager.chainId

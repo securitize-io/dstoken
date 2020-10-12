@@ -1,4 +1,4 @@
-const MultisigWallet = artifacts.require('MultisigWallet');
+const MultiSigWallet = artifacts.require('MultiSigWallet');
 const TestToken = artifacts.require('TestToken');
 const lightwallet = require('eth-lightwallet');
 const Promise = require('bluebird');
@@ -24,7 +24,7 @@ const CHAINID = 1;
 const seedPhrase = 'cereal face vapor scrub trash traffic disease region swim stick identify grant';
 const password = '';
 
-contract('MultisigWallet con MultisigWallet', function (accounts) {
+contract('MultiSigWallet con MultiSigWallet', function (accounts) {
   let keyFromPw;
   let acct;
   let lightWalletKeyStore;
@@ -99,7 +99,7 @@ contract('MultisigWallet con MultisigWallet', function (accounts) {
         tokenInstance = await TestToken.new({ from: accounts[0] });
         assert.ok(tokenInstance);
 
-        multisig = await MultisigWallet.new(owners, threshold, CHAINID, { from: accounts[0] });
+        multisig = await MultiSigWallet.new(owners, threshold, CHAINID, { from: accounts[0] });
         await web3SendTransaction({
           from: accounts[0],
           to: multisig.address,
@@ -127,7 +127,7 @@ contract('MultisigWallet con MultisigWallet', function (accounts) {
         );
       });
       describe('AND two owners sign a TestToken.transfer () transaction', () => {
-        it('SHOULD transfer tokens from MultisigWallet to destinationAddress', async () => {
+        it('SHOULD transfer tokens from MultiSigWallet to destinationAddress', async () => {
           let signers = [acct[0], acct[1]];
 
           const data = tokenInstance.contract.methods.transfer(
@@ -169,7 +169,7 @@ contract('MultisigWallet con MultisigWallet', function (accounts) {
         });
       });
       describe('AND three owners sign a TestToken.transfer () transaction', () => {
-        it('SHOULD transfer tokens from MultisigWallet to destinationAddress', async () => {
+        it('SHOULD transfer tokens from MultiSigWallet to destinationAddress', async () => {
           let signers = [acct[0], acct[1], acct[2]];
           const data = tokenInstance.contract.methods.transfer(
             destinationAddress,
