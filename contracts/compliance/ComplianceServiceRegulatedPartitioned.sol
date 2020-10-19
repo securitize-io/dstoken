@@ -385,7 +385,7 @@ contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitione
     function initialize() public initializer forceInitializeFromProxy {
         ComplianceServiceRegulated.initialize();
         IDSComplianceServicePartitioned.initialize();
-        VERSIONS.push(2);
+        VERSIONS.push(3);
     }
 
     function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
