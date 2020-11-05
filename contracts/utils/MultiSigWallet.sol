@@ -73,8 +73,8 @@ contract MultiSigWallet is VersionedContract {
     ) public {
         require(sigR.length >= threshold, "there are fewer signatures than the threshold");
         require(sigR.length == sigS.length && sigR.length == sigV.length, "signature arrays with different length");
-        require(executor == msg.sender, "sender is not the executor");
-
+        require(executor == msg.sender || executor == address(0), "sender is not the executor");
+        require(isOwner[msg.sender], "sender is not an authorized signer");
         // EIP712 scheme: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md
         bytes32 txInputHash = keccak256(
             abi.encode(
