@@ -493,6 +493,8 @@ library ComplianceServiceLibrary {
  */
 
 contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
+    using SafeMath for uint256;
+
     function initialize() public initializer forceInitializeFromProxy {
         super.initialize();
         VERSIONS.push(7);
@@ -766,6 +768,23 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return true;
     }
 
+    function addToCounters(uint256 _totalInvestors, uint256 _accreditedInvestors,
+        uint256 _usAccreditedInvestors, uint256 _usTotalInvestors, uint256 _jpTotalInvestors, bytes32[] memory _euRetailCountries,
+        uint256[] memory _euRetailCountryCounts,  bool _increase) public onlyTBEOmnibus {
+        totalInvestors = _increase ? totalInvestors.add(_totalInvestors) : totalInvestors.sub(_totalInvestors);
+        accreditedInvestorsCount = _increase ? accreditedInvestorsCount.add(_accreditedInvestors) :
+            accreditedInvestorsCount.sub(_accreditedInvestors);
+        usAccreditedInvestorsCount = _increase ? usAccreditedInvestorsCount.add(_usAccreditedInvestors) :
+            usAccreditedInvestorsCount.sub(_usAccreditedInvestors);
+        usInvestorsCount = _increase ? usInvestorsCount.add(_usTotalInvestors) : usInvestorsCount.sub(_usTotalInvestors);
+        jpInvestorsCount = _increase ? jpInvestorsCount.add(_jpTotalInvestors) : jpInvestorsCount.sub(_jpTotalInvestors);
+        for (uint i = 0; i < _euRetailCountries.length; i++) {
+            string memory countryCode = this.bytes32ToString(_euRetailCountries[i]);
+            euRetailInvestorsCount[countryCode] = _increase ? euRetailInvestorsCount[countryCode].add(_euRetailCountryCounts[i]) :
+                euRetailInvestorsCount[countryCode].sub(_euRetailCountryCounts[i]);
+        }
+    }
+
     function getServices() internal view returns (address[] memory services) {
         services = new address[](6);
         services[0] = getDSService(DS_TOKEN);
@@ -774,5 +793,17 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         services[3] = getDSService(COMPLIANCE_CONFIGURATION_SERVICE);
         services[4] = getDSService(LOCK_MANAGER);
         services[5] = address(this);
+    }
+
+    function bytes32ToString(bytes32 _bytes32) public pure returns (string memory) {
+        uint8 i = 0;
+        while(i < 32 && _bytes32[i] != 0) {
+            i++;
+        }
+        bytes memory bytesArray = new bytes(i);
+        for (i = 0; i < 32 && _bytes32[i] != 0; i++) {
+            bytesArray[i] = _bytes32[i];
+        }
+        return string(bytesArray);
     }
 }

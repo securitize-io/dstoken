@@ -12,6 +12,7 @@ import "../compliance/IDSComplianceServicePartitioned.sol";
 import "../compliance/IDSPartitionsManager.sol";
 import "../compliance/IDSComplianceConfigurationService.sol";
 import "../registry/IDSRegistryService.sol";
+import "../omnibus/IDSOmnibusTBEController.sol";
 import "../trust/IDSTrustService.sol";
 import "../utils/Ownable.sol";
 
@@ -75,6 +76,11 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
         _;
     }
 
+    modifier onlyTBEOmnibus {
+        require(msg.sender == getDSService(OMNIBUS_TBE_CONTROLLER), "Not authorized");
+        _;
+    }
+
     function getDSService(uint256 _serviceId) public view returns (address) {
         return services[_serviceId];
     }
@@ -123,5 +129,9 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
 
     function getComplianceConfigurationService() internal view returns (IDSComplianceConfigurationService) {
         return IDSComplianceConfigurationService(getDSService(COMPLIANCE_CONFIGURATION_SERVICE));
+    }
+
+    function getOmnibusTBEController() internal view returns (IDSOmnibusTBEController) {
+        return IDSOmnibusTBEController(getDSService(OMNIBUS_TBE_CONTROLLER));
     }
 }
