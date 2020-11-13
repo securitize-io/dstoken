@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "../../GSN/Context.sol";
 import "./IERC721Enumerable.sol";

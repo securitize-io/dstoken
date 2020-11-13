@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "../service/ServiceConsumer.sol";
 import "./IDSWalletManager.sol";
@@ -11,10 +11,10 @@ import "../data-stores/WalletManagerDataStore.sol";
  * @dev Implements DSTrustServiceInterface and ESServiceConsumer.
  */
 contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceConsumer, WalletManagerDataStore {
-    function initialize() public initializer onlyFromProxy {
+    function initialize() public initializer forceInitializeFromProxy {
         IDSWalletManager.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(2);
+        VERSIONS.push(3);
     }
 
     /**
@@ -24,10 +24,10 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
    * @return A boolean that indicates if the operation was successful.
    */
     function setSpecialWallet(address _wallet, uint8 _type) internal returns (bool) {
-        require(keccak256(abi.encodePacked(getRegistryService().getInvestor(_wallet))) == keccak256(""));
+        require(CommonUtils.isEmptyString(getRegistryService().getInvestor(_wallet)), "Wallet belongs to investor");
 
         uint8 oldType = getWalletType(_wallet);
-        require(oldType == NONE || _type == NONE);
+        require(oldType == NONE || _type == NONE, "Direct wallet type change is not allowed");
 
         walletsTypes[_wallet] = _type;
 
@@ -66,7 +66,7 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
    */
     function addExchangeWallet(address _wallet, address _owner) public onlyIssuerOrAbove returns (bool) {
         IDSTrustService trustManager = getTrustService();
-        require(trustManager.getRole(_owner) == trustManager.EXCHANGE());
+        require(trustManager.getRole(_owner) == trustManager.EXCHANGE(), "Owner is not an exchange");
         return setSpecialWallet(_wallet, EXCHANGE);
     }
 

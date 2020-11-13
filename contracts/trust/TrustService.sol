@@ -1,5 +1,6 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
+import "../utils/CommonUtils.sol";
 import "../utils/ProxyTarget.sol";
 import "./IDSTrustService.sol";
 import "../data-stores/TrustServiceDataStore.sol";
@@ -10,9 +11,9 @@ import "../data-stores/TrustServiceDataStore.sol";
  * @dev Implements IDSTrustService.
  */
 contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServiceDataStore {
-    function initialize() public initializer onlyFromProxy {
+    function initialize() public initializer forceInitializeFromProxy {
         IDSTrustService.initialize();
-        VERSIONS.push(2);
+        VERSIONS.push(3);
         owner = msg.sender;
         roles[msg.sender] = MASTER;
     }
@@ -21,7 +22,7 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
    * @dev Allow invoking of functions only by the user who has the MASTER role.
    */
     modifier onlyMaster() {
-        require(roles[msg.sender] == MASTER);
+        require(roles[msg.sender] == MASTER, "Not enough permissions");
         _;
     }
 
@@ -29,7 +30,7 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
    * @dev Allow invoking of functions only by the users who have the MASTER role or the ISSUER role.
    */
     modifier onlyMasterOrIssuer() {
-        require(roles[msg.sender] == MASTER || roles[msg.sender] == ISSUER);
+        require(roles[msg.sender] == MASTER || roles[msg.sender] == ISSUER, "Not enough permissions");
         _;
     }
 
@@ -37,8 +38,9 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
         require(
             roles[msg.sender] == MASTER ||
                 roles[msg.sender] == ISSUER ||
-                (keccak256(abi.encodePacked(ownersEntities[msg.sender])) != keccak256(abi.encodePacked("")) &&
-                    keccak256(abi.encodePacked(ownersEntities[msg.sender])) == keccak256(abi.encodePacked(_name)))
+                (!CommonUtils.isEmptyString(ownersEntities[msg.sender]) &&
+                  CommonUtils.isEqualString(ownersEntities[msg.sender], _name)),
+                "Not enough permissions"
         );
         _;
     }
@@ -54,42 +56,43 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
     }
 
     modifier onlyNewEntityOwner(address _owner) {
-        require(keccak256(abi.encodePacked(ownersEntities[_owner])) == keccak256(abi.encodePacked("")), "Entity owner already exists");
+        require(CommonUtils.isEmptyString(ownersEntities[_owner]), "Entity owner already exists");
         _;
     }
 
     modifier onlyExistingEntityOwner(string memory _name, address _owner) {
+
         require(
-            keccak256(abi.encodePacked(ownersEntities[_owner])) != keccak256(abi.encodePacked("")) &&
-                keccak256(abi.encodePacked(ownersEntities[_owner])) == keccak256(abi.encodePacked(_name)),
+            !CommonUtils.isEmptyString(ownersEntities[_owner]) &&
+            CommonUtils.isEqualString(ownersEntities[_owner], _name),
             "Entity owner doesn't exist"
         );
         _;
     }
 
     modifier onlyNewOperator(address _operator) {
-        require(keccak256(abi.encodePacked(operatorsEntities[_operator])) == keccak256(abi.encodePacked("")), "Entity operator already exists");
+        require(CommonUtils.isEmptyString(operatorsEntities[_operator]), "Entity operator already exists");
         _;
     }
 
     modifier onlyExistingOperator(string memory _name, address _operator) {
         require(
-            keccak256(abi.encodePacked(operatorsEntities[_operator])) != keccak256(abi.encodePacked("")) &&
-                keccak256(abi.encodePacked(operatorsEntities[_operator])) == keccak256(abi.encodePacked(_name)),
+            !CommonUtils.isEmptyString(operatorsEntities[_operator]) &&
+            CommonUtils.isEqualString(operatorsEntities[_operator], _name),
             "Entity operator doesn't exist"
         );
         _;
     }
 
     modifier onlyNewResource(address _resource) {
-        require(keccak256(abi.encodePacked(resourcesEntities[_resource])) == keccak256(abi.encodePacked("")), "Entity resource already exists");
+        require(CommonUtils.isEmptyString(resourcesEntities[_resource]), "Entity resource already exists");
         _;
     }
 
     modifier onlyExistingResource(string memory _name, address _resource) {
         require(
-            keccak256(abi.encodePacked(resourcesEntities[_resource])) != keccak256(abi.encodePacked("")) &&
-                keccak256(abi.encodePacked(resourcesEntities[_resource])) == keccak256(abi.encodePacked(_name)),
+            !CommonUtils.isEmptyString(resourcesEntities[_resource]) &&
+            CommonUtils.isEqualString(resourcesEntities[_resource], _name),
             "Entity resource doesn't exist"
         );
         _;
@@ -101,7 +104,7 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
    * @param _role The role to be set. NONE (0) indicates role removal.
    * @return A boolean that indicates if the operation was successful.
    */
-    function setRoleImpl(address _address, uint8 _role) internal returns (bool) {
+    function setRoleImpl(address _address, uint8 _role) internal {
         uint8 old_role = roles[_address];
 
         require(old_role == NONE || _role == NONE, "No direct role-to-role change");
@@ -113,8 +116,6 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
         } else {
             emit DSTrustServiceRoleRemoved(_address, old_role, msg.sender);
         }
-
-        return true;
     }
 
     /**
@@ -123,9 +124,10 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
    * @return A boolean that indicates if the operation was successful.
    */
     function setServiceOwner(address _address) public onlyMaster returns (bool) {
-        require(setRoleImpl(owner, NONE));
+        setRoleImpl(owner, NONE);
         owner = _address;
-        require(setRoleImpl(_address, MASTER));
+        setRoleImpl(_address, MASTER);
+
         return true;
     }
 
@@ -137,9 +139,11 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
    * @return A boolean that indicates if the operation was successful.
    */
     function setRole(address _address, uint8 _role) public onlyMasterOrIssuer returns (bool) {
-        require(_role == ISSUER || _role == EXCHANGE);
+        require(_role == ISSUER || _role == EXCHANGE, "Invalid target role");
 
-        return setRoleImpl(_address, _role);
+        setRoleImpl(_address, _role);
+
+        return true;
     }
 
     /**
@@ -151,9 +155,11 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
     function removeRole(address _address) public onlyMasterOrIssuer returns (bool) {
         uint8 role = roles[_address];
 
-        require(role == ISSUER || role == EXCHANGE);
+        require(role != MASTER, "Cannot remove master");
 
-        return setRoleImpl(_address, NONE);
+        setRoleImpl(_address, NONE);
+
+        return true;
     }
 
     /**
@@ -205,13 +211,13 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
 
     function isResourceOwner(address _resource, address _owner) public view returns (bool) {
         return
-            keccak256(abi.encodePacked(resourcesEntities[_resource])) != keccak256(abi.encodePacked("")) &&
-            keccak256(abi.encodePacked(resourcesEntities[_resource])) == keccak256(abi.encodePacked(ownersEntities[_owner]));
+            !CommonUtils.isEmptyString(resourcesEntities[_resource]) &&
+            CommonUtils.isEqualString(resourcesEntities[_resource], ownersEntities[_owner]);
     }
 
     function isResourceOperator(address _resource, address _operator) public view returns (bool) {
         return
-            keccak256(abi.encodePacked(resourcesEntities[_resource])) != keccak256(abi.encodePacked("")) &&
-            keccak256(abi.encodePacked(resourcesEntities[_resource])) == keccak256(abi.encodePacked(operatorsEntities[_operator]));
+            !CommonUtils.isEmptyString(resourcesEntities[_resource]) &&
+            CommonUtils.isEqualString(resourcesEntities[_resource], operatorsEntities[_operator]);
     }
 }

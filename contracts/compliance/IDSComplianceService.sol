@@ -1,14 +1,13 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
-
 
 contract IDSComplianceService is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(4);
+        VERSIONS.push(5);
     }
 
     uint256 internal constant NONE = 0;
@@ -33,7 +32,11 @@ contract IDSComplianceService is Initializable, VersionedContract {
     string internal constant ONLY_US_ACCREDITED = "Only us accredited";
     string internal constant NOT_ENOUGH_INVESTORS = "Not enough investors";
 
-    function adjustInvestorCountsAfterCountryChange(string memory _id, string memory _country, string memory _prevCountry) public returns (bool);
+    function adjustInvestorCountsAfterCountryChange(
+        string memory _id,
+        string memory _country,
+        string memory _prevCountry
+    ) public returns (bool);
 
     //*****************************************
     // TOKEN ACTION VALIDATIONS
@@ -84,7 +87,16 @@ contract IDSComplianceService is Initializable, VersionedContract {
 
     function preIssuanceCheck(address _to, uint256 _value) public view returns (uint256 code, string memory reason);
 
-    function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason);
+    function preTransferCheck(
+        address _from,
+        address _to,
+        uint256 _value
+    ) public view returns (uint256 code, string memory reason);
 
-    function preInternalTransferCheck(address _from, address _to, uint256 _value, address _omnibusWallet) public view returns (uint256 code, string memory reason);
+    function preInternalTransferCheck(
+        address _from,
+        address _to,
+        uint256 _value,
+        address _omnibusWallet
+    ) public view returns (uint256 code, string memory reason);
 }

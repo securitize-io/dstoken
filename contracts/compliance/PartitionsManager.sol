@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 
 import "../service/ServiceConsumer.sol";
@@ -8,10 +8,10 @@ import "../utils/ProxyTarget.sol";
 
 contract PartitionsManager is ProxyTarget, Initializable,  IDSPartitionsManager, ServiceConsumer, PartitionsManagerDataStore {
 
-  function initialize() public initializer onlyFromProxy {
+  function initialize() public initializer forceInitializeFromProxy {
     IDSPartitionsManager.initialize();
     ServiceConsumer.initialize();
-    VERSIONS.push(1);
+    VERSIONS.push(2);
   }
 
 

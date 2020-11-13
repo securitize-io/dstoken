@@ -1,8 +1,7 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "../service/ServiceConsumer.sol";
 import "../data-stores/TokenDataStore.sol";
-
 
 contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataStore {
     event Pause();
@@ -12,7 +11,7 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
 
     function initialize() public {
         ServiceConsumer.initialize();
-        VERSIONS.push(3);
+        VERSIONS.push(4);
     }
 
     modifier whenNotPaused() {
@@ -40,22 +39,6 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
     }
 
     /**
-     * @dev transfer token for a specified address
-     * @param _to The address to transfer to.
-     * @param _value The amount to be transferred.
-     */
-    function transfer(address _to, uint256 _value) public returns (bool) {
-        require(_to != address(0));
-        require(_value <= tokenData.walletsBalances[msg.sender]);
-
-        tokenData.walletsBalances[msg.sender] = tokenData.walletsBalances[msg.sender].sub(_value);
-        tokenData.walletsBalances[_to] = tokenData.walletsBalances[_to].add(_value);
-
-        emit Transfer(msg.sender, _to, _value);
-        return true;
-    }
-
-    /**
      * @dev Gets the balance of the specified address.
      * @param _owner The address to query the the balance of.
      * @return An uint256 representing the amount owned by the passed address.
@@ -68,15 +51,39 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
         return tokenData.totalSupply;
     }
 
-    function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
+    /**
+     * @dev transfer token for a specified address
+     * @param _to The address to transfer to.
+     * @param _value The amount to be transferred.
+     */
+    function transfer(address _to, uint256 _value) public returns (bool) {
+        return transferImpl(msg.sender, _to, _value);
+    }
+
+    function transferFrom(
+        address _from,
+        address _to,
+        uint256 _value
+    ) public returns (bool) {
+        require(_value <= allowances[_from][msg.sender]);
+        allowances[_from][msg.sender] = allowances[_from][msg.sender].sub(_value);
+
+        return transferImpl(msg.sender, _to, _value);
+    }
+
+    function transferImpl(
+        address _from,
+        address _to,
+        uint256 _value
+    ) internal returns (bool) {
         require(_to != address(0));
         require(_value <= tokenData.walletsBalances[_from]);
-        require(_value <= allowances[_from][msg.sender]);
 
         tokenData.walletsBalances[_from] = tokenData.walletsBalances[_from].sub(_value);
         tokenData.walletsBalances[_to] = tokenData.walletsBalances[_to].add(_value);
-        allowances[_from][msg.sender] = allowances[_from][msg.sender].sub(_value);
+
         emit Transfer(_from, _to, _value);
+
         return true;
     }
 

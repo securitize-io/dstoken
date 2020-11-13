@@ -1,14 +1,14 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "./IDSTokenIssuer.sol";
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
 
 contract TokenIssuer is ProxyTarget, Initializable, IDSTokenIssuer, ServiceConsumer {
-    function initialize() public initializer onlyFromProxy {
+    function initialize() public initializer forceInitializeFromProxy {
         IDSTokenIssuer.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(2);
+        VERSIONS.push(3);
     }
 
     function issueTokens(
@@ -23,13 +23,13 @@ contract TokenIssuer is ProxyTarget, Initializable, IDSTokenIssuer, ServiceConsu
         uint256[] memory _attributeValues,
         uint256[] memory _attributeExpirations
     ) public onlyIssuerOrAbove returns (bool) {
-        require(_issuanceValues.length == 2);
-        require(_attributeValues.length == 3);
-        require(_attributeExpirations.length == 3);
-        require(_locksValues.length == _lockReleaseTimes.length);
+        require(_issuanceValues.length == 2, "Wrong length of parameters");
+        require(_attributeValues.length == 3, "Wrong length of parameters");
+        require(_attributeExpirations.length == 3, "Wrong length of parameters");
+        require(_locksValues.length == _lockReleaseTimes.length, "Wrong length of parameters");
 
         if (getRegistryService().isWallet(_to)) {
-            require(keccak256(abi.encodePacked(getRegistryService().getInvestor(_to))) == keccak256(abi.encodePacked(_id)), "Wallet does not belong to investor");
+            require(CommonUtils.isEqualString(getRegistryService().getInvestor(_to), _id), "Wallet does not belong to investor");
         } else {
             if (!getRegistryService().isInvestor(_id)) {
                 getRegistryService().registerInvestor(_id, _collisionHash);

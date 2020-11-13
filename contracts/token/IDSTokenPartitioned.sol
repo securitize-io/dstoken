@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "./IDSToken.sol";
 
@@ -29,5 +29,4 @@ contract IDSTokenPartitioned is IDSToken {
     event IssueByPartition(address indexed to, uint256 value, bytes32 indexed partition);
     event BurnByPartition(address indexed burner, uint256 value, string reason, bytes32 indexed partition);
     event SeizeByPartition(address indexed from, address indexed to, uint256 value, string reason, bytes32 indexed partition);
-
 }

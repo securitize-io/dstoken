@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
@@ -9,7 +9,7 @@ contract IDSServiceConsumer is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(3);
+        VERSIONS.push(4);
     }
 
     uint256 public constant TRUST_SERVICE = 1;
@@ -25,37 +25,37 @@ contract IDSServiceConsumer is Initializable, VersionedContract {
     uint256 public constant WALLET_REGISTRAR = 1024;
 
     modifier onlyMaster {
-        assert(false);
+        require(false, "Not implemented");
         _;
     }
 
     modifier onlyIssuerOrAbove {
-        assert(false);
+        require(false, "Not implemented");
         _;
     }
 
     modifier onlyExchangeOrAbove {
-        assert(false);
+        require(false, "Not implemented");
         _;
     }
 
     modifier onlyToken {
-        assert(false);
+        require(false, "Not implemented");
         _;
     }
 
     modifier onlyRegistry {
-        assert(false);
+        require(false, "Not implemented");
         _;
     }
 
     modifier onlyIssuerOrAboveOrToken {
-        assert(false);
+        require(false, "Not implemented");
         _;
     }
 
     modifier onlyOmnibusWalletController(address omnibusWallet, IDSOmnibusWalletController omnibusWalletController) {
-        require(false);
+        require(false, "Not implemented");
         _;
     }
 

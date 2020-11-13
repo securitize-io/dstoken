@@ -1,4 +1,5 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
+
 import "./ComplianceService.sol";
 
 /**
@@ -9,9 +10,9 @@ import "./ComplianceService.sol";
 */
 
 contract ComplianceServiceNotRegulated is ComplianceService {
-    function initialize() public initializer onlyFromProxy {
+    function initialize() public initializer forceInitializeFromProxy {
         ComplianceService.initialize();
-        VERSIONS.push(2);
+        VERSIONS.push(3);
     }
 
     function recordIssuance(address, uint256, uint256) internal returns (bool) {
