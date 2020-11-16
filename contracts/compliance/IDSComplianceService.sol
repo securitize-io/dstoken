@@ -99,4 +99,8 @@ contract IDSComplianceService is Initializable, VersionedContract {
         uint256 _value,
         address _omnibusWallet
     ) public view returns (uint256 code, string memory reason);
+
+    function addToCounters(uint256 _totalInvestors, uint256 _accreditedInvestors,
+        uint256 _usAccreditedInvestors, uint256 _usTotalInvestors, uint256 _jpTotalInvestors, bytes32[] memory _euRetailCountries,
+        uint256[] memory _euRetailCountryCounts,  bool _increase) public returns (bool);
 }

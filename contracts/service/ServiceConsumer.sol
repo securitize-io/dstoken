@@ -77,7 +77,7 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
     }
 
     modifier onlyTBEOmnibus {
-        require(msg.sender == getDSService(OMNIBUS_TBE_CONTROLLER), "Not authorized");
+        require(msg.sender == getOmnibusTBEController(), "Not authorized");
         _;
     }
 

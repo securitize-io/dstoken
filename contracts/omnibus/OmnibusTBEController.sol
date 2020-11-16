@@ -16,13 +16,17 @@ contract OmnibusTBEController is IDSOmnibusTBEController, ProxyTarget, ServiceCo
 
     function bulkIssuance(uint256 value, uint256 issuanceTime, uint256 totalInvestors, uint256 accreditedInvestors,
         uint256 usAccreditedInvestors, uint256 usTotalInvestors, uint256 jpTotalInvestors, bytes32[] memory euRetailCountries,
-        uint256[] memory euRetailCountryCounts) public onlyIssuerOrAbove {
+        uint256[] memory euRetailCountryCounts) public onlyIssuerOrAbove returns (bool) {
         require(euRetailCountries.length == euRetailCountryCounts.length, 'EU Retail countries arrays do not match');
+        // Check we can increase counters
+        require(IDSComplianceService(getDSService(COMPLIANCE_SERVICE)).getTotalInvestorsCount().add(totalInvestors) <=
+            IDSComplianceConfigurationService(getDSService(COMPLIANCE_CONFIGURATION_SERVICE)).getTotalInvestorsLimit(), 'Total investors exceeded');
         // Handle counters here
-        IDSOmnibusTBEController(getDSService(OMNIBUS_TBE_CONTROLLER)).addToCounters(totalInvestors, accreditedInvestors,
+        IDSComplianceService(getDSService(COMPLIANCE_SERVICE)).addToCounters(totalInvestors, accreditedInvestors,
             usAccreditedInvestors, usTotalInvestors, jpTotalInvestors, euRetailCountries, euRetailCountryCounts, true);
         // Issue tokens
         getToken().issueTokensCustom(omnibusWallet, value, issuanceTime, 0, '', 0);
+        return true;
     }
 
     function bulkBurn(uint256 value, uint256 issuanceTime, uint256 totalInvestors, uint256 accreditedInvestors,
@@ -30,7 +34,7 @@ contract OmnibusTBEController is IDSOmnibusTBEController, ProxyTarget, ServiceCo
         uint256[] memory euRetailCountryCounts) public onlyIssuerOrAbove {
         require(euRetailCountries.length == euRetailCountryCounts.length, 'EU Retail countries arrays do not match');
         // Handle counters here
-        IDSOmnibusTBEController(getDSService(OMNIBUS_TBE_CONTROLLER)).addToCounters(totalInvestors, accreditedInvestors,
+        IDSComplianceService(getDSService(COMPLIANCE_SERVICE)).addToCounters(totalInvestors, accreditedInvestors,
             usAccreditedInvestors, usTotalInvestors, jpTotalInvestors, euRetailCountries, euRetailCountryCounts, false);
         // Burn tokens
         getToken().burn(omnibusWallet, value, 'Omnibus');
@@ -50,8 +54,27 @@ contract OmnibusTBEController is IDSOmnibusTBEController, ProxyTarget, ServiceCo
     function adjustCounters(int256 totalDelta, int256 accreditedDelta,
         int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta, bytes32[] memory euRetailCountries,
         int256[] memory euRetailCountryDeltas) public onlyIssuerOrAbove {
-
         require(euRetailCountries.length == euRetailCountryDeltas.length, 'Array lengths do not match');
+        IDSComplianceService(getDSService(COMPLIANCE_SERVICE)).addToCounters(
+            totalDelta > 0 ? uint256(totalDelta) : 0,
+            accreditedDelta > 0 ? uint256(accreditedDelta) : 0,
+            usAccreditedDelta > 0 ? uint256(usAccreditedDelta) : 0,
+            usTotalDelta > 0 ? uint256(usTotalDelta) : 0,
+            jpTotalDelta > 0 ? uint256(jpTotalDelta) : 0,
+            euRetailCountries,
+            euRetailCountryDeltas,
+            true
+        );
+        IDSComplianceService(getDSService(COMPLIANCE_SERVICE)).addToCounters(
+            totalDelta < 0 ? uint256(totalDelta * -1) : 0,
+            accreditedDelta < 0 ? uint256(accreditedDelta * -1) : 0,
+            usAccreditedDelta < 0 ? uint256(usAccreditedDelta * -1) : 0,
+            usTotalDelta < 0 ? uint256(usTotalDelta * -1) : 0,
+            jpTotalDelta < 0 ? uint256(jpTotalDelta * -1) : 0,
+            euRetailCountries,
+            euRetailCountryDeltas,
+            false
+        );
     }
 
     function getOmnibusWallet() public view returns (address) {

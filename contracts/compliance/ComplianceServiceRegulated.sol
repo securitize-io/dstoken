@@ -783,6 +783,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
             euRetailInvestorsCount[countryCode] = _increase ? euRetailInvestorsCount[countryCode].add(_euRetailCountryCounts[i]) :
                 euRetailInvestorsCount[countryCode].sub(_euRetailCountryCounts[i]);
         }
+        return true;
     }
 
     function getServices() internal view returns (address[] memory services) {
