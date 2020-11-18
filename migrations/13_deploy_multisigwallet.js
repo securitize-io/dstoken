@@ -1,7 +1,7 @@
-const MultiSigWallet = artifacts.require("MultiSigWallet");
-const configurationManager = require("./utils/configurationManager");
+const MultiSigWallet = artifacts.require('MultiSigWallet');
+const configurationManager = require('./utils/configurationManager');
 
-module.exports = async function(deployer) {
+module.exports = async function (deployer) {
   if (configurationManager.isTestMode()) {
     return;
   }
@@ -9,6 +9,7 @@ module.exports = async function(deployer) {
   deployer.deploy(
     MultiSigWallet,
     configurationManager.owners,
-    configurationManager.requiredConfirmations
+    configurationManager.requiredConfirmations,
+    configurationManager.chainId
   );
 };

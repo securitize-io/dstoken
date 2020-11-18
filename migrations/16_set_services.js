@@ -1,27 +1,27 @@
-const TrustService = artifacts.require("TrustService");
-const RegistryService = artifacts.require("RegistryService");
-const WalletManager = artifacts.require("WalletManager");
-const TokenIssuer = artifacts.require("TokenIssuer");
-const WalletRegistrar = artifacts.require("WalletRegistrar");
+const TrustService = artifacts.require('TrustService');
+const RegistryService = artifacts.require('RegistryService');
+const WalletManager = artifacts.require('WalletManager');
+const TokenIssuer = artifacts.require('TokenIssuer');
+const WalletRegistrar = artifacts.require('WalletRegistrar');
 const ComplianceConfigurationService = artifacts.require(
-  "ComplianceConfigurationService"
+  'ComplianceConfigurationService'
 );
-const OmnibusWalletController = artifacts.require("OmnibusWalletController");
-const MultiSigWallet = artifacts.require("MultiSigWallet");
-const PartitionsManager = artifacts.require("PartitionsManager");
-const configurationManager = require("./utils/configurationManager");
-const globals = require("../utils/globals");
+const OmnibusWalletController = artifacts.require('OmnibusWalletController');
+const MultiSigWallet = artifacts.require('MultiSigWallet');
+const PartitionsManager = artifacts.require('PartitionsManager');
+const configurationManager = require('./utils/configurationManager');
+const globals = require('../utils/globals');
 const services = globals.services;
 const attributeType = globals.attributeType;
 const attributeStatus = globals.attributeStatus;
 
-module.exports = async function(deployer) {
+module.exports = async function (deployer) {
   if (configurationManager.isTestMode()) {
     return;
   }
 
   const trustService = await TrustService.at(
-    configurationManager.getProxyAddressForContractName("TrustService")
+    configurationManager.getProxyAddressForContractName('TrustService')
   );
   const abstractComplianceServiceContract = configurationManager.getAbstractComplianceServiceContract(
     artifacts
@@ -33,11 +33,11 @@ module.exports = async function(deployer) {
   );
   const complianceConfiguration = await ComplianceConfigurationService.at(
     configurationManager.getProxyAddressForContractName(
-      "ComplianceConfigurationService"
+      'ComplianceConfigurationService'
     )
   );
   const walletManager = await WalletManager.at(
-    configurationManager.getProxyAddressForContractName("WalletManager")
+    configurationManager.getProxyAddressForContractName('WalletManager')
   );
   const abstractLockManagerContract = configurationManager.getAbstractLockManagerContract(
     artifacts
@@ -54,110 +54,109 @@ module.exports = async function(deployer) {
     )
   );
   const tokenIssuer = await TokenIssuer.at(
-    configurationManager.getProxyAddressForContractName("TokenIssuer")
+    configurationManager.getProxyAddressForContractName('TokenIssuer')
   );
   const walletRegistrar = await WalletRegistrar.at(
-    configurationManager.getProxyAddressForContractName("WalletRegistrar")
+    configurationManager.getProxyAddressForContractName('WalletRegistrar')
   );
-  const multisig = await MultiSigWallet.deployed();
 
-  let partitionsManager = undefined;
-  if (configurationManager.isPartitioned())
-  {
-     partitionsManager = await PartitionsManager.at(
-      configurationManager.getProxyAddressForContractName("PartitionsManager")
+  const multisig = await MultiSigWallet.deployed();
+  let partitionsManager;
+  if (configurationManager.isPartitioned()) {
+    partitionsManager = await PartitionsManager.at(
+      configurationManager.getProxyAddressForContractName('PartitionsManager')
     );
   }
 
   let registry;
   let omnibusWalletController;
 
-  console.log("Connecting compliance configuration to trust service");
+  console.log('Connecting compliance configuration to trust service');
   await complianceConfiguration.setDSService(
     services.TRUST_SERVICE,
     trustService.address
   );
-  console.log("Connecting compliance manager to trust service");
+  console.log('Connecting compliance manager to trust service');
   await complianceService.setDSService(
     services.TRUST_SERVICE,
     trustService.address
   );
   console.log(
-    "Connecting compliance manager to compliance configuration service"
+    'Connecting compliance manager to compliance configuration service'
   );
   await complianceService.setDSService(
     services.COMPLIANCE_CONFIGURATION_SERVICE,
     complianceConfiguration.address
   );
-  console.log("Connecting compliance manager to wallet manager");
+  console.log('Connecting compliance manager to wallet manager');
   await complianceService.setDSService(
     services.WALLET_MANAGER,
     walletManager.address
   );
-  console.log("Connecting compliance manager to lock manager");
+  console.log('Connecting compliance manager to lock manager');
   await complianceService.setDSService(
     services.LOCK_MANAGER,
     lockManager.address
   );
-  console.log("Connecting compliance service to token");
+  console.log('Connecting compliance service to token');
   await complianceService.setDSService(services.DS_TOKEN, token.address);
 
   if (!configurationManager.noRegistry) {
     registry = await RegistryService.at(
-      configurationManager.getProxyAddressForContractName("RegistryService")
+      configurationManager.getProxyAddressForContractName('RegistryService')
     );
 
-    console.log("Connecting registry to trust service");
+    console.log('Connecting registry to trust service');
     await registry.setDSService(services.TRUST_SERVICE, trustService.address);
-    console.log("Connecting registry to wallet manager");
+    console.log('Connecting registry to wallet manager');
     await registry.setDSService(services.WALLET_MANAGER, walletManager.address);
-    console.log("Connecting registry to token");
+    console.log('Connecting registry to token');
     await registry.setDSService(services.DS_TOKEN, token.address);
-    console.log("Connecting registry to compliance service");
+    console.log('Connecting registry to compliance service');
     await registry.setDSService(
       services.COMPLIANCE_SERVICE,
       complianceService.address
     );
-    console.log("Connecting token to registry");
+    console.log('Connecting token to registry');
     await token.setDSService(services.REGISTRY_SERVICE, registry.address, {
-      gas: 1e6
+      gas: 1e6,
     });
 
-    console.log("Connecting token to token issuer");
+    console.log('Connecting token to token issuer');
     await token.setDSService(services.TOKEN_ISSUER, tokenIssuer.address, {
-      gas: 1e6
+      gas: 1e6,
     });
 
-    console.log("Connecting token to wallet registrar");
+    console.log('Connecting token to wallet registrar');
     await token.setDSService(
       services.WALLET_REGISTRAR,
       walletRegistrar.address,
       {
-        gas: 1e6
+        gas: 1e6,
       }
     );
 
-    console.log("Connecting token issuer to registry");
+    console.log('Connecting token issuer to registry');
     await tokenIssuer.setDSService(
       services.REGISTRY_SERVICE,
       registry.address,
       {
-        gas: 1e6
+        gas: 1e6,
       }
     );
-    console.log("Connecting wallet registrar to registry");
+    console.log('Connecting wallet registrar to registry');
     await walletRegistrar.setDSService(
       services.REGISTRY_SERVICE,
       registry.address
     );
-    console.log("Connecting wallet manager to registry");
+    console.log('Connecting wallet manager to registry');
     await walletManager.setDSService(
       services.REGISTRY_SERVICE,
       registry.address
     );
-    console.log("Connecting lock manager to registry");
+    console.log('Connecting lock manager to registry');
     await lockManager.setDSService(services.REGISTRY_SERVICE, registry.address);
-    console.log("Connecting compliance manager to registry");
+    console.log('Connecting compliance manager to registry');
     await complianceService.setDSService(
       services.REGISTRY_SERVICE,
       registry.address
@@ -166,35 +165,35 @@ module.exports = async function(deployer) {
     if (!configurationManager.noOmnibusWallet) {
       omnibusWalletController = await OmnibusWalletController.at(
         configurationManager.getProxyAddressForContractName(
-          "OmnibusWalletController"
+          'OmnibusWalletController'
         )
       );
 
-      console.log("Connecting omnibus wallet controller to trust service");
+      console.log('Connecting omnibus wallet controller to trust service');
       await omnibusWalletController.setDSService(
         services.TRUST_SERVICE,
         trustService.address
       );
 
-      console.log("Connecting omnibus wallet controller to compliance manager");
+      console.log('Connecting omnibus wallet controller to compliance manager');
       await omnibusWalletController.setDSService(
         services.COMPLIANCE_SERVICE,
         complianceService.address
       );
 
-      console.log("Connecting omnibus wallet controller to token");
+      console.log('Connecting omnibus wallet controller to token');
       await omnibusWalletController.setDSService(
         services.DS_TOKEN,
         token.address
       );
 
-      console.log("Adding omnibus wallet investor to registry");
+      console.log('Adding omnibus wallet investor to registry');
       await registry.registerInvestor(
         configurationManager.omnibusWalletInvestorId,
         configurationManager.omnibusWalletInvestorId
       );
 
-      console.log("Adding omnibus wallet controller to registry");
+      console.log('Adding omnibus wallet controller to registry');
       await registry.addOmnibusWallet(
         configurationManager.omnibusWalletInvestorId,
         configurationManager.omnibusWallet,
@@ -205,88 +204,87 @@ module.exports = async function(deployer) {
         configurationManager.omnibusWalletInvestorId,
         attributeType.ACCREDITED,
         attributeStatus.APPROVED,
-        "",
-        ""
+        '',
+        ''
       );
       await registry.setAttribute(
         configurationManager.omnibusWalletInvestorId,
         attributeType.QUALIFIED,
         attributeStatus.APPROVED,
-        "",
-        ""
+        '',
+        ''
       );
     }
   }
 
-  if (configurationManager.isPartitioned())
-  {
-    console.log("Connecting token to partitions manager");
+  if (configurationManager.isPartitioned()) {
+    console.log('Connecting token to partitions manager');
     await token.setDSService(services.PARTITIONS_MANAGER, partitionsManager.address, {
-      gas: 1e6
+      gas: 1e6,
     });
-    console.log("Connecting partitions manager to trust service");
+    console.log('Connecting partitions manager to trust service');
     await partitionsManager.setDSService(
       services.TRUST_SERVICE,
       trustService.address
     );
-    console.log("Connecting partitions manager to token");
+    console.log('Connecting partitions manager to token');
     await partitionsManager.setDSService(
       services.DS_TOKEN,
       token.address
     );
-    console.log("Connecting compliance manager to partitions manager");
+    console.log('Connecting compliance manager to partitions manager');
     await complianceService.setDSService(
       services.PARTITIONS_MANAGER,
       partitionsManager.address
     );
   }
 
-  console.log("Connecting token to trust service");
+  console.log('Connecting token to trust service');
   await token.setDSService(services.TRUST_SERVICE, trustService.address, {
-    gas: 1e6
+    gas: 1e6,
   });
-  console.log("Connecting token to compliance service");
+  console.log('Connecting token to compliance service');
   await token.setDSService(
     services.COMPLIANCE_SERVICE,
     complianceService.address,
     {
-      gas: 1e6
+      gas: 1e6,
     }
   );
-  console.log("Connecting token to compliance configuration service");
+  console.log('Connecting token to compliance configuration service');
   await token.setDSService(
     services.COMPLIANCE_CONFIGURATION_SERVICE,
     complianceConfiguration.address
   );
-  console.log("Connecting token to wallet manager");
+  console.log('Connecting token to wallet manager');
   await token.setDSService(services.WALLET_MANAGER, walletManager.address, {
-    gas: 1e6
+    gas: 1e6,
   });
-  console.log("Connecting token to lock manager");
+  console.log('Connecting token to lock manager');
   await token.setDSService(services.LOCK_MANAGER, lockManager.address, {
-    gas: 1e6
+    gas: 1e6,
   });
-  console.log("Connecting wallet manager to trust service");
+  console.log('Connecting wallet manager to trust service');
   await walletManager.setDSService(
     services.TRUST_SERVICE,
     trustService.address
   );
-  console.log("Connecting lock manager to trust service");
+  console.log('Connecting lock manager to trust service');
   await lockManager.setDSService(services.TRUST_SERVICE, trustService.address);
-  console.log("Connecting lock manager to compliance service");
+  console.log('Connecting lock manager to compliance service');
   await lockManager.setDSService(
     services.COMPLIANCE_SERVICE,
     complianceService.address
   );
-  console.log("Connecting lock manager to token");
+  console.log('Connecting lock manager to token');
   await lockManager.setDSService(services.DS_TOKEN, token.address);
-  console.log("Connecting token issuer to trust service");
+  console.log('Connecting token issuer to trust service');
   await tokenIssuer.setDSService(services.TRUST_SERVICE, trustService.address);
-  console.log("Connecting token issuer to lock manager");
+  console.log('Connecting token issuer to lock manager');
   await tokenIssuer.setDSService(services.LOCK_MANAGER, lockManager.address);
-  console.log("Connecting token issuer to token");
+  console.log('Connecting token issuer to token');
   await tokenIssuer.setDSService(services.DS_TOKEN, token.address);
-  console.log("Connecting wallet registrar to trust service");
+  console.log('Connecting wallet registrar to trust service');
   await walletRegistrar.setDSService(
     services.TRUST_SERVICE,
     trustService.address
@@ -295,8 +293,8 @@ module.exports = async function(deployer) {
   console.log(
     `\n\nToken "${configurationManager.name}" (${configurationManager.symbol}) [decimals: ${configurationManager.decimals}] deployment complete`
   );
-  console.log("-------------------------");
-  tokenType = configurationManager.isPartitioned() ? "TokenPartitioned" : "Token";
+  console.log('-------------------------');
+  tokenType = configurationManager.isPartitioned() ? 'TokenPartitioned' : 'Token';
   console.log(
 
     `${tokenType} is at address: ${
@@ -359,16 +357,16 @@ module.exports = async function(deployer) {
   if (configurationManager.isPartitioned()) {
     console.log(
       `Partitions Manager is at address: ${
-      partitionsManager.address
+        partitionsManager.address
       } | Version: ${await partitionsManager.getVersion()}`
     );
   }
 
   if (!registry) {
-    console.log("\nNo investors registry was deployed.");
+    console.log('\nNo investors registry was deployed.');
   }
   if (!omnibusWalletController) {
-    console.log("\nNo omnibus wallet controller was deployed.");
+    console.log('\nNo omnibus wallet controller was deployed.');
   }
 
   console.log(
@@ -377,5 +375,5 @@ module.exports = async function(deployer) {
     } | Version: ${await multisig.getVersion()}`
   );
 
-  console.log("\n");
+  console.log('\n');
 };

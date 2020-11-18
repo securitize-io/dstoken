@@ -1,6 +1,6 @@
 {
   "name": "Digital_Securities",
-  "version": "v2.0.0",
+  "version": "v2.1.0",
   "description": "Digital Securities Reference Implementation",
   "scripts": {
     "test": "npm run test:unitests && npm run test:integration",
@@ -58,5 +58,9 @@
     "solium": "^1.1.7",
     "truffle": "^5.0.22",
     "truffle-hdwallet-provider": "^1.0.17"
+  },
+  "dependencies": {
+    "nvm": "0.0.4",
+    "eth-lightwallet": "^4.0.0"
   }
 }

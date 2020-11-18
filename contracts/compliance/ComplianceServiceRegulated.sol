@@ -381,7 +381,8 @@ library ComplianceServiceLibrary {
         if (
             isNotBeneficiaryOrHolderOfRecord &&
             IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) != WALLET_TYPE_PLATFORM &&
-            fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
+            fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor() &&
+            fromInvestorBalance > _value
         ) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
@@ -497,7 +498,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
     function initialize() public initializer forceInitializeFromProxy {
         super.initialize();
-        VERSIONS.push(7);
+        VERSIONS.push(8);
     }
 
     function compareInvestorBalance(
