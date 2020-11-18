@@ -18,9 +18,9 @@ contract OmnibusTBEController is IDSOmnibusTBEController, ProxyTarget, ServiceCo
         uint256 usAccreditedInvestors, uint256 usTotalInvestors, uint256 jpTotalInvestors, bytes32[] memory euRetailCountries,
         uint256[] memory euRetailCountryCounts) public onlyIssuerOrAbove returns (bool) {
         require(euRetailCountries.length == euRetailCountryCounts.length, 'EU Retail countries arrays do not match');
-        // Check we can increase counters
-        require(IDSComplianceService(getDSService(COMPLIANCE_SERVICE)).getTotalInvestorsCount().add(totalInvestors) <=
-            IDSComplianceConfigurationService(getDSService(COMPLIANCE_CONFIGURATION_SERVICE)).getTotalInvestorsLimit(), 'Total investors exceeded');
+        // TODO: Check we can increase counters
+//        require(IDSComplianceService(getDSService(COMPLIANCE_SERVICE)).getTotalInvestorsCount().add(totalInvestors) <=
+//            IDSComplianceConfigurationService(getDSService(COMPLIANCE_CONFIGURATION_SERVICE)).getTotalInvestorsLimit(), 'Total investors exceeded');
         // Handle counters here
         IDSComplianceService(getDSService(COMPLIANCE_SERVICE)).addToCounters(totalInvestors, accreditedInvestors,
             usAccreditedInvestors, usTotalInvestors, jpTotalInvestors, euRetailCountries, euRetailCountryCounts, true);
@@ -53,7 +53,7 @@ contract OmnibusTBEController is IDSOmnibusTBEController, ProxyTarget, ServiceCo
 
     function adjustCounters(int256 totalDelta, int256 accreditedDelta,
         int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta, bytes32[] memory euRetailCountries,
-        int256[] memory euRetailCountryDeltas) public onlyIssuerOrAbove {
+        uint256[] memory euRetailCountryDeltas) public onlyIssuerOrAbove {
         require(euRetailCountries.length == euRetailCountryDeltas.length, 'Array lengths do not match');
         IDSComplianceService(getDSService(COMPLIANCE_SERVICE)).addToCounters(
             totalDelta > 0 ? uint256(totalDelta) : 0,

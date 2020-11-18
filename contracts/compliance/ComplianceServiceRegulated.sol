@@ -770,7 +770,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
     function addToCounters(uint256 _totalInvestors, uint256 _accreditedInvestors,
         uint256 _usAccreditedInvestors, uint256 _usTotalInvestors, uint256 _jpTotalInvestors, bytes32[] memory _euRetailCountries,
-        uint256[] memory _euRetailCountryCounts,  bool _increase) public onlyTBEOmnibus {
+        uint256[] memory _euRetailCountryCounts,  bool _increase) public onlyTBEOmnibus returns (bool) {
         totalInvestors = _increase ? totalInvestors.add(_totalInvestors) : totalInvestors.sub(_totalInvestors);
         accreditedInvestorsCount = _increase ? accreditedInvestorsCount.add(_accreditedInvestors) :
             accreditedInvestorsCount.sub(_accreditedInvestors);
