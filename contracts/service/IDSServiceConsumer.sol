@@ -9,7 +9,7 @@ contract IDSServiceConsumer is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(4);
+        VERSIONS.push(5);
     }
 
     uint256 public constant TRUST_SERVICE = 1;

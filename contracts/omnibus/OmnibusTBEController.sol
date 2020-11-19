@@ -53,8 +53,9 @@ contract OmnibusTBEController is IDSOmnibusTBEController, ProxyTarget, ServiceCo
 
     function adjustCounters(int256 totalDelta, int256 accreditedDelta,
         int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta, bytes32[] memory euRetailCountries,
-        uint256[] memory euRetailCountryDeltas) public onlyIssuerOrAbove {
+        int256[] memory euRetailCountryDeltas) public onlyIssuerOrAbove {
         require(euRetailCountries.length == euRetailCountryDeltas.length, 'Array lengths do not match');
+
         IDSComplianceService(getDSService(COMPLIANCE_SERVICE)).addToCounters(
             totalDelta > 0 ? uint256(totalDelta) : 0,
             accreditedDelta > 0 ? uint256(accreditedDelta) : 0,
@@ -62,7 +63,7 @@ contract OmnibusTBEController is IDSOmnibusTBEController, ProxyTarget, ServiceCo
             usTotalDelta > 0 ? uint256(usTotalDelta) : 0,
             jpTotalDelta > 0 ? uint256(jpTotalDelta) : 0,
             euRetailCountries,
-            euRetailCountryDeltas,
+            getEuCountriesDeltasTranslated(euRetailCountryDeltas, true),
             true
         );
         IDSComplianceService(getDSService(COMPLIANCE_SERVICE)).addToCounters(
@@ -72,9 +73,22 @@ contract OmnibusTBEController is IDSOmnibusTBEController, ProxyTarget, ServiceCo
             usTotalDelta < 0 ? uint256(usTotalDelta * -1) : 0,
             jpTotalDelta < 0 ? uint256(jpTotalDelta * -1) : 0,
             euRetailCountries,
-            euRetailCountryDeltas,
+            getEuCountriesDeltasTranslated(euRetailCountryDeltas, false),
             false
         );
+    }
+
+    function getEuCountriesDeltasTranslated(int256[] memory euCountryDeltas,  bool increase) internal view returns (uint256[] memory) {
+        uint256[] memory result = new uint256[](euCountryDeltas.length);
+
+        for (uint i = 0; i < euCountryDeltas.length; i++) {
+            if (increase) {
+                result[i] = euCountryDeltas[i] > 0 ? uint256(euCountryDeltas[i]) : 0;
+            } else {
+                result[i] = euCountryDeltas[i] < 0 ? uint256(euCountryDeltas[i] * -1) : 0;
+            }
+        }
+        return result;
     }
 
     function getOmnibusWallet() public view returns (address) {

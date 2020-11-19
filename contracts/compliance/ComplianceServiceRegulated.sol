@@ -498,7 +498,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
     function initialize() public initializer forceInitializeFromProxy {
         super.initialize();
-        VERSIONS.push(8);
+        VERSIONS.push(9);
     }
 
     function compareInvestorBalance(

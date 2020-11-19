@@ -7,7 +7,7 @@ contract IDSComplianceService is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(5);
+        VERSIONS.push(6);
     }
 
     uint256 internal constant NONE = 0;
