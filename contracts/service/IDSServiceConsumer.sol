@@ -65,6 +65,11 @@ contract IDSServiceConsumer is Initializable, VersionedContract {
         _;
     }
 
+    modifier onlyMasterOrTBEOmnibus {
+        require(false, "Not implemented");
+        _;
+    }
+
     function getDSService(uint256 _serviceId) public view returns (address);
 
     function setDSService(

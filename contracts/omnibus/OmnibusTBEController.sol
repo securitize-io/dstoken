@@ -3,6 +3,7 @@ pragma solidity 0.5.17;
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
 import "../data-stores/OmnibusTBEControllerDataStore.sol";
+import "../compliance/ComplianceServiceRegulated.sol";
 
 contract OmnibusTBEController is IDSOmnibusTBEController, ProxyTarget, ServiceConsumer, OmnibusTBEControllerDataStore {
     using SafeMath for uint256;
@@ -22,7 +23,7 @@ contract OmnibusTBEController is IDSOmnibusTBEController, ProxyTarget, ServiceCo
 //        require(IDSComplianceService(getDSService(COMPLIANCE_SERVICE)).getTotalInvestorsCount().add(totalInvestors) <=
 //            IDSComplianceConfigurationService(getDSService(COMPLIANCE_CONFIGURATION_SERVICE)).getTotalInvestorsLimit(), 'Total investors exceeded');
         // Handle counters here
-        IDSComplianceService(getDSService(COMPLIANCE_SERVICE)).addToCounters(totalInvestors, accreditedInvestors,
+        addToCounters(totalInvestors, accreditedInvestors,
             usAccreditedInvestors, usTotalInvestors, jpTotalInvestors, euRetailCountries, euRetailCountryCounts, true);
         // Issue tokens
         getToken().issueTokensCustom(omnibusWallet, value, issuanceTime, 0, '', 0);
@@ -34,7 +35,7 @@ contract OmnibusTBEController is IDSOmnibusTBEController, ProxyTarget, ServiceCo
         uint256[] memory euRetailCountryCounts) public onlyIssuerOrAbove {
         require(euRetailCountries.length == euRetailCountryCounts.length, 'EU Retail countries arrays do not match');
         // Handle counters here
-        IDSComplianceService(getDSService(COMPLIANCE_SERVICE)).addToCounters(totalInvestors, accreditedInvestors,
+        addToCounters(totalInvestors, accreditedInvestors,
             usAccreditedInvestors, usTotalInvestors, jpTotalInvestors, euRetailCountries, euRetailCountryCounts, false);
         // Burn tokens
         getToken().burn(omnibusWallet, value, 'Omnibus');
@@ -56,7 +57,7 @@ contract OmnibusTBEController is IDSOmnibusTBEController, ProxyTarget, ServiceCo
         int256[] memory euRetailCountryDeltas) public onlyIssuerOrAbove {
         require(euRetailCountries.length == euRetailCountryDeltas.length, 'Array lengths do not match');
 
-        IDSComplianceService(getDSService(COMPLIANCE_SERVICE)).addToCounters(
+        addToCounters(
             totalDelta > 0 ? uint256(totalDelta) : 0,
             accreditedDelta > 0 ? uint256(accreditedDelta) : 0,
             usAccreditedDelta > 0 ? uint256(usAccreditedDelta) : 0,
@@ -66,7 +67,7 @@ contract OmnibusTBEController is IDSOmnibusTBEController, ProxyTarget, ServiceCo
             getEuCountriesDeltasTranslated(euRetailCountryDeltas, true),
             true
         );
-        IDSComplianceService(getDSService(COMPLIANCE_SERVICE)).addToCounters(
+        addToCounters(
             totalDelta < 0 ? uint256(totalDelta * -1) : 0,
             accreditedDelta < 0 ? uint256(accreditedDelta * -1) : 0,
             usAccreditedDelta < 0 ? uint256(usAccreditedDelta * -1) : 0,
@@ -93,5 +94,40 @@ contract OmnibusTBEController is IDSOmnibusTBEController, ProxyTarget, ServiceCo
 
     function getOmnibusWallet() public view returns (address) {
         return omnibusWallet;
+    }
+
+    function addToCounters(uint256 _totalInvestors, uint256 _accreditedInvestors,
+        uint256 _usAccreditedInvestors, uint256 _usTotalInvestors, uint256 _jpTotalInvestors, bytes32[] memory _euRetailCountries,
+        uint256[] memory _euRetailCountryCounts,  bool _increase) internal returns (bool) {
+        ComplianceServiceRegulated cs = ComplianceServiceRegulated(getDSService(COMPLIANCE_SERVICE));
+
+        cs.setTotalInvestorsCount(_increase ? cs.getTotalInvestorsCount().add(_totalInvestors) :
+            cs.getTotalInvestorsCount().sub(_totalInvestors));
+        cs.setAccreditedInvestorsCount(_increase ? cs.getAccreditedInvestorsCount().add(_accreditedInvestors) :
+            cs.getAccreditedInvestorsCount().sub(_accreditedInvestors));
+        cs.setUSAccreditedInvestorsCount(_increase ? cs.getUSAccreditedInvestorsCount().add(_usAccreditedInvestors) :
+            cs.getUSAccreditedInvestorsCount().sub(_usAccreditedInvestors));
+        cs.setUSInvestorsCount(_increase ? cs.getUSInvestorsCount().add(_usTotalInvestors) :
+            cs.getUSInvestorsCount().sub(_usTotalInvestors));
+        cs.setJPInvestorsCount(_increase ? cs.getJPInvestorsCount().add(_jpTotalInvestors) :
+            cs.getJPInvestorsCount().sub(_jpTotalInvestors));
+        for (uint i = 0; i < _euRetailCountries.length; i++) {
+            string memory countryCode = bytes32ToString(_euRetailCountries[i]);
+            cs.setEURetailInvestorsCount(countryCode, _increase ? cs.getEURetailInvestorsCount(countryCode).add(_euRetailCountryCounts[i]) :
+                cs.getEURetailInvestorsCount(countryCode).sub(_euRetailCountryCounts[i]));
+        }
+        return true;
+    }
+
+    function bytes32ToString(bytes32 _bytes32) internal pure returns (string memory) {
+        uint8 i = 0;
+        while(i < 32 && _bytes32[i] != 0) {
+            i++;
+        }
+        bytes memory bytesArray = new bytes(i);
+        for (i = 0; i < 32 && _bytes32[i] != 0; i++) {
+            bytesArray[i] = _bytes32[i];
+        }
+        return string(bytesArray);
     }
 }

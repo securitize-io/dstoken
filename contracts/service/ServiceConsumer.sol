@@ -81,6 +81,13 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
         _;
     }
 
+    modifier onlyMasterOrTBEOmnibus {
+        IDSTrustService trustManager = getTrustService();
+        require(msg.sender == address(getOmnibusTBEController()) ||
+        this.contractOwner() == msg.sender || trustManager.getRole(msg.sender) == ROLE_MASTER, "Not authorized");
+        _;
+    }
+
     function getDSService(uint256 _serviceId) public view returns (address) {
         return services[_serviceId];
     }
