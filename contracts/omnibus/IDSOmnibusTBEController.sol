@@ -9,23 +9,21 @@ import "../utils/Initializable.sol";
 contract IDSOmnibusTBEController is Initializable, VersionedContract {
     using SafeMath for uint256;
 
-    function initialize(address _omnibusWallet) public {
-        VERSIONS.push(3);
-    }
+    function initialize(address _omnibusWallet) public;
 
     function bulkIssuance(uint256 value, uint256 issuanceTime, uint256 totalInvestors, uint256 accreditedInvestors,
         uint256 usAccreditedInvestors, uint256 usTotalInvestors, uint256 jpTotalInvestors, bytes32[] memory euRetailCountries,
-        bytes32[] memory euRetailCountryCounts) public;
+        uint256[] memory euRetailCountryCounts) public returns(bool);
 
     function bulkBurn(uint256 value, uint256 issuanceTime, uint256 totalInvestors, uint256 accreditedInvestors,
         uint256 usAccreditedInvestors, uint256 usTotalInvestors, uint256 jpTotalInvestors, bytes32[] memory euRetailCountries,
-        bytes32[] memory euRetailCountryCounts) public;
+        uint256[] memory euRetailCountryCounts) public;
 
     function bulkTransfer(address[] memory wallets, uint256[] memory values) public;
 
-    function adjustCounters(uint256 totalDelta, uint256 accreditedDelta,
-        uint256 usAccreditedDelta, uint256 usTotalDelta, uint256 jpTotalDelta, bytes32[] memory euRetailCountries,
-        bytes32[] memory euRetailCountryDeltas) public;
+    function adjustCounters(int256 totalDelta, int256 accreditedDelta,
+        int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta, bytes32[] memory euRetailCountries,
+        int256[] memory euRetailCountryDeltas) public;
 
     function getOmnibusWallet() public view returns (address);
 }

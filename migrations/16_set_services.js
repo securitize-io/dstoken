@@ -6,7 +6,7 @@ const WalletRegistrar = artifacts.require('WalletRegistrar');
 const ComplianceConfigurationService = artifacts.require(
   'ComplianceConfigurationService'
 );
-const OmnibusWalletController = artifacts.require('OmnibusWalletController');
+const OmnibusTBEController = artifacts.require('OmnibusTBEController');
 const MultiSigWallet = artifacts.require('MultiSigWallet');
 const PartitionsManager = artifacts.require('PartitionsManager');
 const configurationManager = require('./utils/configurationManager');
@@ -55,6 +55,9 @@ module.exports = async function (deployer) {
   );
   const tokenIssuer = await TokenIssuer.at(
     configurationManager.getProxyAddressForContractName('TokenIssuer')
+  );
+  const omnibusTBEController = await OmnibusTBEController.at(
+    configurationManager.getProxyAddressForContractName('OmnibusTBEController')
   );
   const walletRegistrar = await WalletRegistrar.at(
     configurationManager.getProxyAddressForContractName('WalletRegistrar')
@@ -144,6 +147,22 @@ module.exports = async function (deployer) {
         gas: 1e6,
       }
     );
+    console.log('Connecting Omnibus TBE Controller to compliance configuration service');
+    await omnibusTBEController.setDSService(
+      services.COMPLIANCE_CONFIGURATION_SERVICE,
+      complianceConfiguration.address,
+      {
+        gas: 1e6,
+      }
+    );
+    console.log('Connecting Omnibus TBE Controller to compliance service');
+    await omnibusTBEController.setDSService(
+      services.COMPLIANCE_SERVICE,
+      complianceService.address,
+      {
+        gas: 1e6,
+      }
+    );
     console.log('Connecting wallet registrar to registry');
     await walletRegistrar.setDSService(
       services.REGISTRY_SERVICE,
@@ -163,57 +182,58 @@ module.exports = async function (deployer) {
     );
 
     if (!configurationManager.noOmnibusWallet) {
-      omnibusWalletController = await OmnibusWalletController.at(
-        configurationManager.getProxyAddressForContractName(
-          'OmnibusWalletController'
-        )
+      // omnibusWalletController = await OmnibusWalletController.at(
+      //   configurationManager.getProxyAddressForContractName(
+      //     'OmnibusWalletController'
+      //   )
+      // );
+      //
+      // console.log('Connecting omnibus wallet controller to trust service');
+      // await omnibusWalletController.setDSService(
+      //   services.TRUST_SERVICE,
+      //   trustService.address
+      // );
+      //
+      // console.log('Connecting omnibus wallet controller to compliance manager');
+      // await omnibusWalletController.setDSService(
+      //   services.COMPLIANCE_SERVICE,
+      //   complianceService.address
+      // );
+
+      console.log('Connecting token to omnibus TBE controller');
+      await token.setDSService(
+        services.OMNIBUS_TBE_CONTROLLER,
+        omnibusTBEController.address
       );
 
-      console.log('Connecting omnibus wallet controller to trust service');
-      await omnibusWalletController.setDSService(
-        services.TRUST_SERVICE,
-        trustService.address
-      );
+      // TODO: Should Omnibus TBE register investor this way?
+      // console.log('Adding omnibus wallet investor to registry');
+      // await registry.registerInvestor(
+      //   configurationManager.omnibusWalletInvestorId,
+      //   configurationManager.omnibusWalletInvestorId
+      // );
+      // TODO: This allows multiple omnibus wallet controllers. Should TBE use it?
+      // console.log('Adding omnibus wallet controller to registry');
+      // await registry.addOmnibusWallet(
+      //   configurationManager.omnibusWalletInvestorId,
+      //   configurationManager.omnibusWallet,
+      //   omnibusWalletController.address
+      // );
 
-      console.log('Connecting omnibus wallet controller to compliance manager');
-      await omnibusWalletController.setDSService(
-        services.COMPLIANCE_SERVICE,
-        complianceService.address
-      );
-
-      console.log('Connecting omnibus wallet controller to token');
-      await omnibusWalletController.setDSService(
-        services.DS_TOKEN,
-        token.address
-      );
-
-      console.log('Adding omnibus wallet investor to registry');
-      await registry.registerInvestor(
-        configurationManager.omnibusWalletInvestorId,
-        configurationManager.omnibusWalletInvestorId
-      );
-
-      console.log('Adding omnibus wallet controller to registry');
-      await registry.addOmnibusWallet(
-        configurationManager.omnibusWalletInvestorId,
-        configurationManager.omnibusWallet,
-        omnibusWalletController.address
-      );
-
-      await registry.setAttribute(
-        configurationManager.omnibusWalletInvestorId,
-        attributeType.ACCREDITED,
-        attributeStatus.APPROVED,
-        '',
-        ''
-      );
-      await registry.setAttribute(
-        configurationManager.omnibusWalletInvestorId,
-        attributeType.QUALIFIED,
-        attributeStatus.APPROVED,
-        '',
-        ''
-      );
+      // await registry.setAttribute(
+      //   configurationManager.omnibusWalletInvestorId,
+      //   attributeType.ACCREDITED,
+      //   attributeStatus.APPROVED,
+      //   '',
+      //   ''
+      // );
+      // await registry.setAttribute(
+      //   configurationManager.omnibusWalletInvestorId,
+      //   attributeType.QUALIFIED,
+      //   attributeStatus.APPROVED,
+      //   '',
+      //   ''
+      // );
     }
   }
 
@@ -313,11 +333,12 @@ module.exports = async function (deployer) {
       } | Version: ${await registry.getVersion()}`
     );
 
-    if (omnibusWalletController) {
+    // TODO: Why getting the version does not work?
+    if (omnibusTBEController) {
       console.log(
-        `Omnibus wallet controller is at address: ${
-          omnibusWalletController.address
-        } | Version: ${await omnibusWalletController.getVersion()}`
+        `Omnibus TBE controller is at address: ${
+          omnibusTBEController.address
+        }` //| Version: ${await omnibusTBEController.getVersion()}`
       );
     }
   }
@@ -365,7 +386,7 @@ module.exports = async function (deployer) {
   if (!registry) {
     console.log('\nNo investors registry was deployed.');
   }
-  if (!omnibusWalletController) {
+  if (!omnibusTBEController) {
     console.log('\nNo omnibus wallet controller was deployed.');
   }
 

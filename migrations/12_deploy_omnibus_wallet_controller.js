@@ -11,7 +11,7 @@ module.exports = async function(deployer) {
       artifacts.require("Proxy"),
       configurationManager,
       deployer,
-      artifacts.require("OmnibusWalletController"),
+      artifacts.require("OmnibusTBEController"),
       [configurationManager.omnibusWallet]
     );
   } else {
