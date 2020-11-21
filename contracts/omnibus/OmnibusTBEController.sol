@@ -6,15 +6,14 @@ import "../data-stores/OmnibusTBEControllerDataStore.sol";
 import "../compliance/ComplianceServiceRegulated.sol";
 import "../compliance/ComplianceConfigurationService.sol";
 
-contract OmnibusTBEController is IDSOmnibusTBEController, ProxyTarget, ServiceConsumer, OmnibusTBEControllerDataStore {
+contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEController, ServiceConsumer, OmnibusTBEControllerDataStore {
+
     using SafeMath for uint256;
     string internal constant MAX_INVESTORS_IN_CATEGORY = "Max investors in category";
 
-    // TODO: Must use the commented signature (not working atm but need to fix it)
-//    function initialize(address _omnibusWallet) public initializer forceInitializeFromProxy {
-    function initialize(address _omnibusWallet) public {
+    function initialize(address _omnibusWallet) public initializer forceInitializeFromProxy {
         VERSIONS.push(3);
-//        ServiceConsumer.initialize();
+        ServiceConsumer.initialize();
 
         omnibusWallet = _omnibusWallet;
     }
@@ -91,9 +90,9 @@ contract OmnibusTBEController is IDSOmnibusTBEController, ProxyTarget, ServiceCo
 
         cs.setTotalInvestorsCount(_increase ? increaseCounter(cs.getTotalInvestorsCount(), ccs.getTotalInvestorsLimit(),
             _totalInvestors) : cs.getTotalInvestorsCount().sub(_totalInvestors));
-
-        require((cs.getTotalInvestorsCount().sub(cs.getAccreditedInvestorsCount())).
-            add(_totalInvestors.sub(_accreditedInvestors)) <= ccs.getNonAccreditedInvestorsLimit(), MAX_INVESTORS_IN_CATEGORY);
+        uint256 nonAccreditedLimit = ccs.getNonAccreditedInvestorsLimit();
+        require(nonAccreditedLimit == 0 || ((cs.getTotalInvestorsCount().sub(cs.getAccreditedInvestorsCount())).
+            add(_totalInvestors.sub(_accreditedInvestors)) <= nonAccreditedLimit), MAX_INVESTORS_IN_CATEGORY);
 
         cs.setAccreditedInvestorsCount(_increase ? increaseCounter(cs.getAccreditedInvestorsCount(), ccs.getTotalInvestorsLimit(),
             _accreditedInvestors) : cs.getAccreditedInvestorsCount().sub(_accreditedInvestors));

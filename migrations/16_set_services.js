@@ -56,9 +56,13 @@ module.exports = async function (deployer) {
   const tokenIssuer = await TokenIssuer.at(
     configurationManager.getProxyAddressForContractName('TokenIssuer')
   );
-  const omnibusTBEController = await OmnibusTBEController.at(
-    configurationManager.getProxyAddressForContractName('OmnibusTBEController')
-  );
+  let omnibusTBEController;
+  if (!configurationManager.noOmnibusWallet) {
+    omnibusTBEController = await OmnibusTBEController.at(
+      configurationManager.getProxyAddressForContractName('OmnibusTBEController')
+    );
+  }
+
   const walletRegistrar = await WalletRegistrar.at(
     configurationManager.getProxyAddressForContractName('WalletRegistrar')
   );
@@ -72,7 +76,6 @@ module.exports = async function (deployer) {
   }
 
   let registry;
-  let omnibusWalletController;
 
   console.log('Connecting compliance configuration to trust service');
   await complianceConfiguration.setDSService(
@@ -147,22 +150,6 @@ module.exports = async function (deployer) {
         gas: 1e6,
       }
     );
-    console.log('Connecting Omnibus TBE Controller to compliance configuration service');
-    await omnibusTBEController.setDSService(
-      services.COMPLIANCE_CONFIGURATION_SERVICE,
-      complianceConfiguration.address,
-      {
-        gas: 1e6,
-      }
-    );
-    console.log('Connecting Omnibus TBE Controller to compliance service');
-    await omnibusTBEController.setDSService(
-      services.COMPLIANCE_SERVICE,
-      complianceService.address,
-      {
-        gas: 1e6,
-      }
-    );
     console.log('Connecting wallet registrar to registry');
     await walletRegistrar.setDSService(
       services.REGISTRY_SERVICE,
@@ -204,6 +191,40 @@ module.exports = async function (deployer) {
       await token.setDSService(
         services.OMNIBUS_TBE_CONTROLLER,
         omnibusTBEController.address
+      );
+      console.log('Connecting compliance manager to TBE controller');
+      await complianceService.setDSService(
+        services.OMNIBUS_TBE_CONTROLLER,
+        omnibusTBEController.address
+      );
+      console.log('Connecting TBE controller to token');
+      await omnibusTBEController.setDSService(
+        services.DS_TOKEN,
+        token.address
+      );
+      console.log('Connecting Omnibus TBE Controller to compliance configuration service');
+      await omnibusTBEController.setDSService(
+        services.COMPLIANCE_CONFIGURATION_SERVICE,
+        complianceConfiguration.address,
+        {
+          gas: 1e6,
+        }
+      );
+      console.log('Connecting Omnibus TBE Controller to trust service');
+      await omnibusTBEController.setDSService(
+        services.TRUST_SERVICE,
+        trustService.address,
+        {
+          gas: 1e6,
+        }
+      );
+      console.log('Connecting Omnibus TBE Controller to compliance service');
+      await omnibusTBEController.setDSService(
+        services.COMPLIANCE_SERVICE,
+        complianceService.address,
+        {
+          gas: 1e6,
+        }
       );
 
       // TODO: Should Omnibus TBE register investor this way?
@@ -338,7 +359,7 @@ module.exports = async function (deployer) {
       console.log(
         `Omnibus TBE controller is at address: ${
           omnibusTBEController.address
-        }` //| Version: ${await omnibusTBEController.getVersion()}`
+        } | Version: ${await omnibusTBEController.getVersion()}`
       );
     }
   }

@@ -21,4 +21,11 @@ module.exports = async function(deployer) {
     configurationManager.getProxyAddressForContractName("WalletRegistrar"),
     roles.ISSUER
   );
+  if (!configurationManager.noOmnibusWallet) {
+    console.log("Give issuer permissions to Omnibus TBE Controller");
+    await trustService.setRole(
+      configurationManager.getProxyAddressForContractName("OmnibusTBEController"),
+      roles.ISSUER
+    );
+  }
 };
