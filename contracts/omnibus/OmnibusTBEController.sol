@@ -41,12 +41,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
 
     function bulkTransfer(address[] memory wallets, uint256[] memory values) public onlyIssuerOrAbove {
         require(wallets.length == values.length, 'Wallets and values lengths do not match');
-        // Handle counters here
-        //
-        // Transfer tokens having the corresponding approval from Omnibus Wallet owner
         for (uint i = 0; i < wallets.length; i++) {
-            // Handle counters
-            // TODO: Add logic to subtract from investor counters if needed (if destination wallet has balance)
             getToken().transferFrom(omnibusWallet, wallets[i], values[i]);
         }
     }
