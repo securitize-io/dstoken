@@ -101,6 +101,10 @@ library ComplianceServiceLibrary {
             (_registryService.isOmnibusWallet(_to) && !_registryService.getOmnibusWalletController(_to).isHolderOfRecord());
     }
 
+    function isOmnibusTBE(IDSOmnibusTBEController _omnibusTBE, address _from) public view returns (bool) {
+        return _omnibusTBE.getOmnibusWallet() == _from;
+    }
+
     function isHolderOfRecordInternalTransfer(address[] memory _services, address _omnibusWallet) internal view returns (bool) {
         IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
 
@@ -512,12 +516,18 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         address _to,
         uint256 _value
     ) internal returns (bool) {
-        if (compareInvestorBalance(_from, _value, _value)) {
-            adjustTransferCounts(_from, _to, CommonUtils.IncDec.Decrease);
-        }
+        if (!ComplianceServiceLibrary.isOmnibusTBE(getOmnibusTBEController(), _from)) {
+            if (compareInvestorBalance(_from, _value, _value)) {
+                adjustTransferCounts(_from, _to, CommonUtils.IncDec.Decrease);
+            }
 
-        if (compareInvestorBalance(_to, _value, 0)) {
-            adjustTransferCounts(_to, _from, CommonUtils.IncDec.Increase);
+            if (compareInvestorBalance(_to, _value, 0)) {
+                adjustTransferCounts(_to, _from, CommonUtils.IncDec.Increase);
+            }
+        } else {
+            if (!compareInvestorBalance(_to, _value, 0)) {
+                adjustTotalInvestorsCounts(_to, CommonUtils.IncDec.Decrease);
+            }
         }
 
         return true;
