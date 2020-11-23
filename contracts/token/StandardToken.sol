@@ -67,8 +67,7 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
     ) public returns (bool) {
         require(_value <= allowances[_from][msg.sender]);
         allowances[_from][msg.sender] = allowances[_from][msg.sender].sub(_value);
-
-        return transferImpl(msg.sender, _to, _value);
+        return transferImpl(_from, _to, _value);
     }
 
     function transferImpl(

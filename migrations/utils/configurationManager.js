@@ -79,7 +79,6 @@ class ConfigurationManager {
       this.noOmnibusWallet = true;
     } else {
       this.noOmnibusWallet = argv.no_omnibus_wallet;
-      this.omnibusWalletInvestorId = argv.omnibus_wallet_investor_id;
       this.omnibusWallet = argv.omnibus_wallet;
     }
 

@@ -330,6 +330,16 @@ module.exports = async function (deployer) {
     services.TRUST_SERVICE,
     trustService.address
   );
+  if (!configurationManager.noOmnibusWallet) {
+    const walletManager = await WalletManager.at(
+      configurationManager.getProxyAddressForContractName("WalletManager")
+    );
+    console.log("Set omnibus wallet as Platform wallet");
+    // Could not be done before connecting the services
+    await walletManager.addPlatformWallet(
+      configurationManager.omnibusWallet
+    );
+  }
 
   console.log(
     `\n\nToken "${configurationManager.name}" (${configurationManager.symbol}) [decimals: ${configurationManager.decimals}] deployment complete`

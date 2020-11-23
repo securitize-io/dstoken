@@ -15,7 +15,7 @@ contract IDSOmnibusTBEController is Initializable, VersionedContract {
         uint256 usAccreditedInvestors, uint256 usTotalInvestors, uint256 jpTotalInvestors, bytes32[] memory euRetailCountries,
         uint256[] memory euRetailCountryCounts) public returns(bool);
 
-    function bulkBurn(uint256 value, uint256 issuanceTime, uint256 totalInvestors, uint256 accreditedInvestors,
+    function bulkBurn(uint256 value, uint256 totalInvestors, uint256 accreditedInvestors,
         uint256 usAccreditedInvestors, uint256 usTotalInvestors, uint256 jpTotalInvestors, bytes32[] memory euRetailCountries,
         uint256[] memory euRetailCountryCounts) public;
 
