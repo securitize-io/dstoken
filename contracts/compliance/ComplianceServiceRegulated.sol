@@ -102,7 +102,10 @@ library ComplianceServiceLibrary {
     }
 
     function isOmnibusTBE(IDSOmnibusTBEController _omnibusTBE, address _from) public view returns (bool) {
-        return _omnibusTBE.getOmnibusWallet() == _from;
+        if (address(_omnibusTBE) != address(0)) {
+            return _omnibusTBE.getOmnibusWallet() == _from;
+        }
+        return false;
     }
 
     function isHolderOfRecordInternalTransfer(address[] memory _services, address _omnibusWallet) internal view returns (bool) {

@@ -364,7 +364,6 @@ module.exports = async function (deployer) {
       } | Version: ${await registry.getVersion()}`
     );
 
-    // TODO: Why getting the version does not work?
     if (omnibusTBEController) {
       console.log(
         `Omnibus TBE controller is at address: ${
