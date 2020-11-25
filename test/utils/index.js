@@ -1,21 +1,21 @@
-const services = require("../../utils/globals").services;
-const compliance = require("../../utils/globals").complianceType;
-const lockManager = require("../../utils/globals").lockManagerType;
+const services = require('../../utils/globals').services;
+const compliance = require('../../utils/globals').complianceType;
+const lockManager = require('../../utils/globals').lockManagerType;
 
 const complianceTypeToString = {
-  [compliance.NORMAL]: "ComplianceServiceRegulated",
-  [compliance.NOT_REGULATED]: "ComplianceServiceNotRegulated",
-  [compliance.PARTITIONED]: "ComplianceServiceRegulatedPartitioned",
-  [compliance.WHITELIST]: "ComplianceServiceWhitelisted"
+  [compliance.NORMAL]: 'ComplianceServiceRegulated',
+  [compliance.NOT_REGULATED]: 'ComplianceServiceNotRegulated',
+  [compliance.PARTITIONED]: 'ComplianceServiceRegulatedPartitioned',
+  [compliance.WHITELIST]: 'ComplianceServiceWhitelisted',
 };
 
 const lockManagerTypeToString = {
-  [lockManager.INVESTOR]: "InvestorLockManager",
-  [lockManager.WALLET]: "LockManager",
-  [lockManager.PARTITIONED]: "InvestorLockManagerPartitioned"
+  [lockManager.INVESTOR]: 'InvestorLockManager',
+  [lockManager.WALLET]: 'LockManager',
+  [lockManager.PARTITIONED]: 'InvestorLockManagerPartitioned',
 };
 
-async function deployContracts(
+async function deployContracts (
   testObject,
   artifacts,
   complianceType = compliance.NORMAL,
@@ -24,70 +24,70 @@ async function deployContracts(
   partitionsSupport = false
 ) {
   await deployContractBehindProxy(
-    artifacts.require("Proxy"),
-    artifacts.require("TrustService"),
+    artifacts.require('Proxy'),
+    artifacts.require('TrustService'),
     testObject,
-    "trustService"
+    'trustService'
   );
 
   await deployContractBehindProxy(
-    artifacts.require("Proxy"),
-    artifacts.require("RegistryService"),
+    artifacts.require('Proxy'),
+    artifacts.require('RegistryService'),
     testObject,
-    "registryService"
+    'registryService'
   );
 
   await deployContractBehindProxy(
-    artifacts.require("Proxy"),
+    artifacts.require('Proxy'),
     artifacts.require(complianceTypeToString[complianceType]),
     testObject,
-    "complianceService"
+    'complianceService'
   );
 
   await deployContractBehindProxy(
-    artifacts.require("Proxy"),
+    artifacts.require('Proxy'),
     artifacts.require(lockManagerTypeToString[lockManagerType]),
     testObject,
-    "lockManager"
+    'lockManager'
   );
 
   await deployContractBehindProxy(
-    artifacts.require("Proxy"),
-    artifacts.require("ComplianceConfigurationService"),
+    artifacts.require('Proxy'),
+    artifacts.require('ComplianceConfigurationService'),
     testObject,
-    "complianceConfiguration"
+    'complianceConfiguration'
   );
 
   await deployContractBehindProxy(
-    artifacts.require("Proxy"),
-    artifacts.require("WalletManager"),
+    artifacts.require('Proxy'),
+    artifacts.require('WalletManager'),
     testObject,
-    "walletManager"
+    'walletManager'
   );
 
-  tokenClass = partitionsSupport ? "DSTokenPartitioned" : "DSToken";
+  tokenClass = partitionsSupport ? 'DSTokenPartitioned' : 'DSToken';
 
   await deployContractBehindProxy(
-    artifacts.require("Proxy"),
+    artifacts.require('Proxy'),
     artifacts.require(tokenClass),
     testObject,
-    "token",
-    ["DSTokenMock", "DST", 18]
+    'token',
+    ['DSTokenMock', 'DST', 18]
   );
 
   await deployContractBehindProxy(
-    artifacts.require("Proxy"),
-    artifacts.require("TokenIssuer"),
+    artifacts.require('Proxy'),
+    artifacts.require('TokenIssuer'),
     testObject,
-    "issuer"
+    'issuer'
   );
 
   if (partitionsSupport) {
     await deployContractBehindProxy(
-      artifacts.require("Proxy"),
-      artifacts.require("PartitionsManager"),
+      artifacts.require('Proxy'),
+      artifacts.require('PartitionsManager'),
       testObject,
-      "partitionsManager"
+      'partitionsManager'
     );
 
     await setServicesDependencies(
@@ -99,25 +99,35 @@ async function deployContracts(
 
   if (omnibusWalletAddresses) {
     for (let i = 1; i <= omnibusWalletAddresses.length; i++) {
+      // await deployContractBehindProxy(
+      //   artifacts.require('Proxy'),
+      //   artifacts.require('OmnibusWalletController'),
+      //   testObject,
+      //   `omnibusController${i}`,
+      //   [omnibusWalletAddresses[i - 1]]
+      // );
+
       await deployContractBehindProxy(
-        artifacts.require("Proxy"),
-        artifacts.require("OmnibusWalletController"),
+        artifacts.require('Proxy'),
+        artifacts.require('OmnibusTBEController'),
         testObject,
-        `omnibusController${i}`,
+        `omnibusTBEController${i}`,
         [omnibusWalletAddresses[i - 1]]
       );
 
       await setServicesDependencies(
-        testObject[`omnibusController${i}`],
+        testObject[`omnibusTBEController${i}`],
         [
           services.COMPLIANCE_SERVICE,
           services.DS_TOKEN,
-          services.TRUST_SERVICE
+          services.TRUST_SERVICE,
+          services.COMPLIANCE_CONFIGURATION_SERVICE,
         ],
         [
           testObject.complianceService.address,
           testObject.token.address,
-          testObject.trustService.address
+          testObject.trustService.address,
+          testObject.complianceConfiguration.address,
         ]
       );
     }
@@ -136,13 +146,13 @@ async function deployContracts(
       services.TRUST_SERVICE,
       services.WALLET_MANAGER,
       services.DS_TOKEN,
-      services.COMPLIANCE_SERVICE
+      services.COMPLIANCE_SERVICE,
     ],
     [
       testObject.trustService.address,
       testObject.walletManager.address,
       testObject.token.address,
-      testObject.complianceService.address
+      testObject.complianceService.address,
     ]
   );
   await setServicesDependencies(
@@ -154,7 +164,7 @@ async function deployContracts(
       services.COMPLIANCE_CONFIGURATION_SERVICE,
       services.REGISTRY_SERVICE,
       services.DS_TOKEN,
-      ...partitionsService
+      ...partitionsService,
     ],
     [
       testObject.trustService.address,
@@ -163,7 +173,7 @@ async function deployContracts(
       testObject.complianceConfiguration.address,
       testObject.registryService.address,
       testObject.token.address,
-      ...partitionsServiceAddress
+      ...partitionsServiceAddress,
     ]
   );
 
@@ -183,7 +193,7 @@ async function deployContracts(
       services.LOCK_MANAGER,
       services.REGISTRY_SERVICE,
       services.TOKEN_ISSUER,
-      ...partitionsService
+      ...partitionsService,
     ],
     [
       testObject.trustService.address,
@@ -193,7 +203,7 @@ async function deployContracts(
       testObject.lockManager.address,
       testObject.registryService.address,
       testObject.issuer.address,
-      ...partitionsServiceAddress
+      ...partitionsServiceAddress,
     ]
   );
 
@@ -209,13 +219,13 @@ async function deployContracts(
       services.REGISTRY_SERVICE,
       services.COMPLIANCE_SERVICE,
       services.DS_TOKEN,
-      services.TRUST_SERVICE
+      services.TRUST_SERVICE,
     ],
     [
       testObject.registryService.address,
       testObject.complianceService.address,
       testObject.token.address,
-      testObject.trustService.address
+      testObject.trustService.address,
     ]
   );
 
@@ -225,18 +235,18 @@ async function deployContracts(
       services.REGISTRY_SERVICE,
       services.LOCK_MANAGER,
       services.DS_TOKEN,
-      services.TRUST_SERVICE
+      services.TRUST_SERVICE,
     ],
     [
       testObject.registryService.address,
       testObject.lockManager.address,
       testObject.token.address,
-      testObject.trustService.address
+      testObject.trustService.address,
     ]
   );
 }
 
-async function deployContractBehindProxy(
+async function deployContractBehindProxy (
   abstractProxy,
   abstractContract,
   testObject,
@@ -253,13 +263,13 @@ async function deployContractBehindProxy(
   testObject[contractPropertyToSet] = proxifiedContract;
 }
 
-async function setServicesDependencies(service, depTypes, depAddresses) {
+async function setServicesDependencies (service, depTypes, depAddresses) {
   for (let i = 0; i < depTypes.length; i++) {
     await service.setDSService(depTypes[i], depAddresses[i]);
   }
 }
 
-async function getParamFromTxEvent(
+async function getParamFromTxEvent (
   transaction,
   paramName,
   contractFactory,
@@ -270,7 +280,7 @@ async function getParamFromTxEvent(
   if (eventName != null) {
     logs = logs.filter(l => l.event === eventName);
   }
-  assert.equal(logs.length, 1, "too many logs found!");
+  assert.equal(logs.length, 1, 'too many logs found!');
   let param = logs[0].args[paramName];
   if (contractFactory != null) {
     let contract = await contractFactory.at(param);
@@ -281,7 +291,7 @@ async function getParamFromTxEvent(
   }
 }
 
-function balanceOf(web3, account) {
+function balanceOf (web3, account) {
   return new Promise((resolve, reject) =>
     web3.eth.getBalance(account, (e, balance) =>
       e ? reject(e) : resolve(balance)
@@ -294,5 +304,5 @@ module.exports = {
   deployContractBehindProxy,
   setServicesDependencies,
   getParamFromTxEvent,
-  balanceOf
+  balanceOf,
 };
