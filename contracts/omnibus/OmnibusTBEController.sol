@@ -22,10 +22,10 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
         uint256 usAccreditedInvestors, uint256 usTotalInvestors, uint256 jpTotalInvestors, bytes32[] memory euRetailCountries,
         uint256[] memory euRetailCountryCounts) public onlyIssuerOrAbove returns (bool) {
         require(euRetailCountries.length == euRetailCountryCounts.length, 'EU Retail countries arrays do not match');
-        addToCounters(totalInvestors, accreditedInvestors,
-            usAccreditedInvestors, usTotalInvestors, jpTotalInvestors, euRetailCountries, euRetailCountryCounts, true);
         // Issue tokens
         getToken().issueTokensCustom(omnibusWallet, value, issuanceTime, 0, '', 0);
+        addToCounters(totalInvestors, accreditedInvestors,
+            usAccreditedInvestors, usTotalInvestors, jpTotalInvestors, euRetailCountries, euRetailCountryCounts, true);
         return true;
     }
 
