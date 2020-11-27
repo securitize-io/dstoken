@@ -29,6 +29,10 @@ contract.only('OmnibusTBEController', ([
 
   beforeEach(async function () {
     await resetCounters(this);
+    const currentBalance = await this.token.balanceOf(omnibusWallet);
+    if (currentBalance.toNumber() > 0) {
+      await this.token.burn(omnibusWallet, currentBalance, '');
+    }
   });
 
   describe('Bulk issuance', function () {
@@ -58,11 +62,11 @@ contract.only('OmnibusTBEController', ([
       // THEN
       await assertCounters(this);
 
-      // const currentBalance = await this.token.balanceOf(omnibusWallet);
-      // await assert.equal(
-      //   currentBalance,
-      //   1000
-      // );
+      const currentBalance = await this.token.balanceOf(omnibusWallet);
+      await assert.equal(
+        currentBalance,
+        1000
+      );
 
       for (let i = 0; i < euRetailCountries.length; i++) {
         await assertCountryCounters(this, euRetailCountries[i], euRetailCountryCounts[i]);
@@ -111,11 +115,11 @@ contract.only('OmnibusTBEController', ([
       // THEN
       await assertCounters(this);
 
-      // const currentBalance = await this.token.balanceOf(omnibusWallet);
-      // // await assert.equal(
-      // //   currentBalance,
-      // //   500
-      // // );
+      const currentBalance = await this.token.balanceOf(omnibusWallet);
+      await assert.equal(
+        currentBalance,
+        500
+      );
     });
   });
   describe('Adjust counters', function () {
