@@ -1,17 +1,25 @@
 const deployContracts = require('../utils').deployContracts;
 const fixtures = require('../fixtures');
 const globals = require('../../utils/globals');
+
+const services = globals.services;
 const lockManagerType = globals.lockManagerType;
 const role = globals.roles;
+const attributeType = globals.attributeType;
+const attributeStatus = globals.attributeStatus;
+
 const compliance = fixtures.Compliance;
-const services = require('../../utils/globals').services;
+const investorId = fixtures.InvestorId;
 
 let counters = fixtures.Counters;
 let euRetailCountries = [];
 let euRetailCountryCounts = [];
+const issuanceTime = 15495894;
 
 contract.only('OmnibusTBEController', ([
   omnibusWallet,
+  investorWallet1,
+  investorWallet2,
 ]) => {
   before(async function () {
     await deployContracts(
@@ -25,6 +33,42 @@ contract.only('OmnibusTBEController', ([
     await this.walletManager.addPlatformWallet(omnibusWallet);
     await this.token.setDSService(services.OMNIBUS_TBE_CONTROLLER, this.omnibusTBEController1.address);
     await this.complianceService.setDSService(services.OMNIBUS_TBE_CONTROLLER, this.omnibusTBEController1.address);
+
+    await this.registryService.registerInvestor(
+      investorId.GENERAL_INVESTOR_ID_1,
+      investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+    );
+    await this.registryService.addWallet(
+      investorWallet1,
+      investorId.GENERAL_INVESTOR_ID_1
+    );
+    await this.registryService.registerInvestor(
+      investorId.GENERAL_INVESTOR_ID_2,
+      investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+    );
+    await this.registryService.addWallet(
+      investorWallet2,
+      investorId.GENERAL_INVESTOR_ID_2
+    );
+    //
+    // await this.registryService.registerInvestor(
+    //   investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
+    //   investorId.OMNIBUS_WALLET_INVESTOR_ID_1
+    // );
+    //
+    // await this.registryService.addOmnibusWallet(
+    //   investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
+    //   omnibusWallet,
+    //   this.omnibusTBEController1.address
+    // );
+    //
+    // await this.registryService.setAttribute(
+    //   investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
+    //   attributeType.ACCREDITED,
+    //   attributeStatus.APPROVED,
+    //   '',
+    //   ''
+    // );
   });
 
   beforeEach(async function () {
@@ -39,7 +83,6 @@ contract.only('OmnibusTBEController', ([
     it('should bulk issue tokens correctly', async function () {
       // GIVEN
       const value = 1000;
-      const issuanceTime = 15495894;
       const txCounters = {
         totalInvestorsCount: 50,
         accreditedInvestorsCount: 40,
@@ -118,6 +161,54 @@ contract.only('OmnibusTBEController', ([
       const currentBalance = await this.token.balanceOf(omnibusWallet);
       await assert.equal(
         currentBalance,
+        500
+      );
+    });
+  });
+  describe('Bulk transfer', function () {
+    it('should bulk transfer tokens from omnibus to wallet correctly', async function () {
+      // GIVEN
+      const value = 1000;
+      const tokenValues = ['500', '500'];
+      const investorWallets = [investorWallet1, investorWallet2];
+      const txCounters = {
+        totalInvestorsCount: 50,
+        accreditedInvestorsCount: 40,
+        usTotalInvestorsCount: 30,
+        usAccreditedInvestorsCount: 30,
+        jpTotalInvestorsCount: 0,
+      };
+
+      euRetailCountries.push('ES');
+      euRetailCountryCounts.push(2);
+
+      await setCounters(txCounters);
+
+      // WHEN
+      await this.omnibusTBEController1
+        .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
+          txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
+          txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
+
+      await this.token.approve(this.omnibusTBEController1.address, value, { from: omnibusWallet });
+
+      await this.omnibusTBEController1
+        .bulkTransfer(investorWallets, tokenValues);
+
+      // THEN
+      const omnibusCurrentBalance = await this.token.balanceOf(omnibusWallet);
+      assert.equal(
+        omnibusCurrentBalance.toNumber(),
+        0
+      );
+      const investorWallet1CurrentBalance = await this.token.balanceOf(investorWallet1);
+      assert.equal(
+        investorWallet1CurrentBalance.toNumber(),
+        500
+      );
+      const investorWallet2CurrentBalance = await this.token.balanceOf(investorWallet2);
+      assert.equal(
+        investorWallet2CurrentBalance.toNumber(),
         500
       );
     });
