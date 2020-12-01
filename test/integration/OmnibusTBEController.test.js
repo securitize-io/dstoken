@@ -5,8 +5,6 @@ const globals = require('../../utils/globals');
 const services = globals.services;
 const lockManagerType = globals.lockManagerType;
 const role = globals.roles;
-const attributeType = globals.attributeType;
-const attributeStatus = globals.attributeStatus;
 
 const compliance = fixtures.Compliance;
 const investorId = fixtures.InvestorId;
@@ -16,7 +14,7 @@ let euRetailCountries = [];
 let euRetailCountryCounts = [];
 const issuanceTime = 15495894;
 
-contract.only('OmnibusTBEController', ([
+contract('OmnibusTBEController', ([
   omnibusWallet,
   investorWallet1,
   investorWallet2,
@@ -50,25 +48,6 @@ contract.only('OmnibusTBEController', ([
       investorWallet2,
       investorId.GENERAL_INVESTOR_ID_2
     );
-    //
-    // await this.registryService.registerInvestor(
-    //   investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
-    //   investorId.OMNIBUS_WALLET_INVESTOR_ID_1
-    // );
-    //
-    // await this.registryService.addOmnibusWallet(
-    //   investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
-    //   omnibusWallet,
-    //   this.omnibusTBEController1.address
-    // );
-    //
-    // await this.registryService.setAttribute(
-    //   investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
-    //   attributeType.ACCREDITED,
-    //   attributeStatus.APPROVED,
-    //   '',
-    //   ''
-    // );
   });
 
   beforeEach(async function () {
