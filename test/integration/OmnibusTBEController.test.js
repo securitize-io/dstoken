@@ -1,4 +1,5 @@
 const deployContracts = require('../utils').deployContracts;
+const assertRevert = require('../utils/assertRevert');
 const fixtures = require('../fixtures');
 const globals = require('../../utils/globals');
 
@@ -190,6 +191,23 @@ contract('OmnibusTBEController', ([
         investorWallet2CurrentBalance.toNumber(),
         500
       );
+    });
+    it('should not bulk transfer tokens from omnibus to wallet if omnibus has no balance', async function () {
+      // GIVEN
+      const value = 1000;
+      const tokenValues = ['500', '500'];
+      const investorWallets = [investorWallet1, investorWallet2];
+      const currentOmnibusBalance = await this.token.balanceOf(omnibusWallet);
+      assert.equal(
+        currentOmnibusBalance.toNumber(),
+        0
+      );
+      // WHEN
+      await this.token.approve(this.omnibusTBEController1.address, value, { from: omnibusWallet });
+
+      // THEN
+      await assertRevert(this.omnibusTBEController1
+        .bulkTransfer(investorWallets, tokenValues));
     });
   });
   describe('Adjust counters', function () {
