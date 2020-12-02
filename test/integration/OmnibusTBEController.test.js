@@ -15,7 +15,7 @@ let euRetailCountries = [];
 let euRetailCountryCounts = [];
 const issuanceTime = 15495894;
 
-contract('OmnibusTBEController', ([
+contract.only('OmnibusTBEController', ([
   omnibusWallet,
   investorWallet1,
   investorWallet2,
@@ -209,6 +209,36 @@ contract('OmnibusTBEController', ([
       await assertRevert(this.omnibusTBEController1
         .bulkTransfer(investorWallets, tokenValues));
     });
+    it('should not bulk transfer tokens if token value array length does not match wallet array length',
+      async function () {
+        // GIVEN
+        const value = 1000;
+        const tokenValues = ['500'];
+        const investorWallets = [investorWallet1, investorWallet2];
+        const txCounters = {
+          totalInvestorsCount: 50,
+          accreditedInvestorsCount: 40,
+          usTotalInvestorsCount: 30,
+          usAccreditedInvestorsCount: 30,
+          jpTotalInvestorsCount: 0,
+        };
+        euRetailCountries.push('ES');
+        euRetailCountryCounts.push(2);
+
+        await setCounters(txCounters);
+
+        // WHEN
+        await this.omnibusTBEController1
+          .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
+            txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
+            txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
+
+        await this.token.approve(this.omnibusTBEController1.address, value, { from: omnibusWallet });
+
+        // THEN
+        await assertRevert(this.omnibusTBEController1
+          .bulkTransfer(investorWallets, tokenValues));
+      });
   });
   describe('Adjust counters', function () {
     it('should adjust counters with positive value correctly', async function () {
