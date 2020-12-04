@@ -135,7 +135,6 @@ contract('OmnibusTBEController', ([
     it('should bulk burn tokens correctly', async function () {
       // GIVEN
       const value = 1000;
-      const issuanceTime = 15495894;
       const txCounters = {
         totalInvestorsCount: 6,
         accreditedInvestorsCount: 5,
@@ -299,7 +298,6 @@ contract('OmnibusTBEController', ([
     it('should adjust counters with negative value correctly', async function () {
       // GIVEN
       const value = 1000;
-      const issuanceTime = 15495894;
       const txCounters = {
         totalInvestorsCount: 6,
         accreditedInvestorsCount: 5,
