@@ -54,6 +54,7 @@ contract('OmnibusTBEController', ([
     await this.complianceConfiguration.setUSAccreditedInvestorsLimit(10);
     await this.complianceConfiguration.setUSInvestorsLimit(10);
     await this.complianceConfiguration.setJPInvestorsLimit(10);
+    await this.complianceConfiguration.setNonAccreditedInvestorsLimit(10);
   });
 
   beforeEach(async function () {
@@ -136,7 +137,7 @@ contract('OmnibusTBEController', ([
       const value = 1000;
       const issuanceTime = 15495894;
       const txCounters = {
-        totalInvestorsCount: 10,
+        totalInvestorsCount: 6,
         accreditedInvestorsCount: 5,
         usTotalInvestorsCount: 4,
         usAccreditedInvestorsCount: 1,
@@ -147,8 +148,8 @@ contract('OmnibusTBEController', ([
 
       const burnValue = 500;
       const txBurnCounters = {
-        totalInvestorsCount: 5,
-        accreditedInvestorsCount: 5,
+        totalInvestorsCount: 1,
+        accreditedInvestorsCount: 1,
         usTotalInvestorsCount: 0,
         usAccreditedInvestorsCount: 0,
         jpTotalInvestorsCount: 0,
@@ -300,7 +301,7 @@ contract('OmnibusTBEController', ([
       const value = 1000;
       const issuanceTime = 15495894;
       const txCounters = {
-        totalInvestorsCount: 5,
+        totalInvestorsCount: 6,
         accreditedInvestorsCount: 5,
         usTotalInvestorsCount: 4,
         usAccreditedInvestorsCount: 1,
@@ -308,9 +309,9 @@ contract('OmnibusTBEController', ([
       };
 
       const negativeCounters = {
-        totalInvestorsCount: -3,
-        accreditedInvestorsCount: -3,
-        usTotalInvestorsCount: -2,
+        totalInvestorsCount: -1,
+        accreditedInvestorsCount: -1,
+        usTotalInvestorsCount: -1,
         usAccreditedInvestorsCount: -1,
         jpTotalInvestorsCount: 0,
       };
