@@ -1,4 +1,4 @@
-const deployContracts = require('../utils').deployContracts;
+const deployContracts = require('../utils/index').deployContracts;
 const assertRevert = require('../utils/assertRevert');
 const fixtures = require('../fixtures');
 const globals = require('../../utils/globals');
@@ -26,12 +26,13 @@ contract('OmnibusTBEController', ([
       artifacts,
       compliance.NORMAL,
       lockManagerType.INVESTOR,
-      [omnibusWallet]
+      undefined,
+      false,
+      omnibusWallet
     );
-    await this.trustService.setRole(this.omnibusTBEController1.address, role.ISSUER);
+    await setServicesDependencies(this);
+    await this.trustService.setRole(this.omnibusTBEController.address, role.ISSUER);
     await this.walletManager.addPlatformWallet(omnibusWallet);
-    await this.token.setDSService(services.OMNIBUS_TBE_CONTROLLER, this.omnibusTBEController1.address);
-    await this.complianceService.setDSService(services.OMNIBUS_TBE_CONTROLLER, this.omnibusTBEController1.address);
 
     await this.registryService.registerInvestor(
       investorId.GENERAL_INVESTOR_ID_1,
@@ -83,7 +84,7 @@ contract('OmnibusTBEController', ([
       await setCounters(txCounters);
 
       // WHEN
-      await this.omnibusTBEController1
+      await this.omnibusTBEController
         .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
           txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
           txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
@@ -120,7 +121,7 @@ contract('OmnibusTBEController', ([
       await setCounters(txCounters);
 
       // THEN
-      await assertRevert(this.omnibusTBEController1
+      await assertRevert(this.omnibusTBEController
         .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
           txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
           txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts));
@@ -155,12 +156,12 @@ contract('OmnibusTBEController', ([
       };
 
       // WHEN
-      await this.omnibusTBEController1
+      await this.omnibusTBEController
         .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
           txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
           txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
 
-      await this.omnibusTBEController1
+      await this.omnibusTBEController
         .bulkBurn(burnValue, txBurnCounters.totalInvestorsCount, txBurnCounters.accreditedInvestorsCount,
           txBurnCounters.usAccreditedInvestorsCount, txBurnCounters.usTotalInvestorsCount,
           txBurnCounters.jpTotalInvestorsCount, [], []);
@@ -197,14 +198,14 @@ contract('OmnibusTBEController', ([
       await setCounters(txCounters);
 
       // WHEN
-      await this.omnibusTBEController1
+      await this.omnibusTBEController
         .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
           txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
           txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
 
-      await this.token.approve(this.omnibusTBEController1.address, value, { from: omnibusWallet });
+      await this.token.approve(this.omnibusTBEController.address, value, { from: omnibusWallet });
 
-      await this.omnibusTBEController1
+      await this.omnibusTBEController
         .bulkTransfer(investorWallets, tokenValues);
 
       // THEN
@@ -235,10 +236,10 @@ contract('OmnibusTBEController', ([
         0
       );
       // WHEN
-      await this.token.approve(this.omnibusTBEController1.address, value, { from: omnibusWallet });
+      await this.token.approve(this.omnibusTBEController.address, value, { from: omnibusWallet });
 
       // THEN
-      await assertRevert(this.omnibusTBEController1
+      await assertRevert(this.omnibusTBEController
         .bulkTransfer(investorWallets, tokenValues));
     });
     it('should not bulk transfer tokens if token value array length does not match wallet array length',
@@ -261,15 +262,15 @@ contract('OmnibusTBEController', ([
         await setCounters(txCounters);
 
         // WHEN
-        await this.omnibusTBEController1
+        await this.omnibusTBEController
           .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
             txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
             txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
 
-        await this.token.approve(this.omnibusTBEController1.address, value, { from: omnibusWallet });
+        await this.token.approve(this.omnibusTBEController.address, value, { from: omnibusWallet });
 
         // THEN
-        await assertRevert(this.omnibusTBEController1
+        await assertRevert(this.omnibusTBEController
           .bulkTransfer(investorWallets, tokenValues));
       });
   });
@@ -287,7 +288,7 @@ contract('OmnibusTBEController', ([
       await setCounters(txCounters);
 
       // WHEN
-      await this.omnibusTBEController1
+      await this.omnibusTBEController
         .adjustCounters(txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
           txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
           txCounters.jpTotalInvestorsCount, [], []);
@@ -317,12 +318,12 @@ contract('OmnibusTBEController', ([
       await setCounters(txCounters);
 
       // WHEN
-      await this.omnibusTBEController1
+      await this.omnibusTBEController
         .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
           txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
           txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
 
-      await this.omnibusTBEController1
+      await this.omnibusTBEController
         .adjustCounters(negativeCounters.totalInvestorsCount, negativeCounters.accreditedInvestorsCount,
           negativeCounters.usAccreditedInvestorsCount, negativeCounters.usTotalInvestorsCount,
           negativeCounters.jpTotalInvestorsCount, [], []);
@@ -334,7 +335,19 @@ contract('OmnibusTBEController', ([
     });
   });
 });
-
+async function setServicesDependencies (testObject) {
+  await testObject.token.setDSService(services.OMNIBUS_TBE_CONTROLLER, testObject.omnibusTBEController.address);
+  await testObject.complianceService
+    .setDSService(services.OMNIBUS_TBE_CONTROLLER, testObject.omnibusTBEController.address);
+  await testObject.omnibusTBEController
+    .setDSService(services.COMPLIANCE_SERVICE, testObject.complianceService.address);
+  await testObject.omnibusTBEController
+    .setDSService(services.DS_TOKEN, testObject.token.address);
+  await testObject.omnibusTBEController
+    .setDSService(services.TRUST_SERVICE, testObject.trustService.address);
+  await testObject.omnibusTBEController
+    .setDSService(services.COMPLIANCE_CONFIGURATION_SERVICE, testObject.complianceConfiguration.address);
+}
 async function toHex (countries) {
   return countries.map(country => web3.utils.asciiToHex(country));
 }

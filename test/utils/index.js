@@ -21,7 +21,8 @@ async function deployContracts (
   complianceType = compliance.NORMAL,
   lockManagerType = lockManager.INVESTOR,
   omnibusWalletAddresses = undefined,
-  partitionsSupport = false
+  partitionsSupport = false,
+  omnibusTBEAddress = undefined
 ) {
   await deployContractBehindProxy(
     artifacts.require('Proxy'),
@@ -97,37 +98,37 @@ async function deployContracts (
     );
   }
 
+  if (omnibusTBEAddress) {
+    await deployContractBehindProxy(
+      artifacts.require('Proxy'),
+      artifacts.require('OmnibusTBEController'),
+      testObject,
+      'omnibusTBEController',
+      [omnibusTBEAddress]
+    );
+  }
+
   if (omnibusWalletAddresses) {
     for (let i = 1; i <= omnibusWalletAddresses.length; i++) {
-      // await deployContractBehindProxy(
-      //   artifacts.require('Proxy'),
-      //   artifacts.require('OmnibusWalletController'),
-      //   testObject,
-      //   `omnibusController${i}`,
-      //   [omnibusWalletAddresses[i - 1]]
-      // );
-
       await deployContractBehindProxy(
         artifacts.require('Proxy'),
-        artifacts.require('OmnibusTBEController'),
+        artifacts.require('OmnibusWalletController'),
         testObject,
-        `omnibusTBEController${i}`,
+        `omnibusController${i}`,
         [omnibusWalletAddresses[i - 1]]
       );
 
       await setServicesDependencies(
-        testObject[`omnibusTBEController${i}`],
+        testObject[`omnibusController${i}`],
         [
           services.COMPLIANCE_SERVICE,
           services.DS_TOKEN,
           services.TRUST_SERVICE,
-          services.COMPLIANCE_CONFIGURATION_SERVICE,
         ],
         [
           testObject.complianceService.address,
           testObject.token.address,
           testObject.trustService.address,
-          testObject.complianceConfiguration.address,
         ]
       );
     }
