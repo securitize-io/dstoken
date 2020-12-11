@@ -10,6 +10,7 @@ library ComplianceServiceLibrary {
     uint256 internal constant COMPLIANCE_CONFIGURATION_SERVICE = 3;
     uint256 internal constant LOCK_MANAGER = 4;
     uint256 internal constant COMPLIANCE_SERVICE = 5;
+    uint256 internal constant OMNIBUS_TBE_CONTROLLER = 6;
     uint256 internal constant NONE = 0;
     uint256 internal constant US = 1;
     uint256 internal constant EU = 2;
@@ -61,9 +62,12 @@ library ComplianceServiceLibrary {
 
     function isNewInvestor(address[] memory _services, address _wallet) internal view returns (bool) {
         IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
+        IDSOmnibusTBEController omnibusTBEController = IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]);
 
         // Return whether this investor has 0 balance and is not an omnibus wallet in BENEFICIARY mode (which is not considered an investor)
-        return balanceOfInvestor(_services, _wallet) == 0 && !(registryService.isOmnibusWallet(_wallet) && !registryService.getOmnibusWalletController(_wallet).isHolderOfRecord());
+        return balanceOfInvestor(_services, _wallet) == 0 &&
+            !(registryService.isOmnibusWallet(_wallet) && !registryService.getOmnibusWalletController(_wallet).isHolderOfRecord()) &&
+            !isOmnibusTBE(omnibusTBEController, _wallet);
     }
 
     function getCountry(address[] memory _services, address _wallet) internal view returns (string memory) {
@@ -788,5 +792,6 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         services[3] = getDSService(COMPLIANCE_CONFIGURATION_SERVICE);
         services[4] = getDSService(LOCK_MANAGER);
         services[5] = address(this);
+        services[6] = getDSService(OMNIBUS_TBE_CONTROLLER);
     }
 }

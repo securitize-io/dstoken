@@ -83,12 +83,11 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
         ComplianceServiceRegulated cs = ComplianceServiceRegulated(getDSService(COMPLIANCE_SERVICE));
         IDSComplianceConfigurationService ccs = IDSComplianceConfigurationService(getDSService(COMPLIANCE_CONFIGURATION_SERVICE));
 
+        require(ccs.getNonAccreditedInvestorsLimit() == 0 || ((cs.getTotalInvestorsCount().sub(cs.getAccreditedInvestorsCount())).
+        add(_totalInvestors.sub(_accreditedInvestors)) <= ccs.getNonAccreditedInvestorsLimit()), MAX_INVESTORS_IN_CATEGORY);
+
         cs.setTotalInvestorsCount(_increase ? increaseCounter(cs.getTotalInvestorsCount(), ccs.getTotalInvestorsLimit(),
             _totalInvestors) : cs.getTotalInvestorsCount().sub(_totalInvestors));
-        uint256 nonAccreditedLimit = ccs.getNonAccreditedInvestorsLimit();
-        require(nonAccreditedLimit == 0 || ((cs.getTotalInvestorsCount().sub(cs.getAccreditedInvestorsCount())).
-            add(_totalInvestors.sub(_accreditedInvestors)) <= nonAccreditedLimit), MAX_INVESTORS_IN_CATEGORY);
-
         cs.setAccreditedInvestorsCount(_increase ? increaseCounter(cs.getAccreditedInvestorsCount(), ccs.getTotalInvestorsLimit(),
             _accreditedInvestors) : cs.getAccreditedInvestorsCount().sub(_accreditedInvestors));
         cs.setUSAccreditedInvestorsCount(_increase ? increaseCounter(cs.getUSAccreditedInvestorsCount(),
