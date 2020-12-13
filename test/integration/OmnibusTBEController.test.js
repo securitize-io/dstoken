@@ -15,7 +15,7 @@ let euRetailCountries = [];
 let euRetailCountryCounts = [];
 const issuanceTime = 15495894;
 
-contract('OmnibusTBEController', ([
+contract.only('OmnibusTBEController', ([
   omnibusWallet,
   investorWallet1,
   investorWallet2,
@@ -51,11 +51,7 @@ contract('OmnibusTBEController', ([
       investorId.GENERAL_INVESTOR_ID_2
     );
 
-    await this.complianceConfiguration.setTotalInvestorsLimit(10);
-    await this.complianceConfiguration.setUSAccreditedInvestorsLimit(10);
-    await this.complianceConfiguration.setUSInvestorsLimit(10);
-    await this.complianceConfiguration.setJPInvestorsLimit(10);
-    await this.complianceConfiguration.setNonAccreditedInvestorsLimit(10);
+    await resetCounters(this);
   });
 
   beforeEach(async function () {
@@ -69,25 +65,24 @@ contract('OmnibusTBEController', ([
   describe('Bulk issuance', function () {
     it('should bulk issue tokens correctly', async function () {
       // GIVEN
+      await this.complianceService.setTotalInvestorsCount(1);
+      await this.complianceConfiguration.setNonAccreditedInvestorsLimit(1);
       const value = 1000;
       const txCounters = {
-        totalInvestorsCount: 5,
-        accreditedInvestorsCount: 5,
-        usTotalInvestorsCount: 4,
-        usAccreditedInvestorsCount: 1,
+        totalInvestorsCount: 1,
+        accreditedInvestorsCount: 1,
+        usTotalInvestorsCount: 0,
+        usAccreditedInvestorsCount: 0,
         jpTotalInvestorsCount: 0,
       };
 
-      euRetailCountries.push('ES');
-      euRetailCountryCounts.push(2);
-
-      await setCounters(txCounters);
+      await setCounters(txCounters, this);
 
       // WHEN
       await this.omnibusTBEController
         .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
           txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
-          txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
+          txCounters.jpTotalInvestorsCount, [], []);
 
       // THEN
       await assertCounters(this);
@@ -106,30 +101,24 @@ contract('OmnibusTBEController', ([
     });
     it('should not bulk issue tokens if it exceeds counter', async function () {
       // GIVEN
+      await this.complianceService.setTotalInvestorsCount(1);
+      await this.complianceConfiguration.setNonAccreditedInvestorsLimit(1);
       const value = 1000;
       const txCounters = {
-        totalInvestorsCount: 60,
-        accreditedInvestorsCount: 45,
-        usTotalInvestorsCount: 35,
-        usAccreditedInvestorsCount: 35,
-        jpTotalInvestorsCount: 15,
+        totalInvestorsCount: 1,
+        accreditedInvestorsCount: 0,
+        usTotalInvestorsCount: 0,
+        usAccreditedInvestorsCount: 0,
+        jpTotalInvestorsCount: 0,
       };
 
-      euRetailCountries.push('ES');
-      euRetailCountryCounts.push(2);
-
-      await setCounters(txCounters);
+      await setCounters(txCounters, this);
 
       // THEN
       await assertRevert(this.omnibusTBEController
         .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
           txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
-          txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts));
-
-      for (let i = 0; i < euRetailCountries.length; i++) {
-        // Reset counters after assertion
-        await this.complianceService.setEURetailInvestorsCount(euRetailCountries[i], 0);
-      }
+          txCounters.jpTotalInvestorsCount, [], []));
     });
   });
   describe('Bulk burn', function () {
@@ -144,7 +133,7 @@ contract('OmnibusTBEController', ([
         jpTotalInvestorsCount: 0,
       };
 
-      await setCounters(txCounters);
+      await setCounters(txCounters, this);
 
       const burnValue = 500;
       const txBurnCounters = {
@@ -195,7 +184,7 @@ contract('OmnibusTBEController', ([
       euRetailCountries.push('ES');
       euRetailCountryCounts.push(2);
 
-      await setCounters(txCounters);
+      await setCounters(txCounters, this);
 
       // WHEN
       await this.omnibusTBEController
@@ -259,7 +248,7 @@ contract('OmnibusTBEController', ([
         euRetailCountries.push('ES');
         euRetailCountryCounts.push(2);
 
-        await setCounters(txCounters);
+        await setCounters(txCounters, this);
 
         // WHEN
         await this.omnibusTBEController
@@ -285,7 +274,7 @@ contract('OmnibusTBEController', ([
         jpTotalInvestorsCount: 0,
       };
 
-      await setCounters(txCounters);
+      await setCounters(txCounters, this);
 
       // WHEN
       await this.omnibusTBEController
@@ -315,7 +304,7 @@ contract('OmnibusTBEController', ([
         jpTotalInvestorsCount: 0,
       };
 
-      await setCounters(txCounters);
+      await setCounters(txCounters, this);
 
       // WHEN
       await this.omnibusTBEController
@@ -352,6 +341,12 @@ async function toHex (countries) {
   return countries.map(country => web3.utils.asciiToHex(country));
 }
 async function resetCounters (testObject) {
+  await testObject.complianceConfiguration.setTotalInvestorsLimit(10);
+  await testObject.complianceConfiguration.setUSAccreditedInvestorsLimit(10);
+  await testObject.complianceConfiguration.setUSInvestorsLimit(10);
+  await testObject.complianceConfiguration.setJPInvestorsLimit(10);
+  await testObject.complianceConfiguration.setNonAccreditedInvestorsLimit(10);
+
   await testObject.complianceService.setTotalInvestorsCount(0);
   await testObject.complianceService.setUSInvestorsCount(0);
   await testObject.complianceService.setUSAccreditedInvestorsCount(0);
@@ -364,9 +359,11 @@ async function resetCounters (testObject) {
     counters[key] = 0;
   });
 }
-async function setCounters (txCounters) {
+async function setCounters (txCounters, testObject) {
+  const currentCounters = await getCounters(testObject);
+  console.log(currentCounters);
   Object.keys(txCounters).forEach(key => {
-    counters[key] = txCounters[key];
+    counters[key] = txCounters[key] + currentCounters[key];
   });
 }
 async function getCountersDelta (txCounters) {
@@ -374,29 +371,40 @@ async function getCountersDelta (txCounters) {
     counters[key] = Math.abs(counters[key] - Math.abs(txCounters[key]));
   });
 }
-async function assertCounters (testObject) {
+async function getCounters (testObject) {
   const totalInvestorsCount = await testObject.complianceService.getTotalInvestorsCount();
   const usInvestorsCount = await testObject.complianceService.getUSInvestorsCount();
   const accreditedInvestorsCount = await testObject.complianceService.getAccreditedInvestorsCount();
   const usAccreditedInvestorsCount = await testObject.complianceService.getUSAccreditedInvestorsCount();
   const jpTotalInvestorsCount = await testObject.complianceService.getJPInvestorsCount();
 
+  return {
+    totalInvestorsCount: totalInvestorsCount.toNumber(),
+    usInvestorsCount: usInvestorsCount.toNumber(),
+    accreditedInvestorsCount: accreditedInvestorsCount.toNumber(),
+    usAccreditedInvestorsCount: usAccreditedInvestorsCount.toNumber(),
+    jpTotalInvestorsCount: jpTotalInvestorsCount.toNumber(),
+  };
+}
+async function assertCounters (testObject) {
+  const currentCounters = await getCounters(testObject);
   assert.equal(
-    totalInvestorsCount.toNumber(),
+    currentCounters.totalInvestorsCount,
     counters.totalInvestorsCount
   );
-  assert.equal(usInvestorsCount.toNumber(),
+  assert.equal(
+    currentCounters.usInvestorsCount,
     counters.usTotalInvestorsCount);
   assert.equal(
-    accreditedInvestorsCount.toNumber(),
+    currentCounters.accreditedInvestorsCount,
     counters.accreditedInvestorsCount
   );
   assert.equal(
-    usAccreditedInvestorsCount.toNumber(),
+    currentCounters.usAccreditedInvestorsCount,
     counters.usAccreditedInvestorsCount
   );
   assert.equal(
-    jpTotalInvestorsCount.toNumber(),
+    currentCounters.jpTotalInvestorsCount,
     counters.jpTotalInvestorsCount
   );
 }

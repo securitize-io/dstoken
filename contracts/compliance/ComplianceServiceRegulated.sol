@@ -66,8 +66,9 @@ library ComplianceServiceLibrary {
 
         // Return whether this investor has 0 balance and is not an omnibus wallet in BENEFICIARY mode (which is not considered an investor)
         return balanceOfInvestor(_services, _wallet) == 0 &&
-            !(registryService.isOmnibusWallet(_wallet) && !registryService.getOmnibusWalletController(_wallet).isHolderOfRecord()) &&
-            !isOmnibusTBE(omnibusTBEController, _wallet);
+            !isOmnibusTBE(omnibusTBEController, _wallet) &&
+            !(registryService.isOmnibusWallet(_wallet) &&
+            !registryService.getOmnibusWalletController(_wallet).isHolderOfRecord());
     }
 
     function getCountry(address[] memory _services, address _wallet) internal view returns (string memory) {
@@ -785,7 +786,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function getServices() internal view returns (address[] memory services) {
-        services = new address[](6);
+        services = new address[](7);
         services[0] = getDSService(DS_TOKEN);
         services[1] = getDSService(REGISTRY_SERVICE);
         services[2] = getDSService(WALLET_MANAGER);
