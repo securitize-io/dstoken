@@ -166,7 +166,9 @@ library ComplianceServicePartitionedLibrary {
         uint256 fromInvestorBalance = balanceOfInvestor(_services, _from);
 
         if (IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) == WALLET_TYPE_PLATFORM) {
-            if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() && fromInvestorBalance > _value) {
+            if ((IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() ||
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getWorldWideForceFullTransfer()) &&
+                fromInvestorBalance > _value) {
                 return (50, ONLY_FULL_TRANSFER);
             }
 
@@ -222,6 +224,16 @@ library ComplianceServicePartitionedLibrary {
                 ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).getComplianceTransferableTokens(_from, now, true) < _value
             ) {
                 return (25, FLOWBACK);
+            }
+
+            if(
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getWorldWideForceFullTransfer()
+            ) {
+                return (50, ONLY_FULL_TRANSFER);
+            }
+
+            if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getWorldWideForceFullTransfer() && fromInvestorBalance > _value) {
+                return (50, ONLY_FULL_TRANSFER);
             }
         }
 
