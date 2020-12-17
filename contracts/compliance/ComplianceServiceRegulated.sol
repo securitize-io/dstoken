@@ -263,6 +263,21 @@ library ComplianceServiceLibrary {
             ) {
                 return (25, FLOWBACK);
             }
+
+            if(
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getWorldWideForceFullTransfer()
+            ) {
+                return (50, ONLY_FULL_TRANSFER);
+            }
+
+            if (
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getWorldWideForceFullTransfer() &&
+                fromInvestorBalance > _value &&
+                !isOmnibusTransfer(_services, _from, _to) &&
+                !isOmnibusInternalTransfer(_omnibusWallet)
+            ) {
+                return (50, ONLY_FULL_TRANSFER);
+            }
         }
 
         if (toRegion == FORBIDDEN) {
