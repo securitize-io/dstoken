@@ -1,18 +1,18 @@
-const assertRevert = require("../utils/assertRevert");
-const latestTime = require("../utils/latestTime");
-const snapshotsHelper = require("../utils/snapshots");
-const increaseTime = require("../utils/increaseTime").increaseTime;
-const deployContracts = require("../utils").deployContracts;
-const roles = require("../../utils/globals").roles;
-const complianceType = require("../../utils/globals").complianceType;
-const lockManagerType = require("../../utils/globals").lockManagerType;
-const fixtures = require("../fixtures");
+const assertRevert = require('../utils/assertRevert');
+const latestTime = require('../utils/latestTime');
+const snapshotsHelper = require('../utils/snapshots');
+const increaseTime = require('../utils/increaseTime').increaseTime;
+const deployContracts = require('../utils').deployContracts;
+const roles = require('../../utils/globals').roles;
+const complianceType = require('../../utils/globals').complianceType;
+const lockManagerType = require('../../utils/globals').lockManagerType;
+const fixtures = require('../fixtures');
 const investorId = fixtures.InvestorId;
 const country = fixtures.Country;
 const compliance = fixtures.Compliance;
 const time = fixtures.Time;
 
-contract("ComplianceServiceRegulatedPartitioned", function([
+contract('ComplianceServiceRegulatedPartitioned', function ([
   owner,
   wallet,
   wallet1,
@@ -20,9 +20,9 @@ contract("ComplianceServiceRegulatedPartitioned", function([
   noneWallet1,
   noneWallet2,
   platformWallet,
-  omnibusWallet
+  omnibusWallet,
 ]) {
-  before(async function() {
+  before(async function () {
     await deployContracts(
       this,
       artifacts,
@@ -43,7 +43,7 @@ contract("ComplianceServiceRegulatedPartitioned", function([
     );
     await this.complianceConfiguration.setAll(
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, time.YEARS, 0],
-      [true, false, false]
+      [true, false, false, false]
     );
     await this.registryService.registerInvestor(
       investorId.GENERAL_INVESTOR_ID_1,
@@ -55,17 +55,17 @@ contract("ComplianceServiceRegulatedPartitioned", function([
     );
   });
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     snapshot = await snapshotsHelper.takeSnapshot();
-    snapshotId = snapshot["result"];
+    snapshotId = snapshot.result;
   });
 
-  afterEach(async function() {
+  afterEach(async function () {
     await snapshotsHelper.revertToSnapshot(snapshotId);
   });
 
-  describe("Pre transfer check", function() {
-    it("Pre transfer check with paused token", async function() {
+  describe('Pre transfer check', function () {
+    it('Pre transfer check with paused token', async function () {
       await this.registryService.addWallet(
         owner,
         investorId.GENERAL_INVESTOR_ID_1
@@ -74,7 +74,7 @@ contract("ComplianceServiceRegulatedPartitioned", function([
         wallet,
         investorId.GENERAL_INVESTOR_ID_2
       );
-      await this.token.issueTokens(owner, 100, {gas: 2e6});
+      await this.token.issueTokens(owner, 100, { gas: 2e6 });
       await this.token.pause();
       const res = await this.complianceService.preTransferCheck(
         owner,
@@ -82,10 +82,10 @@ contract("ComplianceServiceRegulatedPartitioned", function([
         10
       );
       assert.equal(10, res[0].toNumber());
-      assert.equal("Token paused", res[1]);
+      assert.equal('Token paused', res[1]);
     });
 
-    it("Pre transfer check with not enough tokens", async function() {
+    it('Pre transfer check with not enough tokens', async function () {
       await this.registryService.addWallet(
         owner,
         investorId.GENERAL_INVESTOR_ID_1
@@ -101,10 +101,10 @@ contract("ComplianceServiceRegulatedPartitioned", function([
         10
       );
       assert.equal(15, res[0].toNumber());
-      assert.equal("Not enough tokens", res[1]);
+      assert.equal('Not enough tokens', res[1]);
     });
 
-    it("Pre transfer check when transfer myself", async function() {
+    it('Pre transfer check when transfer myself', async function () {
       await this.registryService.addWallet(
         noneWallet1,
         investorId.GENERAL_INVESTOR_ID_1
@@ -116,10 +116,10 @@ contract("ComplianceServiceRegulatedPartitioned", function([
         10
       );
       assert.equal(0, res[0].toNumber());
-      assert.equal("Valid", res[1]);
+      assert.equal('Valid', res[1]);
     });
 
-    it("Should revert due to Wallet Not In Registry Service", async function() {
+    it('Should revert due to Wallet Not In Registry Service', async function () {
       await this.registryService.addWallet(
         noneWallet1,
         investorId.GENERAL_INVESTOR_ID_1
@@ -131,10 +131,10 @@ contract("ComplianceServiceRegulatedPartitioned", function([
         10
       );
       assert.equal(20, res[0].toNumber());
-      assert.equal("Wallet not in registry service", res[1]);
+      assert.equal('Wallet not in registry service', res[1]);
     });
 
-    it("Pre transfer check with tokens locked", async function() {
+    it('Pre transfer check with tokens locked', async function () {
       await this.registryService.addWallet(
         wallet,
         investorId.GENERAL_INVESTOR_ID_1
@@ -144,7 +144,7 @@ contract("ComplianceServiceRegulatedPartitioned", function([
       await this.lockManager.addManualLockRecord(
         wallet,
         95,
-        "Test",
+        'Test',
         (await latestTime()) + 1000,
         partition
       );
@@ -154,10 +154,10 @@ contract("ComplianceServiceRegulatedPartitioned", function([
         10
       );
       assert.equal(16, res[0].toNumber());
-      assert.equal("Tokens locked", res[1]);
+      assert.equal('Tokens locked', res[1]);
     });
 
-    it("Pre transfer check with tokens locked for 1 year (For Us investors)", async function() {
+    it('Pre transfer check with tokens locked for 1 year (For Us investors)', async function () {
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_1,
         country.USA
@@ -191,10 +191,10 @@ contract("ComplianceServiceRegulatedPartitioned", function([
         10
       );
       assert.equal(res[0].toNumber(), 32);
-      assert.equal(res[1], "Hold-up 1y");
+      assert.equal(res[1], 'Hold-up 1y');
     });
 
-    it("Pre transfer check with force accredited", async function() {
+    it('Pre transfer check with force accredited', async function () {
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_1,
         country.FRANCE
@@ -229,10 +229,10 @@ contract("ComplianceServiceRegulatedPartitioned", function([
         10
       );
       assert.equal(res[0].toNumber(), 61);
-      assert.equal(res[1], "Only accredited");
+      assert.equal(res[1], 'Only accredited');
     });
 
-    it("Pre transfer check with US force accredited", async function() {
+    it('Pre transfer check with US force accredited', async function () {
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_1,
         country.FRANCE
@@ -267,10 +267,10 @@ contract("ComplianceServiceRegulatedPartitioned", function([
         10
       );
       assert.equal(res[0].toNumber(), 62);
-      assert.equal(res[1], "Only us accredited");
+      assert.equal(res[1], 'Only us accredited');
     });
 
-    it("Pre transfer check for full transfer - should return code 50", async function() {
+    it('Pre transfer check for full transfer - should return code 50', async function () {
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_1,
         country.USA
@@ -304,10 +304,10 @@ contract("ComplianceServiceRegulatedPartitioned", function([
         50
       );
       assert.equal(res[0].toNumber(), 50);
-      assert.equal(res[1], "Only full transfer");
+      assert.equal(res[1], 'Only full transfer');
     });
 
-    it("Pre transfer check from nonUs investor to US - should return code 25", async function() {
+    it('Pre transfer check from nonUs investor to US - should return code 25', async function () {
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_1,
         country.FRANCE
@@ -343,10 +343,10 @@ contract("ComplianceServiceRegulatedPartitioned", function([
         10
       );
       assert.equal(res[0].toNumber(), 25);
-      assert.equal(res[1], "Flowback");
+      assert.equal(res[1], 'Flowback');
     });
 
-    it("Pre transfer check from US to US through EU - should pass", async function() {
+    it('Pre transfer check from US to US through EU - should pass', async function () {
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_1,
         country.FRANCE
@@ -373,7 +373,7 @@ contract("ComplianceServiceRegulatedPartitioned", function([
         country.FRANCE,
         compliance.EU
       );
-      await this.token.transfer(wallet, 100, {from: owner});
+      await this.token.transfer(wallet, 100, { from: owner });
       await this.complianceConfiguration.setBlockFlowbackEndTime(200);
       assert.equal(await this.token.balanceOf(wallet), 100);
       const res = await this.complianceService.preTransferCheck(
@@ -382,10 +382,10 @@ contract("ComplianceServiceRegulatedPartitioned", function([
         100
       );
       assert.equal(res[0].toNumber(), 0);
-      assert.equal(res[1], "Valid");
+      assert.equal(res[1], 'Valid');
     });
 
-    it("Pre transfer check from EU to EU through US - should not hold up 1y", async function() {
+    it('Pre transfer check from EU to EU through US - should not hold up 1y', async function () {
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_1,
         country.FRANCE
@@ -411,7 +411,7 @@ contract("ComplianceServiceRegulatedPartitioned", function([
         country.FRANCE,
         compliance.EU
       );
-      await this.token.transfer(owner, 100, {from: wallet});
+      await this.token.transfer(owner, 100, { from: wallet });
       assert.equal(await this.token.balanceOf(owner), 100);
       const res = await this.complianceService.preTransferCheck(
         owner,
@@ -419,10 +419,10 @@ contract("ComplianceServiceRegulatedPartitioned", function([
         100
       );
       assert.equal(res[0].toNumber(), 0);
-      assert.equal(res[1], "Valid");
+      assert.equal(res[1], 'Valid');
     });
 
-    it("Pre transfer check for platform account", async function() {
+    it('Pre transfer check for platform account', async function () {
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_1,
         country.USA
@@ -456,10 +456,10 @@ contract("ComplianceServiceRegulatedPartitioned", function([
         100
       );
       assert.equal(res[0].toNumber(), 0);
-      assert.equal(res[1], "Valid");
+      assert.equal(res[1], 'Valid');
     });
 
-    it("Pre transfer check when transfer ok", async function() {
+    it('Pre transfer check when transfer ok', async function () {
       await this.registryService.addWallet(
         owner,
         investorId.GENERAL_INVESTOR_ID_1
@@ -484,10 +484,10 @@ contract("ComplianceServiceRegulatedPartitioned", function([
         10
       );
       assert.equal(0, res[0].toNumber());
-      assert.equal("Valid", res[1]);
+      assert.equal('Valid', res[1]);
     });
 
-    it("should allow to full transfer funds even with minimumHoldingsPerInvestor rule set", async function() {
+    it('should allow to full transfer funds even with minimumHoldingsPerInvestor rule set', async function () {
       await this.complianceConfiguration.setMinimumHoldingsPerInvestor(50);
       await this.registryService.addWallet(
         wallet,
@@ -509,10 +509,10 @@ contract("ComplianceServiceRegulatedPartitioned", function([
         100
       );
       assert.equal(0, res[0].toNumber());
-      assert.equal("Valid", res[1]);
+      assert.equal('Valid', res[1]);
     });
 
-    it("should NOT allow a partial transfer when below minimumHoldingsPerInvestor rule set", async function() {
+    it('should NOT allow a partial transfer when below minimumHoldingsPerInvestor rule set', async function () {
       await this.complianceConfiguration.setMinimumHoldingsPerInvestor(50);
       await this.registryService.addWallet(
         wallet,

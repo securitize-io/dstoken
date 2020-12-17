@@ -1,18 +1,18 @@
-const assertRevert = require("../utils/assertRevert");
-const latestTime = require("../utils/latestTime");
-const snapshotsHelper = require("../utils/snapshots");
-const increaseTime = require("../utils/increaseTime").increaseTime;
-const deployContracts = require("../utils").deployContracts;
-const roles = require("../../utils/globals").roles;
-const complianceType = require("../../utils/globals").complianceType;
-const lockManagerType = require("../../utils/globals").lockManagerType;
-const fixtures = require("../fixtures");
+const assertRevert = require('../utils/assertRevert');
+const latestTime = require('../utils/latestTime');
+const snapshotsHelper = require('../utils/snapshots');
+const increaseTime = require('../utils/increaseTime').increaseTime;
+const deployContracts = require('../utils').deployContracts;
+const roles = require('../../utils/globals').roles;
+const complianceType = require('../../utils/globals').complianceType;
+const lockManagerType = require('../../utils/globals').lockManagerType;
+const fixtures = require('../fixtures');
 const investorId = fixtures.InvestorId;
 const country = fixtures.Country;
 const compliance = fixtures.Compliance;
 const time = fixtures.Time;
 
-contract("ComplianceServiceRegulated", function([
+contract('ComplianceServiceRegulated', function ([
   owner,
   wallet,
   wallet1,
@@ -23,7 +23,7 @@ contract("ComplianceServiceRegulated", function([
   omnibusWallet,
   walletForPausedToken,
 ]) {
-  before(async function() {
+  before(async function () {
     await deployContracts(
       this,
       artifacts,
@@ -47,28 +47,28 @@ contract("ComplianceServiceRegulated", function([
     );
     await this.complianceConfiguration.setAll(
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, time.YEARS, 0],
-      [true, false, false]
+      [true, false, false, false]
     );
   });
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     snapshot = await snapshotsHelper.takeSnapshot();
-    snapshotId = snapshot["result"];
+    snapshotId = snapshot.result;
   });
 
-  afterEach(async function() {
+  afterEach(async function () {
     await snapshotsHelper.revertToSnapshot(snapshotId);
   });
 
-  describe("Validate issuance(recordIssuance):", function() {
-    it("Should revert due to not token call", async function() {
+  describe('Validate issuance(recordIssuance):', function () {
+    it('Should revert due to not token call', async function () {
       await this.token.setCap(1000);
       await assertRevert(
         this.complianceService.validateIssuance(wallet, 100, await latestTime())
       );
     });
 
-    it("Should revert due to issuing to omnibus wallet", async function() {
+    it('Should revert due to issuing to omnibus wallet', async function () {
       await this.registryService.registerInvestor(
         investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
         investorId.OMNIBUS_WALLET_INVESTOR_ID_1
@@ -82,7 +82,7 @@ contract("ComplianceServiceRegulated", function([
       await assertRevert(this.token.issueTokens(omnibusWallet, 100));
     });
 
-    it("Should issue tokens", async function() {
+    it('Should issue tokens', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -96,15 +96,15 @@ contract("ComplianceServiceRegulated", function([
       assert.equal(await this.token.balanceOf(wallet), 100);
     });
 
-    it('Should issue tokens even when the token is paused', async function() {
+    it('Should issue tokens even when the token is paused', async function () {
       await this.token.pause();
       await this.registryService.registerInvestor(
-          investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED,
-          investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED
+        investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED,
+        investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED
       );
       await this.registryService.addWallet(
-          walletForPausedToken,
-          investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED
+        walletForPausedToken,
+        investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED
       );
       assert.equal(await this.token.balanceOf(walletForPausedToken), 0);
       await this.token.issueTokens(walletForPausedToken, 1);
@@ -113,8 +113,8 @@ contract("ComplianceServiceRegulated", function([
     });
   });
 
-  describe("Validate(recordTransfer)", function() {
-    it("Should revert due to Wallet Not In Registry Service", async function() {
+  describe('Validate(recordTransfer)', function () {
+    it('Should revert due to Wallet Not In Registry Service', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -126,10 +126,10 @@ contract("ComplianceServiceRegulated", function([
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await assertRevert(this.token.transfer(noneWallet1, 100, {from: wallet}));
+      await assertRevert(this.token.transfer(noneWallet1, 100, { from: wallet }));
     });
 
-    it("Should revert due to Wallet has not enough tokens", async function() {
+    it('Should revert due to Wallet has not enough tokens', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -139,10 +139,10 @@ contract("ComplianceServiceRegulated", function([
         investorId.GENERAL_INVESTOR_ID_1
       );
       assert.equal(await this.token.balanceOf(wallet), 0);
-      await assertRevert(this.token.transfer(wallet, 100, {from: wallet}));
+      await assertRevert(this.token.transfer(wallet, 100, { from: wallet }));
     });
 
-    it("Pre transfer check with tokens locked", async function() {
+    it('Pre transfer check with tokens locked', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -156,13 +156,13 @@ contract("ComplianceServiceRegulated", function([
       await this.lockManager.addManualLockRecord(
         wallet,
         95,
-        "Test",
+        'Test',
         (await latestTime()) + 1000
       );
-      await assertRevert(this.token.transfer(owner, 100, {from: wallet}));
+      await assertRevert(this.token.transfer(owner, 100, { from: wallet }));
     });
 
-    it("Should decrease total investors value when transfer tokens", async function() {
+    it('Should decrease total investors value when transfer tokens', async function () {
       assert.equal(
         (await this.complianceService.getTotalInvestorsCount()).toNumber(),
         0
@@ -184,8 +184,8 @@ contract("ComplianceServiceRegulated", function([
         investorId.GENERAL_INVESTOR_ID_2
       );
       await this.token.setCap(1000);
-      await this.token.issueTokens(wallet, 100, {gas: 2e6});
-      await this.token.issueTokens(noneWallet1, 100, {gas: 2e6});
+      await this.token.issueTokens(wallet, 100, { gas: 2e6 });
+      await this.token.issueTokens(noneWallet1, 100, { gas: 2e6 });
       assert.equal(
         await this.registryService.getInvestor(wallet),
         investorId.GENERAL_INVESTOR_ID_1
@@ -200,7 +200,7 @@ contract("ComplianceServiceRegulated", function([
       );
 
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await this.token.transfer(noneWallet1, 100, {from: wallet});
+      await this.token.transfer(noneWallet1, 100, { from: wallet });
       assert.equal(await this.token.balanceOf(wallet), 0);
 
       assert.equal(
@@ -209,7 +209,7 @@ contract("ComplianceServiceRegulated", function([
       );
     });
 
-    it("Should increase total investors value when transfer tokens", async function() {
+    it('Should increase total investors value when transfer tokens', async function () {
       assert.equal(
         (await this.complianceService.getTotalInvestorsCount()).toNumber(),
         0
@@ -231,7 +231,7 @@ contract("ComplianceServiceRegulated", function([
         investorId.GENERAL_INVESTOR_ID_2
       );
       await this.token.setCap(1000);
-      await this.token.issueTokens(wallet, 100, {gas: 4e6});
+      await this.token.issueTokens(wallet, 100, { gas: 4e6 });
       assert.equal(
         await this.registryService.getInvestor(wallet),
         investorId.GENERAL_INVESTOR_ID_1
@@ -245,7 +245,7 @@ contract("ComplianceServiceRegulated", function([
         (await this.complianceService.getTotalInvestorsCount()).toNumber(),
         1
       );
-      await this.token.transfer(noneWallet1, 50, {from: wallet});
+      await this.token.transfer(noneWallet1, 50, { from: wallet });
       assert.equal(await this.token.balanceOf(wallet), 50);
       assert.equal(await this.token.balanceOf(noneWallet1), 50);
       assert.equal(
@@ -254,7 +254,7 @@ contract("ComplianceServiceRegulated", function([
       );
     });
 
-    it("Should not be able to transfer tokens because of 1 year lock for US investors", async function() {
+    it('Should not be able to transfer tokens because of 1 year lock for US investors', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -283,11 +283,11 @@ contract("ComplianceServiceRegulated", function([
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
       await assertRevert(
-        this.token.transfer(owner, 100, {from: wallet, gas: 5e6})
+        this.token.transfer(owner, 100, { from: wallet, gas: 5e6 })
       );
     });
 
-    it("Should not be able to transfer tokens because of 1 year lock for US investors", async function() {
+    it('Should not be able to transfer tokens because of 1 year lock for US investors', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -316,11 +316,11 @@ contract("ComplianceServiceRegulated", function([
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
       await assertRevert(
-        this.token.transfer(owner, 100, {from: wallet, gas: 5e6})
+        this.token.transfer(owner, 100, { from: wallet, gas: 5e6 })
       );
     });
 
-    it("Should not be able to transfer tokens due to full transfer enabled", async function() {
+    it('Should not be able to transfer tokens due to full transfer enabled', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -350,11 +350,11 @@ contract("ComplianceServiceRegulated", function([
       assert.equal(await this.token.balanceOf(wallet), 100);
       await increaseTime(370 * time.DAYS);
       await assertRevert(
-        this.token.transfer(owner, 50, {from: wallet, gas: 5e6})
+        this.token.transfer(owner, 50, { from: wallet, gas: 5e6 })
       );
     });
 
-    it("Should be able to transfer tokens before 1 year for platform account", async function() {
+    it('Should be able to transfer tokens before 1 year for platform account', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -385,11 +385,11 @@ contract("ComplianceServiceRegulated", function([
       assert.equal(await this.token.balanceOf(wallet), 100);
       await this.token.transfer(platformWallet, 100, {
         from: wallet,
-        gas: 5e6
+        gas: 5e6,
       });
     });
 
-    it("Should prevent chinese investors", async function() {
+    it('Should prevent chinese investors', async function () {
       await this.complianceConfiguration.setCountryCompliance(
         country.CHINA,
         compliance.FORBIDDEN
@@ -422,11 +422,11 @@ contract("ComplianceServiceRegulated", function([
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
       await assertRevert(
-        this.token.transfer(wallet1, 50, {from: wallet, gas: 5e6})
+        this.token.transfer(wallet1, 50, { from: wallet, gas: 5e6 })
       );
     });
 
-    it("Should transfer tokens", async function() {
+    it('Should transfer tokens', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -455,13 +455,13 @@ contract("ComplianceServiceRegulated", function([
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
       await increaseTime(370 * time.DAYS);
-      await this.token.transfer(owner, 100, {from: wallet, gas: 5e6});
+      await this.token.transfer(owner, 100, { from: wallet, gas: 5e6 });
       assert.equal(await this.token.balanceOf(wallet), 0);
     });
   });
 
-  describe("Validate burn", function() {
-    it("Should revert due to trying burn tokens for account with NONE permissions", async function() {
+  describe('Validate burn', function () {
+    it('Should revert due to trying burn tokens for account with NONE permissions', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -473,10 +473,10 @@ contract("ComplianceServiceRegulated", function([
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await assertRevert(this.token.burn(wallet, 100, "Test", {from: wallet}));
+      await assertRevert(this.token.burn(wallet, 100, 'Test', { from: wallet }));
     });
 
-    it("Should revert due to burning omnibus wallet tokens", async function() {
+    it('Should revert due to burning omnibus wallet tokens', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -496,11 +496,11 @@ contract("ComplianceServiceRegulated", function([
         this.omnibusController1.address
       );
       await this.token.issueTokens(wallet, 100);
-      await this.token.transfer(omnibusWallet, 50, {from: wallet});
-      await assertRevert(this.token.burn(omnibusWallet, 40, "Test"));
+      await this.token.transfer(omnibusWallet, 50, { from: wallet });
+      await assertRevert(this.token.burn(omnibusWallet, 40, 'Test'));
     });
 
-    it("Should decrease total investors value when burn tokens", async function() {
+    it('Should decrease total investors value when burn tokens', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_2,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_2
@@ -516,11 +516,11 @@ contract("ComplianceServiceRegulated", function([
         investorId.GENERAL_INVESTOR_ID_2
       );
       assert.equal(await this.token.balanceOf(owner), 100);
-      await this.token.burn(owner, 100, "Test");
+      await this.token.burn(owner, 100, 'Test');
       assert.equal(await this.token.balanceOf(owner), 0);
     });
 
-    it("Should burn tokens", async function() {
+    it('Should burn tokens', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -532,13 +532,13 @@ contract("ComplianceServiceRegulated", function([
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await this.token.burn(wallet, 100, "Test");
+      await this.token.burn(wallet, 100, 'Test');
       assert.equal(await this.token.balanceOf(wallet), 0);
     });
   });
 
-  describe("Validate seize", function() {
-    it("Should revert due to trying seize tokens for account with NONE permissions", async function() {
+  describe('Validate seize', function () {
+    it('Should revert due to trying seize tokens for account with NONE permissions', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -560,10 +560,10 @@ contract("ComplianceServiceRegulated", function([
       assert.equal(await this.token.balanceOf(owner), 100);
       const role = await this.trustService.getRole(issuerWallet);
       assert.equal(role.words[0], roles.ISSUER);
-      await assertRevert(this.token.seize(owner, wallet, 100, "Test"));
+      await assertRevert(this.token.seize(owner, wallet, 100, 'Test'));
     });
 
-    it("Should revert due to seizing omnibus wallet tokens", async function() {
+    it('Should revert due to seizing omnibus wallet tokens', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -583,13 +583,13 @@ contract("ComplianceServiceRegulated", function([
         this.omnibusController1.address
       );
       await this.token.issueTokens(wallet, 100);
-      await this.token.transfer(omnibusWallet, 50, {from: wallet});
+      await this.token.transfer(omnibusWallet, 50, { from: wallet });
       await assertRevert(
-        this.token.seize(omnibusWallet, issuerWallet, 40, "Test")
+        this.token.seize(omnibusWallet, issuerWallet, 40, 'Test')
       );
     });
 
-    it("Should seize tokens", async function() {
+    it('Should seize tokens', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -607,12 +607,12 @@ contract("ComplianceServiceRegulated", function([
       assert.equal(await this.token.balanceOf(owner), 100);
       const role = await this.trustService.getRole(issuerWallet);
       assert.equal(role.words[0], roles.ISSUER);
-      await this.token.seize(owner, issuerWallet, 100, "Test");
+      await this.token.seize(owner, issuerWallet, 100, 'Test');
     });
   });
 
-  describe("Pre transfer check", function() {
-    it("Pre transfer check with paused", async function() {
+  describe('Pre transfer check', function () {
+    it('Pre transfer check with paused', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -630,7 +630,7 @@ contract("ComplianceServiceRegulated", function([
         investorId.GENERAL_INVESTOR_ID_2
       );
       await this.token.setCap(1000);
-      await this.token.issueTokens(owner, 100, {gas: 2e6});
+      await this.token.issueTokens(owner, 100, { gas: 2e6 });
       await this.token.pause();
       const res = await this.complianceService.preTransferCheck(
         owner,
@@ -638,10 +638,10 @@ contract("ComplianceServiceRegulated", function([
         10
       );
       assert.equal(10, res[0].toNumber());
-      assert.equal("Token paused", res[1]);
+      assert.equal('Token paused', res[1]);
     });
 
-    it("Pre transfer check with not enough tokens", async function() {
+    it('Pre transfer check with not enough tokens', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -666,10 +666,10 @@ contract("ComplianceServiceRegulated", function([
         10
       );
       assert.equal(15, res[0].toNumber());
-      assert.equal("Not enough tokens", res[1]);
+      assert.equal('Not enough tokens', res[1]);
     });
 
-    it("Pre transfer check when transfer myself", async function() {
+    it('Pre transfer check when transfer myself', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -686,10 +686,10 @@ contract("ComplianceServiceRegulated", function([
         10
       );
       assert.equal(0, res[0].toNumber());
-      assert.equal("Valid", res[1]);
+      assert.equal('Valid', res[1]);
     });
 
-    it("Should revert due to Wallet Not In Registry Service", async function() {
+    it('Should revert due to Wallet Not In Registry Service', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -706,10 +706,10 @@ contract("ComplianceServiceRegulated", function([
         10
       );
       assert.equal(20, res[0].toNumber());
-      assert.equal("Wallet not in registry service", res[1]);
+      assert.equal('Wallet not in registry service', res[1]);
     });
 
-    it("Pre transfer check with tokens locked", async function() {
+    it('Pre transfer check with tokens locked', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -723,7 +723,7 @@ contract("ComplianceServiceRegulated", function([
       await this.lockManager.addManualLockRecord(
         wallet,
         95,
-        "Test",
+        'Test',
         (await latestTime()) + 1000
       );
       const res = await this.complianceService.preTransferCheck(
@@ -732,10 +732,10 @@ contract("ComplianceServiceRegulated", function([
         10
       );
       assert.equal(16, res[0].toNumber());
-      assert.equal("Tokens locked", res[1]);
+      assert.equal('Tokens locked', res[1]);
     });
 
-    it("Pre transfer check with tokens locked for 1 year (For Us investors)", async function() {
+    it('Pre transfer check with tokens locked for 1 year (For Us investors)', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -777,10 +777,10 @@ contract("ComplianceServiceRegulated", function([
         10
       );
       assert.equal(res[0].toNumber(), 32);
-      assert.equal(res[1], "Hold-up 1y");
+      assert.equal(res[1], 'Hold-up 1y');
     });
 
-    it("Pre transfer check with force accredited", async function() {
+    it('Pre transfer check with force accredited', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -825,10 +825,10 @@ contract("ComplianceServiceRegulated", function([
         10
       );
       assert.equal(res[0].toNumber(), 61);
-      assert.equal(res[1], "Only accredited");
+      assert.equal(res[1], 'Only accredited');
     });
 
-    it("Pre transfer check with US force accredited", async function() {
+    it('Pre transfer check with US force accredited', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -873,10 +873,10 @@ contract("ComplianceServiceRegulated", function([
         10
       );
       assert.equal(res[0].toNumber(), 62);
-      assert.equal(res[1], "Only us accredited");
+      assert.equal(res[1], 'Only us accredited');
     });
 
-    it("Pre transfer check for full transfer - should return code 50", async function() {
+    it('Pre transfer check for full transfer - should return code 50', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -919,10 +919,10 @@ contract("ComplianceServiceRegulated", function([
         50
       );
       assert.equal(res[0].toNumber(), 50);
-      assert.equal(res[1], "Only full transfer");
+      assert.equal(res[1], 'Only full transfer');
     });
 
-    it("Pre transfer check from nonUs investor to US - should return code 25", async function() {
+    it('Pre transfer check from nonUs investor to US - should return code 25', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -964,10 +964,10 @@ contract("ComplianceServiceRegulated", function([
         10
       );
       assert.equal(res[0].toNumber(), 25);
-      assert.equal(res[1], "Flowback");
+      assert.equal(res[1], 'Flowback');
     });
 
-    it("Pre transfer check for platform account", async function() {
+    it('Pre transfer check for platform account', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -1010,10 +1010,10 @@ contract("ComplianceServiceRegulated", function([
         100
       );
       assert.equal(res[0].toNumber(), 0);
-      assert.equal(res[1], "Valid");
+      assert.equal(res[1], 'Valid');
     });
 
-    it("should not transfer tokens to an investor if japan investor limit is reached", async function() {
+    it('should not transfer tokens to an investor if japan investor limit is reached', async function () {
       await this.complianceConfiguration.setJPInvestorsLimit(1);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
@@ -1046,10 +1046,10 @@ contract("ComplianceServiceRegulated", function([
         10
       );
       assert.equal(res[0].toNumber(), 40);
-      assert.equal(res[1], "Max investors in category");
+      assert.equal(res[1], 'Max investors in category');
     });
 
-    it("Pre transfer check when transfer ok", async function() {
+    it('Pre transfer check when transfer ok', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -1083,10 +1083,10 @@ contract("ComplianceServiceRegulated", function([
         10
       );
       assert.equal(0, res[0].toNumber());
-      assert.equal("Valid", res[1]);
+      assert.equal('Valid', res[1]);
     });
 
-    it("should allow to full transfer funds even with minimumHoldingsPerInvestor rule set", async function() {
+    it('should allow to full transfer funds even with minimumHoldingsPerInvestor rule set', async function () {
       await this.complianceConfiguration.setMinimumHoldingsPerInvestor(50);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
@@ -1118,10 +1118,10 @@ contract("ComplianceServiceRegulated", function([
         100
       );
       assert.equal(0, res[0].toNumber());
-      assert.equal("Valid", res[1]);
+      assert.equal('Valid', res[1]);
     });
 
-    it("should NOT allow a partial transfer when below minimumHoldingsPerInvestor rule set", async function() {
+    it('should NOT allow a partial transfer when below minimumHoldingsPerInvestor rule set', async function () {
       await this.complianceConfiguration.setMinimumHoldingsPerInvestor(50);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
@@ -1157,8 +1157,8 @@ contract("ComplianceServiceRegulated", function([
     });
   });
 
-  describe("Pre issuance check", function() {
-    it("should not issue tokens below the minimum holdings per investor", async function() {
+  describe('Pre issuance check', function () {
+    it('should not issue tokens below the minimum holdings per investor', async function () {
       await this.complianceConfiguration.setMinimumHoldingsPerInvestor(50);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
@@ -1175,7 +1175,7 @@ contract("ComplianceServiceRegulated", function([
       await assertRevert(this.token.issueTokens(owner, 10));
     });
 
-    it("should not issue tokens above the maximum holdings per investor", async function() {
+    it('should not issue tokens above the maximum holdings per investor', async function () {
       await this.complianceConfiguration.setMaximumHoldingsPerInvestor(300);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
@@ -1192,7 +1192,7 @@ contract("ComplianceServiceRegulated", function([
       await assertRevert(this.token.issueTokens(owner, 310));
     });
 
-    it("should not issue tokens to a new investor if investor limit is exceeded", async function() {
+    it('should not issue tokens to a new investor if investor limit is exceeded', async function () {
       await this.complianceConfiguration.setTotalInvestorsLimit(1);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
@@ -1222,7 +1222,7 @@ contract("ComplianceServiceRegulated", function([
       await assertRevert(this.token.issueTokens(wallet1, 100));
     });
 
-    it("should not issue tokens to a new investor if japan investor limit is exceeded", async function() {
+    it('should not issue tokens to a new investor if japan investor limit is exceeded', async function () {
       await this.complianceConfiguration.setJPInvestorsLimit(1);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
@@ -1252,7 +1252,7 @@ contract("ComplianceServiceRegulated", function([
       await assertRevert(this.token.issueTokens(wallet1, 100));
     });
 
-    it("should not issue tokens to a new investor if non accredited limit is exceeded", async function() {
+    it('should not issue tokens to a new investor if non accredited limit is exceeded', async function () {
       await this.complianceConfiguration.setNonAccreditedInvestorsLimit(1);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
@@ -1282,7 +1282,7 @@ contract("ComplianceServiceRegulated", function([
       await assertRevert(this.token.issueTokens(wallet, 100));
     });
 
-    it("should not issue tokens to a new investor if US investors limit is exceeded", async function() {
+    it('should not issue tokens to a new investor if US investors limit is exceeded', async function () {
       await this.complianceConfiguration.setUSInvestorsLimit(1);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
@@ -1312,7 +1312,7 @@ contract("ComplianceServiceRegulated", function([
       await assertRevert(this.token.issueTokens(wallet, 100));
     });
 
-    it("should not issue tokens to a new investor if US Accredited investors limit is exceeded", async function() {
+    it('should not issue tokens to a new investor if US Accredited investors limit is exceeded', async function () {
       await this.complianceConfiguration.setUSAccreditedInvestorsLimit(1);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
@@ -1343,20 +1343,20 @@ contract("ComplianceServiceRegulated", function([
         2,
         1,
         0,
-        "abcde"
+        'abcde'
       );
       await this.registryService.setAttribute(
         investorId.GENERAL_INVESTOR_ID_2,
         2,
         1,
         0,
-        "abcdef"
+        'abcdef'
       );
       await this.token.issueTokens(owner, 100);
       await assertRevert(this.token.issueTokens(wallet, 100));
     });
 
-    it("should not issue tokens to a new investor if EU Retail limit is exceeded", async function() {
+    it('should not issue tokens to a new investor if EU Retail limit is exceeded', async function () {
       await this.complianceConfiguration.setEURetailInvestorsLimit(0);
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
