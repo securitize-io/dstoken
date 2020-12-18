@@ -11,7 +11,7 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
 
     function initialize() public {
         ServiceConsumer.initialize();
-        VERSIONS.push(4);
+        VERSIONS.push(5);
     }
 
     modifier whenNotPaused() {
