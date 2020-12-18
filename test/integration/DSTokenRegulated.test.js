@@ -376,4 +376,25 @@ contract("DSToken (regulated)", function([
       );
     });
   });
+  describe("Transfer From", function() {
+    beforeEach(async function() {
+      await this.token.issueTokens(israelInvestorWallet, 100);
+    });
+
+    it("Should transfer from one account to another when enough allowance is there", async function() {
+      await this.token.approve(usInvestor2Wallet, 50, {from: israelInvestorWallet});
+      await this.token.transferFrom(israelInvestorWallet, spainInvestorWallet, 50, {from: usInvestor2Wallet});
+
+      const israelInvestorBalance = await this.token.balanceOf(israelInvestorWallet);
+      assert.equal(israelInvestorBalance, 50);
+      const spainInvestorBalance = await this.token.balanceOf(spainInvestorWallet);
+      assert.equal(spainInvestorBalance, 50);
+    });
+
+    it("Should NOT transfer from one account to another when not enough allowance is there", async function() {
+      await assertRevert(
+        this.token.transferFrom(israelInvestorWallet, spainInvestorWallet, 50, {from: usInvestor2Wallet})
+      );
+    });
+  });
 });
