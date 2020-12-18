@@ -1,10 +1,9 @@
 const deployContracts = require('../utils/index').deployContracts;
+const globals = require('../../utils/globals');
+const fixtures = require('../fixtures');
 const { setOmnibusTBEServicesDependencies, resetCounters, setCounters,
   getCountersDelta, toHex, assertCounters, assertCountryCounters } =
-  require('../utils/omnibus/utils');
-const assertRevert = require('../utils/assertRevert');
-const fixtures = require('../fixtures');
-const globals = require('../../utils/globals');
+    require('../utils/omnibus/utils');
 
 const lockManagerType = globals.lockManagerType;
 const role = globals.roles;
@@ -16,7 +15,7 @@ let euRetailCountries = [];
 let euRetailCountryCounts = [];
 const issuanceTime = 15495894;
 
-contract('OmnibusTBEController', ([
+contract('OmnibusTBEControllerPartitioned', ([
   omnibusWallet,
   investorWallet1,
   investorWallet2,
@@ -25,7 +24,7 @@ contract('OmnibusTBEController', ([
     await deployContracts(
       this,
       artifacts,
-      compliance.NORMAL,
+      compliance.PARTITIONED,
       lockManagerType.INVESTOR,
       undefined,
       false,
@@ -51,8 +50,6 @@ contract('OmnibusTBEController', ([
       investorWallet2,
       investorId.GENERAL_INVESTOR_ID_2
     );
-
-    await resetCounters(this);
   });
 
   beforeEach(async function () {
@@ -100,89 +97,6 @@ contract('OmnibusTBEController', ([
       await euRetailCountries.forEach((country, index) => {
         assertCountryCounters(this, country, euRetailCountryCounts[index]);
         // Reset counters after assertion
-        this.complianceService.setEURetailInvestorsCount(country, 0);
-        euRetailCountries = [];
-        euRetailCountryCounts = [];
-      });
-    });
-    it('should bulk issue tokens correctly w/o countries array', async function () {
-      // GIVEN
-      await this.complianceService.setTotalInvestorsCount(1);
-      await this.complianceConfiguration.setNonAccreditedInvestorsLimit(1);
-      const value = 1000;
-      const txCounters = {
-        totalInvestorsCount: 1,
-        accreditedInvestorsCount: 1,
-        usTotalInvestorsCount: 0,
-        usAccreditedInvestorsCount: 0,
-        jpTotalInvestorsCount: 0,
-      };
-
-      await setCounters(txCounters, this);
-
-      // WHEN
-      await this.omnibusTBEController
-        .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
-          txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
-          txCounters.jpTotalInvestorsCount, [], []);
-
-      // THEN
-      await assertCounters(this);
-
-      const currentBalance = await this.token.balanceOf(omnibusWallet);
-      await assert.equal(
-        currentBalance,
-        1000
-      );
-    });
-    it('should not bulk issue tokens if it exceeds counter', async function () {
-      // GIVEN
-      await this.complianceService.setTotalInvestorsCount(1);
-      await this.complianceConfiguration.setNonAccreditedInvestorsLimit(1);
-      const value = 1000;
-      const txCounters = {
-        totalInvestorsCount: 1,
-        accreditedInvestorsCount: 0,
-        usTotalInvestorsCount: 0,
-        usAccreditedInvestorsCount: 0,
-        jpTotalInvestorsCount: 0,
-      };
-
-      await setCounters(txCounters, this);
-
-      // THEN
-      await assertRevert(this.omnibusTBEController
-        .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
-          txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
-          txCounters.jpTotalInvestorsCount, [], []));
-    });
-    it('should not bulk issue tokens if countries array does not match with country counters array', async function () {
-      // GIVEN
-      await this.complianceService.setTotalInvestorsCount(1);
-      await this.complianceConfiguration.setNonAccreditedInvestorsLimit(1);
-      const value = 1000;
-      const txCounters = {
-        totalInvestorsCount: 1,
-        accreditedInvestorsCount: 1,
-        usTotalInvestorsCount: 0,
-        usAccreditedInvestorsCount: 0,
-        jpTotalInvestorsCount: 0,
-      };
-
-      euRetailCountries.push('EU');
-
-      await setCounters(txCounters, this);
-
-      // THEN
-
-      // WHEN
-      await assertRevert(this.omnibusTBEController
-        .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
-          txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
-          txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts));
-
-      await euRetailCountries.forEach((country, index) => {
-        // Reset counters
         this.complianceService.setEURetailInvestorsCount(country, 0);
         euRetailCountries = [];
         euRetailCountryCounts = [];
@@ -294,126 +208,6 @@ contract('OmnibusTBEController', ([
         euRetailCountryCounts = [];
       });
     });
-    it('should not bulk transfer tokens from omnibus to wallet if omnibus has no balance', async function () {
-      // GIVEN
-      const value = 1000;
-      const tokenValues = ['500', '500'];
-      const investorWallets = [investorWallet1, investorWallet2];
-      const currentOmnibusBalance = await this.token.balanceOf(omnibusWallet);
-      assert.equal(
-        currentOmnibusBalance.toNumber(),
-        0
-      );
-      // WHEN
-      await this.token.approve(this.omnibusTBEController.address, value, { from: omnibusWallet });
-
-      // THEN
-      await assertRevert(this.omnibusTBEController
-        .bulkTransfer(investorWallets, tokenValues));
-    });
-    it('should not bulk transfer tokens if token value array length does not match wallet array length',
-      async function () {
-        // GIVEN
-        const value = 1000;
-        const tokenValues = ['500'];
-        const investorWallets = [investorWallet1, investorWallet2];
-        const txCounters = {
-          totalInvestorsCount: 5,
-          accreditedInvestorsCount: 5,
-          usTotalInvestorsCount: 4,
-          usAccreditedInvestorsCount: 1,
-          jpTotalInvestorsCount: 0,
-        };
-
-        euRetailCountries.push('ES');
-        euRetailCountryCounts.push(2);
-
-        await setCounters(txCounters, this);
-
-        // WHEN
-        await this.omnibusTBEController
-          .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
-            txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
-            txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
-
-        await this.token.approve(this.omnibusTBEController.address, value, { from: omnibusWallet });
-
-        // THEN
-        await assertRevert(this.omnibusTBEController
-          .bulkTransfer(investorWallets, tokenValues));
-
-        // Reset counters
-        await euRetailCountries.forEach((country, index) => {
-          this.complianceService.setEURetailInvestorsCount(country, 0);
-          euRetailCountries = [];
-          euRetailCountryCounts = [];
-        });
-      });
-    it('should bulk transfer tokens and remove totalInvestor counter by 1 if target wallet has balance',
-      async function () {
-      // GIVEN
-        const value = 1000;
-        const tokenValues = ['500'];
-        const investorWallets = [investorWallet1];
-        await this.token.issueTokens(investorWallet1, 200);
-
-        const txCounters = {
-          totalInvestorsCount: 5,
-          accreditedInvestorsCount: 5,
-          usTotalInvestorsCount: 4,
-          usAccreditedInvestorsCount: 1,
-          jpTotalInvestorsCount: 0,
-        };
-        const txBurnCounters = {
-          totalInvestorsCount: 1,
-          accreditedInvestorsCount: 0,
-          usTotalInvestorsCount: 0,
-          usAccreditedInvestorsCount: 0,
-          jpTotalInvestorsCount: 0,
-        };
-
-        euRetailCountries.push('ES');
-        euRetailCountryCounts.push(2);
-
-        await setCounters(txCounters, this);
-
-        // WHEN
-        await this.omnibusTBEController
-          .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
-            txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
-            txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
-
-        await this.token.approve(this.omnibusTBEController.address, value, { from: omnibusWallet });
-
-        await this.omnibusTBEController
-          .bulkTransfer(investorWallets, tokenValues);
-
-        await getCountersDelta(txBurnCounters);
-
-        // THEN
-        await assertCounters(this);
-
-        const omnibusCurrentBalance = await this.token.balanceOf(omnibusWallet);
-        assert.equal(
-          omnibusCurrentBalance.toNumber(),
-          500
-        );
-        const investorWallet1CurrentBalance = await this.token.balanceOf(investorWallet1);
-        assert.equal(
-          investorWallet1CurrentBalance.toNumber(),
-          700
-        );
-
-        // Reset Balance
-        await this.token.burn(omnibusWallet, 500, 'reset');
-        await this.token.burn(investorWallet1, 700, 'reset');
-        // Reset counters
-        await euRetailCountries.forEach((country, index) => {
-          this.complianceService.setEURetailInvestorsCount(country, 0);
-          euRetailCountries = [];
-          euRetailCountryCounts = [];
-        });
-      });
   });
   describe('Adjust counters', function () {
     it('should adjust counters with positive value correctly', async function () {
