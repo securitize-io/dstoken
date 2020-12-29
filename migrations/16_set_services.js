@@ -169,24 +169,6 @@ module.exports = async function (deployer) {
     );
 
     if (!configurationManager.noOmnibusWallet) {
-      // omnibusWalletController = await OmnibusWalletController.at(
-      //   configurationManager.getProxyAddressForContractName(
-      //     'OmnibusWalletController'
-      //   )
-      // );
-      //
-      // console.log('Connecting omnibus wallet controller to trust service');
-      // await omnibusWalletController.setDSService(
-      //   services.TRUST_SERVICE,
-      //   trustService.address
-      // );
-      //
-      // console.log('Connecting omnibus wallet controller to compliance manager');
-      // await omnibusWalletController.setDSService(
-      //   services.COMPLIANCE_SERVICE,
-      //   complianceService.address
-      // );
-
       console.log('Connecting token to omnibus TBE controller');
       await token.setDSService(
         services.OMNIBUS_TBE_CONTROLLER,
@@ -226,35 +208,6 @@ module.exports = async function (deployer) {
           gas: 1e6,
         }
       );
-
-      // TODO: Should Omnibus TBE register investor this way?
-      // console.log('Adding omnibus wallet investor to registry');
-      // await registry.registerInvestor(
-      //   configurationManager.omnibusWalletInvestorId,
-      //   configurationManager.omnibusWalletInvestorId
-      // );
-      // TODO: This allows multiple omnibus wallet controllers. Should TBE use it?
-      // console.log('Adding omnibus wallet controller to registry');
-      // await registry.addOmnibusWallet(
-      //   configurationManager.omnibusWalletInvestorId,
-      //   configurationManager.omnibusWallet,
-      //   omnibusWalletController.address
-      // );
-
-      // await registry.setAttribute(
-      //   configurationManager.omnibusWalletInvestorId,
-      //   attributeType.ACCREDITED,
-      //   attributeStatus.APPROVED,
-      //   '',
-      //   ''
-      // );
-      // await registry.setAttribute(
-      //   configurationManager.omnibusWalletInvestorId,
-      //   attributeType.QUALIFIED,
-      //   attributeStatus.APPROVED,
-      //   '',
-      //   ''
-      // );
     }
   }
 
