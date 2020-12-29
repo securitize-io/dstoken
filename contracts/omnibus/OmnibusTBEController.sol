@@ -11,11 +11,12 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
     using SafeMath for uint256;
     string internal constant MAX_INVESTORS_IN_CATEGORY = "Max investors in category";
 
-    function initialize(address _omnibusWallet) public initializer forceInitializeFromProxy {
+    function initialize(address _omnibusWallet, bool _isPartitionedToken) public initializer forceInitializeFromProxy {
         VERSIONS.push(3);
         ServiceConsumer.initialize();
 
         omnibusWallet = _omnibusWallet;
+        isPartitionedToken = _isPartitionedToken;
     }
 
     function bulkIssuance(uint256 value, uint256 issuanceTime, uint256 totalInvestors, uint256 accreditedInvestors,
@@ -35,6 +36,19 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
         require(euRetailCountries.length == euRetailCountryCounts.length, 'EU Retail countries arrays do not match');
         addToCounters(totalInvestors, accreditedInvestors,
             usAccreditedInvestors, usTotalInvestors, jpTotalInvestors, euRetailCountries, euRetailCountryCounts, false);
+        if(isPartitionedToken) {
+            IDSTokenPartitioned token = getTokenPartitioned();
+            bool done;
+            for (uint i = 0; i < token.partitionCountOf(omnibusWallet); i++) {
+                bytes32 partition = token.partitionOf(omnibusWallet, i);
+                if(token.balanceOfByPartition(omnibusWallet, partition) >= value) {
+                    token.burnByPartition(omnibusWallet, value, 'Omnibus burn by partition', partition);
+                    done = true;
+                }
+            }
+            require(done, "Could not find partition to burn tokens from");
+            return;
+        }
         // Burn tokens
         getToken().burn(omnibusWallet, value, 'Omnibus');
     }

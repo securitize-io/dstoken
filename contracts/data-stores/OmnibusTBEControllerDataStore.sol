@@ -4,4 +4,5 @@ import "./ServiceConsumerDataStore.sol";
 
 contract OmnibusTBEControllerDataStore is ServiceConsumerDataStore {
     address internal omnibusWallet;
+    bool internal isPartitionedToken;
 }

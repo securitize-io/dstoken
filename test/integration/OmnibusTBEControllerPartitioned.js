@@ -25,9 +25,9 @@ contract('OmnibusTBEControllerPartitioned', ([
       this,
       artifacts,
       compliance.PARTITIONED,
-      lockManagerType.INVESTOR,
+      lockManagerType.PARTITIONED,
       undefined,
-      false,
+      true,
       omnibusWallet
     );
     await setOmnibusTBEServicesDependencies(this);
@@ -56,7 +56,8 @@ contract('OmnibusTBEControllerPartitioned', ([
     await resetCounters(this);
     const currentBalance = await this.token.balanceOf(omnibusWallet);
     if (currentBalance.toNumber() > 0) {
-      await this.token.burn(omnibusWallet, currentBalance, '');
+      const partition = await this.token.partitionOf(omnibusWallet, 0);
+      await this.token.burnByPartition(omnibusWallet, currentBalance, '', partition);
     }
   });
 
@@ -198,8 +199,11 @@ contract('OmnibusTBEControllerPartitioned', ([
       );
 
       // Reset balance
-      await this.token.burn(investorWallet1, 500, 'reset');
-      await this.token.burn(investorWallet2, 500, 'reset');
+      const partition1 = await this.token.partitionOf(investorWallet1, 0);
+      const partition2 = await this.token.partitionOf(investorWallet2, 0);
+
+      await this.token.burnByPartition(investorWallet1, 500, '', partition1);
+      await this.token.burnByPartition(investorWallet2, 500, '', partition2);
 
       // Reset counters
       await euRetailCountries.forEach((country, index) => {

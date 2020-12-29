@@ -12,7 +12,7 @@ module.exports = async function(deployer) {
       configurationManager,
       deployer,
       artifacts.require("OmnibusTBEController"),
-      [configurationManager.omnibusWallet]
+      [configurationManager.omnibusWallet, configurationManager.isPartitioned()]
     );
   } else {
     console.log("Skipping omnibus wallet controller");

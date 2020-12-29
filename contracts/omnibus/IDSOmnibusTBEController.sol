@@ -9,7 +9,7 @@ import "../utils/Initializable.sol";
 contract IDSOmnibusTBEController is Initializable, VersionedContract {
     using SafeMath for uint256;
 
-    function initialize(address _omnibusWallet) public;
+    function initialize(address _omnibusWallet, bool _isPartitionedToken) public;
 
     function bulkIssuance(uint256 value, uint256 issuanceTime, uint256 totalInvestors, uint256 accreditedInvestors,
         uint256 usAccreditedInvestors, uint256 usTotalInvestors, uint256 jpTotalInvestors, bytes32[] memory euRetailCountries,

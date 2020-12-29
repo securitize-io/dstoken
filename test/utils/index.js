@@ -104,7 +104,7 @@ async function deployContracts (
       artifacts.require('OmnibusTBEController'),
       testObject,
       'omnibusTBEController',
-      [omnibusTBEAddress]
+      [omnibusTBEAddress, partitionsSupport]
     );
   }
 
