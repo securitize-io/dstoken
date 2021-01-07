@@ -61,6 +61,13 @@ contract('OmnibusTBEController', ([
     if (currentBalance.toNumber() > 0) {
       await this.token.burn(omnibusWallet, currentBalance, '');
     }
+
+    await euRetailCountries.forEach((country, index) => {
+      // Reset counters
+      this.complianceService.setEURetailInvestorsCount(country, 0);
+    });
+    euRetailCountries = [];
+    euRetailCountryCounts = [];
   });
 
   describe('Bulk issuance', function () {
@@ -96,14 +103,6 @@ contract('OmnibusTBEController', ([
         currentBalance,
         1000
       );
-
-      await euRetailCountries.forEach((country, index) => {
-        assertCountryCounters(this, country, euRetailCountryCounts[index]);
-        // Reset counters after assertion
-        this.complianceService.setEURetailInvestorsCount(country, 0);
-        euRetailCountries = [];
-        euRetailCountryCounts = [];
-      });
     });
     it('should bulk issue tokens correctly w/o countries array', async function () {
       // GIVEN
@@ -180,13 +179,6 @@ contract('OmnibusTBEController', ([
         .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
           txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
           txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts));
-
-      await euRetailCountries.forEach((country, index) => {
-        // Reset counters
-        this.complianceService.setEURetailInvestorsCount(country, 0);
-        euRetailCountries = [];
-        euRetailCountryCounts = [];
-      });
     });
   });
   describe('Bulk burn', function () {
@@ -286,13 +278,6 @@ contract('OmnibusTBEController', ([
       // Reset balance
       await this.token.burn(investorWallet1, 500, 'reset');
       await this.token.burn(investorWallet2, 500, 'reset');
-
-      // Reset counters
-      await euRetailCountries.forEach((country, index) => {
-        this.complianceService.setEURetailInvestorsCount(country, 0);
-        euRetailCountries = [];
-        euRetailCountryCounts = [];
-      });
     });
     it('should not bulk transfer tokens from omnibus to wallet if omnibus has no balance', async function () {
       // GIVEN
@@ -341,13 +326,6 @@ contract('OmnibusTBEController', ([
         // THEN
         await assertRevert(this.omnibusTBEController
           .bulkTransfer(investorWallets, tokenValues));
-
-        // Reset counters
-        await euRetailCountries.forEach((country, index) => {
-          this.complianceService.setEURetailInvestorsCount(country, 0);
-          euRetailCountries = [];
-          euRetailCountryCounts = [];
-        });
       });
     it('should bulk transfer tokens and remove totalInvestor counter by 1 if target wallet has balance',
       async function () {
@@ -407,12 +385,6 @@ contract('OmnibusTBEController', ([
         // Reset Balance
         await this.token.burn(omnibusWallet, 500, 'reset');
         await this.token.burn(investorWallet1, 700, 'reset');
-        // Reset counters
-        await euRetailCountries.forEach((country, index) => {
-          this.complianceService.setEURetailInvestorsCount(country, 0);
-          euRetailCountries = [];
-          euRetailCountryCounts = [];
-        });
       });
   });
   describe('Adjust counters', function () {
