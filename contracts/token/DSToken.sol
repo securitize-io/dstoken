@@ -288,9 +288,10 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     }
 
     function getCommonServices() internal view returns (address[] memory) {
-        address[] memory services = new address[](2);
+        address[] memory services = new address[](3);
         services[0] = getDSService(COMPLIANCE_SERVICE);
         services[1] = getDSService(REGISTRY_SERVICE);
+        services[2] = getDSService(OMNIBUS_TBE_CONTROLLER);
         return services;
     }
 }

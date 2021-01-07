@@ -10,6 +10,7 @@ library ComplianceServiceLibrary {
     uint256 internal constant COMPLIANCE_CONFIGURATION_SERVICE = 3;
     uint256 internal constant LOCK_MANAGER = 4;
     uint256 internal constant COMPLIANCE_SERVICE = 5;
+    uint256 internal constant OMNIBUS_TBE_CONTROLLER = 6;
     uint256 internal constant NONE = 0;
     uint256 internal constant US = 1;
     uint256 internal constant EU = 2;
@@ -61,9 +62,13 @@ library ComplianceServiceLibrary {
 
     function isNewInvestor(address[] memory _services, address _wallet) internal view returns (bool) {
         IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
+        IDSOmnibusTBEController omnibusTBEController = IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]);
 
         // Return whether this investor has 0 balance and is not an omnibus wallet in BENEFICIARY mode (which is not considered an investor)
-        return balanceOfInvestor(_services, _wallet) == 0 && !(registryService.isOmnibusWallet(_wallet) && !registryService.getOmnibusWalletController(_wallet).isHolderOfRecord());
+        return balanceOfInvestor(_services, _wallet) == 0 &&
+            !isOmnibusTBE(omnibusTBEController, _wallet) &&
+            !(registryService.isOmnibusWallet(_wallet) &&
+            !registryService.getOmnibusWalletController(_wallet).isHolderOfRecord());
     }
 
     function getCountry(address[] memory _services, address _wallet) internal view returns (string memory) {
@@ -99,6 +104,13 @@ library ComplianceServiceLibrary {
         return
             (_registryService.isOmnibusWallet(_from) && !_registryService.getOmnibusWalletController(_from).isHolderOfRecord()) ||
             (_registryService.isOmnibusWallet(_to) && !_registryService.getOmnibusWalletController(_to).isHolderOfRecord());
+    }
+
+    function isOmnibusTBE(IDSOmnibusTBEController _omnibusTBE, address _from) public view returns (bool) {
+        if (address(_omnibusTBE) != address(0)) {
+            return _omnibusTBE.getOmnibusWallet() == _from;
+        }
+        return false;
     }
 
     function isHolderOfRecordInternalTransfer(address[] memory _services, address _omnibusWallet) internal view returns (bool) {
@@ -496,7 +508,7 @@ library ComplianceServiceLibrary {
 contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     function initialize() public initializer forceInitializeFromProxy {
         super.initialize();
-        VERSIONS.push(8);
+        VERSIONS.push(9);
     }
 
     function compareInvestorBalance(
@@ -512,12 +524,18 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         address _to,
         uint256 _value
     ) internal returns (bool) {
-        if (compareInvestorBalance(_from, _value, _value)) {
-            adjustTransferCounts(_from, _to, CommonUtils.IncDec.Decrease);
-        }
+        if (!ComplianceServiceLibrary.isOmnibusTBE(getOmnibusTBEController(), _from)) {
+            if (compareInvestorBalance(_from, _value, _value)) {
+                adjustTransferCounts(_from, _to, CommonUtils.IncDec.Decrease);
+            }
 
-        if (compareInvestorBalance(_to, _value, 0)) {
-            adjustTransferCounts(_to, _from, CommonUtils.IncDec.Increase);
+            if (compareInvestorBalance(_to, _value, 0)) {
+                adjustTransferCounts(_to, _from, CommonUtils.IncDec.Increase);
+            }
+        } else {
+            if (!compareInvestorBalance(_to, _value, 0)) {
+                adjustTotalInvestorsCounts(_to, CommonUtils.IncDec.Decrease);
+            }
         }
 
         return true;
@@ -731,49 +749,50 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return jpInvestorsCount;
     }
 
-    function setTotalInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+    function setTotalInvestorsCount(uint256 _value) public onlyMasterOrTBEOmnibus returns (bool) {
         totalInvestors = _value;
 
         return true;
     }
 
-    function setUSInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+    function setUSInvestorsCount(uint256 _value) public onlyMasterOrTBEOmnibus returns (bool) {
         usInvestorsCount = _value;
 
         return true;
     }
 
-    function setUSAccreditedInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+    function setUSAccreditedInvestorsCount(uint256 _value) public onlyMasterOrTBEOmnibus returns (bool) {
         usAccreditedInvestorsCount = _value;
 
         return true;
     }
 
-    function setAccreditedInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+    function setAccreditedInvestorsCount(uint256 _value) public onlyMasterOrTBEOmnibus returns (bool) {
         accreditedInvestorsCount = _value;
 
         return true;
     }
 
-    function setEURetailInvestorsCount(string memory _country, uint256 _value) public onlyMaster returns (bool) {
+    function setEURetailInvestorsCount(string memory _country, uint256 _value) public onlyMasterOrTBEOmnibus returns (bool) {
         euRetailInvestorsCount[_country] = _value;
 
         return true;
     }
 
-    function setJPInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+    function setJPInvestorsCount(uint256 _value) public onlyMasterOrTBEOmnibus returns (bool) {
         jpInvestorsCount = _value;
 
         return true;
     }
 
     function getServices() internal view returns (address[] memory services) {
-        services = new address[](6);
+        services = new address[](7);
         services[0] = getDSService(DS_TOKEN);
         services[1] = getDSService(REGISTRY_SERVICE);
         services[2] = getDSService(WALLET_MANAGER);
         services[3] = getDSService(COMPLIANCE_CONFIGURATION_SERVICE);
         services[4] = getDSService(LOCK_MANAGER);
         services[5] = address(this);
+        services[6] = getDSService(OMNIBUS_TBE_CONTROLLER);
     }
 }

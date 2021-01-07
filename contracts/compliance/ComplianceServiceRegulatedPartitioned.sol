@@ -16,6 +16,7 @@ library ComplianceServicePartitionedLibrary {
     uint256 internal constant COMPLIANCE_CONFIGURATION_SERVICE = 3;
     uint256 internal constant LOCK_MANAGER = 4;
     uint256 internal constant COMPLIANCE_SERVICE = 5;
+    uint256 internal constant OMNIBUS_TBE_CONTROLLER = 6;
     string internal constant TOKEN_PAUSED = "Token paused";
     string internal constant NOT_ENOUGH_TOKENS = "Not enough tokens";
     string internal constant VALID = "Valid";
@@ -62,9 +63,13 @@ library ComplianceServicePartitionedLibrary {
 
     function isNewInvestor(address[] memory _services, address _wallet) internal view returns (bool) {
         IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
+        IDSOmnibusTBEController omnibusTBEController = IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]);
 
         // Return whether this investor has 0 balance and is not an omnibus wallet in BENEFICIARY mode (which is not considered an invesor)
-        return balanceOfInvestor(_services, _wallet) == 0 && !(registryService.isOmnibusWallet(_wallet) && !registryService.getOmnibusWalletController(_wallet).isHolderOfRecord());
+        return balanceOfInvestor(_services, _wallet) == 0 &&
+        !isOmnibusTBE(omnibusTBEController, _wallet) &&
+        !(registryService.isOmnibusWallet(_wallet) &&
+        !registryService.getOmnibusWalletController(_wallet).isHolderOfRecord());
     }
 
     function getCountry(address[] memory _services, address _wallet) internal view returns (string memory) {
@@ -81,6 +86,13 @@ library ComplianceServicePartitionedLibrary {
         return
             (registryService.isOmnibusWallet(_from) && !registryService.getOmnibusWalletController(_from).isHolderOfRecord()) ||
             (registryService.isOmnibusWallet(_to) && !registryService.getOmnibusWalletController(_to).isHolderOfRecord());
+    }
+
+    function isOmnibusTBE(IDSOmnibusTBEController _omnibusTBE, address _from) public view returns (bool) {
+        if (address(_omnibusTBE) != address(0)) {
+            return _omnibusTBE.getOmnibusWallet() == _from;
+        }
+        return false;
     }
 
     function isHolderOfRecordInternalTransfer(address[] memory _services, address _omnibusWallet) internal view returns (bool) {

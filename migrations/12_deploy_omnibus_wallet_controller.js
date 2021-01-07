@@ -11,8 +11,8 @@ module.exports = async function(deployer) {
       artifacts.require("Proxy"),
       configurationManager,
       deployer,
-      artifacts.require("OmnibusWalletController"),
-      [configurationManager.omnibusWallet]
+      artifacts.require("OmnibusTBEController"),
+      [configurationManager.omnibusWallet, configurationManager.isPartitioned()]
     );
   } else {
     console.log("Skipping omnibus wallet controller");
