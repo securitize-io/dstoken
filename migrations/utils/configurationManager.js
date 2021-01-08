@@ -1,4 +1,4 @@
-const argv = require('minimist')(process.argv.slice(2));
+const argv = require('minimist')(process.argv.slice(2), { string: ['omnibus_wallet'] });
 
 const MAINNET_CHAIN_ID = 1;
 
@@ -19,7 +19,7 @@ class ConfigurationManager {
       !argv.owners ||
       (!argv.no_registry &&
         !argv.no_omnibus_wallet &&
-        (!argv.omnibus_wallet_investor_id || !argv.omnibus_wallet))
+        (/*!argv.omnibus_wallet_investor_id ||*/ !argv.omnibus_wallet))
     ) {
       console.log('Token Deployer');
       console.log(
@@ -79,8 +79,7 @@ class ConfigurationManager {
       this.noOmnibusWallet = true;
     } else {
       this.noOmnibusWallet = argv.no_omnibus_wallet;
-      this.omnibusWalletInvestorId = argv.omnibus_wallet_investor_id;
-      this.omnibusWallet = `0x${argv.omnibus_wallet}`;
+      this.omnibusWallet = argv.omnibus_wallet;
     }
 
     return true;
