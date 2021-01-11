@@ -238,12 +238,6 @@ library ComplianceServicePartitionedLibrary {
                 return (25, FLOWBACK);
             }
 
-            if(
-                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getWorldWideForceFullTransfer()
-            ) {
-                return (50, ONLY_FULL_TRANSFER);
-            }
-
             if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getWorldWideForceFullTransfer() && fromInvestorBalance > _value) {
                 return (50, ONLY_FULL_TRANSFER);
             }
