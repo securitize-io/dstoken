@@ -209,7 +209,8 @@ library ComplianceServiceLibrary {
 
         if (IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) == WALLET_TYPE_PLATFORM) {
             if (
-                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() &&
+                (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() ||
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getWorldWideForceFullTransfer()) &&
                 fromInvestorBalance > _value &&
                 !isOmnibusTransfer(_services, _from, _to) &&
                 !isOmnibusInternalTransfer(_omnibusWallet)
@@ -274,6 +275,15 @@ library ComplianceServiceLibrary {
                     IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() > now)
             ) {
                 return (25, FLOWBACK);
+            }
+
+            if (
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getWorldWideForceFullTransfer() &&
+                fromInvestorBalance > _value &&
+                !isOmnibusTransfer(_services, _from, _to) &&
+                !isOmnibusInternalTransfer(_omnibusWallet)
+            ) {
+                return (50, ONLY_FULL_TRANSFER);
             }
         }
 
@@ -508,7 +518,7 @@ library ComplianceServiceLibrary {
 contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     function initialize() public initializer forceInitializeFromProxy {
         super.initialize();
-        VERSIONS.push(9);
+        VERSIONS.push(10);
     }
 
     function compareInvestorBalance(

@@ -21,7 +21,7 @@ contract("ComplianceServiceRegulated", function([
   noneWallet2,
   platformWallet,
   omnibusWallet,
-  walletForPausedToken,
+  walletForPausedToken
 ]) {
   before(async function() {
     await deployContracts(
@@ -47,7 +47,7 @@ contract("ComplianceServiceRegulated", function([
     );
     await this.complianceConfiguration.setAll(
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, time.YEARS, 0],
-      [true, false, false]
+      [true, false, false, false]
     );
   });
 
@@ -96,15 +96,15 @@ contract("ComplianceServiceRegulated", function([
       assert.equal(await this.token.balanceOf(wallet), 100);
     });
 
-    it('Should issue tokens even when the token is paused', async function() {
+    it("Should issue tokens even when the token is paused", async function() {
       await this.token.pause();
       await this.registryService.registerInvestor(
-          investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED,
-          investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED
+        investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED,
+        investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED
       );
       await this.registryService.addWallet(
-          walletForPausedToken,
-          investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED
+        walletForPausedToken,
+        investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED
       );
       assert.equal(await this.token.balanceOf(walletForPausedToken), 0);
       await this.token.issueTokens(walletForPausedToken, 1);
@@ -922,6 +922,96 @@ contract("ComplianceServiceRegulated", function([
       assert.equal(res[1], "Only full transfer");
     });
 
+    it("Pre transfer check with world wide force full transfer - should return code 50", async function() {
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+      );
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_2,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+      );
+      await this.registryService.setCountry(
+        investorId.GENERAL_INVESTOR_ID_1,
+        country.FRANCE
+      );
+      await this.registryService.setCountry(
+        investorId.GENERAL_INVESTOR_ID_2,
+        country.FRANCE
+      );
+      await this.registryService.addWallet(
+        wallet,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.registryService.addWallet(
+        owner,
+        investorId.GENERAL_INVESTOR_ID_2
+      );
+      await this.token.setCap(1000);
+      await this.token.issueTokens(wallet, 100);
+      await this.complianceConfiguration.setCountryCompliance(
+        country.FRANCE,
+        compliance.EU
+      );
+      assert.equal(await this.token.balanceOf(wallet), 100);
+      await increaseTime(370 * time.DAYS);
+      await this.complianceConfiguration.setForceFullTransfer(false);
+      await this.complianceConfiguration.setWorldWideForceFullTransfer(true);
+      const res = await this.complianceService.preTransferCheck(
+        wallet,
+        owner,
+        50
+      );
+      assert.equal(res[0].toNumber(), 50);
+      assert.equal(res[1], "Only full transfer");
+
+      // Finally
+      await this.complianceConfiguration.setForceFullTransfer(true);
+      await this.complianceConfiguration.setWorldWideForceFullTransfer(false);
+    });
+
+    it("Pre transfer check with world wide force full transfer", async function() {
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+      );
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_2,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+      );
+      await this.registryService.setCountry(
+        investorId.GENERAL_INVESTOR_ID_1,
+        country.GERMANY
+      );
+      await this.registryService.setCountry(
+        investorId.GENERAL_INVESTOR_ID_2,
+        country.FRANCE
+      );
+      await this.registryService.addWallet(
+        wallet,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.registryService.addWallet(
+        owner,
+        investorId.GENERAL_INVESTOR_ID_2
+      );
+      await this.token.setCap(1000);
+      await this.token.issueTokens(wallet, 100);
+      await this.complianceConfiguration.setCountryCompliance(
+        country.FRANCE,
+        compliance.EU
+      );
+      assert.equal(await this.token.balanceOf(wallet), 100);
+      await increaseTime(370 * time.DAYS);
+      const res = await this.complianceService.preTransferCheck(
+        wallet,
+        owner,
+        100
+      );
+      assert.equal(res[0].toNumber(), 0);
+      assert.equal(res[1], "Valid");
+    });
+
     it("Pre transfer check from nonUs investor to US - should return code 25", async function() {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
@@ -1101,15 +1191,16 @@ contract("ComplianceServiceRegulated", function([
         investorId.GENERAL_INVESTOR_ID_1
       );
       await this.registryService.addWallet(
-        wallet1, investorId.GENERAL_INVESTOR_ID_2
+        wallet1,
+        investorId.GENERAL_INVESTOR_ID_2
       );
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_1,
-        'MY'
+        "MY"
       );
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_2,
-        'MY'
+        "MY"
       );
       await this.token.issueTokens(wallet, 100);
       const res = await this.complianceService.preTransferCheck(
@@ -1141,11 +1232,11 @@ contract("ComplianceServiceRegulated", function([
       );
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_1,
-        'MY'
+        "MY"
       );
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_2,
-        'MY'
+        "MY"
       );
       await this.token.issueTokens(wallet, 100);
       const res = await this.complianceService.preTransferCheck(

@@ -9,7 +9,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     function initialize() public initializer forceInitializeFromProxy {
         IDSComplianceConfigurationService.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(5);
+        VERSIONS.push(6);
     }
 
     function setCountryCompliance(string memory _country, uint256 _value) public onlyIssuerOrAbove {
@@ -183,9 +183,18 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         forceAccredited = _value;
     }
 
+    function getWorldWideForceFullTransfer() public view returns (bool) {
+        return worldWideForceFullTransfer;
+    }
+
+    function setWorldWideForceFullTransfer(bool _value) public onlyIssuerOrAbove {
+        emit DSComplianceBoolRuleSet("worldWideForceFullTransfer", worldWideForceFullTransfer, _value);
+        worldWideForceFullTransfer = _value;
+    }
+
     function setAll(uint256[] memory _uint_values, bool[] memory _bool_values) public onlyIssuerOrAbove {
         require(_uint_values.length == 15, "Wrong length of parameters");
-        require(_bool_values.length == 3, "Wrong length of parameters");
+        require(_bool_values.length == 4, "Wrong length of parameters");
         setTotalInvestorsLimit(_uint_values[0]);
         setMinUSTokens(_uint_values[1]);
         setMinEUTokens(_uint_values[2]);
@@ -204,11 +213,12 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         setForceFullTransfer(_bool_values[0]);
         setForceAccredited(_bool_values[1]);
         setForceAccreditedUS(_bool_values[2]);
+        setWorldWideForceFullTransfer(_bool_values[3]);
     }
 
     function getAll() public view returns (uint256[] memory, bool[] memory) {
         uint256[] memory uintValues = new uint256[](15);
-        bool[] memory boolValues = new bool[](3);
+        bool[] memory boolValues = new bool[](4);
 
         uintValues[0] = getTotalInvestorsLimit();
         uintValues[1] = getMinUSTokens();
@@ -228,6 +238,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         boolValues[0] = getForceFullTransfer();
         boolValues[1] = getForceAccredited();
         boolValues[2] = getForceAccreditedUS();
+        boolValues[3] = getWorldWideForceFullTransfer();
         return (uintValues, boolValues);
     }
 }

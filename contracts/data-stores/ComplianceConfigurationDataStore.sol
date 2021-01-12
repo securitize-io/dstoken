@@ -22,4 +22,5 @@ contract ComplianceConfigurationDataStore is ServiceConsumerDataStore {
     bool public forceFullTransfer;
     bool public forceAccreditedUS;
     bool public forceAccredited;
+    bool public worldWideForceFullTransfer;
 }
