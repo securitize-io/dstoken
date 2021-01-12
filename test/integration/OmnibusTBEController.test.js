@@ -103,6 +103,15 @@ contract('OmnibusTBEController', ([
         currentBalance,
         1000
       );
+
+      await assertEvent(this.token, "OmnibusTBEOperation", {
+        omnibusWallet,
+        totalDelta: 1,
+        accreditedDelta: 1,
+        usAccreditedDelta: 0,
+        usTotalDelta: 0,
+        jpTotalDelta: 0,
+      });
     });
     it('should bulk issue tokens correctly w/o countries array', async function () {
       // GIVEN
@@ -133,6 +142,14 @@ contract('OmnibusTBEController', ([
         currentBalance,
         1000
       );
+      await assertEvent(this.token, "OmnibusTBEOperation", {
+        omnibusWallet,
+        totalDelta: 1,
+        accreditedDelta: 1,
+        usAccreditedDelta: 0,
+        usTotalDelta: 0,
+        jpTotalDelta: 0,
+      });
     });
     it('should not bulk issue tokens if it exceeds counter', async function () {
       // GIVEN
@@ -225,6 +242,14 @@ contract('OmnibusTBEController', ([
         currentBalance,
         500
       );
+      await assertEvent(this.token, "OmnibusTBEOperation", {
+        omnibusWallet,
+        totalDelta: -1,
+        accreditedDelta: -1,
+        usAccreditedDelta: 0,
+        usTotalDelta: 0,
+        jpTotalDelta: 0,
+      });
     });
   });
   describe('Bulk transfer', function () {
@@ -435,6 +460,14 @@ contract('OmnibusTBEController', ([
         .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
           txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
           txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
+      await assertEvent(this.token, "OmnibusTBEOperation", {
+        omnibusWallet,
+        totalDelta: 6,
+        accreditedDelta: 5,
+        usAccreditedDelta: 1,
+        usTotalDelta: 4,
+        jpTotalDelta: 0,
+      });
 
       await this.omnibusTBEController
         .adjustCounters(negativeCounters.totalInvestorsCount, negativeCounters.accreditedInvestorsCount,
@@ -448,3 +481,16 @@ contract('OmnibusTBEController', ([
     });
   });
 });
+
+async function assertEvent(contract, expectedEvent, expectedParams) {
+  const events = await contract.getPastEvents("allEvents");
+
+  const event = events.find(event => event.event == expectedEvent);
+
+  if (!event) {
+    assert.fail(`Event ${expectedEvent} not found`);
+  }
+  for (const key of Object.keys(expectedParams)) {
+    assert.equal(event.returnValues[key], expectedParams[key]);
+  }
+}
