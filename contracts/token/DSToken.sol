@@ -12,7 +12,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         IDSToken.initialize();
         StandardToken.initialize();
 
-        VERSIONS.push(4);
+        VERSIONS.push(5);
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
