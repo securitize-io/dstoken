@@ -28,7 +28,7 @@ contract("ComplianceConfigurationService", function([owner]) {
     it("Should set all rules and emit events correctly", async function() {
       const tx = await this.complianceConfiguration.setAll(
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
-        [true, true, true]
+        [true, true, true, true]
       );
 
       assert.equal(tx.logs[0].event, "DSComplianceUIntRuleSet");
@@ -121,6 +121,11 @@ contract("ComplianceConfigurationService", function([owner]) {
       assert.equal(tx.logs[17].args.prevValue, false);
       assert.equal(tx.logs[17].args.newValue, true);
 
+      assert.equal(tx.logs[18].event, "DSComplianceBoolRuleSet");
+      assert.equal(tx.logs[18].args.ruleName, "worldWideForceFullTransfer");
+      assert.equal(tx.logs[18].args.prevValue, false);
+      assert.equal(tx.logs[18].args.newValue, true);
+
       const result = await this.complianceConfiguration.getAll();
 
       assert.deepEqual(
@@ -128,7 +133,7 @@ contract("ComplianceConfigurationService", function([owner]) {
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
       );
 
-      assert.deepEqual(result[1], [true, true, true]);
+      assert.deepEqual(result[1], [true, true, true, true]);
     });
   });
 
