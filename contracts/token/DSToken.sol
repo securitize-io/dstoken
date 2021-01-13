@@ -12,7 +12,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         IDSToken.initialize();
         StandardToken.initialize();
 
-        VERSIONS.push(4);
+        VERSIONS.push(5);
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
@@ -258,6 +258,11 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
     {
         emit OmnibusTransfer(_omnibusWallet, _from, _to, _value, getAssetTrackingMode(_omnibusWallet));
+    }
+
+    function emitOmnibusTBEEvent(address omnibusWallet, int256 totalDelta, int256 accreditedDelta,
+        int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta) public onlyTBEOmnibus {
+        emit OmnibusTBEOperation(omnibusWallet, totalDelta, accreditedDelta, usAccreditedDelta, usTotalDelta, jpTotalDelta);
     }
 
     function updateInvestorsBalancesOnTransfer(address _from, address _to, uint256 _value) internal {
