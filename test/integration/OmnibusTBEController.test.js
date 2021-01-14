@@ -480,6 +480,59 @@ contract('OmnibusTBEController', ([
       await assertCounters(this);
     });
   });
+  describe('Internal TBE Transfer', function () {
+    it('should correctly reflect an internal TBE transfer', async function () {
+      // GIVEN
+      const value = 1000;
+      const txCounters = {
+        totalInvestorsCount: 2,
+        accreditedInvestorsCount: 2,
+        usTotalInvestorsCount: 1,
+        usAccreditedInvestorsCount: 1,
+        jpTotalInvestorsCount: 0,
+      };
+
+      const negativeCounters = {
+        totalInvestorsCount: -1,
+        accreditedInvestorsCount: -1,
+        usTotalInvestorsCount: -1,
+        usAccreditedInvestorsCount: -1,
+        jpTotalInvestorsCount: 0,
+      };
+
+      await setCounters(txCounters, this);
+
+      // WHEN
+      await this.omnibusTBEController
+        .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
+          txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
+          txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
+      await assertEvent(this.token, "OmnibusTBEOperation", {
+        omnibusWallet,
+        totalDelta: 2,
+        accreditedDelta: 2,
+        usAccreditedDelta: 1,
+        usTotalDelta: 1,
+        jpTotalDelta: 0,
+      });
+
+      await this.omnibusTBEController
+        // eslint-disable-next-line max-len
+        .internalTBETransfer('this_is_externalID', negativeCounters.totalInvestorsCount, negativeCounters.accreditedInvestorsCount,
+          negativeCounters.usAccreditedInvestorsCount, negativeCounters.usTotalInvestorsCount,
+          negativeCounters.jpTotalInvestorsCount, [], []);
+
+      await assertEvent(this.token, "OmnibusTBETransfer", {
+        omnibusWallet,
+        externalId: 'this_is_externalID',
+      });
+
+      await getCountersDelta(negativeCounters);
+
+      // THEN
+      await assertCounters(this);
+    });
+  });
 });
 
 async function assertEvent(contract, expectedEvent, expectedParams) {

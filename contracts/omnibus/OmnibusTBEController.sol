@@ -59,6 +59,14 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
         }
     }
 
+    function internalTBETransfer(string memory externalId, int256 totalDelta, int256 accreditedDelta,
+        int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta, bytes32[] memory euRetailCountries,
+        int256[] memory euRetailCountryDeltas) public onlyIssuerOrAbove {
+        adjustCounters(totalDelta, accreditedDelta, usAccreditedDelta, usTotalDelta, jpTotalDelta,
+            euRetailCountries, euRetailCountryDeltas);
+        getToken().emitOmnibusTBETransferEvent(omnibusWallet, externalId);
+    }
+
     function adjustCounters(int256 totalDelta, int256 accreditedDelta,
         int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta, bytes32[] memory euRetailCountries,
         int256[] memory euRetailCountryDeltas) public onlyIssuerOrAbove {

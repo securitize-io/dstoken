@@ -17,6 +17,7 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
     event OmnibusTransfer(address indexed omnibusWallet, address from, address to, uint256 value, uint8 assetTrackingMode);
     event OmnibusTBEOperation(address indexed omnibusWallet, int256 totalDelta, int256 accreditedDelta,
         int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta);
+    event OmnibusTBETransfer(address omnibusWallet, string externalId);
 
     event WalletAdded(address wallet);
     event WalletRemoved(address wallet);
@@ -153,6 +154,8 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
     function emitOmnibusTBEEvent(address omnibusWallet, int256 totalDelta, int256 accreditedDelta,
         int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta /*onlyTBEOmnibus*/
     ) public;
+
+    function emitOmnibusTBETransferEvent(address omnibusWallet, string memory externalId) public;
 
     function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal returns (bool);
 
