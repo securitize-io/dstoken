@@ -265,6 +265,10 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         emit OmnibusTBEOperation(omnibusWallet, totalDelta, accreditedDelta, usAccreditedDelta, usTotalDelta, jpTotalDelta);
     }
 
+    function emitOmnibusTBETransferEvent(address omnibusWallet, string memory externalId) public onlyTBEOmnibus {
+        emit OmnibusTBETransfer(omnibusWallet, externalId);
+    }
+
     function updateInvestorsBalancesOnTransfer(address _from, address _to, uint256 _value) internal {
         uint256 omnibusEvent = TokenLibrary.applyOmnibusBalanceUpdatesOnTransfer(tokenData, getRegistryService(), _from, _to, _value);
         if (omnibusEvent == OMNIBUS_NO_ACTION) {
