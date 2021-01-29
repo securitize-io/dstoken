@@ -68,20 +68,6 @@ contract("ComplianceServiceRegulated", function([
       );
     });
 
-    it("Should revert due to issuing to omnibus wallet", async function() {
-      await this.registryService.registerInvestor(
-        investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
-        investorId.OMNIBUS_WALLET_INVESTOR_ID_1
-      );
-      await this.registryService.addOmnibusWallet(
-        investorId.OMNIBUS_WALLET_INVESTOR_ID_1,
-        omnibusWallet,
-        this.omnibusController1.address
-      );
-      await this.token.setCap(1000);
-      await assertRevert(this.token.issueTokens(omnibusWallet, 100));
-    });
-
     it("Should issue tokens", async function() {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,

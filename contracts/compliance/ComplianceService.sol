@@ -36,32 +36,11 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         return recordTransfer(_from, _to, _value);
     }
 
-    function validateOmnibusInternalTransfer(
-        address _omnibusWallet,
-        address _from,
-        address _to,
-        uint256 _value
-    ) public onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender)) returns (bool) {
-        uint256 code;
-        string memory reason;
-
-        (code, reason) = preInternalTransferCheck(_from, _to, _value, _omnibusWallet);
-        require(code == 0, reason);
-
-        if (!getRegistryService().getOmnibusWalletController(_omnibusWallet).isHolderOfRecord()) {
-            return recordTransfer(_from, _to, _value);
-        }
-
-        return true;
-    }
-
     function validateIssuance(
         address _to,
         uint256 _value,
         uint256 _issuanceTime
     ) public onlyToken returns (bool) {
-        require(!getRegistryService().isOmnibusWallet(_to), "Address is omnibus");
-
         uint256 code;
         string memory reason;
 
@@ -72,22 +51,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
     }
 
     function validateBurn(address _who, uint256 _value) public onlyToken returns (bool) {
-        require(!getRegistryService().isOmnibusWallet(_who), "Address is omnibus");
-
         return recordBurn(_who, _value);
-    }
-
-    function validateOmnibusBurn(
-        address _omnibusWallet,
-        address _who,
-        uint256 _value
-    ) public onlyToken returns (bool) {
-        IDSRegistryService registryService = getRegistryService();
-        require(registryService.isOmnibusWallet(_omnibusWallet), "Not an omnibus wallet");
-        require(!registryService.isOmnibusWallet(_who), "Address is omnibus");
-        require(registryService.getOmnibusWalletController(_omnibusWallet).balanceOf(_who) >= _value, "Not enough balance");
-
-        return recordOmnibusBurn(_omnibusWallet, _who, _value);
     }
 
     function validateSeize(
@@ -96,26 +60,9 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         uint256 _value
     ) public onlyToken returns (bool) {
         IDSWalletManager walletManager = getWalletManager();
-        require(!getRegistryService().isOmnibusWallet(_from), "Address is omnibus");
         require(walletManager.getWalletType(_to) == walletManager.ISSUER(), "Target wallet type error");
 
         return recordSeize(_from, _to, _value);
-    }
-
-    function validateOmnibusSeize(
-        address _omnibusWallet,
-        address _from,
-        address _to,
-        uint256 _value
-    ) public onlyToken returns (bool) {
-        IDSRegistryService registryService = getRegistryService();
-        IDSWalletManager walletManager = getWalletManager();
-        require(registryService.isOmnibusWallet(_omnibusWallet), "Not an omnibus wallet");
-        require(!registryService.isOmnibusWallet(_from), "Address is omnibus");
-        require(walletManager.getWalletType(_to) == walletManager.ISSUER(), "Target wallet type error");
-        require(registryService.getOmnibusWalletController(_omnibusWallet).balanceOf(_from) >= _value, "Not enough balance");
-
-        return recordOmnibusSeize(_omnibusWallet, _from, _to, _value);
     }
 
     function preTransferCheck(
@@ -141,8 +88,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
     function preInternalTransferCheck(
         address _from,
         address _to,
-        uint256 _value,
-        address
+        uint256 _value
     ) public view returns (uint256 code, string memory reason) {
         if (getToken().isPaused()) {
             return (10, TOKEN_PAUSED);
@@ -181,20 +127,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
 
     function recordBurn(address _who, uint256 _value) internal returns (bool);
 
-    function recordOmnibusBurn(
-        address _omnibusWallet,
-        address _who,
-        uint256 _value
-    ) internal returns (bool);
-
     function recordSeize(
-        address _from,
-        address _to,
-        uint256 _value
-    ) internal returns (bool);
-
-    function recordOmnibusSeize(
-        address _omnibusWallet,
         address _from,
         address _to,
         uint256 _value
