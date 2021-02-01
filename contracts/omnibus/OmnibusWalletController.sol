@@ -61,7 +61,6 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
     }
 
     function transfer(address _from, address _to, uint256 _value) public onlyOperatorOrAbove enoughBalance(_from, _value) {
-        getComplianceService().validateOmnibusInternalTransfer(omnibusWallet, _from, _to, _value);
         balances[_from] = balances[_from].sub(_value);
         balances[_to] = balances[_to].add(_value);
 

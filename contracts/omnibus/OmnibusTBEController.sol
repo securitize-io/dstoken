@@ -27,6 +27,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
         getToken().issueTokensCustom(omnibusWallet, value, issuanceTime, 0, '', 0);
         addToCounters(totalInvestors, accreditedInvestors,
             usAccreditedInvestors, usTotalInvestors, jpTotalInvestors, euRetailCountries, euRetailCountryCounts, true);
+        emitTBEOperationEvent(totalInvestors, accreditedInvestors, usAccreditedInvestors, usTotalInvestors, jpTotalInvestors, true);
     }
 
     function bulkBurn(uint256 value, uint256 totalInvestors, uint256 accreditedInvestors,
@@ -50,6 +51,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
         }
         // Burn tokens
         getToken().burn(omnibusWallet, value, 'Omnibus');
+        emitTBEOperationEvent(totalInvestors, accreditedInvestors, usAccreditedInvestors, usTotalInvestors, jpTotalInvestors, false);
     }
 
     function bulkTransfer(address[] memory wallets, uint256[] memory values) public onlyIssuerOrAbove {
@@ -92,6 +94,13 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
                 getUintEuCountriesDeltas(euRetailCountryDeltas, false),
             false
         );
+        getToken().emitOmnibusTBEEvent(
+            omnibusWallet,
+            totalDelta,
+            accreditedDelta,
+            usAccreditedDelta,
+            usTotalDelta,
+            jpTotalDelta);
     }
 
     function getOmnibusWallet() public view returns (address) {
@@ -123,14 +132,19 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
                 ccs.getEURetailInvestorsLimit(), _euRetailCountryCounts[i]) :
                 cs.getEURetailInvestorsCount(countryCode).sub(_euRetailCountryCounts[i]));
         }
-        getToken().emitOmnibusTBEEvent(
-             omnibusWallet,
-             _increase ? int256(_totalInvestors) : int256(_totalInvestors) * -1,
-             _increase ? int256(_accreditedInvestors) : int256(_accreditedInvestors) * -1,
-             _increase ? int256(_usAccreditedInvestors) : int256(_usAccreditedInvestors) * -1,
-             _increase ? int256(_usTotalInvestors) : int256(_usTotalInvestors) * -1,
-             _increase ? int256(_jpTotalInvestors) : int256(_jpTotalInvestors) * -1);
+
         return true;
+    }
+
+    function emitTBEOperationEvent(uint256 _totalInvestors, uint256 _accreditedInvestors,
+        uint256 _usAccreditedInvestors, uint256 _usTotalInvestors, uint256 _jpTotalInvestors, bool _increase) internal {
+        getToken().emitOmnibusTBEEvent(
+            omnibusWallet,
+            _increase ? int256(_totalInvestors) : int256(_totalInvestors) * -1,
+            _increase ? int256(_accreditedInvestors) : int256(_accreditedInvestors) * -1,
+            _increase ? int256(_usAccreditedInvestors) : int256(_usAccreditedInvestors) * -1,
+            _increase ? int256(_usTotalInvestors) : int256(_usTotalInvestors) * -1,
+            _increase ? int256(_jpTotalInvestors) : int256(_jpTotalInvestors) * -1);
     }
 
     function getUintEuCountriesDeltas(int256[] memory euCountryDeltas,  bool increase) internal pure returns (uint256[] memory) {

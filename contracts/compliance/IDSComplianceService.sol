@@ -48,13 +48,6 @@ contract IDSComplianceService is Initializable, VersionedContract {
         uint256 _value /*onlyToken*/
     ) public returns (bool);
 
-    function validateOmnibusInternalTransfer(
-        address _omnibusWallet,
-        address _from,
-        address _to,
-        uint256 _value /*onlyOmnibusWalletController*/
-    ) public returns (bool);
-
     function validateIssuance(
         address _to,
         uint256 _value,
@@ -66,20 +59,7 @@ contract IDSComplianceService is Initializable, VersionedContract {
         uint256 _value /*onlyToken*/
     ) public returns (bool);
 
-    function validateOmnibusBurn(
-        address _omnibusWallet,
-        address _who,
-        uint256 _value /*onlyToken*/
-    ) public returns (bool);
-
     function validateSeize(
-        address _from,
-        address _to,
-        uint256 _value /*onlyToken*/
-    ) public returns (bool);
-
-    function validateOmnibusSeize(
-        address _omnibusWallet,
         address _from,
         address _to,
         uint256 _value /*onlyToken*/
@@ -96,7 +76,6 @@ contract IDSComplianceService is Initializable, VersionedContract {
     function preInternalTransferCheck(
         address _from,
         address _to,
-        uint256 _value,
-        address _omnibusWallet
+        uint256 _value
     ) public view returns (uint256 code, string memory reason);
 }
