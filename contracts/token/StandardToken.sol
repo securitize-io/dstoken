@@ -68,7 +68,7 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
     ) public returns (bool) {
         IDSOmnibusTBEController tbeController = getOmnibusTBEController();
         if (!(msg.sender == address(tbeController) && _from == tbeController.getOmnibusWallet())) {
-            require(_value <= allowances[_from][msg.sender]);
+            require(_value <= allowances[_from][msg.sender], "Not enough allowance");
             allowances[_from][msg.sender] = allowances[_from][msg.sender].sub(_value);
         }
         return transferImpl(_from, _to, _value);
