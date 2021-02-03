@@ -386,8 +386,7 @@ contract('OmnibusTBEController', ([
             txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
             txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
 
-        await this.token.approve(this.omnibusTBEController.address, value, { from: omnibusWallet });
-
+        // Execute withdraw (bulk transfer). Note how approval is not necessary.
         await this.omnibusTBEController
           .bulkTransfer(investorWallets, tokenValues);
 

@@ -2,6 +2,7 @@ pragma solidity 0.5.17;
 
 import "../service/ServiceConsumer.sol";
 import "../data-stores/TokenDataStore.sol";
+import "../omnibus/OmnibusTBEController.sol";
 
 contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataStore {
     event Pause();
@@ -65,9 +66,11 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
         address _to,
         uint256 _value
     ) public returns (bool) {
-        require(_value <= allowances[_from][msg.sender]);
-        allowances[_from][msg.sender] = allowances[_from][msg.sender].sub(_value);
-
+        IDSOmnibusTBEController tbeController = getOmnibusTBEController();
+        if (!(msg.sender == address(tbeController) && _from == tbeController.getOmnibusWallet())) {
+            require(_value <= allowances[_from][msg.sender], "Not enough allowance");
+            allowances[_from][msg.sender] = allowances[_from][msg.sender].sub(_value);
+        }
         return transferImpl(_from, _to, _value);
     }
 
