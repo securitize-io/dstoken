@@ -3,7 +3,7 @@
 
 The DS Token is a reference implementation of Securitize's Digital Securities Protocol.
 
-The Digital Securities (DS) Protocol aims to enable and simplify regulation compliant lifecycle for securities on the block chain, from issuance to trading.
+The Digital Securities (DS) Protocol aims to enable and simplify regulation compliant lifecycle for securities on the blockchain, from issuance to trading.
 
 > More information on Securitize and its Digital Securities protocol can be found at [https://www.securitize.io](https://www.securitize.io).
 
@@ -41,15 +41,17 @@ npm run migrate -- --name <token name> --symbol <token symbol> --decimals <token
 --lock_manager TYPE - lock manager type (WALLET,INVESTOR) - if omitted, INVESTOR is selected
 --owners - a space seperated string of owner addresses that own the multisig wallet
 --required_confirmations - the number of required confirmations to execute a multisig wallet transaction
+--chain_id - the chainId of the network where the multisig wallet will be deployed
 --no_omnibus_wallet - skip omnibus wallet
 --omnibus_wallet_investor_id - the investor id of the omnibus wallet in the registry
 --omnibus_wallet - the address of the omnibus wallet in the registry
+--partitioned - add partitions support
 ```
 
 For example, to install a standard DSToken (with default compliance manager and lock manager), run:
 
 ```
-npm run migrate -- --network ganache --name ExampleToken --symbol EXM --decimals 18 --owners "0x648fC6c064d96ca6671a627D7a62C11C6CEff594 0xB640F84605Fa887653b0752FF937AB2E64FB2715" --required_confirmations 2 --omnibus_wallet_investor_id "investor_id" --omnibus_wallet '648fC6c064d96ca6671a627D7a62C11C6CEff594'
+npm run migrate -- --network ganache --name ExampleToken --symbol EXM --decimals 18 --owners "0x648fC6c064d96ca6671a627D7a62C11C6CEff594 0xB640F84605Fa887653b0752FF937AB2E64FB2715" --required_confirmations 2 --omnibus_wallet '648fC6c064d96ca6671a627D7a62C11C6CEff594'
 
 ```
 
@@ -135,8 +137,6 @@ In addition to implementing the DS Protocol, the token also offers the following
 ### Other components
 
 - **Proxy** - The main token contract is deployed behind a proxy, using the proxy-delegate pattern. This allows for seamless upgrade of a deployed token in case a new protocol version is required or a problem is found.
-- **Eternal Storage** - All the operational data used by the contracts is stored using the "Eternal Storage" pattern ([ERC930](https://github.com/ethereum/EIPs/issues/930)).
-  Used correctly, this means that a any component in the system can be upgraded or replaced in a production environment, and its runtime-data will remain correct without the need of a complex migration.
 
 ## Roadmap and open issues
 
