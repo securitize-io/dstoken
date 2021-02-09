@@ -43,7 +43,6 @@ npm run migrate -- --name <token name> --symbol <token symbol> --decimals <token
 --required_confirmations - the number of required confirmations to execute a multisig wallet transaction
 --chain_id - the chainId of the network where the multisig wallet will be deployed
 --no_omnibus_wallet - skip omnibus wallet
---omnibus_wallet_investor_id - the investor id of the omnibus wallet in the registry
 --omnibus_wallet - the address of the omnibus wallet in the registry
 --partitioned - add partitions support
 ```
@@ -51,7 +50,7 @@ npm run migrate -- --name <token name> --symbol <token symbol> --decimals <token
 For example, to install a standard DSToken (with default compliance manager and lock manager), run:
 
 ```
-npm run migrate -- --network ganache --name ExampleToken --symbol EXM --decimals 18 --owners "0x648fC6c064d96ca6671a627D7a62C11C6CEff594 0xB640F84605Fa887653b0752FF937AB2E64FB2715" --required_confirmations 2 --omnibus_wallet '648fC6c064d96ca6671a627D7a62C11C6CEff594'
+npm run migrate --network ganache --name ExampleToken --symbol EXM --decimals 18 --owners "0x648fC6c064d96ca6671a627D7a62C11C6CEff594 0xB640F84605Fa887653b0752FF937AB2E64FB2715" --required_confirmations 2 --omnibus_wallet '648fC6c064d96ca6671a627D7a62C11C6CEff594'
 
 ```
 
@@ -134,29 +133,42 @@ In addition to implementing the DS Protocol, the token also offers the following
 - **Enumeration** - The token supports the enumeration of all wallets containing it currently (and using the investor registry, all the investors holding it at a specific point in time).
 - **Trade pausing** - Trading of the token can be paused and resumed by the _Master_ role.
 
+### OmnibusTBE
+The OmnibusTBE allows issuing tokens to investors without a wallet registered in the system to a shared wallet while keeping track of ownership in the platform, and proper investor count in the blockchain.
+
+### Deployment and migration
+We created factory contracts to reduce significantly gas cost. This allows us to reuse the implementations of contracts.
+
+### Off-chain Integration (RFE Protocol)
+We provide a reference implementation of some aspects of the protocol dealing with off-chain transactions (for example, allow issuers to receive new investor data).
+
+### Token Issuance** 
+We have developed a process for auto-deployment contracts.
+
+### DSClient - Command-line utilities
+We provide a command-line tools and libraries to facilitate the interaction with the DS Protocol, like tools to add investors to investor registry or to simplify the off-chain generation of investor IDs from investor information.
+
 ### Other components
 
 - **Proxy** - The main token contract is deployed behind a proxy, using the proxy-delegate pattern. This allows for seamless upgrade of a deployed token in case a new protocol version is required or a problem is found.
+- **MultiSig Wallet** - We have developed a MultiSig Wallet following this [implementation](https://github.com/christianlundkvist/simple-multisig). This allows us to offer higher level of security. 
 
 ## Roadmap and open issues
 
-This is the first release of the DS token protocol implementation.
 There are many components of the whitepaper which are not fully implemented and several aspects (mainly around deployment) which are not fully optimized.
 That said, We consider the reference implementation ready for production usage and are actively integrating it with security exchanges.
 
 The following items are currently being worked on as part of the reference implementation road-map:
 
-- **Deployment and migration** - Current deployment cost in gas and transaction time is high. We plan to create factory contracts to reduce those significantly.
-- **Off-chain Integration (RFE Protocol)** - We aim to provide a reference implementation of some aspects of the protocol dealing with off-chain transactions (for example, allow issuers to receive new investor data).
 - **Registry Service Federation** - We aim to provide a Registry Service implementation that supports federation, so that certain entities can keep global investor registries that can be shared accross token issuances.
-- **Token Issuance** - We aim to add a DSApp for easy token issuance.
-- **Command-line utilities** - We aim to provide comand-line tools and libraries to facilitate the interaction with the DS Protocol, like tools to add investors to investor registry or to simplify the off-chain generation of investor IDs from investor information.
 - **Self Service Factories** - We aim to add fully managed factory contracts on the blockchain, allowing web-based creation of a full DSProtocol environment.
 - **Dividend issuance and voting** - We plan to write standard DSApps for reference implementation of dividend distribution and voting capabilities.
 
 ### Security audit
 
 An audit of the reference implementation was performed by [CoinFabrik](https://www.coinfabrik.com) and can be found [here]().
+
+An audit of the reference MultiSig Wallet implementation can be found [here](https://github.com/christianlundkvist/simple-multisig/blob/master/audit.pdf).
 
 ### Issue Reporting
 
