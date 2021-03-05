@@ -178,6 +178,12 @@ async function deployContracts (
     ]
   );
 
+  if (omnibusTBEAddress) {
+    await setServicesDependencies(testObject.complianceService,
+      [services.OMNIBUS_TBE_CONTROLLER],
+        [testObject.omnibusTBEController.address]);
+  }
+
   await setServicesDependencies(
     testObject.complianceConfiguration,
     [services.TRUST_SERVICE],
@@ -207,6 +213,30 @@ async function deployContracts (
       ...partitionsServiceAddress,
     ]
   );
+
+  if (omnibusTBEAddress) {
+    await setServicesDependencies(testObject.token,
+      [services.OMNIBUS_TBE_CONTROLLER],
+      [testObject.omnibusTBEController.address]);
+
+    await setServicesDependencies(
+      testObject.omnibusTBEController,
+      [
+        services.TRUST_SERVICE,
+        services.COMPLIANCE_SERVICE,
+        services.COMPLIANCE_CONFIGURATION_SERVICE,
+        services.DS_TOKEN,
+        ...partitionsService,
+      ],
+      [
+        testObject.trustService.address,
+        testObject.complianceService.address,
+        testObject.complianceConfiguration.address,
+        testObject.token.address,
+        ...partitionsServiceAddress,
+      ]
+    );
+  }
 
   await setServicesDependencies(
     testObject.walletManager,
@@ -245,6 +275,9 @@ async function deployContracts (
       testObject.trustService.address,
     ]
   );
+  if(omnibusTBEAddress) {
+    testObject.walletManager.addPlatformWallet(omnibusTBEAddress);
+  }
 }
 
 async function deployContractBehindProxy (

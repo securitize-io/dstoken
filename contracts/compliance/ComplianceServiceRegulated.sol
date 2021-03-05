@@ -158,9 +158,17 @@ library ComplianceServiceLibrary {
 
         uint256 fromInvestorBalance = balanceOfInvestor(_services, _from);
 
+        if (!ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).checkWhitelisted(_to)) {
+            return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
+        }
+
+        uint256 fromRegion = getCountryCompliance(_services, _from);
+        uint256 toRegion = getCountryCompliance(_services, _to);
+
         if (IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) == WALLET_TYPE_PLATFORM) {
             if (
-                (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() ||
+                ((IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer()
+                && (fromRegion == US)) ||
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getWorldWideForceFullTransfer()) &&
                 fromInvestorBalance > _value
             ) {
@@ -170,19 +178,20 @@ library ComplianceServiceLibrary {
             return (0, VALID);
         }
 
+        if (toRegion == FORBIDDEN) {
+            return (26, DESTINATION_RESTRICTED);
+        }
+
+        if (isOmnibusTBE(IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]), _from)) {
+            return(0, VALID);
+        }
+
         if (
             IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) != WALLET_TYPE_PLATFORM &&
             IDSLockManager(_services[LOCK_MANAGER]).getTransferableTokens(_from, uint64(now)) < _value
         ) {
             return (16, TOKENS_LOCKED);
         }
-
-        if (!ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).checkWhitelisted(_to)) {
-            return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
-        }
-
-        uint256 fromRegion = getCountryCompliance(_services, _from);
-        uint256 toRegion = getCountryCompliance(_services, _to);
 
         if (fromRegion == US) {
             if (checkHoldUp(_services, _from, _value, true)) {
@@ -211,7 +220,7 @@ library ComplianceServiceLibrary {
                 toRegion == US &&
                 IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) != WALLET_TYPE_PLATFORM &&
                 (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() == 0 ||
-                    IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() > now)
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() > now)
             ) {
                 return (25, FLOWBACK);
             }
@@ -222,10 +231,6 @@ library ComplianceServiceLibrary {
             ) {
                 return (50, ONLY_FULL_TRANSFER);
             }
-        }
-
-        if (toRegion == FORBIDDEN) {
-            return (26, DESTINATION_RESTRICTED);
         }
 
         uint256 toInvestorBalance = balanceOfInvestor(_services, _to);
@@ -461,17 +466,14 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         address _to,
         uint256 _value
     ) internal returns (bool) {
-        if (!ComplianceServiceLibrary.isOmnibusTBE(getOmnibusTBEController(), _from)) {
+        if (!(ComplianceServiceLibrary.isOmnibusTBE(getOmnibusTBEController(), _from) ||
+            ComplianceServiceLibrary.isOmnibusTBE(getOmnibusTBEController(), _to))) {
             if (compareInvestorBalance(_from, _value, _value)) {
                 adjustTransferCounts(_from, CommonUtils.IncDec.Decrease);
             }
 
             if (compareInvestorBalance(_to, _value, 0)) {
                 adjustTransferCounts(_to, CommonUtils.IncDec.Increase);
-            }
-        } else {
-            if (!compareInvestorBalance(_to, _value, 0)) {
-                adjustTotalInvestorsCounts(_to, CommonUtils.IncDec.Decrease);
             }
         }
 

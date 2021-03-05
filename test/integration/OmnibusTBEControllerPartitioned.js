@@ -32,7 +32,6 @@ contract('OmnibusTBEControllerPartitioned', ([
     );
     await setOmnibusTBEServicesDependencies(this);
     await this.trustService.setRole(this.omnibusTBEController.address, role.ISSUER);
-    await this.walletManager.addPlatformWallet(omnibusWallet);
 
     await this.registryService.registerInvestor(
       investorId.GENERAL_INVESTOR_ID_1,

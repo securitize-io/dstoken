@@ -145,14 +145,29 @@ library ComplianceServicePartitionedLibrary {
 
         uint256 fromInvestorBalance = balanceOfInvestor(_services, _from);
 
+        if (!ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).checkWhitelisted(_to)) {
+            return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
+        }
+
+        uint256 fromRegion = getCountryCompliance(_services, _from);
+        uint256 toRegion = getCountryCompliance(_services, _to);
+
         if (IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) == WALLET_TYPE_PLATFORM) {
             if ((IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() ||
-                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getWorldWideForceFullTransfer()) &&
+            IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getWorldWideForceFullTransfer()) &&
                 fromInvestorBalance > _value) {
                 return (50, ONLY_FULL_TRANSFER);
             }
 
             return (0, VALID);
+        }
+
+        if (toRegion == FORBIDDEN) {
+            return (26, DESTINATION_RESTRICTED);
+        }
+
+        if (isOmnibusTBE(IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]), _from)) {
+            return(0, VALID);
         }
 
         if (
@@ -161,13 +176,6 @@ library ComplianceServicePartitionedLibrary {
         ) {
             return (16, TOKENS_LOCKED);
         }
-
-        if (!ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).checkWhitelisted(_to)) {
-            return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
-        }
-
-        uint256 fromRegion = getCountryCompliance(_services, _from);
-        uint256 toRegion = getCountryCompliance(_services, _to);
 
         bool isNotBeneficiaryOrHolderOfRecord = true;
 
@@ -203,10 +211,6 @@ library ComplianceServicePartitionedLibrary {
             if (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getWorldWideForceFullTransfer() && fromInvestorBalance > _value) {
                 return (50, ONLY_FULL_TRANSFER);
             }
-        }
-
-        if (toRegion == FORBIDDEN) {
-            return (26, DESTINATION_RESTRICTED);
         }
 
         uint256 toInvestorBalance = balanceOfInvestor(_services, _to);
