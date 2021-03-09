@@ -12,7 +12,7 @@ const country = fixtures.Country;
 const compliance = fixtures.Compliance;
 const time = fixtures.Time;
 
-contract.only("ComplianceServiceRegulatedPartitioned", function([
+contract("ComplianceServiceRegulatedPartitioned", function([
   owner,
   wallet,
   wallet1,
@@ -84,6 +84,26 @@ contract.only("ComplianceServiceRegulatedPartitioned", function([
       );
       assert.equal(10, res[0].toNumber());
       assert.equal("Token paused", res[1]);
+    });
+
+    it("Should be able to reallocate tokens FROM omnibus wallet even when the token is paused", async function() {
+      await this.token.pause();
+      await this.registryService.registerInvestor(
+        investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED,
+        investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED
+      );
+      await this.registryService.addWallet(
+        wallet,
+        investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED
+      );
+      assert.equal(await this.token.balanceOf(wallet), 0);
+      await this.token.issueTokens(omnibusTBEWallet, 100);
+      assert.equal(await this.token.balanceOf(omnibusTBEWallet), 100);
+      await this.omnibusTBEController
+        .bulkTransfer([wallet], ["40"]);
+      assert.equal(await this.token.balanceOf(wallet), 40);
+      assert.equal(await this.token.balanceOf(omnibusTBEWallet), 60);
+      await this.token.unpause();
     });
 
     it("Pre transfer check with not enough tokens", async function() {

@@ -125,7 +125,7 @@ library ComplianceServicePartitionedLibrary {
         view
         returns (uint256 code, string memory reason)
     {
-        if (IDSToken(_services[DS_TOKEN]).isPaused()) {
+        if (IDSToken(_services[DS_TOKEN]).isPaused() && !(isOmnibusTBE(IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]), _from))) {
             return (10, TOKEN_PAUSED);
         }
 
@@ -153,9 +153,12 @@ library ComplianceServicePartitionedLibrary {
         uint256 toRegion = getCountryCompliance(_services, _to);
 
         if (IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) == WALLET_TYPE_PLATFORM) {
-            if ((IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer() ||
-            IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getWorldWideForceFullTransfer()) &&
-                fromInvestorBalance > _value) {
+            if (
+                ((IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer()
+                && (fromRegion == US)) ||
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getWorldWideForceFullTransfer()) &&
+                fromInvestorBalance > _value
+            ) {
                 return (50, ONLY_FULL_TRANSFER);
             }
 

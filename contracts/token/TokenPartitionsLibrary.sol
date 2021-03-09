@@ -187,6 +187,7 @@ library TokenPartitionsLibrary {
 
     function shouldSkipComplianceCheck(IDSRegistryService _registry, IDSOmnibusTBEController _omnibusTBEController, address _from, address _to) internal view returns (bool) {
         return CommonUtils.isEqualString(_registry.getInvestor(_from), _registry.getInvestor(_to)) ||
-            (address(_omnibusTBEController) != address(0) && _omnibusTBEController.getOmnibusWallet() == _from);
+            (address(_omnibusTBEController) != address(0) && (_omnibusTBEController.getOmnibusWallet() == _from ||
+                _omnibusTBEController.getOmnibusWallet() == _to));
     }
 }

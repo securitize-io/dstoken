@@ -141,7 +141,7 @@ library ComplianceServiceLibrary {
         address _to,
         uint256 _value
     ) public view returns (uint256 code, string memory reason) {
-        if (IDSToken(_services[DS_TOKEN]).isPaused()) {
+        if (IDSToken(_services[DS_TOKEN]).isPaused() && !(isOmnibusTBE(IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]), _from))) {
             return (10, TOKEN_PAUSED);
         }
 

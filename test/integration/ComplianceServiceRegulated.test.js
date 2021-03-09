@@ -12,7 +12,7 @@ const country = fixtures.Country;
 const compliance = fixtures.Compliance;
 const time = fixtures.Time;
 
-contract.only("ComplianceServiceRegulated", function([
+contract("ComplianceServiceRegulated", function([
   owner,
   wallet,
   wallet1,
@@ -98,6 +98,26 @@ contract.only("ComplianceServiceRegulated", function([
       assert.equal(await this.token.balanceOf(walletForPausedToken), 0);
       await this.token.issueTokens(walletForPausedToken, 1);
       assert.equal(await this.token.balanceOf(walletForPausedToken), 1);
+      await this.token.unpause();
+    });
+
+    it("Should be able to reallocate tokens FROM omnibus wallet even when the token is paused", async function() {
+      await this.token.pause();
+      await this.registryService.registerInvestor(
+        investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED,
+        investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED
+      );
+      await this.registryService.addWallet(
+        walletForPausedToken,
+        investorId.INVESTOR_TO_BE_ISSUED_WHEN_PAUSED
+      );
+      assert.equal(await this.token.balanceOf(walletForPausedToken), 0);
+      await this.token.issueTokens(omnibusTBEWallet, 100);
+      assert.equal(await this.token.balanceOf(omnibusTBEWallet), 100);
+      await this.omnibusTBEController
+        .bulkTransfer([walletForPausedToken], ["40"]);
+      assert.equal(await this.token.balanceOf(walletForPausedToken), 40);
+      assert.equal(await this.token.balanceOf(omnibusTBEWallet), 60);
       await this.token.unpause();
     });
   });
