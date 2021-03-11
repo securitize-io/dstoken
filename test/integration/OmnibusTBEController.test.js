@@ -33,7 +33,6 @@ contract('OmnibusTBEController', ([
     );
     await setOmnibusTBEServicesDependencies(this);
     await this.trustService.setRole(this.omnibusTBEController.address, role.ISSUER);
-    await this.walletManager.addPlatformWallet(omnibusWallet);
 
     await this.registryService.registerInvestor(
       investorId.GENERAL_INVESTOR_ID_1,
@@ -352,7 +351,7 @@ contract('OmnibusTBEController', ([
         await assertRevert(this.omnibusTBEController
           .bulkTransfer(investorWallets, tokenValues));
       });
-    it('should bulk transfer tokens and remove totalInvestor counter by 1 if target wallet has balance',
+    it('should bulk transfer tokens without removing counters (not anymore because of partial transfers)',
       async function () {
       // GIVEN
         const value = 1000;
@@ -367,8 +366,9 @@ contract('OmnibusTBEController', ([
           usAccreditedInvestorsCount: 1,
           jpTotalInvestorsCount: 0,
         };
+        // It does not create a delta anymore because of partial issuances and transfers
         const txBurnCounters = {
-          totalInvestorsCount: 1,
+          totalInvestorsCount: 0,
           accreditedInvestorsCount: 0,
           usTotalInvestorsCount: 0,
           usAccreditedInvestorsCount: 0,
