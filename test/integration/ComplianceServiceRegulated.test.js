@@ -742,6 +742,16 @@ contract("ComplianceServiceRegulated", function([
       assert.equal("Wallet not in registry service", res[1]);
     });
 
+    it("Should NOT be able to reallocate tokens FROM omnibus wallet to a non-whitelisted wallet", async function() {
+      assert.equal(await this.token.balanceOf(noneWallet1), 0);
+      await this.token.issueTokens(omnibusTBEWallet, 100);
+      assert.equal(await this.token.balanceOf(omnibusTBEWallet), 100);
+      assertRevert(this.omnibusTBEController
+        .bulkTransfer([noneWallet1], ["40"]));
+      assert.equal(await this.token.balanceOf(noneWallet1), 0);
+      assert.equal(await this.token.balanceOf(omnibusTBEWallet), 100);
+    });
+
     it("Pre transfer check with tokens locked", async function() {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
