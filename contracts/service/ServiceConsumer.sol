@@ -88,6 +88,14 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
         _;
     }
 
+    modifier onlyOwnerOrIssuerOrAbove {
+        if(!isOwner()) {
+            IDSTrustService trustManager = getTrustService();
+            require(trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
+        }
+        _;
+    }
+
     function getDSService(uint256 _serviceId) public view returns (address) {
         return services[_serviceId];
     }
