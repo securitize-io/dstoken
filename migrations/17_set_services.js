@@ -8,12 +8,12 @@ const ComplianceConfigurationService = artifacts.require(
 );
 const OmnibusTBEController = artifacts.require('OmnibusTBEController');
 const MultiSigWallet = artifacts.require('MultiSigWallet');
+const TransactionRelayer = artifacts.require('TransactionRelayer');
 const PartitionsManager = artifacts.require('PartitionsManager');
 const configurationManager = require('./utils/configurationManager');
 const globals = require('../utils/globals');
 const services = globals.services;
-const attributeType = globals.attributeType;
-const attributeStatus = globals.attributeStatus;
+
 
 module.exports = async function (deployer) {
   if (configurationManager.isTestMode()) {
@@ -65,6 +65,10 @@ module.exports = async function (deployer) {
 
   const walletRegistrar = await WalletRegistrar.at(
     configurationManager.getProxyAddressForContractName('WalletRegistrar')
+  );
+
+  const transactionRelayer = await TransactionRelayer.at(
+    configurationManager.getProxyAddressForContractName('TransactionRelayer')
   );
 
   const multisig = await MultiSigWallet.deployed();
@@ -283,6 +287,11 @@ module.exports = async function (deployer) {
     services.TRUST_SERVICE,
     trustService.address
   );
+  console.log('Connecting transaction relayer to token');
+  await token.setDSService(services.TRANSACTION_RELAYER, transactionRelayer.address);
+  console.log('Connectiong transaction relayer to trust service');
+  await transactionRelayer.setDSService(services.TRUST_SERVICE, trustService.address);
+
   if (!configurationManager.noOmnibusWallet) {
     const walletManager = await WalletManager.at(
       configurationManager.getProxyAddressForContractName("WalletManager")
@@ -377,6 +386,12 @@ module.exports = async function (deployer) {
     `Multisig wallet is at address: ${
       multisig.address
     } | Version: ${await multisig.getVersion()}`
+  );
+
+  console.log(
+    `Transaction relayer is at address: ${
+      transactionRelayer.address
+    } | Version: ${await transactionRelayer.getVersion()}`
   );
 
   console.log('\n');

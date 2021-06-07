@@ -8,7 +8,7 @@ contract WalletRegistrar is ProxyTarget, Initializable, IDSWalletRegistrar, Serv
     function initialize() public initializer forceInitializeFromProxy {
         IDSWalletRegistrar.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(3);
+        VERSIONS.push(4);
     }
 
     function registerWallet(
@@ -19,7 +19,7 @@ contract WalletRegistrar is ProxyTarget, Initializable, IDSWalletRegistrar, Serv
         uint8[] memory _attributeIds,
         uint256[] memory _attributeValues,
         uint256[] memory _attributeExpirations
-    ) public onlyOwner returns (bool) {
+    ) public onlyOwnerOrIssuerOrAbove returns (bool) {
         require(_attributeValues.length == _attributeIds.length, "Wrong length of parameters");
         require(_attributeIds.length == _attributeExpirations.length, "Wrong length of parameters");
 
