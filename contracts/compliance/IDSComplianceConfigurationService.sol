@@ -129,6 +129,12 @@ contract IDSComplianceConfigurationService is Initializable, VersionedContract {
 
     function getForceAccreditedUS() public view returns (bool);
 
+    function setWorldWideForceFullTransfer(
+        bool _value /*onlyIssuerOrAbove*/
+    ) public;
+
+    function getWorldWideForceFullTransfer() public view returns (bool);
+
     function setAll(
         uint256[] memory _uint_values,
         bool[] memory _bool_values /*onlyIssuerOrAbove*/

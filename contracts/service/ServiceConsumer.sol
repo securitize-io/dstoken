@@ -12,6 +12,7 @@ import "../compliance/IDSComplianceServicePartitioned.sol";
 import "../compliance/IDSPartitionsManager.sol";
 import "../compliance/IDSComplianceConfigurationService.sol";
 import "../registry/IDSRegistryService.sol";
+import "../omnibus/IDSOmnibusTBEController.sol";
 import "../trust/IDSTrustService.sol";
 import "../utils/Ownable.sol";
 
@@ -28,7 +29,7 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
         IDSServiceConsumer.initialize();
         Ownable.initialize();
 
-        VERSIONS.push(5);
+        VERSIONS.push(6);
     }
 
     modifier onlyMaster {
@@ -72,6 +73,18 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
 
     modifier onlyOmnibusWalletController(address omnibusWallet, IDSOmnibusWalletController omnibusWalletController) {
         require(getRegistryService().getOmnibusWalletController(omnibusWallet) == omnibusWalletController, "Wrong controller address");
+        _;
+    }
+
+    modifier onlyTBEOmnibus {
+        require(msg.sender == address(getOmnibusTBEController()), "Not authorized");
+        _;
+    }
+
+    modifier onlyMasterOrTBEOmnibus {
+        IDSTrustService trustManager = getTrustService();
+        require(msg.sender == address(getOmnibusTBEController()) ||
+        this.contractOwner() == msg.sender || trustManager.getRole(msg.sender) == ROLE_MASTER, "Not authorized");
         _;
     }
 
@@ -123,5 +136,9 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
 
     function getComplianceConfigurationService() internal view returns (IDSComplianceConfigurationService) {
         return IDSComplianceConfigurationService(getDSService(COMPLIANCE_CONFIGURATION_SERVICE));
+    }
+
+    function getOmnibusTBEController() internal view returns (IDSOmnibusTBEController) {
+        return IDSOmnibusTBEController(getDSService(OMNIBUS_TBE_CONTROLLER));
     }
 }

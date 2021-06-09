@@ -12,7 +12,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         IDSToken.initialize();
         StandardToken.initialize();
 
-        VERSIONS.push(4);
+        VERSIONS.push(5);
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
@@ -260,6 +260,15 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         emit OmnibusTransfer(_omnibusWallet, _from, _to, _value, getAssetTrackingMode(_omnibusWallet));
     }
 
+    function emitOmnibusTBEEvent(address omnibusWallet, int256 totalDelta, int256 accreditedDelta,
+        int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta) public onlyTBEOmnibus {
+        emit OmnibusTBEOperation(omnibusWallet, totalDelta, accreditedDelta, usAccreditedDelta, usTotalDelta, jpTotalDelta);
+    }
+
+    function emitOmnibusTBETransferEvent(address omnibusWallet, string memory externalId) public onlyTBEOmnibus {
+        emit OmnibusTBETransfer(omnibusWallet, externalId);
+    }
+
     function updateInvestorsBalancesOnTransfer(address _from, address _to, uint256 _value) internal {
         uint256 omnibusEvent = TokenLibrary.applyOmnibusBalanceUpdatesOnTransfer(tokenData, getRegistryService(), _from, _to, _value);
         if (omnibusEvent == OMNIBUS_NO_ACTION) {
@@ -288,9 +297,10 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     }
 
     function getCommonServices() internal view returns (address[] memory) {
-        address[] memory services = new address[](2);
+        address[] memory services = new address[](3);
         services[0] = getDSService(COMPLIANCE_SERVICE);
         services[1] = getDSService(REGISTRY_SERVICE);
+        services[2] = getDSService(OMNIBUS_TBE_CONTROLLER);
         return services;
     }
 }

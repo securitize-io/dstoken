@@ -111,7 +111,6 @@ library TokenLibrary {
     function omnibusBurn(TokenData storage _tokenData, address[] memory _services, address _omnibusWallet, address _who, uint256 _value) public {
         IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
         IDSOmnibusWalletController omnibusController = IDSRegistryService(_services[REGISTRY_SERVICE]).getOmnibusWalletController(_omnibusWallet);
-        IDSComplianceService(_services[COMPLIANCE_SERVICE]).validateOmnibusBurn(_omnibusWallet, _who, _value);
         _tokenData.walletsBalances[_omnibusWallet] = _tokenData.walletsBalances[_omnibusWallet].sub(_value);
         omnibusController.burn(_who, _value);
         decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_tokenData, registryService, omnibusController, _omnibusWallet, _who, _value);
@@ -125,7 +124,6 @@ library TokenLibrary {
         IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
         IDSOmnibusWalletController omnibusController = registryService.getOmnibusWalletController(_omnibusWallet);
 
-        IDSComplianceService(_services[COMPLIANCE_SERVICE]).validateOmnibusSeize(_omnibusWallet, _from, _to, _value);
         _tokenData.walletsBalances[_omnibusWallet] = _tokenData.walletsBalances[_omnibusWallet].sub(_value);
         _tokenData.walletsBalances[_to] = _tokenData.walletsBalances[_to].add(_value);
         omnibusController.seize(_from, _value);
