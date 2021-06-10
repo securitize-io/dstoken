@@ -3,7 +3,8 @@ const TestToken = artifacts.require('TestToken');
 const lightwallet = require('eth-lightwallet');
 const Promise = require('bluebird');
 const assertRevert = require('../utils/assertRevert');
-
+const deployContractBehindProxy = require('../utils').deployContractBehindProxy;
+const roles = require('../../utils/globals').roles;
 const web3SendTransaction = Promise.promisify(web3.eth.sendTransaction);
 
 let DOMAIN_SEPARATOR;
@@ -11,13 +12,9 @@ let DOMAIN_SEPARATOR;
 // eslint-disable-next-line max-len
 // keccak256("MultiSigTransaction(address destination,uint256 value,bytes data,uint256 nonce,address executor,uint256 gasLimit)")
 const TXTYPE_HASH = '0x18352269123822ee0d5f7ae54168e303ddfc22d7bd1afb2feb38c21fffe27ea7';
-// keccak256("Securitize Off-Chain Multisig Wallet")
 const NAME_HASH = '0x378460f4f89643d76dadb1d55fed95ff69d3c2e4b34cc81a5b565a797b10ce30';
-// keccak256("1")
 const VERSION_HASH = '0xc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6';
-// keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract,bytes32 salt)")
 const EIP712DOMAINTYPE_HASH = '0xd87cd6ef79d4e2b95e15ce8abf732db51ec771f1ca2edccf22a46c729ac56472';
-// keccak256("Securitize Off-Chain Multisig Wallet SALT")
 const SALT = '0x6e31104f5170e59a0a98ebdeb5ba99f8b32ef7b56786b1722f81a5fa19dd1629';
 
 const CHAINID = 1;
@@ -25,7 +22,7 @@ const seedPhrase = 'cereal face vapor scrub trash traffic disease region swim st
 const password = '';
 const ZEROADDR = '0x0000000000000000000000000000000000000000';
 
-contract.only('TransactionRelayer', function (accounts) {
+contract.only('TransactionRelayer', function ([owner, masterWallet, destinationAddress, issuerWallet]) {
   let keyFromPw;
   let acct;
   let lightWalletKeyStore;
@@ -36,7 +33,6 @@ contract.only('TransactionRelayer', function (accounts) {
   const threshold = 2;
   const ISSUED_TOKENS = 1000000;
   const gasLimit = 200000000;
-  const destinationAddress = accounts[1];
   const value = 0;
 
   const doSign = function (signers, multisigAddr, nonce, destinationAddr, value, data, executor, gasLimit) {
@@ -73,7 +69,7 @@ contract.only('TransactionRelayer', function (accounts) {
     return { sigV: sigV, sigR: sigR, sigS: sigS };
   };
 
-  before((done) => {
+  before(async () => {
     lightwallet.keystore.createVault({
       hdPathString: 'm/44\'/60\'/0\'/0',
       seedPhrase: seedPhrase,
@@ -86,227 +82,40 @@ contract.only('TransactionRelayer', function (accounts) {
         let acctWithout0x = lightWalletKeyStore.getAddresses();
         acct = acctWithout0x.map((a) => { return a; });
         acct.sort();
-        done();
       });
     });
+
+    await deployContractBehindProxy(
+      artifacts.require('Proxy'),
+      artifacts.require('TrustService'),
+      this,
+      'trustService'
+    );
+
+    await deployContractBehindProxy(
+      artifacts.require('Proxy'),
+      artifacts.require('TransactionRelayer'),
+      this,
+      'transactionRelayer',
+      [CHAINID]
+    );
+
+    console.log('Connectiong transaction relayer to trust service');
+    const TRUST_SERVICE = 1;
+    await this.transactionRelayer.setDSService(TRUST_SERVICE, this.trustService.address);
   });
 
   describe('Calling TestToken transactions with 3 owners and threshold = 2', () => {
-    describe('WHEN transferring 1000000 TestToken with an off-chain multisig wallet', () => {
-      beforeEach(async () => {
-        const owners = [acct[0], acct[1], acct[2]];
-        executor = acct[0];
-        tokenInstance = await TestToken.new({ from: accounts[0] });
-        assert.ok(tokenInstance);
-
-        multisig = await MultiSigWallet.new(owners, threshold, CHAINID, { from: accounts[0] });
-        await web3SendTransaction({
-          from: accounts[0],
-          to: multisig.address,
-          value: web3.utils.toWei(web3.utils.toBN(5), 'ether'),
-        });
-
-        initialNonce = await multisig.nonce.call();
-        assert.equal(initialNonce.toNumber(), 0);
-
-        const issueResult = await tokenInstance.issueTokens(
-          multisig.address,
-          ISSUED_TOKENS,
-          { from: accounts[0] });
-
-        assert.ok(issueResult);
-
-        assert.equal(
-          ISSUED_TOKENS,
-          await tokenInstance.balanceOf(multisig.address)
-        );
-
-        assert.equal(
-          0,
-          await tokenInstance.balanceOf(destinationAddress)
-        );
-      });
-      describe('AND two owners sign a TestToken.transfer() transaction', () => {
-        it('SHOULD transfer tokens from MultiSigWallet to destinationAddress', async () => {
-          let signers = [acct[0], acct[1]];
-
-          const data = tokenInstance.contract.methods.transfer(
-            destinationAddress,
-            ISSUED_TOKENS).encodeABI();
-
-          let sigs = doSign(
-            signers.sort(),
-            multisig.address,
-            initialNonce.toNumber(),
-            tokenInstance.address,
-            value,
-            data,
-            executor,
-            gasLimit);
-
-          await multisig.execute(sigs.sigV,
-            sigs.sigR,
-            sigs.sigS,
-            tokenInstance.address,
-            value,
-            data,
-            executor,
-            gasLimit,
-            { from: executor, gasLimit });
-
-          let newNonce = await multisig.nonce.call();
-          assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
-
-          assert.equal(
-            0,
-            await tokenInstance.balanceOf(multisig.address)
-          );
-
-          assert.equal(
-            ISSUED_TOKENS,
-            await tokenInstance.balanceOf(destinationAddress)
-          );
-        });
-      });
-      describe('AND three owners sign a TestToken.transfer() transaction', () => {
-        it('SHOULD transfer tokens from MultiSigWallet to destinationAddress', async () => {
-          let signers = [acct[0], acct[1], acct[2]];
-          const data = tokenInstance.contract.methods.transfer(
-            destinationAddress,
-            ISSUED_TOKENS).encodeABI();
-
-          let sigs = doSign(
-            signers.sort(),
-            multisig.address,
-            initialNonce.toNumber(),
-            tokenInstance.address,
-            value,
-            data,
-            executor,
-            gasLimit);
-
-          await multisig.execute(sigs.sigV,
-            sigs.sigR,
-            sigs.sigS,
-            tokenInstance.address,
-            value,
-            data,
-            executor,
-            gasLimit,
-            { from: executor, gasLimit });
-
-          let newNonce = await multisig.nonce.call();
-          assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
-
-          assert.equal(
-            0,
-            await tokenInstance.balanceOf(multisig.address)
-          );
-
-          assert.equal(
-            ISSUED_TOKENS,
-            await tokenInstance.balanceOf(destinationAddress)
-          );
-        });
-      });
-      describe('AND only one owner sign a TestToken.transfer() transaction', () => {
-        it('SHOULD revert', async () => {
-          let signers = [acct[0]];
-          const data = tokenInstance.contract.methods.transfer(
-            destinationAddress,
-            ISSUED_TOKENS).encodeABI();
-
-          let sigs = doSign(
-            signers.sort(),
-            multisig.address,
-            initialNonce.toNumber(),
-            tokenInstance.address,
-            value,
-            data,
-            executor,
-            gasLimit);
-          await assertRevert(
-            multisig.execute(sigs.sigV,
-              sigs.sigR,
-              sigs.sigS,
-              tokenInstance.address,
-              value,
-              data,
-              executor,
-              gasLimit,
-              { from: executor, gasLimit })
-          );
-        });
-      });
-      describe('AND one owner and one no owner sign a TestToken.transfer() transaction', () => {
-        it('SHOULD revert', async () => {
-          let signers = [acct[0], acct[9]];
-          const data = tokenInstance.contract.methods.transfer(
-            destinationAddress,
-            ISSUED_TOKENS).encodeABI();
-
-          let sigs = doSign(
-            signers.sort(),
-            multisig.address,
-            initialNonce.toNumber(),
-            tokenInstance.address,
-            value,
-            data,
-            executor,
-            gasLimit);
-          await assertRevert(
-            multisig.execute(sigs.sigV,
-              sigs.sigR,
-              sigs.sigS,
-              tokenInstance.address,
-              value,
-              data,
-              executor,
-              gasLimit,
-              { from: executor, gasLimit })
-          );
-        });
-      });
-      describe('AND two no owners sign a TestToken.transfer() transaction', () => {
-        it('SHOULD revert', async () => {
-          let noOwnerSigners = [acct[8], acct[9]];
-          const data = tokenInstance.contract.methods.transfer(
-            destinationAddress,
-            ISSUED_TOKENS).encodeABI();
-
-          let sigs = doSign(
-            noOwnerSigners.sort(),
-            multisig.address,
-            initialNonce.toNumber(),
-            tokenInstance.address,
-            value,
-            data,
-            executor,
-            gasLimit);
-          await assertRevert(
-            multisig.execute(sigs.sigV,
-              sigs.sigR,
-              sigs.sigS,
-              tokenInstance.address,
-              value,
-              data,
-              executor,
-              gasLimit,
-              { from: executor, gasLimit })
-          );
-        });
-      });
-    });
     describe('WHEN transferring 1000000 TestToken with a multisig wallet and ZERO address as executor', () => {
       beforeEach(async () => {
         const owners = [acct[0], acct[1], acct[2]];
         executor = acct[1];
-        tokenInstance = await TestToken.new({ from: accounts[0] });
+        tokenInstance = await TestToken.new({ from: owner });
         assert.ok(tokenInstance);
 
-        multisig = await MultiSigWallet.new(owners, threshold, CHAINID, { from: accounts[0] });
+        multisig = await MultiSigWallet.new(owners, threshold, CHAINID, { from: owner });
         await web3SendTransaction({
-          from: accounts[0],
+          from: owner,
           to: multisig.address,
           value: web3.utils.toWei(web3.utils.toBN(5), 'ether'),
         });
@@ -317,7 +126,7 @@ contract.only('TransactionRelayer', function (accounts) {
         const issueResult = await tokenInstance.issueTokens(
           multisig.address,
           ISSUED_TOKENS,
-          { from: accounts[0] });
+          { from: owner });
 
         assert.ok(issueResult);
 
@@ -333,7 +142,14 @@ contract.only('TransactionRelayer', function (accounts) {
       });
       describe('AND two owners sign a TestToken.transfer() transaction', () => {
         it('SHOULD transfer tokens from MultiSigWallet to destinationAddress', async () => {
-          let signers = [acct[0], acct[1]];
+          let signers = [acct[0]];
+
+          await this.trustService.setRole(signers[0], roles.ISSUER, {
+            from: owner,
+          });
+
+          const role = await this.trustService.getRole(signers[0]);
+          assert.equal(role.words[0], roles.ISSUER);
 
           const data = tokenInstance.contract.methods.transfer(
             destinationAddress,
@@ -498,172 +314,6 @@ contract.only('TransactionRelayer', function (accounts) {
               ZEROADDR,
               gasLimit,
               { from: executor, gasLimit })
-          );
-        });
-      });
-    });
-    describe('WHEN trying to transfer 1000000 TestToken with not signer-owner msg.sender', () => {
-      const notSignerExecutor = accounts[0];
-
-      beforeEach(async () => {
-        const owners = [acct[0], acct[1], acct[2]];
-
-        tokenInstance = await TestToken.new({ from: accounts[0] });
-        assert.ok(tokenInstance);
-
-        multisig = await MultiSigWallet.new(owners, threshold, CHAINID, { from: accounts[0] });
-        await web3SendTransaction({
-          from: accounts[0],
-          to: multisig.address,
-          value: web3.utils.toWei(web3.utils.toBN(5), 'ether'),
-        });
-
-        initialNonce = await multisig.nonce.call();
-        assert.equal(initialNonce.toNumber(), 0);
-
-        const issueResult = await tokenInstance.issueTokens(
-          multisig.address,
-          ISSUED_TOKENS,
-          { from: accounts[0] });
-
-        assert.ok(issueResult);
-
-        assert.equal(
-          ISSUED_TOKENS,
-          await tokenInstance.balanceOf(multisig.address)
-        );
-
-        assert.equal(
-          0,
-          await tokenInstance.balanceOf(destinationAddress)
-        );
-      });
-      describe('AND two owners sign a TestToken.transfer() transaction', () => {
-        it('SHOULD revert because msg.sender is not a signer-owner', async () => {
-          let signers = [acct[0], acct[1]];
-
-          const data = tokenInstance.contract.methods.transfer(
-            destinationAddress,
-            ISSUED_TOKENS).encodeABI();
-
-          let sigs = doSign(
-            signers.sort(),
-            multisig.address,
-            initialNonce.toNumber(),
-            tokenInstance.address,
-            value,
-            data,
-            notSignerExecutor,
-            gasLimit);
-          await assertRevert(
-            multisig.execute(sigs.sigV,
-              sigs.sigR,
-              sigs.sigS,
-              tokenInstance.address,
-              value,
-              data,
-              notSignerExecutor,
-              gasLimit,
-              { from: notSignerExecutor, gasLimit })
-          );
-
-          let newNonce = await multisig.nonce.call();
-          assert.equal(initialNonce.toNumber(), newNonce.toNumber());
-
-          assert.equal(
-            ISSUED_TOKENS,
-            await tokenInstance.balanceOf(multisig.address)
-          );
-
-          assert.equal(
-            0,
-            await tokenInstance.balanceOf(destinationAddress)
-          );
-        });
-      });
-      describe('AND two owners sign a TestToken.transfer() transaction using ZERO address as executor', () => {
-        it('SHOULD revert because msg.sender is not an owner-singer', async () => {
-          let signers = [acct[0], acct[1]];
-
-          const data = tokenInstance.contract.methods.transfer(
-            destinationAddress,
-            ISSUED_TOKENS).encodeABI();
-
-          let sigs = doSign(
-            signers.sort(),
-            multisig.address,
-            initialNonce.toNumber(),
-            tokenInstance.address,
-            value,
-            data,
-            ZEROADDR,
-            gasLimit);
-
-          await assertRevert(
-            multisig.execute(sigs.sigV,
-              sigs.sigR,
-              sigs.sigS,
-              tokenInstance.address,
-              value,
-              data,
-              ZEROADDR,
-              gasLimit,
-              { from: notSignerExecutor, gasLimit }
-            ));
-
-          let newNonce = await multisig.nonce.call();
-          assert.equal(initialNonce.toNumber(), newNonce.toNumber());
-
-          assert.equal(
-            ISSUED_TOKENS,
-            await tokenInstance.balanceOf(multisig.address)
-          );
-
-          assert.equal(
-            0,
-            await tokenInstance.balanceOf(destinationAddress)
-          );
-        });
-      });
-      describe('AND three owners sign a TestToken.transfer() transaction', () => {
-        it('SHOULD revert because msg.sender is not an owner-singer', async () => {
-          let signers = [acct[0], acct[1], acct[2]];
-          const data = tokenInstance.contract.methods.transfer(
-            destinationAddress,
-            ISSUED_TOKENS).encodeABI();
-
-          let sigs = doSign(
-            signers.sort(),
-            multisig.address,
-            initialNonce.toNumber(),
-            tokenInstance.address,
-            value,
-            data,
-            notSignerExecutor,
-            gasLimit);
-          await assertRevert(
-            multisig.execute(sigs.sigV,
-              sigs.sigR,
-              sigs.sigS,
-              tokenInstance.address,
-              value,
-              data,
-              notSignerExecutor,
-              gasLimit,
-              { from: notSignerExecutor, gasLimit })
-          );
-
-          let newNonce = await multisig.nonce.call();
-          assert.equal(initialNonce.toNumber(), newNonce.toNumber());
-
-          assert.equal(
-            ISSUED_TOKENS,
-            await tokenInstance.balanceOf(multisig.address)
-          );
-
-          assert.equal(
-            0,
-            await tokenInstance.balanceOf(destinationAddress)
           );
         });
       });
