@@ -9,7 +9,7 @@ contract IDSServiceConsumer is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(5);
+        VERSIONS.push(6);
     }
 
     uint256 public constant TRUST_SERVICE = 1;
@@ -24,6 +24,7 @@ contract IDSServiceConsumer is Initializable, VersionedContract {
     uint256 public constant TOKEN_ISSUER = 512;
     uint256 public constant WALLET_REGISTRAR = 1024;
     uint256 public constant OMNIBUS_TBE_CONTROLLER = 2048;
+    uint256 public constant TRANSACTION_RELAYER = 4096;
 
     modifier onlyMaster {
         require(false, "Not implemented");
@@ -66,6 +67,11 @@ contract IDSServiceConsumer is Initializable, VersionedContract {
     }
 
     modifier onlyMasterOrTBEOmnibus {
+        require(false, "Not implemented");
+        _;
+    }
+
+    modifier onlyOwnerOrIssuerOrAbove {
         require(false, "Not implemented");
         _;
     }

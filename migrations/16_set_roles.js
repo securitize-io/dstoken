@@ -28,4 +28,9 @@ module.exports = async function(deployer) {
       roles.ISSUER
     );
   }
+  console.log("Give issuer permissions to transaction relayer");
+  await trustService.setRole(
+    configurationManager.getProxyAddressForContractName("TransactionRelayer"),
+    roles.ISSUER
+  );
 };
