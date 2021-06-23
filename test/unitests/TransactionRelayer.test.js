@@ -1,11 +1,8 @@
-const MultiSigWallet = artifacts.require('MultiSigWallet');
 const TestToken = artifacts.require('TestToken');
 const lightwallet = require('eth-lightwallet');
-const Promise = require('bluebird');
 const assertRevert = require('../utils/assertRevert');
 const deployContractBehindProxy = require('../utils').deployContractBehindProxy;
 const roles = require('../../utils/globals').roles;
-const web3SendTransaction = Promise.promisify(web3.eth.sendTransaction);
 
 let DOMAIN_SEPARATOR;
 
@@ -21,6 +18,10 @@ const CHAINID = 1;
 const seedPhrase = 'cereal face vapor scrub trash traffic disease region swim stick identify grant';
 const password = '';
 const ZEROADDR = '0x0000000000000000000000000000000000000000';
+
+const HOLDER_ID = '7eecc07cb4d247af821e848a35bc9d2d';
+const HOLDER_ADDRESS = '0xb94824a9cc0714D8A3AFee0aF6b8524E91AE4b1B';
+const HOLDER_COUNTRY_CODE = 'US';
 
 contract.only('TransactionRelayer', function ([owner, destinationAddress]) {
   let keyFromPw;
@@ -104,15 +105,90 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress]) {
 
     await deployContractBehindProxy(
       artifacts.require('Proxy'),
+      artifacts.require('RegistryService'),
+      this,
+      'registryService'
+    );
+
+    await deployContractBehindProxy(
+      artifacts.require('Proxy'),
+      artifacts.require('WalletRegistrar'),
+      this,
+      'walletRegistrar'
+    );
+
+    await deployContractBehindProxy(
+      artifacts.require('Proxy'),
+      artifacts.require('ComplianceServiceNotRegulated'),
+      this,
+      'complianceServiceNotRegulated'
+    );
+
+    await deployContractBehindProxy(
+      artifacts.require('Proxy'),
+      artifacts.require('WalletManager'),
+      this,
+      'walletManager'
+    );
+
+    await deployContractBehindProxy(
+      artifacts.require('Proxy'),
       artifacts.require('TransactionRelayer'),
       this,
       'transactionRelayer',
       [CHAINID]
     );
 
-    console.log('Connectiong transaction relayer to trust service');
+    /*
+    TRUST_SERVICE: 1,
+    DS_TOKEN: 2,
+    REGISTRY_SERVICE: 4,
+    COMPLIANCE_SERVICE: 8,
+    WALLET_MANAGER: 32,
+    LOCK_MANAGER: 64,
+    PARTITIONS_MANAGER: 128,
+    COMPLIANCE_CONFIGURATION_SERVICE: 256,
+    TOKEN_ISSUER: 512,
+    WALLET_REGISTRAR: 1024,
+    OMNIBUS_TBE_CONTROLLER: 2048,
+    TRANSACTION_RELAYER: 4096,
+     */
+
+    console.log('Connecting transaction relayer to trust service');
     const TRUST_SERVICE = 1;
     await this.transactionRelayer.setDSService(TRUST_SERVICE, this.trustService.address);
+
+    console.log('Connecting wallet registrar');
+    const REGISTRY_SERVICE = 4;
+    await this.walletRegistrar.setDSService(REGISTRY_SERVICE, this.registryService.address);
+
+    await this.walletRegistrar.setDSService(
+      TRUST_SERVICE,
+      this.trustService.address
+    );
+
+    await this.registryService.setDSService(
+      TRUST_SERVICE,
+      this.trustService.address
+    );
+
+    await this.trustService.setRole(this.walletRegistrar.address, roles.ISSUER, {
+      from: owner,
+    });
+
+    console.log('Connecting registry to compliance service');
+    const COMPLIANCE_SERVICE = 8;
+    await this.registryService.setDSService(
+      COMPLIANCE_SERVICE,
+      this.complianceServiceNotRegulated.address
+    );
+
+    console.log('Connecting registry to wallet mananger');
+    const WALLET_MANAGER = 32;
+    await this.registryService.setDSService(
+      WALLET_MANAGER,
+      this.walletManager.address
+    );
   });
 
   describe(`ERC-20 token smart contract. Transferring ${ISSUED_TOKENS} TestToken to ${destinationAddress}`, () => {
@@ -125,7 +201,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress]) {
         initialNonce = await this.transactionRelayer.nonce.call();
         assert.ok(initialNonce);
       });
-      describe('AND two issuers sign a TestToken.issueTokens() transaction', () => {
+      describe('AND one issuer sign a TestToken.issueTokens() transaction', () => {
         it('SHOULD transfer tokens from Relayer to destinationAddress', async () => {
           let issuers = [acct[0]];
 
@@ -140,7 +216,6 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress]) {
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          console.log({ mensaje: '**** NONCE', nonce: initialNonce.toNumber() });
           let sigs = doSign(
             issuers.sort(),
             this.transactionRelayer.address,
@@ -176,102 +251,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress]) {
           );
         });
       });
-      describe('AND three issuers sign a TestToken.issueTokens() transaction', () => {
-        it('SHOULD transfer tokens from Relayer to destinationAddress', async () => {
-          let issuers = [acct[0], acct[1]];
-
-          await this.trustService.setRole(issuers[1], roles.ISSUER, {
-            from: owner,
-          });
-
-          const data = tokenInstance.contract.methods.issueTokens(
-            destinationAddress,
-            ISSUED_TOKENS).encodeABI();
-
-          console.log({ mensaje: '**** NONCE', nonce: initialNonce.toNumber() });
-          let sigs = doSign(
-            issuers.sort(),
-            this.transactionRelayer.address,
-            initialNonce.toNumber(),
-            tokenInstance.address,
-            value,
-            data,
-            ZEROADDR,
-            gasLimit);
-
-          await this.transactionRelayer.execute(
-            sigs.sigV[0],
-            sigs.sigR[0],
-            sigs.sigS[0],
-            tokenInstance.address,
-            value,
-            data,
-            ZEROADDR,
-            gasLimit,
-            { from: executor, gasLimit });
-
-          let newNonce = await this.transactionRelayer.nonce.call();
-          assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
-
-          assert.equal(
-            0,
-            await tokenInstance.balanceOf(this.transactionRelayer.address)
-          );
-
-          assert.equal(
-            ISSUED_TOKENS,
-            await tokenInstance.balanceOf(destinationAddress)
-          );
-        });
-      });
-      describe('AND three issuers sign a TestToken.issueTokens() transaction', () => {
-        it('SHOULD transfer tokens from Relayer to destinationAddress', async () => {
-          let issuers = [acct[0], acct[1], acct[2]];
-
-          await this.trustService.setRole(issuers[2], roles.ISSUER, {
-            from: owner,
-          });
-
-          const data = tokenInstance.contract.methods.issueTokens(
-            destinationAddress,
-            ISSUED_TOKENS).encodeABI();
-
-          let sigs = doSign(
-            issuers.sort(),
-            this.transactionRelayer.address,
-            initialNonce.toNumber(),
-            tokenInstance.address,
-            value,
-            data,
-            ZEROADDR,
-            gasLimit);
-
-          await this.transactionRelayer.execute(
-            sigs.sigV[0],
-            sigs.sigR[0],
-            sigs.sigS[0],
-            tokenInstance.address,
-            value,
-            data,
-            ZEROADDR,
-            gasLimit,
-            { from: executor, gasLimit });
-
-          let newNonce = await this.transactionRelayer.nonce.call();
-          assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
-
-          assert.equal(
-            0,
-            await tokenInstance.balanceOf(this.transactionRelayer.address)
-          );
-
-          assert.equal(
-            ISSUED_TOKENS,
-            await tokenInstance.balanceOf(destinationAddress)
-          );
-        });
-      });
-      describe('AND only one issuer sign a TestToken.issueTokens() transaction', () => {
+      describe('AND only one no issuer sign a TestToken.issueTokens() transaction', () => {
         it('SHOULD revert', async () => {
           let issuers = [acct[3]];
           const data = tokenInstance.contract.methods.issueTokens(
@@ -280,66 +260,6 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress]) {
 
           let sigs = doSign(
             issuers.sort(),
-            this.transactionRelayer.address,
-            initialNonce.toNumber(),
-            tokenInstance.address,
-            value,
-            data,
-            ZEROADDR,
-            gasLimit);
-          await assertRevert(
-            this.transactionRelayer.execute(
-              sigs.sigV[0],
-              sigs.sigR[0],
-              sigs.sigS[0],
-              tokenInstance.address,
-              value,
-              data,
-              ZEROADDR,
-              gasLimit,
-              { from: executor, gasLimit })
-          );
-        });
-      });
-      describe('AND one issuer and one no issuer sign a TestToken.issueTokens() transaction', () => {
-        it('SHOULD revert', async () => {
-          let issuers = [acct[0], acct[7]];
-          const data = tokenInstance.contract.methods.issueTokens(
-            destinationAddress,
-            ISSUED_TOKENS).encodeABI();
-
-          let sigs = doSign(
-            issuers.sort(),
-            this.transactionRelayer.address,
-            initialNonce.toNumber(),
-            tokenInstance.address,
-            value,
-            data,
-            ZEROADDR,
-            gasLimit);
-          await assertRevert(
-            this.transactionRelayer.execute(
-              sigs.sigV[1],
-              sigs.sigR[1],
-              sigs.sigS[1],
-              tokenInstance.address,
-              value,
-              data,
-              ZEROADDR,
-              gasLimit,
-              { from: executor, gasLimit })
-          );
-        });
-      });
-      describe('AND two no issuers sign a TestToken.issueTokens() transaction', () => {
-        it('SHOULD revert', async () => {
-          let noIssuersSigners = [acct[8], acct[9]];
-          const data = tokenInstance.contract.methods.issueTokens(
-            destinationAddress,
-            ISSUED_TOKENS).encodeABI();
-
-          let sigs = doSign(
-            noIssuersSigners.sort(),
             this.transactionRelayer.address,
             initialNonce.toNumber(),
             tokenInstance.address,
@@ -490,6 +410,103 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress]) {
               { from: executor, gasLimit })
           );
         });
+      });
+    });
+  });
+  describe('Interaction with Registry Service', () => {
+    beforeEach(async () => {
+      executor = acct[1];
+      initialNonce = await this.transactionRelayer.nonce.call();
+      assert.ok(initialNonce);
+    });
+    describe('Register a Wallet', () => {
+      it('SHOULD Register a wallet signing with the relayer', async () => {
+        let issuers = [acct[0]];
+
+        const role = await this.trustService.getRole(issuers[0]);
+        assert.equal(role.words[0], roles.ISSUER);
+
+        await this.trustService.setRole(this.transactionRelayer.address, roles.ISSUER, {
+          from: owner,
+        });
+
+        const data = this.walletRegistrar.contract.methods.registerWallet(
+          HOLDER_ID,
+          [HOLDER_ADDRESS],
+          HOLDER_ID,
+          HOLDER_COUNTRY_CODE,
+          ['1', '2'],
+          ['1', '1'],
+          ['0', '0']
+        ).encodeABI();
+
+        let sigs = doSign(
+          issuers.sort(),
+          this.transactionRelayer.address,
+          initialNonce.toNumber(),
+          this.walletRegistrar.address,
+          value,
+          data,
+          ZEROADDR,
+          gasLimit);
+
+        await this.transactionRelayer.execute(
+          sigs.sigV[0],
+          sigs.sigR[0],
+          sigs.sigS[0],
+          this.walletRegistrar.address,
+          0,
+          data,
+          ZEROADDR,
+          gasLimit,
+          { from: executor, gasLimit });
+
+        let newNonce = await this.transactionRelayer.nonce.call();
+        assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
+
+        const investor = await this.registryService.getInvestor(HOLDER_ADDRESS);
+        assert(investor, HOLDER_ID);
+      });
+    });
+    describe('When signing with no role a wallet', () => {
+      it('SHOULD revert', async () => {
+        let issuers = [acct[9]];
+
+        const role = await this.trustService.getRole(issuers[0]);
+        assert.equal(role.words[0], roles.NONE);
+
+        const data = this.walletRegistrar.contract.methods.registerWallet(
+          HOLDER_ID,
+          [HOLDER_ADDRESS],
+          HOLDER_ID,
+          HOLDER_COUNTRY_CODE,
+          ['1', '2'],
+          ['1', '1'],
+          ['0', '0']
+        ).encodeABI();
+
+        let sigs = doSign(
+          issuers.sort(),
+          this.transactionRelayer.address,
+          initialNonce.toNumber(),
+          this.walletRegistrar.address,
+          value,
+          data,
+          ZEROADDR,
+          gasLimit);
+
+        await assertRevert(
+          this.transactionRelayer.execute(
+            sigs.sigV[0],
+            sigs.sigR[0],
+            sigs.sigS[0],
+            this.walletRegistrar.address,
+            0,
+            data,
+            ZEROADDR,
+            gasLimit,
+            { from: executor, gasLimit })
+        );
       });
     });
   });
