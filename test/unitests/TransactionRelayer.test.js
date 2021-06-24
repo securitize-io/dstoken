@@ -39,7 +39,7 @@ let euRetailCountries = [];
 let euRetailCountryCounts = [];
 const issuanceTime = 15495894;
 
-contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibusWallet, investorWallet1,
+contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWallet, investorWallet1,
   investorWallet2]) {
   let keyFromPw;
   let acct;
@@ -52,7 +52,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
   const value = 0;
 
   const doSign = function (
-    signers,
+    signer,
     multisigAddr,
     nonce,
     destinationAddr,
@@ -86,13 +86,12 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
     let sigR = [];
     let sigS = [];
 
-    for (var i = 0; i < signers.length; i++) {
-      let sig = lightwallet.signing.signMsgHash(lightWalletKeyStore, keyFromPw, hash, signers[i]);
-      signatures.push(sig);
-      sigV.push(sig.v);
-      sigR.push('0x' + sig.r.toString('hex'));
-      sigS.push('0x' + sig.s.toString('hex'));
-    }
+
+    let sig = lightwallet.signing.signMsgHash(lightWalletKeyStore, keyFromPw, hash, signer);
+    signatures.push(sig);
+    sigV.push(sig.v);
+    sigR.push('0x' + sig.r.toString('hex'));
+    sigS.push('0x' + sig.s.toString('hex'));
 
     return { sigV: sigV, sigR: sigR, sigS: sigS };
   };
@@ -207,13 +206,13 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
       });
       describe('AND one issuer sign a TestToken.issueTokens() transaction', () => {
         it('SHOULD transfer tokens from Relayer to destinationAddress', async () => {
-          let issuers = [acct[0]];
+          let issuer = acct[0];
 
-          await this.trustService.setRole(issuers[0], roles.ISSUER, {
+          await this.trustService.setRole(issuer, roles.ISSUER, {
             from: owner,
           });
 
-          const role = await this.trustService.getRole(issuers[0]);
+          const role = await this.trustService.getRole(issuer);
           assert.equal(role.words[0], roles.ISSUER);
 
           const data = tokenInstance.contract.methods.issueTokens(
@@ -221,7 +220,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
             ISSUED_TOKENS).encodeABI();
 
           let sigs = doSign(
-            issuers.sort(),
+            issuer,
             this.transactionRelayer.address,
             initialNonce.toNumber(),
             tokenInstance.address,
@@ -257,13 +256,13 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
       });
       describe('AND only one no issuer sign a TestToken.issueTokens() transaction', () => {
         it('SHOULD revert', async () => {
-          let issuers = [acct[3]];
+          let issuer = acct[3];
           const data = tokenInstance.contract.methods.issueTokens(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
           let sigs = doSign(
-            issuers.sort(),
+            issuer,
             this.transactionRelayer.address,
             initialNonce.toNumber(),
             tokenInstance.address,
@@ -287,13 +286,13 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
       });
       describe('WHEN signing with wrong TXTYPE_HASH ', () => {
         it('SHOULD revert', async () => {
-          let issuers = [acct[0]];
+          let issuer = acct[0];
           const data = tokenInstance.contract.methods.issueTokens(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
           let sigs = doSign(
-            issuers.sort(),
+            issuer,
             this.transactionRelayer.address,
             initialNonce.toNumber(),
             tokenInstance.address,
@@ -318,13 +317,13 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
       });
       describe('WHEN signing with wrong NAME_HASH ', () => {
         it('SHOULD revert', async () => {
-          let issuers = [acct[0]];
+          let issuer = acct[0];
           const data = tokenInstance.contract.methods.issueTokens(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
           let sigs = doSign(
-            issuers.sort(),
+            issuer,
             this.transactionRelayer.address,
             initialNonce.toNumber(),
             tokenInstance.address,
@@ -350,13 +349,13 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
       });
       describe('WHEN signing with wrong VERSION_HASH ', () => {
         it('SHOULD revert', async () => {
-          let issuers = [acct[0]];
+          let issuer = acct[0];
           const data = tokenInstance.contract.methods.issueTokens(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
           let sigs = doSign(
-            issuers.sort(),
+            issuer,
             this.transactionRelayer.address,
             initialNonce.toNumber(),
             tokenInstance.address,
@@ -383,13 +382,13 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
       });
       describe('WHEN signing with wrong EIP712DOMAINTYPE_HASH ', () => {
         it('SHOULD revert', async () => {
-          let issuers = [acct[0]];
+          let issuer = acct[0];
           const data = tokenInstance.contract.methods.issueTokens(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
           let sigs = doSign(
-            issuers.sort(),
+            issuer,
             this.transactionRelayer.address,
             initialNonce.toNumber(),
             tokenInstance.address,
@@ -425,9 +424,9 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
     });
     describe('Register a Wallet', () => {
       it('SHOULD Register a wallet signing with the relayer', async () => {
-        let issuers = [acct[0]];
+        let issuer = acct[0];
 
-        const role = await this.trustService.getRole(issuers[0]);
+        const role = await this.trustService.getRole(issuer);
         assert.equal(role.words[0], roles.ISSUER);
 
         await this.trustService.setRole(this.transactionRelayer.address, roles.ISSUER, {
@@ -445,7 +444,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
         ).encodeABI();
 
         let sigs = doSign(
-          issuers.sort(),
+          issuer,
           this.transactionRelayer.address,
           initialNonce.toNumber(),
           this.walletRegistrar.address,
@@ -474,9 +473,9 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
     });
     describe('When signing with no role a wallet', () => {
       it('SHOULD revert', async () => {
-        let issuers = [acct[9]];
+        let issuer = acct[9];
 
-        const role = await this.trustService.getRole(issuers[0]);
+        const role = await this.trustService.getRole(issuer);
         assert.equal(role.words[0], roles.NONE);
 
         const data = this.walletRegistrar.contract.methods.registerWallet(
@@ -490,7 +489,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
         ).encodeABI();
 
         let sigs = doSign(
-          issuers.sort(),
+          issuer,
           this.transactionRelayer.address,
           initialNonce.toNumber(),
           this.walletRegistrar.address,
@@ -535,7 +534,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
     });
     describe('Bulk transfer', () => {
       it('should bulk transfer tokens from omnibus to wallet correctly', async () => {
-        let issuers = [acct[0]];
+        let issuer = acct[0];
 
         // GIVEN
         const valueToTranser = 1000;
@@ -566,7 +565,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
           .bulkTransfer(investorWallets, tokenValues).encodeABI();
 
         let sigs = doSign(
-          issuers.sort(),
+          issuer,
           this.transactionRelayer.address,
           initialNonce.toNumber(),
           this.omnibusTBEController.address,
@@ -610,7 +609,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
         await this.token.burn(investorWallet2, 500, 'reset');
       });
       it('should not bulk transfer tokens from omnibus to wallet if not corresponding rights', async () => {
-        let issuers = [acct[8]];
+        let issuer = acct[8];
 
         // GIVEN
         const valueToTranser = 1000;
@@ -641,7 +640,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
           .bulkTransfer(investorWallets, tokenValues).encodeABI();
 
         let sigs = doSign(
-          issuers.sort(),
+          issuer,
           this.transactionRelayer.address,
           initialNonce.toNumber(),
           this.omnibusTBEController.address,
