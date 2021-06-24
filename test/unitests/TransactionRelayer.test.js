@@ -3,6 +3,12 @@ const lightwallet = require('eth-lightwallet');
 const assertRevert = require('../utils/assertRevert');
 const deployContractBehindProxy = require('../utils').deployContractBehindProxy;
 const roles = require('../../utils/globals').roles;
+const deployContracts = require('../utils/index').deployContracts;
+const { setOmnibusTBEServicesDependencies, resetCounters, setCounters,
+  getCountersDelta, toHex, assertCounters, assertCountryCounters, assertEvent } =
+  require('../utils/omnibus/utils');
+const fixtures = require('../fixtures');
+const globals = require('../../utils/globals');
 
 let DOMAIN_SEPARATOR;
 
@@ -23,7 +29,18 @@ const HOLDER_ID = '7eecc07cb4d247af821e848a35bc9d2d';
 const HOLDER_ADDRESS = '0xb94824a9cc0714D8A3AFee0aF6b8524E91AE4b1B';
 const HOLDER_COUNTRY_CODE = 'US';
 
-contract.only('TransactionRelayer', function ([owner, destinationAddress]) {
+const lockManagerType = globals.lockManagerType;
+const role = globals.roles;
+const compliance = globals.complianceType;
+
+const investorId = fixtures.InvestorId;
+
+let euRetailCountries = [];
+let euRetailCountryCounts = [];
+const issuanceTime = 15495894;
+
+contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibusWallet, investorWallet1,
+  investorWallet2]) {
   let keyFromPw;
   let acct;
   let lightWalletKeyStore;
@@ -96,19 +113,18 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress]) {
       });
     });
 
-    await deployContractBehindProxy(
-      artifacts.require('Proxy'),
-      artifacts.require('TrustService'),
+    // Omnibus Deployments!
+    await deployContracts(
       this,
-      'trustService'
+      artifacts,
+      compliance.NORMAL,
+      lockManagerType.INVESTOR,
+      undefined,
+      false,
+      omnibusWallet
     );
 
-    await deployContractBehindProxy(
-      artifacts.require('Proxy'),
-      artifacts.require('RegistryService'),
-      this,
-      'registryService'
-    );
+    // Registrar Deployments!
 
     await deployContractBehindProxy(
       artifacts.require('Proxy'),
@@ -119,41 +135,13 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress]) {
 
     await deployContractBehindProxy(
       artifacts.require('Proxy'),
-      artifacts.require('ComplianceServiceNotRegulated'),
-      this,
-      'complianceServiceNotRegulated'
-    );
-
-    await deployContractBehindProxy(
-      artifacts.require('Proxy'),
-      artifacts.require('WalletManager'),
-      this,
-      'walletManager'
-    );
-
-    await deployContractBehindProxy(
-      artifacts.require('Proxy'),
       artifacts.require('TransactionRelayer'),
       this,
       'transactionRelayer',
       [CHAINID]
     );
 
-    /*
-    TRUST_SERVICE: 1,
-    DS_TOKEN: 2,
-    REGISTRY_SERVICE: 4,
-    COMPLIANCE_SERVICE: 8,
-    WALLET_MANAGER: 32,
-    LOCK_MANAGER: 64,
-    PARTITIONS_MANAGER: 128,
-    COMPLIANCE_CONFIGURATION_SERVICE: 256,
-    TOKEN_ISSUER: 512,
-    WALLET_REGISTRAR: 1024,
-    OMNIBUS_TBE_CONTROLLER: 2048,
-    TRANSACTION_RELAYER: 4096,
-     */
-
+    // Set Services!
     console.log('Connecting transaction relayer to trust service');
     const TRUST_SERVICE = 1;
     await this.transactionRelayer.setDSService(TRUST_SERVICE, this.trustService.address);
@@ -176,21 +164,37 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress]) {
       from: owner,
     });
 
-    console.log('Connecting registry to compliance service');
-    const COMPLIANCE_SERVICE = 8;
-    await this.registryService.setDSService(
-      COMPLIANCE_SERVICE,
-      this.complianceServiceNotRegulated.address
-    );
-
     console.log('Connecting registry to wallet mananger');
     const WALLET_MANAGER = 32;
     await this.registryService.setDSService(
       WALLET_MANAGER,
       this.walletManager.address
     );
-  });
 
+    console.log('Omnibus Settings');
+
+    await setOmnibusTBEServicesDependencies(this);
+    await this.trustService.setRole(this.omnibusTBEController.address, role.ISSUER);
+
+    await this.registryService.registerInvestor(
+      investorId.GENERAL_INVESTOR_ID_1,
+      investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+    );
+    await this.registryService.addWallet(
+      investorWallet1,
+      investorId.GENERAL_INVESTOR_ID_1
+    );
+    await this.registryService.registerInvestor(
+      investorId.GENERAL_INVESTOR_ID_2,
+      investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+    );
+    await this.registryService.addWallet(
+      investorWallet2,
+      investorId.GENERAL_INVESTOR_ID_2
+    );
+
+    await resetCounters(this);
+  });
   describe(`ERC-20 token smart contract. Transferring ${ISSUED_TOKENS} TestToken to ${destinationAddress}`, () => {
     describe(`WHEN transferring ${ISSUED_TOKENS} TestToken `, () => {
       beforeEach(async () => {
@@ -501,6 +505,157 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress]) {
             sigs.sigR[0],
             sigs.sigS[0],
             this.walletRegistrar.address,
+            0,
+            data,
+            ZEROADDR,
+            gasLimit,
+            { from: executor, gasLimit })
+        );
+      });
+    });
+  });
+  describe('Interaction with OmnibusTBE', () => {
+    beforeEach(async () => {
+      executor = acct[1];
+      initialNonce = await this.transactionRelayer.nonce.call();
+      assert.ok(initialNonce);
+
+      await resetCounters(this);
+      const currentBalance = await this.token.balanceOf(omnibusWallet);
+      if (currentBalance.toNumber() > 0) {
+        await this.token.burn(omnibusWallet, currentBalance, '');
+      }
+
+      await euRetailCountries.forEach((country, index) => {
+        // Reset counters
+        this.complianceService.setEURetailInvestorsCount(country, 0);
+      });
+      euRetailCountries = [];
+      euRetailCountryCounts = [];
+    });
+    describe('Bulk transfer', () => {
+      it('should bulk transfer tokens from omnibus to wallet correctly', async () => {
+        let issuers = [acct[0]];
+
+        // GIVEN
+        const valueToTranser = 1000;
+        const tokenValues = ['500', '500'];
+        const investorWallets = [investorWallet1, investorWallet2];
+        const txCounters = {
+          totalInvestorsCount: 5,
+          accreditedInvestorsCount: 5,
+          usTotalInvestorsCount: 4,
+          usAccreditedInvestorsCount: 1,
+          jpTotalInvestorsCount: 0,
+        };
+        euRetailCountries.push('ES');
+        euRetailCountryCounts.push(2);
+
+        await setCounters(txCounters, this);
+
+        // WHEN
+        await this.omnibusTBEController
+          .bulkIssuance(valueToTranser, issuanceTime, txCounters.totalInvestorsCount,
+            txCounters.accreditedInvestorsCount,
+            txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
+            txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
+
+        await this.token.approve(this.omnibusTBEController.address, valueToTranser, { from: omnibusWallet });
+
+        const data = await this.omnibusTBEController.contract.methods
+          .bulkTransfer(investorWallets, tokenValues).encodeABI();
+
+        let sigs = doSign(
+          issuers.sort(),
+          this.transactionRelayer.address,
+          initialNonce.toNumber(),
+          this.omnibusTBEController.address,
+          0,
+          data,
+          ZEROADDR,
+          gasLimit);
+
+        await this.transactionRelayer.execute(
+          sigs.sigV[0],
+          sigs.sigR[0],
+          sigs.sigS[0],
+          this.omnibusTBEController.address,
+          0,
+          data,
+          ZEROADDR,
+          gasLimit,
+          { from: executor, gasLimit });
+
+        // THEN
+        await assertCounters(this);
+
+        const omnibusCurrentBalance = await this.token.balanceOf(omnibusWallet);
+        assert.equal(
+          omnibusCurrentBalance.toNumber(),
+          0
+        );
+        const investorWallet1CurrentBalance = await this.token.balanceOf(investorWallet1);
+        assert.equal(
+          investorWallet1CurrentBalance.toNumber(),
+          500
+        );
+        const investorWallet2CurrentBalance = await this.token.balanceOf(investorWallet2);
+        assert.equal(
+          investorWallet2CurrentBalance.toNumber(),
+          500
+        );
+
+        // Reset balance
+        await this.token.burn(investorWallet1, 500, 'reset');
+        await this.token.burn(investorWallet2, 500, 'reset');
+      });
+      it('should not bulk transfer tokens from omnibus to wallet if not corresponding rights', async () => {
+        let issuers = [acct[8]];
+
+        // GIVEN
+        const valueToTranser = 1000;
+        const tokenValues = ['500', '500'];
+        const investorWallets = [investorWallet1, investorWallet2];
+        const txCounters = {
+          totalInvestorsCount: 5,
+          accreditedInvestorsCount: 5,
+          usTotalInvestorsCount: 4,
+          usAccreditedInvestorsCount: 1,
+          jpTotalInvestorsCount: 0,
+        };
+        euRetailCountries.push('ES');
+        euRetailCountryCounts.push(2);
+
+        await setCounters(txCounters, this);
+
+        // WHEN
+        await this.omnibusTBEController
+          .bulkIssuance(valueToTranser, issuanceTime, txCounters.totalInvestorsCount,
+            txCounters.accreditedInvestorsCount,
+            txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
+            txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
+
+        await this.token.approve(this.omnibusTBEController.address, valueToTranser, { from: omnibusWallet });
+
+        const data = await this.omnibusTBEController.contract.methods
+          .bulkTransfer(investorWallets, tokenValues).encodeABI();
+
+        let sigs = doSign(
+          issuers.sort(),
+          this.transactionRelayer.address,
+          initialNonce.toNumber(),
+          this.omnibusTBEController.address,
+          0,
+          data,
+          ZEROADDR,
+          gasLimit);
+
+        await assertRevert(
+          this.transactionRelayer.execute(
+            sigs.sigV[0],
+            sigs.sigR[0],
+            sigs.sigS[0],
+            this.omnibusTBEController.address,
             0,
             data,
             ZEROADDR,
