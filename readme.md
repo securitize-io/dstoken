@@ -41,7 +41,7 @@ npm run migrate -- --name <token name> --symbol <token symbol> --decimals <token
 --lock_manager TYPE - lock manager type (WALLET,INVESTOR) - if omitted, INVESTOR is selected
 --owners - a space seperated string of owner addresses that own the multisig wallet
 --required_confirmations - the number of required confirmations to execute a multisig wallet transaction
---chain_id - the chainId of the network where the multisig wallet will be deployed
+--chain_id - Used to create and sign EIP-712 messages. Used to deploy TransactionRelayer and MultiSig contracts. 1 (Ethereum Mainnet) by default.
 --no_omnibus_wallet - skip omnibus wallet
 --omnibus_wallet - the address of the omnibus wallet in the registry
 --partitioned - add partitions support

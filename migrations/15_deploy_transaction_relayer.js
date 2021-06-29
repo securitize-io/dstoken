@@ -11,6 +11,6 @@ module.exports = async function(deployer) {
     configurationManager,
     deployer,
     artifacts.require("TransactionRelayer"),
-    [1] // TODO: Make it dynamic (chainId)
+    [configurationManager.chainId]
   );
 };
