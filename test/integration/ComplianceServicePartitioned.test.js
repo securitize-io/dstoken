@@ -15,7 +15,7 @@ const time = fixtures.Time;
 const ownerExchangeWallet = '0x7d5355f140535DaC6B63101A77d0a7a5D1354f8F';
 const newExchangeWallet = '0xF0478208FCb2559922c70642BF5ea8547CE28441';
 
-contract.only("ComplianceServiceRegulatedPartitioned", function([
+contract("ComplianceServiceRegulatedPartitioned", function([
   owner,
   wallet,
   wallet1,
@@ -152,6 +152,38 @@ contract.only("ComplianceServiceRegulatedPartitioned", function([
       const res = await this.complianceService.preTransferCheck(
         noneWallet1,
         noneWallet2,
+        10
+      );
+      assert.equal(20, res[0].toNumber());
+      assert.equal("Wallet not in registry service", res[1]);
+    });
+
+    it("Should revert due to Wallet Not In Registry Service when transferring to issuer special wallet", async function() {
+      await this.registryService.addWallet(
+        noneWallet1,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.token.issueTokens(noneWallet1, 100);
+      const res = await this.complianceService.preTransferCheck(
+        noneWallet1,
+        issuerWallet,
+        10
+      );
+      assert.equal(20, res[0].toNumber());
+      assert.equal("Wallet not in registry service", res[1]);
+    });
+
+    it("Should revert due to Wallet Not In Registry Service when transferring to exchange special wallet", async function() {
+      await this.registryService.addWallet(
+        noneWallet1,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.trustService.setRole(ownerExchangeWallet, roles.EXCHANGE);
+      await this.walletManager.addExchangeWallet(newExchangeWallet, ownerExchangeWallet);
+      await this.token.issueTokens(noneWallet1, 100);
+      const res = await this.complianceService.preTransferCheck(
+        noneWallet1,
+        newExchangeWallet,
         10
       );
       assert.equal(20, res[0].toNumber());
