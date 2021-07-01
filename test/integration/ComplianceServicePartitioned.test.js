@@ -12,7 +12,10 @@ const country = fixtures.Country;
 const compliance = fixtures.Compliance;
 const time = fixtures.Time;
 
-contract("ComplianceServiceRegulatedPartitioned", function([
+const ownerExchangeWallet = '0x7d5355f140535DaC6B63101A77d0a7a5D1354f8F';
+const newExchangeWallet = '0xF0478208FCb2559922c70642BF5ea8547CE28441';
+
+contract.only("ComplianceServiceRegulatedPartitioned", function([
   owner,
   wallet,
   wallet1,
@@ -702,6 +705,31 @@ contract("ComplianceServiceRegulatedPartitioned", function([
         51
       );
       assert.equal(res[0].toNumber(), 51);
+    });
+  });
+  describe("Check whitelisted", function() {
+    it("should be false when address is issuer", async function() {
+      const isWhitelisted = await this.complianceService.checkWhitelisted(issuerWallet);
+      assert.equal(isWhitelisted, false);
+    });
+    it("should be true when address is exchange", async function() {
+      await this.trustService.setRole(ownerExchangeWallet, roles.EXCHANGE);
+      await this.walletManager.addExchangeWallet(newExchangeWallet, ownerExchangeWallet);
+      const isWhitelisted = await this.complianceService.checkWhitelisted(newExchangeWallet);
+      assert.equal(isWhitelisted, false);
+    });
+    it("should be true when address is investor", async function() {
+      await this.registryService.addWallet(
+        wallet,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      const isWhitelisted = await this.complianceService.checkWhitelisted(wallet);
+      assert.equal(isWhitelisted, true);
+    });
+    it("should be true when address is platform", async function() {
+      await this.walletManager.addPlatformWallet(platformWallet);
+      const isWhitelisted = await this.complianceService.checkWhitelisted(platformWallet);
+      assert.equal(isWhitelisted, true);
     });
   });
 });
