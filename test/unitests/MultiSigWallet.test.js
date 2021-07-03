@@ -3,7 +3,7 @@ const TestToken = artifacts.require('TestToken');
 const lightwallet = require('eth-lightwallet');
 const Promise = require('bluebird');
 const assertRevert = require('../utils/assertRevert');
-const { MultiSigSigner } = require('../utils/multiSigSigner');
+const { MultiSigSigner } = require('../utils/specialSigners');
 
 const web3SendTransaction = Promise.promisify(web3.eth.sendTransaction);
 

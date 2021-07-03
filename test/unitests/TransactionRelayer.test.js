@@ -9,7 +9,7 @@ const { setOmnibusTBEServicesDependencies, resetCounters, setCounters,
   require('../utils/omnibus/utils');
 const fixtures = require('../fixtures');
 const globals = require('../../utils/globals');
-const { MultiSigSigner } = require('../utils/multiSigSigner');
+const { HSMSigner } = require('../utils/specialSigners');
 
 let DOMAIN_SEPARATOR;
 
@@ -40,7 +40,7 @@ let euRetailCountries = [];
 let euRetailCountryCounts = [];
 const issuanceTime = 15495894;
 
-let multiSigSigner = null;
+let hsmSigner = null;
 
 contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWallet, investorWallet1,
   investorWallet2]) {
@@ -68,7 +68,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
         acct = acctWithout0x.map((a) => { return a; });
         acct.sort();
 
-        multiSigSigner = new MultiSigSigner({
+        hsmSigner = new HSMSigner({
           nameHash: NAME_HASH,
           versionHash: VERSION_HASH,
           chainId: CHAINID,
@@ -188,8 +188,8 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = multiSigSigner.doSign(
-            [issuer],
+          let sigs = hsmSigner.preApproval(
+            issuer,
             this.transactionRelayer.address,
             initialNonce.toNumber(),
             tokenInstance.address,
@@ -199,9 +199,9 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             gasLimit);
 
           await this.transactionRelayer.execute(
-            sigs.sigV[0],
-            sigs.sigR[0],
-            sigs.sigS[0],
+            sigs.sigV,
+            sigs.sigR,
+            sigs.sigS,
             tokenInstance.address,
             0,
             data,
@@ -230,8 +230,8 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = multiSigSigner.doSign(
-            [issuer],
+          let sigs = hsmSigner.preApproval(
+            issuer,
             this.transactionRelayer.address,
             initialNonce.toNumber(),
             tokenInstance.address,
@@ -241,9 +241,9 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             gasLimit);
           await assertRevert(
             this.transactionRelayer.execute(
-              sigs.sigV[0],
-              sigs.sigR[0],
-              sigs.sigS[0],
+              sigs.sigV,
+              sigs.sigR,
+              sigs.sigS,
               tokenInstance.address,
               value,
               data,
@@ -260,8 +260,8 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = multiSigSigner.doSign(
-            [issuer],
+          let sigs = hsmSigner.preApproval(
+            issuer,
             this.transactionRelayer.address,
             initialNonce.toNumber(),
             tokenInstance.address,
@@ -272,9 +272,9 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             'wrong hash');
           await assertRevert(
             this.transactionRelayer.execute(
-              sigs.sigV[0],
-              sigs.sigR[0],
-              sigs.sigS[0],
+              sigs.sigV,
+              sigs.sigR,
+              sigs.sigS,
               tokenInstance.address,
               value,
               data,
@@ -291,8 +291,8 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = multiSigSigner.doSign(
-            [issuer],
+          let sigs = hsmSigner.preApproval(
+            issuer,
             this.transactionRelayer.address,
             initialNonce.toNumber(),
             tokenInstance.address,
@@ -304,9 +304,9 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             'wrong hash');
           await assertRevert(
             this.transactionRelayer.execute(
-              sigs.sigV[0],
-              sigs.sigR[0],
-              sigs.sigS[0],
+              sigs.sigV,
+              sigs.sigR,
+              sigs.sigS,
               tokenInstance.address,
               value,
               data,
@@ -323,8 +323,8 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = multiSigSigner.doSign(
-            [issuer],
+          let sigs = hsmSigner.preApproval(
+            issuer,
             this.transactionRelayer.address,
             initialNonce.toNumber(),
             tokenInstance.address,
@@ -337,9 +337,9 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             'wrong hash');
           await assertRevert(
             this.transactionRelayer.execute(
-              sigs.sigV[0],
-              sigs.sigR[0],
-              sigs.sigS[0],
+              sigs.sigV,
+              sigs.sigR,
+              sigs.sigS,
               tokenInstance.address,
               value,
               data,
@@ -356,8 +356,8 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = multiSigSigner.doSign(
-            [issuer],
+          let sigs = hsmSigner.preApproval(
+            issuer,
             this.transactionRelayer.address,
             initialNonce.toNumber(),
             tokenInstance.address,
@@ -371,9 +371,9 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             'WRONG HASH');
           await assertRevert(
             this.transactionRelayer.execute(
-              sigs.sigV[0],
-              sigs.sigR[0],
-              sigs.sigS[0],
+              sigs.sigV,
+              sigs.sigR,
+              sigs.sigS,
               tokenInstance.address,
               value,
               data,
@@ -412,8 +412,8 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
           ['0', '0']
         ).encodeABI();
 
-        let sigs = multiSigSigner.doSign(
-          [issuer],
+        let sigs = hsmSigner.preApproval(
+          issuer,
           this.transactionRelayer.address,
           initialNonce.toNumber(),
           this.walletRegistrar.address,
@@ -423,9 +423,9 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
           gasLimit);
 
         await this.transactionRelayer.execute(
-          sigs.sigV[0],
-          sigs.sigR[0],
-          sigs.sigS[0],
+          sigs.sigV,
+          sigs.sigR,
+          sigs.sigS,
           this.walletRegistrar.address,
           0,
           data,
@@ -457,8 +457,8 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
           ['0', '0']
         ).encodeABI();
 
-        let sigs = multiSigSigner.doSign(
-          [issuer],
+        let sigs = hsmSigner.preApproval(
+          issuer,
           this.transactionRelayer.address,
           initialNonce.toNumber(),
           this.walletRegistrar.address,
@@ -469,9 +469,9 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
 
         await assertRevert(
           this.transactionRelayer.execute(
-            sigs.sigV[0],
-            sigs.sigR[0],
-            sigs.sigS[0],
+            sigs.sigV,
+            sigs.sigR,
+            sigs.sigS,
             this.walletRegistrar.address,
             0,
             data,
@@ -533,8 +533,8 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
         const data = await this.omnibusTBEController.contract.methods
           .bulkTransfer(investorWallets, tokenValues).encodeABI();
 
-        let sigs = multiSigSigner.doSign(
-          [issuer],
+        let sigs = hsmSigner.preApproval(
+          issuer,
           this.transactionRelayer.address,
           initialNonce.toNumber(),
           this.omnibusTBEController.address,
@@ -544,9 +544,9 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
           gasLimit);
 
         await this.transactionRelayer.execute(
-          sigs.sigV[0],
-          sigs.sigR[0],
-          sigs.sigS[0],
+          sigs.sigV,
+          sigs.sigR,
+          sigs.sigS,
           this.omnibusTBEController.address,
           0,
           data,
@@ -608,8 +608,8 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
         const data = await this.omnibusTBEController.contract.methods
           .bulkTransfer(investorWallets, tokenValues).encodeABI();
 
-        let sigs = multiSigSigner.doSign(
-          [issuer],
+        let sigs = hsmSigner.preApproval(
+          issuer,
           this.transactionRelayer.address,
           initialNonce.toNumber(),
           this.omnibusTBEController.address,
@@ -620,9 +620,9 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
 
         await assertRevert(
           this.transactionRelayer.execute(
-            sigs.sigV[0],
-            sigs.sigR[0],
-            sigs.sigS[0],
+            sigs.sigV,
+            sigs.sigR,
+            sigs.sigS,
             this.omnibusTBEController.address,
             0,
             data,
