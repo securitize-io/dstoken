@@ -1,7 +1,7 @@
 const lightwallet = require('eth-lightwallet');
 
-class MultiSigSigner {
-  constructor(configuration) {
+class BaseSigner {
+  constructor (configuration) {
     this.nameHash = configuration.nameHash;
     this.versionHash = configuration.versionHash;
     this.chainId = configuration.chainId;
@@ -12,7 +12,7 @@ class MultiSigSigner {
     this.keyFromPw = configuration.keyFromPw;
   }
 
-  doSign (signers,
+  sign (signers,
     multisigAddr,
     nonce,
     destinationAddr,
@@ -59,6 +59,75 @@ class MultiSigSigner {
   }
 }
 
+class MultiSigSigner extends BaseSigner {
+  constructor (configuration) {
+    super(configuration);
+  }
+
+  doSign (signers,
+    multisigAddr,
+    nonce,
+    destinationAddr,
+    value,
+    data,
+    executor,
+    gasLimit,
+    txTypeHash = this.txTypeHash,
+    nameHash = this.nameHash,
+    versionHash = this.versionHash,
+    eip712DomainTypeHash = this.eip712DomainTypeHash) {
+    // eslint-disable-next-line no-return-assign
+    return this.sign(signers,
+      multisigAddr,
+      nonce,
+      destinationAddr,
+      value,
+      data,
+      executor,
+      gasLimit,
+      txTypeHash = this.txTypeHash,
+      nameHash = this.nameHash,
+      versionHash = this.versionHash,
+      eip712DomainTypeHash = this.eip712DomainTypeHash);
+  }
+}
+
+class HSMSigner extends BaseSigner {
+  constructor (configuration) {
+    super(configuration);
+  }
+
+  preApproval (signer,
+    multisigAddr,
+    nonce,
+    destinationAddr,
+    value,
+    data,
+    executor,
+    gasLimit,
+    txTypeHash = this.txTypeHash,
+    nameHash = this.nameHash,
+    versionHash = this.versionHash,
+    eip712DomainTypeHash = this.eip712DomainTypeHash) {
+    // eslint-disable-next-line no-return-assign
+    const res = this.sign([signer],
+      multisigAddr,
+      nonce,
+      destinationAddr,
+      value,
+      data,
+      executor,
+      gasLimit,
+      txTypeHash,
+      nameHash,
+      versionHash,
+      eip712DomainTypeHash);
+
+    return { sigV: res.sigV[0], sigR: res.sigR[0], sigS: res.sigS[0] };
+  }
+}
+
 module.exports = {
   MultiSigSigner,
+  HSMSigner
 };
