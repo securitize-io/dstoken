@@ -1,6 +1,6 @@
 const deployContracts = require('../utils/index').deployContracts;
 const { setOmnibusTBEServicesDependencies, resetCounters, setCounters,
-  getCountersDelta, toHex, assertCounters, assertCountryCounters } =
+  getCountersDelta, toHex, assertCounters, assertCountryCounters, assertEvent } =
   require('../utils/omnibus/utils');
 const assertRevert = require('../utils/assertRevert');
 const fixtures = require('../fixtures');
@@ -533,16 +533,3 @@ contract('OmnibusTBEController', ([
     });
   });
 });
-
-async function assertEvent(contract, expectedEvent, expectedParams) {
-  const events = await contract.getPastEvents("allEvents");
-
-  const event = events.find(event => event.event == expectedEvent);
-
-  if (!event) {
-    assert.fail(`Event ${expectedEvent} not found`);
-  }
-  for (const key of Object.keys(expectedParams)) {
-    assert.equal(event.returnValues[key], expectedParams[key]);
-  }
-}
