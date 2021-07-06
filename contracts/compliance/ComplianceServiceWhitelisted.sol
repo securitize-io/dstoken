@@ -12,13 +12,13 @@ import "../registry/IDSRegistryService.sol";
 contract ComplianceServiceWhitelisted is ComplianceService {
     function initialize() public initializer forceInitializeFromProxy {
         ComplianceService.initialize();
-        VERSIONS.push(3);
+        VERSIONS.push(4);
     }
 
     function checkWhitelisted(address _who) public view returns (bool) {
         uint8 walletType = getWalletManager().getWalletType(_who);
 
-        return walletType != getWalletManager().NONE() || !CommonUtils.isEmptyString(getRegistryService().getInvestor(_who));
+        return walletType == getWalletManager().PLATFORM() || !CommonUtils.isEmptyString(getRegistryService().getInvestor(_who));
     }
 
     function recordIssuance(address, uint256, uint256) internal returns (bool) {
