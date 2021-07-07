@@ -10,7 +10,7 @@ contract IDSRegistryService is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(4);
+        VERSIONS.push(5);
     }
 
     event DSRegistryServiceInvestorAdded(string investorId, address sender);
@@ -38,6 +38,7 @@ contract IDSRegistryService is Initializable, VersionedContract {
     }
 
     modifier newInvestor(string memory _id) {
+        require(!CommonUtils.isEmptyString(_id), "Investor id must not be empty");
         require(!isInvestor(_id), "Investor already exists");
         _;
     }

@@ -83,6 +83,14 @@ contract("RegistryService", function([
         });
 
         describe("Register investor: negative tests ", function() {
+          it(`Trying to register an investor with empty id - should be an error`, async function () {
+            await assertRevert(
+              this.registryService.registerInvestor(
+                '',
+                investorCollisionHash
+              )
+            );
+          });
           it(`Trying to register the same account twice - should be an error`, async function() {
             await assertRevert(
               this.registryService.registerInvestor(
