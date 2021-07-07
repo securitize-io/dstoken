@@ -96,6 +96,19 @@ async function getCounters (testObject) {
   };
 }
 
+async function assertEvent(contract, expectedEvent, expectedParams) {
+  const events = await contract.getPastEvents("allEvents");
+
+  const event = events.find(event => event.event == expectedEvent);
+
+  if (!event) {
+    assert.fail(`Event ${expectedEvent} not found`);
+  }
+  for (const key of Object.keys(expectedParams)) {
+    assert.equal(event.returnValues[key], expectedParams[key]);
+  }
+}
+
 module.exports = {
   setOmnibusTBEServicesDependencies,
   resetCounters,
@@ -104,4 +117,5 @@ module.exports = {
   toHex,
   assertCounters,
   assertCountryCounters,
+  assertEvent
 };

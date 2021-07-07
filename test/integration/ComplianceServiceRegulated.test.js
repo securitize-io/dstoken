@@ -12,6 +12,9 @@ const country = fixtures.Country;
 const compliance = fixtures.Compliance;
 const time = fixtures.Time;
 
+const ownerExchangeWallet = '0x7d5355f140535DaC6B63101A77d0a7a5D1354f8F';
+const newExchangeWallet = '0xF0478208FCb2559922c70642BF5ea8547CE28441';
+
 contract("ComplianceServiceRegulated", function([
   owner,
   wallet,
@@ -123,6 +126,39 @@ contract("ComplianceServiceRegulated", function([
   });
 
   describe("Validate(recordTransfer)", function() {
+    it("Should revert due to Wallet Not In Registry Service when destination is special issuer wallet", async function() {
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+      );
+      await this.registryService.addWallet(
+        wallet,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.token.setCap(1000);
+      await this.token.issueTokens(wallet, 100);
+      assert.equal(await this.token.balanceOf(wallet), 100);
+      await assertRevert(this.token.transfer(issuerWallet, 100, {from: wallet}));
+    });
+
+    it("Should revert due to Wallet Not In Registry Service when destination is special exchange wallet", async function() {
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+      );
+      await this.registryService.addWallet(
+        wallet,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.trustService.setRole(ownerExchangeWallet, roles.EXCHANGE);
+      await this.walletManager.addExchangeWallet(newExchangeWallet, ownerExchangeWallet);
+
+      await this.token.setCap(1000);
+      await this.token.issueTokens(wallet, 100);
+      assert.equal(await this.token.balanceOf(wallet), 100);
+      await assertRevert(this.token.transfer(newExchangeWallet, 100, {from: wallet}));
+    });
+
     it("Should revert due to Wallet Not In Registry Service", async function() {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
@@ -480,6 +516,30 @@ contract("ComplianceServiceRegulated", function([
       await this.token.transfer(owner, 100, {from: wallet, gas: 5e6});
       assert.equal(await this.token.balanceOf(wallet), 0);
     });
+
+    it("Should transfer tokens from investor to platform special wallet", async function() {
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+      );
+      await this.registryService.setCountry(
+        investorId.GENERAL_INVESTOR_ID_1,
+        country.USA
+      );
+      await this.registryService.addWallet(
+        wallet,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.walletManager.addPlatformWallet(platformWallet);
+
+      await this.token.setCap(1000);
+      await this.token.issueTokens(wallet, 100);
+      assert.equal(await this.token.balanceOf(wallet), 100);
+      await increaseTime(370 * time.DAYS);
+      await this.token.transfer(platformWallet, 100, {from: wallet, gas: 5e6});
+      assert.equal(await this.token.balanceOf(wallet), 0);
+      assert.equal(await this.token.balanceOf(platformWallet), 100);
+    });
   });
 
   describe("Validate burn", function() {
@@ -711,7 +771,28 @@ contract("ComplianceServiceRegulated", function([
       assert.equal("Valid", res[1]);
     });
 
-    it("Should revert due to Wallet Not In Registry Service", async function() {
+    it("Pre transfer check when transfer to platform special wallet", async function() {
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+      );
+      await this.registryService.addWallet(
+        noneWallet1,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.token.setCap(1000);
+      await this.token.issueTokens(noneWallet1, 100);
+      await this.walletManager.addPlatformWallet(platformWallet);
+      const res = await this.complianceService.preTransferCheck(
+        noneWallet1,
+        platformWallet,
+        10
+      );
+      assert.equal(0, res[0].toNumber());
+      assert.equal("Valid", res[1]);
+    });
+
+    it("Pre transfer check when transfer to issuer special wallet", async function() {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1
@@ -724,7 +805,31 @@ contract("ComplianceServiceRegulated", function([
       await this.token.issueTokens(noneWallet1, 100);
       const res = await this.complianceService.preTransferCheck(
         noneWallet1,
-        noneWallet2,
+        issuerWallet,
+        10
+      );
+      assert.equal(20, res[0].toNumber());
+      assert.equal("Wallet not in registry service", res[1]);
+    });
+
+    it("Pre transfer check when transfer to exchange special wallet", async function() {
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+      );
+      await this.registryService.addWallet(
+        noneWallet1,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.token.setCap(1000);
+      await this.token.issueTokens(noneWallet1, 100);
+
+      await this.trustService.setRole(ownerExchangeWallet, roles.EXCHANGE);
+      await this.walletManager.addExchangeWallet(newExchangeWallet, ownerExchangeWallet);
+
+      const res = await this.complianceService.preTransferCheck(
+        noneWallet1,
+        newExchangeWallet,
         10
       );
       assert.equal(20, res[0].toNumber());
@@ -1619,6 +1724,52 @@ contract("ComplianceServiceRegulated", function([
         country.FRANCE
       );
       await assertRevert(this.token.issueTokens(owner, 100));
+    });
+
+    it("should not issue tokens to special issuer wallet", async function() {
+      await assertRevert(this.token.issueTokens(issuerWallet, 10));
+    });
+
+    it("should not issue tokens to special exchange wallet", async function() {
+      await this.trustService.setRole(ownerExchangeWallet, roles.EXCHANGE);
+      await this.walletManager.addExchangeWallet(newExchangeWallet, ownerExchangeWallet);
+      await assertRevert(this.token.issueTokens(newExchangeWallet, 10));
+    });
+
+    it("should allow issue tokens to special platform wallet", async function() {
+      await this.walletManager.addPlatformWallet(platformWallet);
+      await this.token.issueTokens(platformWallet, 10)
+      assert.equal(await this.token.balanceOf(platformWallet), 10);
+    });
+  });
+
+  describe("Check whitelisted", function() {
+    it("should be false when address is issuer", async function() {
+      const isWhitelisted = await this.complianceService.checkWhitelisted(issuerWallet);
+      assert.equal(isWhitelisted, false);
+    });
+    it("should be true when address is exchange", async function() {
+      await this.trustService.setRole(ownerExchangeWallet, roles.EXCHANGE);
+      await this.walletManager.addExchangeWallet(newExchangeWallet, ownerExchangeWallet);
+      const isWhitelisted = await this.complianceService.checkWhitelisted(newExchangeWallet);
+      assert.equal(isWhitelisted, false);
+    });
+    it("should be true when address is investor", async function() {
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+      );
+      await this.registryService.addWallet(
+        wallet,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      const isWhitelisted = await this.complianceService.checkWhitelisted(wallet);
+      assert.equal(isWhitelisted, true);
+    });
+    it("should be true when address is platform", async function() {
+      await this.walletManager.addPlatformWallet(platformWallet);
+      const isWhitelisted = await this.complianceService.checkWhitelisted(platformWallet);
+      assert.equal(isWhitelisted, true);
     });
   });
 });

@@ -3,6 +3,7 @@ const TestToken = artifacts.require('TestToken');
 const lightwallet = require('eth-lightwallet');
 const Promise = require('bluebird');
 const assertRevert = require('../utils/assertRevert');
+const { MultiSigSigner } = require('../utils/specialSigners');
 
 const web3SendTransaction = Promise.promisify(web3.eth.sendTransaction);
 
@@ -25,10 +26,12 @@ const seedPhrase = 'cereal face vapor scrub trash traffic disease region swim st
 const password = '';
 const ZEROADDR = '0x0000000000000000000000000000000000000000';
 
+let multiSigSigner = null;
+
 contract('MultiSigWallet', function (accounts) {
   let keyFromPw;
-  let acct;
   let lightWalletKeyStore;
+  let acct;
   let tokenInstance;
   let multisig;
   let initialNonce;
@@ -38,40 +41,6 @@ contract('MultiSigWallet', function (accounts) {
   const gasLimit = 200000000;
   const destinationAddress = accounts[1];
   const value = 0;
-
-  const doSign = function (signers, multisigAddr, nonce, destinationAddr, value, data, executor, gasLimit) {
-    const domainData = EIP712DOMAINTYPE_HASH +
-      NAME_HASH.slice(2) +
-      VERSION_HASH.slice(2) +
-      CHAINID.toString('16').padStart(64, '0') +
-      multisigAddr.slice(2).padStart(64, '0') +
-      SALT.slice(2);
-    DOMAIN_SEPARATOR = web3.utils.sha3(domainData, { encoding: 'hex' });
-    let txInput = TXTYPE_HASH +
-      destinationAddr.slice(2).padStart(64, '0') +
-      value.toString('16').padStart(64, '0') +
-      web3.utils.sha3(data, { encoding: 'hex' }).slice(2) +
-      nonce.toString('16').padStart(64, '0') +
-      executor.slice(2).padStart(64, '0') +
-      gasLimit.toString('16').padStart(64, '0');
-    let txInputHash = web3.utils.sha3(txInput, { encoding: 'hex' });
-    let input = '0x19' + '01' + DOMAIN_SEPARATOR.slice(2) + txInputHash.slice(2);
-    let hash = web3.utils.sha3(input, { encoding: 'hex' });
-    let signatures = [];
-    let sigV = [];
-    let sigR = [];
-    let sigS = [];
-
-    for (var i = 0; i < signers.length; i++) {
-      let sig = lightwallet.signing.signMsgHash(lightWalletKeyStore, keyFromPw, hash, signers[i]);
-      signatures.push(sig);
-      sigV.push(sig.v);
-      sigR.push('0x' + sig.r.toString('hex'));
-      sigS.push('0x' + sig.s.toString('hex'));
-    }
-
-    return { sigV: sigV, sigR: sigR, sigS: sigS };
-  };
 
   before((done) => {
     lightwallet.keystore.createVault({
@@ -86,6 +55,18 @@ contract('MultiSigWallet', function (accounts) {
         let acctWithout0x = lightWalletKeyStore.getAddresses();
         acct = acctWithout0x.map((a) => { return a; });
         acct.sort();
+
+        multiSigSigner = new MultiSigSigner({
+          nameHash: NAME_HASH,
+          versionHash: VERSION_HASH,
+          chainId: CHAINID,
+          salt: SALT,
+          eip712DomainTypeHash: EIP712DOMAINTYPE_HASH,
+          txTypeHash: TXTYPE_HASH,
+          lightWalletKeyStore,
+          keyFromPw,
+        });
+
         done();
       });
     });
@@ -134,7 +115,7 @@ contract('MultiSigWallet', function (accounts) {
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = doSign(
+          let sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -175,7 +156,7 @@ contract('MultiSigWallet', function (accounts) {
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = doSign(
+          let sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -216,7 +197,7 @@ contract('MultiSigWallet', function (accounts) {
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = doSign(
+          let sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -245,7 +226,7 @@ contract('MultiSigWallet', function (accounts) {
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = doSign(
+          let sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -274,7 +255,7 @@ contract('MultiSigWallet', function (accounts) {
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = doSign(
+          let sigs = multiSigSigner.doSign(
             noOwnerSigners.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -339,7 +320,7 @@ contract('MultiSigWallet', function (accounts) {
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = doSign(
+          let sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -380,7 +361,7 @@ contract('MultiSigWallet', function (accounts) {
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = doSign(
+          let sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -421,7 +402,7 @@ contract('MultiSigWallet', function (accounts) {
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = doSign(
+          let sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -450,7 +431,7 @@ contract('MultiSigWallet', function (accounts) {
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = doSign(
+          let sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -479,7 +460,7 @@ contract('MultiSigWallet', function (accounts) {
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = doSign(
+          let sigs = multiSigSigner.doSign(
             noOwnerSigners.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -546,7 +527,7 @@ contract('MultiSigWallet', function (accounts) {
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = doSign(
+          let sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -589,7 +570,7 @@ contract('MultiSigWallet', function (accounts) {
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = doSign(
+          let sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -632,7 +613,7 @@ contract('MultiSigWallet', function (accounts) {
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = doSign(
+          let sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
