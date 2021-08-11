@@ -100,6 +100,20 @@ class ConfigurationManager {
     }
   }
 
+  getAbstractOmnibusTbeControllerContract (artifacts) {
+    switch (this.complianceManagerType) {
+    case 'NOT_REGULATED':
+      return artifacts.require('OmnibusTBEControllerComplianceServiceWhitelisted');
+    case 'WHITELIST':
+      return artifacts.require('OmnibusTBEControllerComplianceServiceWhitelisted');
+    case 'NORMAL':
+      return artifacts.require('OmnibusTBEController');
+    case 'PARTITIONED':
+      return artifacts.require('OmnibusTBEController');
+    default:
+      break;
+    }
+  }
   getAbstractLockManagerContract (artifacts) {
     switch (this.lockManagerType) {
     case 'WALLET':
