@@ -99,6 +99,20 @@ class ConfigurationManager {
       break;
     }
   }
+  getOmnibusTbeControllerContractName () {
+    switch (this.complianceManagerType) {
+    case 'NOT_REGULATED':
+      return 'OmnibusTBEControllerComplianceServiceWhitelisted';
+    case 'WHITELIST':
+      return 'OmnibusTBEControllerComplianceServiceWhitelisted';
+    case 'NORMAL':
+      return 'OmnibusTBEController';
+    case 'PARTITIONED':
+      return 'OmnibusTBEController';
+    default:
+      break;
+    }
+  }
 
   getAbstractOmnibusTbeControllerContract (artifacts) {
     switch (this.complianceManagerType) {

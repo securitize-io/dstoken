@@ -42,12 +42,12 @@ contract OmnibusTBEControllerComplianceServiceWhitelisted is ProxyTarget, Initia
     function internalTBETransfer(string memory externalId, int256 totalDelta, int256 accreditedDelta,
         int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta, bytes32[] memory euRetailCountries,
         int256[] memory euRetailCountryDeltas) public onlyIssuerOrAbove {
-        emitOmnibusTbeEventAdjustCounters(totalDelta, accreditedDelta, usAccreditedDelta, usTotalDelta, jpTotalDelta,
+        adjustCounters(totalDelta, accreditedDelta, usAccreditedDelta, usTotalDelta, jpTotalDelta,
             euRetailCountries, euRetailCountryDeltas);
         getToken().emitOmnibusTBETransferEvent(omnibusWallet, externalId);
     }
 
-    function emitOmnibusTbeEventAdjustCounters(int256 totalDelta, int256 accreditedDelta,
+    function adjustCounters(int256 totalDelta, int256 accreditedDelta,
         int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta, bytes32[] memory euRetailCountries,
         int256[] memory euRetailCountryDeltas) public onlyIssuerOrAbove {
         require(euRetailCountries.length == euRetailCountryDeltas.length, 'Array lengths do not match');
@@ -59,6 +59,8 @@ contract OmnibusTBEControllerComplianceServiceWhitelisted is ProxyTarget, Initia
             usTotalDelta,
             jpTotalDelta);
     }
+
+
 
     function getOmnibusWallet() public view returns (address) {
         return omnibusWallet;
