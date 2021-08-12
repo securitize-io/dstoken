@@ -16,7 +16,7 @@ let euRetailCountries = [];
 let euRetailCountryCounts = [];
 const issuanceTime = 15495894;
 
-contract.only('OmnibusTBEControllerWithoutCounters', ([
+contract('OmnibusTBEControllerWithoutCounters', ([
   omnibusWallet,
   investorWallet1,
   investorWallet2,
@@ -366,12 +366,12 @@ contract.only('OmnibusTBEControllerWithoutCounters', ([
         const investorWallet1CurrentBalance = await this.token.balanceOf(investorWallet1);
         assert.equal(
           investorWallet1CurrentBalance.toNumber(),
-          700
+          2500
         );
 
         // Reset Balance
         await this.token.burn(omnibusWallet, 500, 'reset');
-        await this.token.burn(investorWallet1, 700, 'reset');
+        await this.token.burn(investorWallet1, 2500, 'reset');
       });
   });
   describe('Adjust counters', function () {

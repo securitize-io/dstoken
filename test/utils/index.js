@@ -11,8 +11,8 @@ const complianceTypeToString = {
 
 const omnibusTbeControllerByComplianceTypeToString = {
   [compliance.NORMAL]: 'OmnibusTBEController',
-  [compliance.NOT_REGULATED]: 'ComplianceServiceNotRegulated',
-  [compliance.PARTITIONED]: 'OmnibusTBEControllerWithoutCounters',
+  [compliance.PARTITIONED]: 'OmnibusTBEController',
+  [compliance.NOT_REGULATED]: 'OmnibusTBEControllerWithoutCounters',
   [compliance.WHITELIST]: 'OmnibusTBEControllerWithoutCounters',
 };
 
