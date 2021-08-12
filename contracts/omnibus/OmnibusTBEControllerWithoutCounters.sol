@@ -6,11 +6,12 @@ import "../data-stores/OmnibusTBEControllerDataStore.sol";
 import "../compliance/ComplianceServiceRegulated.sol";
 import "../compliance/ComplianceConfigurationService.sol";
 
-contract OmnibusTBEControllerComplianceServiceWhitelisted is ProxyTarget, Initializable, IDSOmnibusTBEController, ServiceConsumer, OmnibusTBEControllerDataStore {
+contract OmnibusTBEControllerWithoutCounters is ProxyTarget, Initializable, IDSOmnibusTBEController, ServiceConsumer, OmnibusTBEControllerDataStore {
     function initialize(address _omnibusWallet, bool _isPartitionedToken) public initializer forceInitializeFromProxy {
         VERSIONS.push(1);
         ServiceConsumer.initialize();
         omnibusWallet = _omnibusWallet;
+        isPartitionedToken = _isPartitionedToken;
         isPartitionedToken = false;
     }
 

@@ -102,9 +102,9 @@ class ConfigurationManager {
   getOmnibusTbeControllerContractName () {
     switch (this.complianceManagerType) {
     case 'NOT_REGULATED':
-      return 'OmnibusTBEControllerComplianceServiceWhitelisted';
+      return 'OmnibusTBEControllerWithoutCounters';
     case 'WHITELIST':
-      return 'OmnibusTBEControllerComplianceServiceWhitelisted';
+      return 'OmnibusTBEControllerWithoutCounters';
     case 'NORMAL':
       return 'OmnibusTBEController';
     case 'PARTITIONED':
@@ -117,9 +117,9 @@ class ConfigurationManager {
   getAbstractOmnibusTbeControllerContract (artifacts) {
     switch (this.complianceManagerType) {
     case 'NOT_REGULATED':
-      return artifacts.require('OmnibusTBEControllerComplianceServiceWhitelisted');
+      return artifacts.require('OmnibusTBEControllerWithoutCounters');
     case 'WHITELIST':
-      return artifacts.require('OmnibusTBEControllerComplianceServiceWhitelisted');
+      return artifacts.require('OmnibusTBEControllerWithoutCounters');
     case 'NORMAL':
       return artifacts.require('OmnibusTBEController');
     case 'PARTITIONED':
