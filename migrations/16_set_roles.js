@@ -23,8 +23,9 @@ module.exports = async function(deployer) {
   );
   if (!configurationManager.noOmnibusWallet) {
     console.log("Give issuer permissions to Omnibus TBE Controller");
+    const contractName = configurationManager.getOmnibusTbeControllerContractName();
     await trustService.setRole(
-      configurationManager.getProxyAddressForContractName("OmnibusTBEController"),
+      configurationManager.getProxyAddressForContractName(contractName),
       roles.ISSUER
     );
   }

@@ -99,7 +99,35 @@ class ConfigurationManager {
       break;
     }
   }
+  getOmnibusTbeControllerContractName () {
+    switch (this.complianceManagerType) {
+    case 'NOT_REGULATED':
+      return 'OmnibusTBEControllerWithoutCounters';
+    case 'WHITELIST':
+      return 'OmnibusTBEControllerWithoutCounters';
+    case 'NORMAL':
+      return 'OmnibusTBEController';
+    case 'PARTITIONED':
+      return 'OmnibusTBEController';
+    default:
+      break;
+    }
+  }
 
+  getAbstractOmnibusTbeControllerContract (artifacts) {
+    switch (this.complianceManagerType) {
+    case 'NOT_REGULATED':
+      return artifacts.require('OmnibusTBEControllerWithoutCounters');
+    case 'WHITELIST':
+      return artifacts.require('OmnibusTBEControllerWithoutCounters');
+    case 'NORMAL':
+      return artifacts.require('OmnibusTBEController');
+    case 'PARTITIONED':
+      return artifacts.require('OmnibusTBEController');
+    default:
+      break;
+    }
+  }
   getAbstractLockManagerContract (artifacts) {
     switch (this.lockManagerType) {
     case 'WALLET':

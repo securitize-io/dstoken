@@ -9,6 +9,13 @@ const complianceTypeToString = {
   [compliance.WHITELIST]: 'ComplianceServiceWhitelisted',
 };
 
+const omnibusTbeControllerByComplianceTypeToString = {
+  [compliance.NORMAL]: 'OmnibusTBEController',
+  [compliance.PARTITIONED]: 'OmnibusTBEController',
+  [compliance.NOT_REGULATED]: 'OmnibusTBEControllerWithoutCounters',
+  [compliance.WHITELIST]: 'OmnibusTBEControllerWithoutCounters',
+};
+
 const lockManagerTypeToString = {
   [lockManager.INVESTOR]: 'InvestorLockManager',
   [lockManager.WALLET]: 'LockManager',
@@ -101,7 +108,7 @@ async function deployContracts (
   if (omnibusTBEAddress) {
     await deployContractBehindProxy(
       artifacts.require('Proxy'),
-      artifacts.require('OmnibusTBEController'),
+      artifacts.require(omnibusTbeControllerByComplianceTypeToString[complianceType]),
       testObject,
       'omnibusTBEController',
       [omnibusTBEAddress, partitionsSupport]

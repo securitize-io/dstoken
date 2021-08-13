@@ -7,11 +7,15 @@ module.exports = async function(deployer) {
   }
 
   if (!configurationManager.noOmnibusWallet) {
+    const abstractOmnibusTbeController = configurationManager.getAbstractOmnibusTbeControllerContract(
+      artifacts
+    );
+
     await deployContractBehindProxy(
       artifacts.require("Proxy"),
       configurationManager,
       deployer,
-      artifacts.require("OmnibusTBEController"),
+      abstractOmnibusTbeController,
       [configurationManager.omnibusWallet, configurationManager.isPartitioned()]
     );
   } else {

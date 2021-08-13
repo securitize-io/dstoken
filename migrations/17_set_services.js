@@ -58,8 +58,9 @@ module.exports = async function (deployer) {
   );
   let omnibusTBEController;
   if (!configurationManager.noOmnibusWallet) {
+    const contractName = configurationManager.getOmnibusTbeControllerContractName();
     omnibusTBEController = await OmnibusTBEController.at(
-      configurationManager.getProxyAddressForContractName('OmnibusTBEController')
+      configurationManager.getProxyAddressForContractName(contractName)
     );
   }
 

@@ -13,7 +13,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
     function initialize() public initializer forceInitializeFromProxy {
         ServiceConsumer.initialize();
         IDSLockManagerPartitioned.initialize();
-        VERSIONS.push(2);
+        VERSIONS.push(3);
     }
 
     function createLockForInvestor(string memory _investorId, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime, bytes32 _partition)

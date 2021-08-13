@@ -14,11 +14,29 @@ contract ComplianceServiceWhitelisted is ComplianceService {
         ComplianceService.initialize();
         VERSIONS.push(4);
     }
+    
+    function preTransferCheck(
+        address _from,
+        address _to,
+        uint256 _value
+    ) public view returns (uint256 code, string memory reason) {
+        if (getToken().isPaused()) {
+            return (10, TOKEN_PAUSED);
+        }
+
+        if (getToken().balanceOf(_from) < _value) {
+            return (15, NOT_ENOUGH_TOKENS);
+        }
+
+        if (!isPlatformWallet(_from) && getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
+            return (16, TOKENS_LOCKED);
+        }
+
+        return checkTransfer(_from, _to, _value);
+    }
 
     function checkWhitelisted(address _who) public view returns (bool) {
-        uint8 walletType = getWalletManager().getWalletType(_who);
-
-        return walletType == getWalletManager().PLATFORM() || !CommonUtils.isEmptyString(getRegistryService().getInvestor(_who));
+        return isPlatformWallet(_who) || !CommonUtils.isEmptyString(getRegistryService().getInvestor(_who));
     }
 
     function recordIssuance(address, uint256, uint256) internal returns (bool) {
@@ -51,5 +69,10 @@ contract ComplianceServiceWhitelisted is ComplianceService {
 
     function recordSeize(address, address, uint256) internal returns (bool) {
         return true;
+    }
+
+    function isPlatformWallet(address _who) private view returns (bool) {
+        uint8 walletType = getWalletManager().getWalletType(_who);
+        return walletType == getWalletManager().PLATFORM();
     }
 }
