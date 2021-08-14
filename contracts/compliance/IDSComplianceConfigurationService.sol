@@ -135,6 +135,12 @@ contract IDSComplianceConfigurationService is Initializable, VersionedContract {
 
     function getWorldWideForceFullTransfer() public view returns (bool);
 
+    function getAuthorizedSecurities() public view returns (uint256);
+
+    function setAuthorizedSecurities(
+        uint256 _value /*onlyIssuerOrAbove*/
+    ) public;
+
     function setAll(
         uint256[] memory _uint_values,
         bool[] memory _bool_values /*onlyIssuerOrAbove*/
