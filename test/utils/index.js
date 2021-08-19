@@ -12,8 +12,8 @@ const complianceTypeToString = {
 const omnibusTbeControllerByComplianceTypeToString = {
   [compliance.NORMAL]: 'OmnibusTBEController',
   [compliance.PARTITIONED]: 'OmnibusTBEController',
-  [compliance.NOT_REGULATED]: 'OmnibusTBEControllerWithoutCounters',
-  [compliance.WHITELIST]: 'OmnibusTBEControllerWithoutCounters',
+  [compliance.NOT_REGULATED]: 'OmnibusTBEControllerWhitelisted',
+  [compliance.WHITELIST]: 'OmnibusTBEControllerWhitelisted',
 };
 
 const lockManagerTypeToString = {

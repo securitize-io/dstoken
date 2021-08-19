@@ -10,7 +10,7 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
     function initialize() public initializer forceInitializeFromProxy {
         IDSRegistryService.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(4);
+        VERSIONS.push(5);
     }
 
     function registerInvestor(string memory _id, string memory _collisionHash) public onlyExchangeOrAbove newInvestor(_id) returns (bool) {

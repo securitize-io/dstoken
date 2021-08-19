@@ -1,6 +1,6 @@
 {
   "name": "Digital_Securities",
-  "version": "v2.4.0",
+  "version": "v2.4.1",
   "description": "Digital Securities Reference Implementation",
   "scripts": {
     "test": "npm run test:unitests && npm run test:integration",

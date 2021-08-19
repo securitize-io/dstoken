@@ -16,7 +16,7 @@ let euRetailCountries = [];
 let euRetailCountryCounts = [];
 const issuanceTime = 15495894;
 
-contract('OmnibusTBEControllerWithoutCounters', ([
+contract('OmnibusTBEControllerWhitelisted', ([
   omnibusWallet,
   investorWallet1,
   investorWallet2,
