@@ -7,7 +7,7 @@ contract IDSComplianceConfigurationService is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(5);
+        VERSIONS.push(6);
     }
 
     event DSComplianceUIntRuleSet(string ruleName, uint256 prevValue, uint256 newValue);
