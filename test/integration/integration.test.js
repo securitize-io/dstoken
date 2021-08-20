@@ -36,7 +36,7 @@ contract("Integration", function([
     await deployContracts(this, artifacts);
     await this.trustService.setRole(this.issuer.address, roles.ISSUER);
     await this.complianceConfiguration.setAll(
-      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 1 * time.YEARS, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 1 * time.YEARS, 0, 0],
       [true, false, false, false]
     );
   });

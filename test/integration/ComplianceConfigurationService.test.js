@@ -27,7 +27,7 @@ contract("ComplianceConfigurationService", function([owner]) {
   describe("setAll", function() {
     it("Should set all rules and emit events correctly", async function() {
       const tx = await this.complianceConfiguration.setAll(
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
         [true, true, true, true]
       );
 
@@ -106,31 +106,36 @@ contract("ComplianceConfigurationService", function([owner]) {
       assert.equal(tx.logs[14].args.prevValue.toNumber(), 0);
       assert.equal(tx.logs[14].args.newValue.toNumber(), 15);
 
-      assert.equal(tx.logs[15].event, "DSComplianceBoolRuleSet");
-      assert.equal(tx.logs[15].args.ruleName, "forceFullTransfer");
-      assert.equal(tx.logs[15].args.prevValue, false);
-      assert.equal(tx.logs[15].args.newValue, true);
+      assert.equal(tx.logs[15].event, "DSComplianceUIntRuleSet");
+      assert.equal(tx.logs[15].args.ruleName, "authorizedSecurities");
+      assert.equal(tx.logs[15].args.prevValue.toNumber(), 0);
+      assert.equal(tx.logs[15].args.newValue.toNumber(), 16);
 
       assert.equal(tx.logs[16].event, "DSComplianceBoolRuleSet");
-      assert.equal(tx.logs[16].args.ruleName, "forceAccredited");
+      assert.equal(tx.logs[16].args.ruleName, "forceFullTransfer");
       assert.equal(tx.logs[16].args.prevValue, false);
       assert.equal(tx.logs[16].args.newValue, true);
 
       assert.equal(tx.logs[17].event, "DSComplianceBoolRuleSet");
-      assert.equal(tx.logs[17].args.ruleName, "forceAccreditedUS");
+      assert.equal(tx.logs[17].args.ruleName, "forceAccredited");
       assert.equal(tx.logs[17].args.prevValue, false);
       assert.equal(tx.logs[17].args.newValue, true);
 
       assert.equal(tx.logs[18].event, "DSComplianceBoolRuleSet");
-      assert.equal(tx.logs[18].args.ruleName, "worldWideForceFullTransfer");
+      assert.equal(tx.logs[18].args.ruleName, "forceAccreditedUS");
       assert.equal(tx.logs[18].args.prevValue, false);
       assert.equal(tx.logs[18].args.newValue, true);
+
+      assert.equal(tx.logs[19].event, "DSComplianceBoolRuleSet");
+      assert.equal(tx.logs[19].args.ruleName, "worldWideForceFullTransfer");
+      assert.equal(tx.logs[19].args.prevValue, false);
+      assert.equal(tx.logs[19].args.newValue, true);
 
       const result = await this.complianceConfiguration.getAll();
 
       assert.deepEqual(
         result[0].map(val => val.toNumber()),
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
       );
 
       assert.deepEqual(result[1], [true, true, true, true]);

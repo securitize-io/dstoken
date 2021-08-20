@@ -52,7 +52,7 @@ contract("ComplianceServiceRegulated", function([
       compliance.JP
     );
     await this.complianceConfiguration.setAll(
-      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, time.YEARS, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, time.YEARS, 0, 0],
       [true, false, false, false]
     );
   });
@@ -1770,6 +1770,78 @@ contract("ComplianceServiceRegulated", function([
       await this.walletManager.addPlatformWallet(platformWallet);
       const isWhitelisted = await this.complianceService.checkWhitelisted(platformWallet);
       assert.equal(isWhitelisted, true);
+    });
+  });
+
+  describe("Check on chain cap / authorized securities", function() {
+    it("should not allow to issue tokens above the max authorized securities (on chain cap)", async function() {
+      await this.complianceConfiguration.setAuthorizedSecurities(10);
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+      );
+      await this.registryService.addWallet(
+        wallet,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.registryService.setCountry(
+        investorId.GENERAL_INVESTOR_ID_1,
+        country.FRANCE
+      );
+      assertRevert(this.token.issueTokens(wallet, 11));
+    });
+    it("should not allow to issue tokens above the max authorized securities using totalSupply", async function() {
+      await this.complianceConfiguration.setAuthorizedSecurities(100);
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+      );
+      await this.registryService.addWallet(
+        wallet,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.registryService.setCountry(
+        investorId.GENERAL_INVESTOR_ID_1,
+        country.USA
+      );
+      await this.token.issueTokens(wallet, 40);
+      await this.token.issueTokens(wallet, 40);
+      assertRevert(this.token.issueTokens(wallet, 21));
+    });
+    it("should allow to issue tokens up to the max authorized securities", async function() {
+      await this.complianceConfiguration.setAuthorizedSecurities(100);
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+      );
+      await this.registryService.addWallet(
+        wallet,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.registryService.setCountry(
+        investorId.GENERAL_INVESTOR_ID_1,
+        country.FRANCE
+      );
+      await this.token.issueTokens(wallet, 40);
+      await this.token.issueTokens(wallet, 40);
+      await this.token.issueTokens(wallet, 20);
+    });
+    it("should allow to issue any amount of tokens if the authorized securities is 0", async function() {
+      await this.complianceConfiguration.setAuthorizedSecurities(0);
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+      );
+      await this.registryService.addWallet(
+        wallet,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.registryService.setCountry(
+        investorId.GENERAL_INVESTOR_ID_1,
+        country.FRANCE
+      );
+      await this.token.issueTokens(wallet, 1000);
+      await this.token.issueTokens(wallet, 2000);
     });
   });
 });

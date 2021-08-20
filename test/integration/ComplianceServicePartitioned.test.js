@@ -46,7 +46,7 @@ contract("ComplianceServiceRegulatedPartitioned", function([
       compliance.EU
     );
     await this.complianceConfiguration.setAll(
-      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, time.YEARS, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, time.YEARS, 0, 0],
       [true, false, false, false]
     );
     await this.registryService.registerInvestor(

@@ -202,7 +202,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function setAll(uint256[] memory _uint_values, bool[] memory _bool_values) public onlyIssuerOrAbove {
-        require(_uint_values.length == 15, "Wrong length of parameters");
+        require(_uint_values.length == 16, "Wrong length of parameters");
         require(_bool_values.length == 4, "Wrong length of parameters");
         setTotalInvestorsLimit(_uint_values[0]);
         setMinUSTokens(_uint_values[1]);
