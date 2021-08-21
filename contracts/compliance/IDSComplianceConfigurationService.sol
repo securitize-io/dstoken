@@ -7,7 +7,7 @@ contract IDSComplianceConfigurationService is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(5);
+        VERSIONS.push(6);
     }
 
     event DSComplianceUIntRuleSet(string ruleName, uint256 prevValue, uint256 newValue);
@@ -134,6 +134,12 @@ contract IDSComplianceConfigurationService is Initializable, VersionedContract {
     ) public;
 
     function getWorldWideForceFullTransfer() public view returns (bool);
+
+    function getAuthorizedSecurities() public view returns (uint256);
+
+    function setAuthorizedSecurities(
+        uint256 _value /*onlyIssuerOrAbove*/
+    ) public;
 
     function setAll(
         uint256[] memory _uint_values,

@@ -7,7 +7,7 @@ contract IDSComplianceService is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(5);
+        VERSIONS.push(6);
     }
 
     uint256 internal constant NONE = 0;
@@ -31,6 +31,7 @@ contract IDSComplianceService is Initializable, VersionedContract {
     string internal constant ONLY_ACCREDITED = "Only accredited";
     string internal constant ONLY_US_ACCREDITED = "Only us accredited";
     string internal constant NOT_ENOUGH_INVESTORS = "Not enough investors";
+    string internal constant MAX_AUTHORIZED_SECURITIES_EXCEEDED = "Max authorized securities exceeded";
 
     function adjustInvestorCountsAfterCountryChange(
         string memory _id,

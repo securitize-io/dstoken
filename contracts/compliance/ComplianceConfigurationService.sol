@@ -9,7 +9,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     function initialize() public initializer forceInitializeFromProxy {
         IDSComplianceConfigurationService.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(6);
+        VERSIONS.push(7);
     }
 
     function setCountryCompliance(string memory _country, uint256 _value) public onlyIssuerOrAbove {
@@ -192,8 +192,17 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         worldWideForceFullTransfer = _value;
     }
 
+    function getAuthorizedSecurities() public view returns (uint256) {
+        return authorizedSecurities;
+    }
+
+    function setAuthorizedSecurities(uint256 _value) public onlyIssuerOrAbove {
+        emit DSComplianceUIntRuleSet("authorizedSecurities", authorizedSecurities, _value);
+        authorizedSecurities = _value;
+    }
+
     function setAll(uint256[] memory _uint_values, bool[] memory _bool_values) public onlyIssuerOrAbove {
-        require(_uint_values.length == 15, "Wrong length of parameters");
+        require(_uint_values.length == 16, "Wrong length of parameters");
         require(_bool_values.length == 4, "Wrong length of parameters");
         setTotalInvestorsLimit(_uint_values[0]);
         setMinUSTokens(_uint_values[1]);
@@ -210,6 +219,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         setEURetailInvestorsLimit(_uint_values[12]);
         setUSLockPeriod(_uint_values[13]);
         setJPInvestorsLimit(_uint_values[14]);
+        setAuthorizedSecurities(_uint_values[15]);
         setForceFullTransfer(_bool_values[0]);
         setForceAccredited(_bool_values[1]);
         setForceAccreditedUS(_bool_values[2]);
@@ -217,7 +227,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     }
 
     function getAll() public view returns (uint256[] memory, bool[] memory) {
-        uint256[] memory uintValues = new uint256[](15);
+        uint256[] memory uintValues = new uint256[](16);
         bool[] memory boolValues = new bool[](4);
 
         uintValues[0] = getTotalInvestorsLimit();
@@ -235,6 +245,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         uintValues[12] = getEURetailInvestorsLimit();
         uintValues[13] = getUSLockPeriod();
         uintValues[14] = getJPInvestorsLimit();
+        uintValues[15] = getAuthorizedSecurities();
         boolValues[0] = getForceFullTransfer();
         boolValues[1] = getForceAccredited();
         boolValues[2] = getForceAccreditedUS();
