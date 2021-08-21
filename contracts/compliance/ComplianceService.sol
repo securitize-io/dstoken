@@ -47,7 +47,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         uint256 authorizedSecurities = getComplianceConfigurationService().getAuthorizedSecurities();
 
         require(authorizedSecurities == 0 || getToken().totalSupply().add(_value) <= authorizedSecurities,
-            "Max authorized securities exceeded");
+            MAX_AUTHORIZED_SECURITIES_EXCEEDED);
 
         (code, reason) = preIssuanceCheck(_to, _value);
         require(code == 0, reason);
