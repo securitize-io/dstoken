@@ -146,7 +146,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
      * @dev Checks whether it can transfer with the compliance manager, if not -throws.
      */
     modifier canTransfer(address _sender, address _receiver, uint256 _value) {
-        getComplianceService().validateTransfer(_sender, _receiver, _value);
+        getComplianceService().validateTransfer(_sender, _receiver, _value, paused, super.balanceOf(_sender));
         _;
     }
 

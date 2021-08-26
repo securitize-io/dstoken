@@ -36,6 +36,22 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         return recordTransfer(_from, _to, _value);
     }
 
+    function validateTransfer(
+        address _from,
+        address _to,
+        uint256 _value,
+        bool _paused,
+        uint256 _balanceFrom
+    ) public onlyToken returns (bool) {
+        uint256 code;
+        string memory reason;
+
+        (code, reason) = newPreTransferCheck(_from, _to, _value, _paused, _balanceFrom);
+        require(code == 0, reason);
+
+        return recordTransfer(_from, _to, _value);
+    }
+
     function validateIssuance(
         address _to,
         uint256 _value,
@@ -68,6 +84,28 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         require(walletManager.getWalletType(_to) == walletManager.ISSUER(), "Target wallet type error");
 
         return recordSeize(_from, _to, _value);
+    }
+
+    function newPreTransferCheck(
+        address _from,
+        address _to,
+        uint256 _value,
+        bool _pausedToken,
+        uint256 _balanceFrom
+    ) public view returns (uint256 code, string memory reason) {
+        if (_pausedToken) {
+            return (10, TOKEN_PAUSED);
+        }
+
+        if (_balanceFrom < _value) {
+            return (15, NOT_ENOUGH_TOKENS);
+        }
+
+        if (getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
+            return (16, TOKENS_LOCKED);
+        }
+
+        return checkTransfer(_from, _to, _value);
     }
 
     function preTransferCheck(
