@@ -22,8 +22,7 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
     }
 
     function removeInvestor(string memory _id) public onlyExchangeOrAbove investorExists(_id) returns (bool) {
-        IDSTrustService trustManager = getTrustService();
-        require(trustManager.getRole(msg.sender) != trustManager.EXCHANGE() || investors[_id].creator == msg.sender, "Insufficient permissions");
+        require(!getTrustService().isExchange(msg.sender) || investors[_id].creator == msg.sender, "Insufficient permissions");
         require(investors[_id].walletCount == 0, "Investor has wallets");
 
         for (uint8 index = 0; index < 16; index++) {
@@ -152,8 +151,7 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
     }
 
     function removeWallet(address _address, string memory _id) public onlyExchangeOrAbove walletExists(_address) walletBelongsToInvestor(_address, _id) returns (bool) {
-        IDSTrustService trustManager = getTrustService();
-        require(trustManager.getRole(msg.sender) != trustManager.EXCHANGE() || investorsWallets[_address].creator == msg.sender, "Insufficient permissions");
+        require(!getTrustService().isExchange(msg.sender) || investorsWallets[_address].creator == msg.sender, "Insufficient permissions");
 
         delete investorsWallets[_address];
         investors[_id].walletCount = investors[_id].walletCount.sub(1);

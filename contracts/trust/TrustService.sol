@@ -178,6 +178,10 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
                 isResourceOperator(_omnibusWallet, _address);
     }
 
+    function isExchange(address _address) public view returns (bool) {
+        return  roles[_address] == EXCHANGE;
+    }
+
     function addEntity(string memory _name, address _owner) public onlyMasterOrIssuer onlyNewEntity(_name) onlyNewEntityOwner(_owner) {
         entitiesOwners[_name] = _owner;
         ownersEntities[_owner] = _name;

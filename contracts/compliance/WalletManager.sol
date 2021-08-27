@@ -65,8 +65,7 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
    * @return A boolean that indicates if the operation was successful.
    */
     function addExchangeWallet(address _wallet, address _owner) public onlyIssuerOrAbove returns (bool) {
-        IDSTrustService trustManager = getTrustService();
-        require(trustManager.getRole(_owner) == trustManager.EXCHANGE(), "Owner is not an exchange");
+        require(getTrustService().isExchange(_owner), "Owner is not an exchange");
         return setSpecialWallet(_wallet, EXCHANGE);
     }
 
