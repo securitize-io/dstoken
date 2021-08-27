@@ -14,7 +14,7 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
     function initialize() public initializer forceInitializeFromProxy {
         IDSWalletManager.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(3);
+        VERSIONS.push(4);
     }
 
     /**
@@ -68,6 +68,10 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
         IDSTrustService trustManager = getTrustService();
         require(trustManager.getRole(_owner) == trustManager.EXCHANGE(), "Owner is not an exchange");
         return setSpecialWallet(_wallet, EXCHANGE);
+    }
+
+    function isPlatformWallet(address _wallet) public view returns (bool) {
+        return walletsTypes[_wallet] == PLATFORM;
     }
 
     function getWalletType(address _wallet) public view returns (uint8) {

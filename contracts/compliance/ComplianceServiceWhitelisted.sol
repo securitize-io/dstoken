@@ -29,7 +29,7 @@ contract ComplianceServiceWhitelisted is ComplianceService {
             return (15, NOT_ENOUGH_TOKENS);
         }
 
-        if (!isPlatformWallet(_from) && getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
+        if (!getWalletManager().isPlatformWallet(_from) && getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
             return (16, TOKENS_LOCKED);
         }
 
@@ -49,7 +49,7 @@ contract ComplianceServiceWhitelisted is ComplianceService {
             return (15, NOT_ENOUGH_TOKENS);
         }
 
-        if (!isPlatformWallet(_from) && getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
+        if (!getWalletManager().isPlatformWallet(_from) && getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
             return (16, TOKENS_LOCKED);
         }
 
@@ -57,7 +57,7 @@ contract ComplianceServiceWhitelisted is ComplianceService {
     }
 
     function checkWhitelisted(address _who) public view returns (bool) {
-        return isPlatformWallet(_who) || !CommonUtils.isEmptyString(getRegistryService().getInvestor(_who));
+        return getWalletManager().isPlatformWallet(_who) || !CommonUtils.isEmptyString(getRegistryService().getInvestor(_who));
     }
 
     function recordIssuance(address, uint256, uint256) internal returns (bool) {
@@ -90,11 +90,6 @@ contract ComplianceServiceWhitelisted is ComplianceService {
 
     function recordSeize(address, address, uint256) internal returns (bool) {
         return true;
-    }
-
-    function isPlatformWallet(address _who) private view returns (bool) {
-        uint8 walletType = getWalletManager().getWalletType(_who);
-        return walletType == getWalletManager().PLATFORM();
     }
 
     function validateTransfer(
