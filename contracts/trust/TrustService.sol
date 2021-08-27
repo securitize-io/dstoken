@@ -171,6 +171,13 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
         return roles[_address];
     }
 
+    function isOperatorOrAbove(address _omnibusWallet, address _address) public view returns (bool) {
+        return  roles[_address] == ISSUER ||
+                roles[_address] == MASTER ||
+                isResourceOwner(_omnibusWallet, _address) ||
+                isResourceOperator(_omnibusWallet, _address);
+    }
+
     function addEntity(string memory _name, address _owner) public onlyMasterOrIssuer onlyNewEntity(_name) onlyNewEntityOwner(_owner) {
         entitiesOwners[_name] = _owner;
         ownersEntities[_owner] = _name;
