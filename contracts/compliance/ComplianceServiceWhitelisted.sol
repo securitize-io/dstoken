@@ -105,6 +105,6 @@ contract ComplianceServiceWhitelisted is ComplianceService {
         (code, reason) = newPreTransferCheck(_from, _to, _value, _paused, _balanceFrom);
         require(code == 0, reason);
 
-        return recordTransfer(_from, _to, _value);
+        return true;
     }
 }
