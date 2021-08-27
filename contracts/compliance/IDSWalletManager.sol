@@ -56,6 +56,12 @@ contract IDSWalletManager is Initializable, VersionedContract {
     function isSpecialWallet(address _wallet) public view returns (bool);
 
     /**
+     * @dev Returns true if it is issuer special wallet
+     * @param _wallet the address of the wallet to check.
+     */
+    function isIssuerSpecialWallet(address _wallet) public view returns (bool);
+
+    /**
      * @dev Sets a wallet to be an issuer wallet.
      * @param _wallet The address of the wallet.
      * @return A boolean that indicates if the operation was successful.

@@ -454,7 +454,7 @@ library ComplianceServiceLibrary {
         }
 
         if (
-            walletManager.getWalletType(_to) != walletManager.PLATFORM() &&
+            !walletManager.isPlatformWallet(_to) &&
             balanceOfInvestor(_services, _to).add(_value) < complianceConfigurationService.getMinimumHoldingsPerInvestor()
         ) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
@@ -558,9 +558,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function adjustTotalInvestorsCounts(address _wallet, CommonUtils.IncDec _increase) internal {
-        uint8 walletType = getWalletManager().getWalletType(_wallet);
-
-        if (walletType == getWalletManager().NONE()) {
+        if (!getWalletManager().isSpecialWallet(_wallet)) {
             totalInvestors = _increase == CommonUtils.IncDec.Increase ? totalInvestors.add(1) : totalInvestors.sub(1);
 
             string memory id = getRegistryService().getInvestor(_wallet);

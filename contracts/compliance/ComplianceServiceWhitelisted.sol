@@ -91,20 +91,4 @@ contract ComplianceServiceWhitelisted is ComplianceService {
     function recordSeize(address, address, uint256) internal returns (bool) {
         return true;
     }
-
-    function validateTransfer(
-        address _from,
-        address _to,
-        uint256 _value,
-        bool _paused,
-        uint256 _balanceFrom
-    ) public onlyToken returns (bool) {
-        uint256 code;
-        string memory reason;
-
-        (code, reason) = newPreTransferCheck(_from, _to, _value, _paused, _balanceFrom);
-        require(code == 0, reason);
-
-        return true;
-    }
 }

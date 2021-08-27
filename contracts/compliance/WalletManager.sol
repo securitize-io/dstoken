@@ -74,6 +74,10 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
         return walletsTypes[_wallet] != NONE;
     }
 
+    function isIssuerSpecialWallet(address _wallet) public view returns (bool) {
+        return walletsTypes[_wallet] == ISSUER;
+    }
+
     function isPlatformWallet(address _wallet) public view returns (bool) {
         return walletsTypes[_wallet] == PLATFORM;
     }

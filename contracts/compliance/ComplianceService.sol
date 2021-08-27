@@ -80,8 +80,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         address _to,
         uint256 _value
     ) public onlyToken returns (bool) {
-        IDSWalletManager walletManager = getWalletManager();
-        require(walletManager.getWalletType(_to) == walletManager.ISSUER(), "Target wallet type error");
+        require(getWalletManager().isIssuerSpecialWallet(_to), "Target wallet type error");
 
         return recordSeize(_from, _to, _value);
     }
