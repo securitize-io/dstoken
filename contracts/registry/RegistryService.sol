@@ -141,7 +141,7 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
     }
 
     function addWallet(address _address, string memory _id) public onlyExchangeOrAbove investorExists(_id) newWallet(_address) returns (bool) {
-        require(!isSpecialWallet(_address), "Wallet has special role");
+        require(!getWalletManager().isSpecialWallet(_address), "Wallet has special role");
 
         investorsWallets[_address] = Wallet(_id, msg.sender, msg.sender);
         investors[_id].walletCount = investors[_id].walletCount.add(1);
@@ -201,9 +201,5 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
 
     function isWallet(address _address) public view returns (bool) {
         return isInvestor(getInvestor(_address));
-    }
-
-    function isSpecialWallet(address _address) internal view returns (bool) {
-        return getWalletManager().getWalletType(_address) != getWalletManager().NONE();
     }
 }

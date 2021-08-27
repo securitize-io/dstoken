@@ -44,10 +44,16 @@ contract IDSWalletManager is Initializable, VersionedContract {
     function getWalletType(address _wallet) public view returns (uint8);
 
     /**
-     * @dev gets a wallet type
+     * @dev Returns true if it is platform wallet
      * @param _wallet the address of the wallet to check.
      */
     function isPlatformWallet(address _wallet) public view returns (bool);
+
+    /**
+     * @dev Returns true if it is special wallet
+     * @param _wallet the address of the wallet to check.
+     */
+    function isSpecialWallet(address _wallet) public view returns (bool);
 
     /**
      * @dev Sets a wallet to be an issuer wallet.
