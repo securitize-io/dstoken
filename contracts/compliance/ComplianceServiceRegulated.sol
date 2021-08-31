@@ -43,13 +43,13 @@ library ComplianceServiceLibrary {
     function isRetail(address[] memory _services, address _wallet) internal view returns (bool) {
         IDSRegistryService registry = IDSRegistryService(_services[REGISTRY_SERVICE]);
 
-        return registry.getAttributeValue(registry.getInvestor(_wallet), registry.QUALIFIED()) != registry.APPROVED();
+        return !registry.isQualifiedInvestor(_wallet);
     }
 
     function isAccredited(address[] memory _services, address _wallet) internal view returns (bool) {
         IDSRegistryService registry = IDSRegistryService(_services[REGISTRY_SERVICE]);
 
-        return registry.getAttributeValue(registry.getInvestor(_wallet), registry.ACCREDITED()) == registry.APPROVED();
+        return registry.isAccreditedInvestor(_wallet);
     }
 
     function balanceOfInvestor(address[] memory _services, address _wallet) internal view returns (uint256) {
@@ -177,9 +177,9 @@ library ComplianceServiceLibrary {
         address _to,
         uint256 _value
     ) internal view returns (uint256 code, string memory reason) {
+        (string memory investorFrom, string memory investorTo) = IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestors(_from, _to);
         if (
-            !CommonUtils.isEmptyString(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_from)) &&
-        CommonUtils.isEqualString(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_from), IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to))
+            !CommonUtils.isEmptyString(investorFrom) && CommonUtils.isEqualString(investorFrom, investorTo)
         ) {
             return (0, VALID);
         }

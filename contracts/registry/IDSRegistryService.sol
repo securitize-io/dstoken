@@ -152,5 +152,9 @@ contract IDSRegistryService is Initializable, VersionedContract {
 
     function isQualifiedInvestor(string calldata _id) external view returns (bool);
 
+    function isAccreditedInvestor(address _wallet) external view returns (bool);
+
+    function isQualifiedInvestor(address _wallet) external view returns (bool);
+
     function getInvestors(address _from, address _to) external view returns (string memory, string memory);
 }

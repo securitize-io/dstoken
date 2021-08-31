@@ -47,19 +47,19 @@ contract IDSWalletManager is Initializable, VersionedContract {
      * @dev Returns true if it is platform wallet
      * @param _wallet the address of the wallet to check.
      */
-    function isPlatformWallet(address _wallet) public view returns (bool);
+    function isPlatformWallet(address _wallet) external view returns (bool);
 
     /**
      * @dev Returns true if it is special wallet
      * @param _wallet the address of the wallet to check.
      */
-    function isSpecialWallet(address _wallet) public view returns (bool);
+    function isSpecialWallet(address _wallet) external view returns (bool);
 
     /**
      * @dev Returns true if it is issuer special wallet
      * @param _wallet the address of the wallet to check.
      */
-    function isIssuerSpecialWallet(address _wallet) public view returns (bool);
+    function isIssuerSpecialWallet(address _wallet) external view returns (bool);
 
     /**
      * @dev Sets a wallet to be an issuer wallet.

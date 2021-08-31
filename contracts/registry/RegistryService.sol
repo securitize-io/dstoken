@@ -201,6 +201,16 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
         return getAttributeValue(_id, ACCREDITED) == APPROVED;
     }
 
+    function isAccreditedInvestor(address _wallet) external view returns (bool) {
+        string memory investor = investorsWallets[_wallet].owner;
+        return getAttributeValue(investor, ACCREDITED) == APPROVED;
+    }
+
+    function isQualifiedInvestor(address _wallet) external view returns (bool) {
+        string memory investor = investorsWallets[_wallet].owner;
+        return getAttributeValue(investor, QUALIFIED) == APPROVED;
+    }
+
     function isQualifiedInvestor(string calldata _id) external view returns (bool) {
         return getAttributeValue(_id, QUALIFIED) == APPROVED;
     }

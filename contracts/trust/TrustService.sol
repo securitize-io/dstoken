@@ -171,14 +171,14 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
         return roles[_address];
     }
 
-    function isOperatorOrAbove(address _omnibusWallet, address _address) public view returns (bool) {
+    function isOperatorOrAbove(address _omnibusWallet, address _address) external view returns (bool) {
         return  roles[_address] == ISSUER ||
                 roles[_address] == MASTER ||
                 isResourceOwner(_omnibusWallet, _address) ||
                 isResourceOperator(_omnibusWallet, _address);
     }
 
-    function isExchange(address _address) public view returns (bool) {
+    function isExchange(address _address) external view returns (bool) {
         return  roles[_address] == EXCHANGE;
     }
 
