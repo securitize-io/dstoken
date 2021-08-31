@@ -185,6 +185,10 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
         return address(omnibusWalletsControllers[_omnibusWallet]) != address(0);
     }
 
+    function getInvestors(address _from, address _to) public view returns (string memory, string memory) {
+        return (investorsWallets[_from].owner, investorsWallets[_to].owner);
+    }
+
     function getInvestor(address _address) public view returns (string memory) {
         return investorsWallets[_address].owner;
     }

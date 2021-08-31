@@ -272,8 +272,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     function updateInvestorsBalancesOnTransfer(address _from, address _to, uint256 _value) internal {
         uint256 omnibusEvent = TokenLibrary.applyOmnibusBalanceUpdatesOnTransfer(tokenData, getRegistryService(), _from, _to, _value);
         if (omnibusEvent == OMNIBUS_NO_ACTION) {
-            TokenLibrary.updateInvestorBalance(tokenData, getRegistryService(), _from, _value, CommonUtils.IncDec.Decrease);
-            TokenLibrary.updateInvestorBalance(tokenData, getRegistryService(), _to, _value, CommonUtils.IncDec.Increase);
+            TokenLibrary.updateInvestorBalances(tokenData, getRegistryService(), _from, _to, _value);
         }
     }
 

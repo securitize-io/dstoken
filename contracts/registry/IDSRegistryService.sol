@@ -137,6 +137,8 @@ contract IDSRegistryService is Initializable, VersionedContract {
 
     function getInvestor(address _address) public view returns (string memory);
 
+    function getInvestors(address _from, address _to) public view returns (string memory, string memory);
+
     function getInvestorDetails(address _address) public view returns (string memory, string memory);
 
     function getInvestorDetailsFull(string memory _id)
