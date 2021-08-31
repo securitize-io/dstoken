@@ -250,7 +250,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
         returns (bool)
     {
-        return updateInvestorBalance(_wallet, _value, _increase);
+        return TokenLibrary.updateInvestorBalance(tokenData, getRegistryService(), _wallet, _value, _increase);
     }
 
     function emitOmnibusTransferEvent(address _omnibusWallet, address _from, address _to, uint256 _value)
@@ -272,24 +272,13 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     function updateInvestorsBalancesOnTransfer(address _from, address _to, uint256 _value) internal {
         uint256 omnibusEvent = TokenLibrary.applyOmnibusBalanceUpdatesOnTransfer(tokenData, getRegistryService(), _from, _to, _value);
         if (omnibusEvent == OMNIBUS_NO_ACTION) {
-            updateInvestorBalance(_from, _value, CommonUtils.IncDec.Decrease);
-            updateInvestorBalance(_to, _value, CommonUtils.IncDec.Increase);
+            TokenLibrary.updateInvestorBalance(tokenData, getRegistryService(), _from, _value, CommonUtils.IncDec.Decrease);
+            TokenLibrary.updateInvestorBalance(tokenData, getRegistryService(), _to, _value, CommonUtils.IncDec.Increase);
         }
     }
 
     function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal returns (bool) {
-        string memory investor = getRegistryService().getInvestor(_wallet);
-        if (!CommonUtils.isEmptyString(investor)) {
-            uint256 balance = balanceOfInvestor(investor);
-            if (_increase == CommonUtils.IncDec.Increase) {
-                balance = balance.add(_value);
-            } else {
-                balance = balance.sub(_value);
-            }
-            tokenData.investorsBalances[investor] = balance;
-        }
-
-        return true;
+        return TokenLibrary.updateInvestorBalance(tokenData, getRegistryService(), _wallet, _value, _increase);
     }
 
     function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {

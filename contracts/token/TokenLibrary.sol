@@ -174,7 +174,7 @@ library TokenLibrary {
         return OMNIBUS_NO_ACTION;
     }
 
-    function updateInvestorBalance(TokenData storage _tokenData, IDSRegistryService _registryService, address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal returns (bool) {
+    function updateInvestorBalance(TokenData storage _tokenData, IDSRegistryService _registryService, address _wallet, uint256 _value, CommonUtils.IncDec _increase) public returns (bool) {
         string memory investor = _registryService.getInvestor(_wallet);
         if (!CommonUtils.isEmptyString(investor)) {
             uint256 balance = _tokenData.investorsBalances[investor];
