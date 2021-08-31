@@ -80,4 +80,7 @@ module.exports = {
       },
     },
   },
+  plugins: [
+    'truffle-contract-size'
+  ]
 };
