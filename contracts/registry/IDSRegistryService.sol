@@ -137,8 +137,6 @@ contract IDSRegistryService is Initializable, VersionedContract {
 
     function getInvestor(address _address) public view returns (string memory);
 
-    function getInvestors(address _from, address _to) public view returns (string memory, string memory);
-
     function getInvestorDetails(address _address) public view returns (string memory, string memory);
 
     function getInvestorDetailsFull(string memory _id)
@@ -149,4 +147,10 @@ contract IDSRegistryService is Initializable, VersionedContract {
     function isInvestor(string memory _id) public view returns (bool);
 
     function isWallet(address _address) public view returns (bool);
+
+    function isAccreditedInvestor(string calldata _id) external view returns (bool);
+
+    function isQualifiedInvestor(string calldata _id) external view returns (bool);
+
+    function getInvestors(address _from, address _to) external view returns (string memory, string memory);
 }

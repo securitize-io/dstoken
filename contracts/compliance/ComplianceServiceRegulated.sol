@@ -575,7 +575,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     ) internal {
         uint256 countryCompliance = getComplianceConfigurationService().getCountryCompliance(_country);
 
-        if (getRegistryService().getAttributeValue(_id, getRegistryService().ACCREDITED()) == getRegistryService().APPROVED()) {
+        if (getRegistryService().isAccreditedInvestor(_id)) {
             accreditedInvestorsCount = _increase == CommonUtils.IncDec.Increase ? accreditedInvestorsCount.add(1) : accreditedInvestorsCount.sub(1);
 
             if (countryCompliance == US) {
@@ -585,7 +585,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
         if (countryCompliance == US) {
             usInvestorsCount = _increase == CommonUtils.IncDec.Increase ? usInvestorsCount.add(1) : usInvestorsCount.sub(1);
-        } else if (countryCompliance == EU && getRegistryService().getAttributeValue(_id, getRegistryService().QUALIFIED()) != getRegistryService().APPROVED()) {
+        } else if (countryCompliance == EU && !getRegistryService().isQualifiedInvestor(_id)) {
             euRetailInvestorsCount[_country] = _increase == CommonUtils.IncDec.Increase ? euRetailInvestorsCount[_country].add(1) : euRetailInvestorsCount[_country].sub(1);
         } else if (countryCompliance == JP) {
             jpInvestorsCount = _increase == CommonUtils.IncDec.Increase ? jpInvestorsCount.add(1) : jpInvestorsCount.sub(1);

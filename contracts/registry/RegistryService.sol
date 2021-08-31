@@ -185,10 +185,6 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
         return address(omnibusWalletsControllers[_omnibusWallet]) != address(0);
     }
 
-    function getInvestors(address _from, address _to) public view returns (string memory, string memory) {
-        return (investorsWallets[_from].owner, investorsWallets[_to].owner);
-    }
-
     function getInvestor(address _address) public view returns (string memory) {
         return investorsWallets[_address].owner;
     }
@@ -199,6 +195,18 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
 
     function isInvestor(string memory _id) public view returns (bool) {
         return !CommonUtils.isEmptyString(investors[_id].id);
+    }
+
+    function isAccreditedInvestor(string calldata _id) external view returns (bool) {
+        return getAttributeValue(_id, ACCREDITED) == APPROVED;
+    }
+
+    function isQualifiedInvestor(string calldata _id) external view returns (bool) {
+        return getAttributeValue(_id, QUALIFIED) == APPROVED;
+    }
+
+    function getInvestors(address _from, address _to) external view returns (string memory, string memory) {
+        return (investorsWallets[_from].owner, investorsWallets[_to].owner);
     }
 
     function isWallet(address _address) public view returns (bool) {
