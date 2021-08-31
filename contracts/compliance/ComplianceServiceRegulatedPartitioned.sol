@@ -125,32 +125,14 @@ library ComplianceServicePartitionedLibrary {
         view
         returns (uint256 code, string memory reason)
     {
-        if (IDSToken(_services[DS_TOKEN]).isPaused() && !(isOmnibusTBE(IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]), _from))) {
-            return (10, TOKEN_PAUSED);
-        }
-
         if (
             IDSToken(_services[DS_TOKEN]).balanceOf(_from) < _value
         ) {
             return (15, NOT_ENOUGH_TOKENS);
         }
 
-        if (
-            !CommonUtils.isEmptyString(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_from)) &&
-            CommonUtils.isEqualString(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_from),
-                                      IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to))
-        ) {
-            return (0, VALID);
-        }
-
-        uint256 fromInvestorBalance = balanceOfInvestor(_services, _from);
-
-        if (!ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).checkWhitelisted(_to)) {
-            return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
-        }
-
         uint256 fromRegion = getCountryCompliance(_services, _from);
-        uint256 toRegion = getCountryCompliance(_services, _to);
+        uint256 fromInvestorBalance = balanceOfInvestor(_services, _from);
 
         if (IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) == WALLET_TYPE_PLATFORM) {
             if (
@@ -163,6 +145,24 @@ library ComplianceServicePartitionedLibrary {
             }
 
             return (0, VALID);
+        }
+
+        uint256 toRegion = getCountryCompliance(_services, _to);
+
+        if (IDSToken(_services[DS_TOKEN]).isPaused() && !(isOmnibusTBE(IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]), _from))) {
+            return (10, TOKEN_PAUSED);
+        }
+
+        if (
+            !CommonUtils.isEmptyString(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_from)) &&
+            CommonUtils.isEqualString(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_from),
+                                      IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to))
+        ) {
+            return (0, VALID);
+        }
+
+        if (!ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).checkWhitelisted(_to)) {
+            return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
         }
 
         if (toRegion == FORBIDDEN) {
