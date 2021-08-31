@@ -46,7 +46,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         uint256 code;
         string memory reason;
 
-        (code, reason) = newPreTransferCheck(_from, _to, _value, _paused, _balanceFrom);
+        (code, reason) = newPreTransferCheck(_from, _to, _value, _balanceFrom, _paused);
         require(code == 0, reason);
 
         return recordTransfer(_from, _to, _value);
@@ -89,8 +89,8 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         address _from,
         address _to,
         uint256 _value,
-        bool _pausedToken,
-        uint256 _balanceFrom
+        uint256 _balanceFrom,
+        bool _pausedToken
     ) public view returns (uint256 code, string memory reason) {
         if (_pausedToken) {
             return (10, TOKEN_PAUSED);

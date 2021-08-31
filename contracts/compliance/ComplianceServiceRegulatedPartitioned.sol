@@ -120,7 +120,7 @@ library ComplianceServicePartitionedLibrary {
         (isAccredited(_services, _from) || fromInvestorBalance > _value);
     }
 
-    function newPreTransferCheck(address[] memory _services, address _from, address _to, uint256 _value, bool _paused, uint256 _balanceFrom)
+    function newPreTransferCheck(address[] memory _services, address _from, address _to, uint256 _value, uint256 _balanceFrom, bool _paused)
     public
     view
     returns (uint256 code, string memory reason)
@@ -398,8 +398,8 @@ contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitione
         return ComplianceServicePartitionedLibrary.preTransferCheck(getServices(), _from, _to, _value);
     }
 
-    function newPreTransferCheck(address _from, address _to, uint256 _value, bool _paused, uint256 _balanceFrom) public view returns (uint256 code, string memory reason) {
-        return ComplianceServicePartitionedLibrary.newPreTransferCheck(getServices(), _from, _to, _value, _paused, _balanceFrom);
+    function newPreTransferCheck(address _from, address _to, uint256 _value, uint256 _balanceFrom, bool _paused) public view returns (uint256 code, string memory reason) {
+        return ComplianceServicePartitionedLibrary.newPreTransferCheck(getServices(), _from, _to, _value, _balanceFrom, _paused);
     }
 
     function getLockTime(bool _checkFlowback, bytes32 _partition) internal view returns (uint256) {

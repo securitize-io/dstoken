@@ -18,8 +18,8 @@ contract ComplianceServiceWhitelisted is ComplianceService {
         address _from,
         address _to,
         uint256 _value,
-        bool _pausedToken,
-        uint256 _balanceFrom
+        uint256 _balanceFrom,
+        bool _pausedToken
     ) public view returns (uint256 code, string memory reason) {
         if (_pausedToken) {
             return (10, TOKEN_PAUSED);
