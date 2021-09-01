@@ -21,19 +21,7 @@ contract ComplianceServiceWhitelisted is ComplianceService {
         uint256 _balanceFrom,
         bool _pausedToken
     ) public view returns (uint256 code, string memory reason) {
-        if (_pausedToken) {
-            return (10, TOKEN_PAUSED);
-        }
-
-        if (_balanceFrom < _value) {
-            return (15, NOT_ENOUGH_TOKENS);
-        }
-
-        if (!getWalletManager().isPlatformWallet(_from) && getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
-            return (16, TOKENS_LOCKED);
-        }
-
-        return checkTransfer(_from, _to, _value);
+        return doPreTransferCheckWhitelisted(_from, _to, _value, _balanceFrom, _pausedToken);
     }
 
     function preTransferCheck(
@@ -41,19 +29,7 @@ contract ComplianceServiceWhitelisted is ComplianceService {
         address _to,
         uint256 _value
     ) public view returns (uint256 code, string memory reason) {
-        if (getToken().isPaused()) {
-            return (10, TOKEN_PAUSED);
-        }
-
-        if (getToken().balanceOf(_from) < _value) {
-            return (15, NOT_ENOUGH_TOKENS);
-        }
-
-        if (!getWalletManager().isPlatformWallet(_from) && getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
-            return (16, TOKENS_LOCKED);
-        }
-
-        return checkTransfer(_from, _to, _value);
+        return doPreTransferCheckWhitelisted(_from, _to, _value, getToken().balanceOf(_from), getToken().isPaused());
     }
 
     function checkWhitelisted(address _who) public view returns (bool) {
@@ -90,5 +66,27 @@ contract ComplianceServiceWhitelisted is ComplianceService {
 
     function recordSeize(address, address, uint256) internal returns (bool) {
         return true;
+    }
+
+    function doPreTransferCheckWhitelisted(
+        address _from,
+        address _to,
+        uint256 _value,
+        uint256 _balanceFrom,
+        bool _pausedToken
+    ) internal view returns (uint256 code, string memory reason) {
+        if (_pausedToken) {
+            return (10, TOKEN_PAUSED);
+        }
+
+        if (_balanceFrom < _value) {
+            return (15, NOT_ENOUGH_TOKENS);
+        }
+
+        if (!getWalletManager().isPlatformWallet(_from) && getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
+            return (16, TOKENS_LOCKED);
+        }
+
+        return checkTransfer(_from, _to, _value);
     }
 }
