@@ -32,6 +32,8 @@ contract IDSRegistryService is Initializable, VersionedContract {
     uint8 public constant APPROVED = 1;
     uint8 public constant REJECTED = 2;
 
+    uint8 public constant EXCHANGE = 4;
+
     modifier investorExists(string memory _id) {
         require(isInvestor(_id), "Unknown investor");
         _;

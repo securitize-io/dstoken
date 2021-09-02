@@ -129,21 +129,6 @@ contract IDSTrustService is Initializable, VersionedContract {
      */
     function getRole(address _address) public view returns (uint8);
 
-    /**
-     * @dev Gets true if address is operator or above.
-     * @param _omnibusWallet The omnibus wallet of the token.
-     * @param _address The wallet whose role needs to be fetched.
-     * @return A boolean that indicates if is operator or above.
-     */
-    function isOperatorOrAbove(address _omnibusWallet, address _address) external view returns (bool);
-
-    /**
-     * @dev Gets true if address is exchange.
-     * @param _address The wallet whose role needs to be fetched.
-     * @return A boolean that indicates if is exchange.
-     */
-    function isExchange(address _address) external view returns (bool);
-
     function addEntity(
         string memory _name,
         address _owner /*onlyMasterOrIssuer onlyNewEntity onlyNewEntityOwner*/
