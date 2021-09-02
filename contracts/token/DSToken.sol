@@ -68,11 +68,11 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
      * @return true if successful
      */
     function issueTokensCustom(address _to, uint256 _value, uint256 _issuanceTime, uint256 _valueLocked, string memory _reason, uint64 _releaseTime)
-        public
-        returns (
-            /*onlyIssuerOrAbove*/
-            bool
-        )
+    public
+    returns (
+    /*onlyIssuerOrAbove*/
+        bool
+    )
     {
         uint256[] memory valuesLocked;
         uint64[] memory releaseTimes;
@@ -88,9 +88,9 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     }
 
     function issueTokensWithMultipleLocks(address _to, uint256 _value, uint256 _issuanceTime, uint256[] memory _valuesLocked, string memory _reason, uint64[] memory _releaseTimes)
-        public
-        onlyIssuerOrAbove
-        returns (bool)
+    public
+    onlyIssuerOrAbove
+    returns (bool)
     {
         TokenLibrary.issueTokensCustom(tokenData, getCommonServices(), getLockManager(), _to, _value, _issuanceTime, _valuesLocked, _releaseTimes, _reason, cap);
         emit Transfer(address(0), _to, _value);
@@ -246,16 +246,16 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     }
 
     function updateOmnibusInvestorBalance(address _omnibusWallet, address _wallet, uint256 _value, CommonUtils.IncDec _increase)
-        public
-        onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
-        returns (bool)
+    public
+    onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
+    returns (bool)
     {
-        return TokenLibrary.updateInvestorBalance(tokenData, getRegistryService(), _wallet, _value, _increase);
+        return updateInvestorBalance(_wallet, _value, _increase);
     }
 
     function emitOmnibusTransferEvent(address _omnibusWallet, address _from, address _to, uint256 _value)
-        public
-        onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
+    public
+    onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
     {
         emit OmnibusTransfer(_omnibusWallet, _from, _to, _value, getAssetTrackingMode(_omnibusWallet));
     }
@@ -272,12 +272,24 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     function updateInvestorsBalancesOnTransfer(address _from, address _to, uint256 _value) internal {
         uint256 omnibusEvent = TokenLibrary.applyOmnibusBalanceUpdatesOnTransfer(tokenData, getRegistryService(), _from, _to, _value);
         if (omnibusEvent == OMNIBUS_NO_ACTION) {
-            TokenLibrary.updateInvestorBalances(tokenData, getRegistryService(), _from, _to, _value);
+            updateInvestorBalance(_from, _value, CommonUtils.IncDec.Decrease);
+            updateInvestorBalance(_to, _value, CommonUtils.IncDec.Increase);
         }
     }
 
     function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal returns (bool) {
-        return TokenLibrary.updateInvestorBalance(tokenData, getRegistryService(), _wallet, _value, _increase);
+        string memory investor = getRegistryService().getInvestor(_wallet);
+        if (!CommonUtils.isEmptyString(investor)) {
+            uint256 balance = balanceOfInvestor(investor);
+            if (_increase == CommonUtils.IncDec.Increase) {
+                balance = balance.add(_value);
+            } else {
+                balance = balance.sub(_value);
+            }
+            tokenData.investorsBalances[investor] = balance;
+        }
+
+        return true;
     }
 
     function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {

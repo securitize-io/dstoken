@@ -97,14 +97,15 @@ library TokenLibrary {
     }
 
     function seize(TokenData storage _tokenData, address[] memory _services, address _from, address _to, uint256 _value)
-        public
-        validSeizeParameters(_tokenData, _from, _to, _value)
+    public
+    validSeizeParameters(_tokenData, _from, _to, _value)
     {
         IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
         IDSComplianceService(_services[COMPLIANCE_SERVICE]).validateSeize(_from, _to, _value);
         _tokenData.walletsBalances[_from] = _tokenData.walletsBalances[_from].sub(_value);
         _tokenData.walletsBalances[_to] = _tokenData.walletsBalances[_to].add(_value);
-        updateInvestorBalances(_tokenData, registryService, _from, _to, _value);
+        updateInvestorBalance(_tokenData, registryService, _from, _value, CommonUtils.IncDec.Decrease);
+        updateInvestorBalance(_tokenData, registryService, _to, _value, CommonUtils.IncDec.Increase);
     }
 
     function omnibusBurn(TokenData storage _tokenData, address[] memory _services, address _omnibusWallet, address _who, uint256 _value) public {
@@ -117,8 +118,8 @@ library TokenLibrary {
     }
 
     function omnibusSeize(TokenData storage _tokenData, address[] memory _services, address _omnibusWallet, address _from, address _to, uint256 _value)
-        public
-        validSeizeParameters(_tokenData, _omnibusWallet, _to, _value)
+    public
+    validSeizeParameters(_tokenData, _omnibusWallet, _to, _value)
     {
         IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
         IDSOmnibusWalletController omnibusController = registryService.getOmnibusWalletController(_omnibusWallet);
@@ -146,8 +147,8 @@ library TokenLibrary {
     }
 
     function applyOmnibusBalanceUpdatesOnTransfer(TokenData storage _tokenData, IDSRegistryService _registryService, address _from, address _to, uint256 _value)
-        public
-        returns (uint256)
+    public
+    returns (uint256)
     {
         if (_registryService.isOmnibusWallet(_to)) {
             IDSOmnibusWalletController omnibusWalletController = _registryService.getOmnibusWalletController(_to);
@@ -155,7 +156,8 @@ library TokenLibrary {
             emit OmnibusDeposit(_to, _from, _value, omnibusWalletController.getAssetTrackingMode());
 
             if (omnibusWalletController.isHolderOfRecord()) {
-                updateInvestorBalances(_tokenData, _registryService, _from, _to, _value);
+                updateInvestorBalance(_tokenData, _registryService, _from, _value, CommonUtils.IncDec.Decrease);
+                updateInvestorBalance(_tokenData, _registryService, _to, _value, CommonUtils.IncDec.Increase);
             }
             return OMNIBUS_DEPOSIT;
         } else if (_registryService.isOmnibusWallet(_from)) {
@@ -164,14 +166,15 @@ library TokenLibrary {
             emit OmnibusWithdraw(_from, _to, _value, omnibusWalletController.getAssetTrackingMode());
 
             if (omnibusWalletController.isHolderOfRecord()) {
-                updateInvestorBalances(_tokenData, _registryService, _from, _to, _value);
+                updateInvestorBalance(_tokenData, _registryService, _from, _value, CommonUtils.IncDec.Decrease);
+                updateInvestorBalance(_tokenData, _registryService, _to, _value, CommonUtils.IncDec.Increase);
             }
             return OMNIBUS_WITHDRAW;
         }
         return OMNIBUS_NO_ACTION;
     }
 
-    function updateInvestorBalance(TokenData storage _tokenData, IDSRegistryService _registryService, address _wallet, uint256 _value, CommonUtils.IncDec _increase) public returns (bool) {
+    function updateInvestorBalance(TokenData storage _tokenData, IDSRegistryService _registryService, address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal returns (bool) {
         string memory investor = _registryService.getInvestor(_wallet);
         if (!CommonUtils.isEmptyString(investor)) {
             uint256 balance = _tokenData.investorsBalances[investor];
@@ -183,22 +186,6 @@ library TokenLibrary {
             _tokenData.investorsBalances[investor] = balance;
         }
 
-        return true;
-    }
-
-    function updateInvestorBalances(TokenData storage _tokenData, IDSRegistryService _registryService, address _from, address _to, uint256 _value) public returns (bool) {
-        (string memory investorFrom, string memory investorTo)  = _registryService.getInvestors(_from, _to);
-        if (!CommonUtils.isEmptyString(investorFrom)) {
-            uint256 balance = _tokenData.investorsBalances[investorFrom];
-            balance = balance.sub(_value);
-            _tokenData.investorsBalances[investorFrom] = balance;
-        }
-
-        if (!CommonUtils.isEmptyString(investorTo)) {
-            uint256 balanceTo = _tokenData.investorsBalances[investorTo];
-            balanceTo = balanceTo.add(_value);
-            _tokenData.investorsBalances[investorTo] = balanceTo;
-        }
         return true;
     }
 }
