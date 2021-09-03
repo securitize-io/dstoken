@@ -54,14 +54,6 @@ library ComplianceServiceLibrary {
         return token.balanceOfInvestor(registry.getInvestor(_wallet));
     }
 
-    function isNewInvestor(address[] memory _services, address _wallet) internal view returns (bool) {
-        IDSOmnibusTBEController omnibusTBEController = IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]);
-
-        // Return whether this investor has 0 balance and is not an omnibus TBE wallet
-        return balanceOfInvestor(_services, _wallet) == 0 &&
-        !isOmnibusTBE(omnibusTBEController, _wallet);
-    }
-
     function isNewInvestor(address[] memory _services, address _to, uint256 _balanceOfInvestorTo) internal view returns (bool) {
         IDSOmnibusTBEController omnibusTBEController = IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]);
 
@@ -129,12 +121,13 @@ library ComplianceServiceLibrary {
         uint256 fromInvestorBalance,
         uint256 toInvestorBalance
     ) internal view returns (bool) {
+        uint256 nonAccreditedInvestorLimit = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit();
         return
-        IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit() != 0 &&
+        nonAccreditedInvestorLimit != 0 &&
         ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getTotalInvestorsCount().sub(
             ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getAccreditedInvestorsCount()
         ) >=
-        IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit() &&
+        nonAccreditedInvestorLimit &&
         isNewInvestor(_services, _to, toInvestorBalance) &&
         (isAccredited(_services, _from) || fromInvestorBalance > _value);
     }
@@ -147,7 +140,8 @@ library ComplianceServiceLibrary {
         uint256 _balanceFrom,
         bool _paused
     ) public view returns (uint256 code, string memory reason) {
-        return doPreTransferCheckRegulated(_services, _from, _to, _value, _balanceFrom, _paused);
+        return doPreTransferCheckRegulated
+        (_services, _from, _to, _value, _balanceFrom, _paused);
     }
 
     function preTransferCheck(
@@ -255,8 +249,7 @@ library ComplianceServiceLibrary {
             if (
                 toRegion == US &&
                 !isPlatformWalletFrom &&
-                (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() == 0 ||
-                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() > now)
+                isBlockFlowbackEndTimeOk(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime())
             ) {
                 return (25, FLOWBACK);
             }
@@ -387,8 +380,10 @@ library ComplianceServiceLibrary {
         }
 
         if (
-            IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor() != 0 &&
-            toInvestorBalance.add(_value) > IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor()
+            isMaximumHoldingsPerInvestorOk(
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor(),
+                toInvestorBalance,
+                _value)
         ) {
             return (52, AMOUNT_OF_TOKENS_ABOVE_MAX);
         }
@@ -415,7 +410,8 @@ library ComplianceServiceLibrary {
             return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
         }
 
-        if (isNewInvestor(_services, _to)) {
+        uint256 balanceOfInvestorTo = balanceOfInvestor(_services, _to);
+        if (isNewInvestor(_services, _to, balanceOfInvestorTo)) {
             // verify global non accredited limit
             if (!isAccredited(_services, _to)) {
                 if (
@@ -463,18 +459,27 @@ library ComplianceServiceLibrary {
 
         if (
             !walletManager.isPlatformWallet(_to) &&
-        balanceOfInvestor(_services, _to).add(_value) < complianceConfigurationService.getMinimumHoldingsPerInvestor()
+        balanceOfInvestorTo.add(_value) < complianceConfigurationService.getMinimumHoldingsPerInvestor()
         ) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
-        if (
-            complianceConfigurationService.getMaximumHoldingsPerInvestor() != 0 &&
-            balanceOfInvestor(_services, _to).add(_value) > complianceConfigurationService.getMaximumHoldingsPerInvestor()
+        if (isMaximumHoldingsPerInvestorOk(
+                complianceConfigurationService.getMaximumHoldingsPerInvestor(),
+                balanceOfInvestorTo,
+                _value)
         ) {
             return (52, AMOUNT_OF_TOKENS_ABOVE_MAX);
         }
 
         return (0, VALID);
+    }
+
+    function isMaximumHoldingsPerInvestorOk(uint256 _maximumHoldingsPerInvestor, uint256 _balanceOfInvestorTo, uint256 _value) internal pure returns (bool) {
+        return _maximumHoldingsPerInvestor != 0 && _balanceOfInvestorTo.add(_value) > _maximumHoldingsPerInvestor;
+    }
+
+    function isBlockFlowbackEndTimeOk(uint256 _blockFlowBackEndTime) private view returns (bool){
+        return  (_blockFlowBackEndTime == 0 || _blockFlowBackEndTime > now);
     }
 }
 
