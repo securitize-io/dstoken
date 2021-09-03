@@ -163,8 +163,9 @@ library ComplianceServiceLibrary {
          uint256 _balanceFrom,
          bool _paused
      ) internal view returns (uint256 code, string memory reason) {
-         if (_paused && !(isOmnibusTBE(IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]), _from))) {
-             return (10, TOKEN_PAUSED);
+
+         if (_balanceFrom < _value) {
+             return (15, NOT_ENOUGH_TOKENS);
          }
 
          uint256 fromInvestorBalance = balanceOfInvestor(_services, _from);
@@ -181,8 +182,8 @@ library ComplianceServiceLibrary {
              return (0, VALID);
          }
 
-         if (_balanceFrom < _value) {
-             return (15, NOT_ENOUGH_TOKENS);
+         if (_paused && !(isOmnibusTBE(IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]), _from))) {
+             return (10, TOKEN_PAUSED);
          }
 
          return completeTransferCheck(_services, _from, _to, _value, fromInvestorBalance, fromRegion);
