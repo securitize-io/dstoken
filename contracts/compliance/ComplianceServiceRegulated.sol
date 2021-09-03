@@ -32,11 +32,6 @@ library ComplianceServiceLibrary {
     string internal constant ONLY_ACCREDITED = "Only accredited";
     string internal constant ONLY_US_ACCREDITED = "Only us accredited";
     string internal constant NOT_ENOUGH_INVESTORS = "Not enough investors";
-    // Special wallets constants
-    uint8 public constant WALLET_TYPE_NONE = 0;
-    uint8 public constant WALLET_TYPE_ISSUER = 1;
-    uint8 public constant WALLET_TYPE_PLATFORM = 2;
-    uint8 public constant WALLET_TYPE_EXCHANGE = 4;
 
     using SafeMath for uint256;
 
@@ -65,6 +60,13 @@ library ComplianceServiceLibrary {
         // Return whether this investor has 0 balance and is not an omnibus TBE wallet
         return balanceOfInvestor(_services, _wallet) == 0 &&
         !isOmnibusTBE(omnibusTBEController, _wallet);
+    }
+
+    function isNewInvestor(address[] memory _services, address _to, uint256 _balanceOfInvestorTo) internal view returns (bool) {
+        IDSOmnibusTBEController omnibusTBEController = IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]);
+
+        // Return whether this investor has 0 balance and is not an omnibus TBE wallet
+        return _balanceOfInvestorTo == 0 && !isOmnibusTBE(omnibusTBEController, _to);
     }
 
     function getCountry(address[] memory _services, address _wallet) internal view returns (string memory) {
@@ -103,18 +105,19 @@ library ComplianceServiceLibrary {
         address[] memory _services,
         address _from,
         uint256 _value,
-        bool isUSLockPeriod
+        bool _isUSLockPeriod,
+        bool _isPlatformWalletFrom
     ) internal view returns (bool) {
         ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
         uint64 lockPeriod;
-        if (isUSLockPeriod) {
+        if (_isUSLockPeriod) {
             lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSLockPeriod());
         } else {
             lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUSLockPeriod());
         }
 
         return
-        IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) != WALLET_TYPE_PLATFORM &&
+        !_isPlatformWalletFrom &&
         complianceService.getComplianceTransferableTokens(_from, uint64(now), lockPeriod) < _value;
     }
 
@@ -123,7 +126,8 @@ library ComplianceServiceLibrary {
         address _from,
         address _to,
         uint256 _value,
-        uint256 fromInvestorBalance
+        uint256 fromInvestorBalance,
+        uint256 toInvestorBalance
     ) internal view returns (bool) {
         return
         IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit() != 0 &&
@@ -131,63 +135,63 @@ library ComplianceServiceLibrary {
             ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getAccreditedInvestorsCount()
         ) >=
         IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit() &&
-        isNewInvestor(_services, _to) &&
+        isNewInvestor(_services, _to, toInvestorBalance) &&
         (isAccredited(_services, _from) || fromInvestorBalance > _value);
     }
 
-     function newPreTransferCheck(
-         address[] memory _services,
-         address _from,
-         address _to,
-         uint256 _value,
-         uint256 _balanceFrom,
-         bool _paused
-     ) public view returns (uint256 code, string memory reason) {
+    function newPreTransferCheck(
+        address[] memory _services,
+        address _from,
+        address _to,
+        uint256 _value,
+        uint256 _balanceFrom,
+        bool _paused
+    ) public view returns (uint256 code, string memory reason) {
         return doPreTransferCheckRegulated(_services, _from, _to, _value, _balanceFrom, _paused);
-     }
+    }
 
-     function preTransferCheck(
+    function preTransferCheck(
         address[] memory _services,
         address _from,
         address _to,
         uint256 _value
     ) public view returns (uint256 code, string memory reason) {
-         return doPreTransferCheckRegulated(_services, _from, _to, _value, IDSToken(_services[DS_TOKEN]).balanceOf(_from), IDSToken(_services[DS_TOKEN]).isPaused());
+        return doPreTransferCheckRegulated(_services, _from, _to, _value, IDSToken(_services[DS_TOKEN]).balanceOf(_from), IDSToken(_services[DS_TOKEN]).isPaused());
     }
 
-     function doPreTransferCheckRegulated(
-         address[] memory _services,
-         address _from,
-         address _to,
-         uint256 _value,
-         uint256 _balanceFrom,
-         bool _paused
-     ) internal view returns (uint256 code, string memory reason) {
+    function doPreTransferCheckRegulated(
+        address[] memory _services,
+        address _from,
+        address _to,
+        uint256 _value,
+        uint256 _balanceFrom,
+        bool _paused
+    ) internal view returns (uint256 code, string memory reason) {
 
-         if (_balanceFrom < _value) {
-             return (15, NOT_ENOUGH_TOKENS);
-         }
+        if (_balanceFrom < _value) {
+            return (15, NOT_ENOUGH_TOKENS);
+        }
 
-         uint256 fromInvestorBalance = balanceOfInvestor(_services, _from);
-         uint256 fromRegion = getCountryCompliance(_services, _from);
-         if (IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) == WALLET_TYPE_PLATFORM) {
-             if (
-                 ((IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer()
-                 && (fromRegion == US)) ||
-                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getWorldWideForceFullTransfer()) &&
-                 fromInvestorBalance > _value
-             ) {
-                 return (50, ONLY_FULL_TRANSFER);
-             }
-             return (0, VALID);
-         }
+        uint256 fromInvestorBalance = balanceOfInvestor(_services, _from);
+        uint256 fromRegion = getCountryCompliance(_services, _from);
+        if (IDSWalletManager(_services[WALLET_MANAGER]).isPlatformWallet(_to)) {
+            if (
+                ((IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getForceFullTransfer()
+                && (fromRegion == US)) ||
+                IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getWorldWideForceFullTransfer()) &&
+                fromInvestorBalance > _value
+            ) {
+                return (50, ONLY_FULL_TRANSFER);
+            }
+            return (0, VALID);
+        }
 
-         if (_paused && !(isOmnibusTBE(IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]), _from))) {
-             return (10, TOKEN_PAUSED);
-         }
+        if (_paused && !(isOmnibusTBE(IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]), _from))) {
+            return (10, TOKEN_PAUSED);
+        }
 
-         return completeTransferCheck(_services, _from, _to, _value, fromInvestorBalance, fromRegion);
-     }
+        return completeTransferCheck(_services, _from, _to, _value, fromInvestorBalance, fromRegion);
+    }
 
     function completeTransferCheck(
         address[] memory _services,
@@ -217,15 +221,16 @@ library ComplianceServiceLibrary {
             return(0, VALID);
         }
 
+        bool isPlatformWalletFrom = IDSWalletManager(_services[WALLET_MANAGER]).isPlatformWallet(_from);
         if (
-            IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) != WALLET_TYPE_PLATFORM &&
-            IDSLockManager(_services[LOCK_MANAGER]).getTransferableTokens(_from, uint64(now)) < _value
+            !isPlatformWalletFrom &&
+        IDSLockManager(_services[LOCK_MANAGER]).getTransferableTokens(_from, uint64(now)) < _value
         ) {
             return (16, TOKENS_LOCKED);
         }
 
         if (_fromRegion == US) {
-            if (checkHoldUp(_services, _from, _value, true)) {
+            if (checkHoldUp(_services, _from, _value, true, isPlatformWalletFrom)) {
                 return (32, HOLD_UP_1Y);
             }
 
@@ -243,13 +248,13 @@ library ComplianceServiceLibrary {
                 return (50, ONLY_FULL_TRANSFER);
             }
         } else {
-            if (checkHoldUp(_services, _from, _value, false)) {
+            if (checkHoldUp(_services, _from, _value, false, isPlatformWalletFrom)) {
                 return (33, HOLD_UP);
             }
 
             if (
                 toRegion == US &&
-                IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) != WALLET_TYPE_PLATFORM &&
+                !isPlatformWalletFrom &&
                 (IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() == 0 ||
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() > now)
             ) {
@@ -284,7 +289,7 @@ library ComplianceServiceLibrary {
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getJPInvestorsLimit() != 0 &&
                 ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getJPInvestorsCount() >=
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getJPInvestorsLimit() &&
-                isNewInvestor(_services, _to) &&
+                isNewInvestor(_services, _to, toInvestorBalance) &&
                 (!CommonUtils.isEqualString(getCountry(_services, _from), toCountry) || (_fromInvestorBalance > _value))
             ) {
                 return (40, MAX_INVESTORS_IN_CATEGORY);
@@ -294,7 +299,7 @@ library ComplianceServiceLibrary {
                 isRetail(_services, _to) &&
                 ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getEURetailInvestorsCount(toCountry) >=
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getEURetailInvestorsLimit() &&
-                isNewInvestor(_services, _to) &&
+                isNewInvestor(_services, _to, toInvestorBalance) &&
                 (!CommonUtils.isEqualString(getCountry(_services, _from), toCountry) || (_fromInvestorBalance > _value && isRetail(_services, _from)))
             ) {
                 return (40, MAX_INVESTORS_IN_CATEGORY);
@@ -318,7 +323,7 @@ library ComplianceServiceLibrary {
                 usInvestorsLimit != 0 &&
                 _fromInvestorBalance > _value &&
                 ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getUSInvestorsCount() >= usInvestorsLimit &&
-                isNewInvestor(_services, _to)
+                isNewInvestor(_services, _to, toInvestorBalance)
             ) {
                 return (40, MAX_INVESTORS_IN_CATEGORY);
             }
@@ -328,7 +333,7 @@ library ComplianceServiceLibrary {
                 isAccredited(_services, _to) &&
                 ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getUSAccreditedInvestorsCount() >=
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSAccreditedInvestorsLimit() &&
-                isNewInvestor(_services, _to) &&
+                isNewInvestor(_services, _to, toInvestorBalance) &&
                 (_fromRegion != US || !isAccredited(_services, _from) || _fromInvestorBalance > _value)
             ) {
                 return (40, MAX_INVESTORS_IN_CATEGORY);
@@ -342,7 +347,7 @@ library ComplianceServiceLibrary {
         }
 
         if (!isAccredited(_services, _to)) {
-            if (maxInvestorsInCategoryForNonAccredited(_services, _from, _to, _value, _fromInvestorBalance)) {
+            if (maxInvestorsInCategoryForNonAccredited(_services, _from, _to, _value, _fromInvestorBalance, toInvestorBalance)) {
                 return (40, MAX_INVESTORS_IN_CATEGORY);
             }
         }
@@ -352,14 +357,14 @@ library ComplianceServiceLibrary {
             _fromInvestorBalance > _value &&
             ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getTotalInvestorsCount() >=
             IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getTotalInvestorsLimit() &&
-            isNewInvestor(_services, _to)
+            isNewInvestor(_services, _to, toInvestorBalance)
         ) {
             return (40, MAX_INVESTORS_IN_CATEGORY);
         }
 
         if (
             _fromInvestorBalance == _value &&
-            !isNewInvestor(_services, _to) &&
+            !isNewInvestor(_services, _to, toInvestorBalance) &&
             ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getTotalInvestorsCount() <=
             IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumTotalInvestors()
         ) {
@@ -367,16 +372,16 @@ library ComplianceServiceLibrary {
         }
 
         if (
-            IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_from) != WALLET_TYPE_PLATFORM &&
-            _fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor() &&
-            _fromInvestorBalance > _value
+            !isPlatformWalletFrom &&
+        _fromInvestorBalance.sub(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor() &&
+        _fromInvestorBalance > _value
         ) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
 
         if (
-            IDSWalletManager(_services[WALLET_MANAGER]).getWalletType(_to) != WALLET_TYPE_PLATFORM &&
-            toInvestorBalance.add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
+            !IDSWalletManager(_services[WALLET_MANAGER]).isPlatformWallet(_to) &&
+        toInvestorBalance.add(_value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
         ) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
@@ -458,7 +463,7 @@ library ComplianceServiceLibrary {
 
         if (
             !walletManager.isPlatformWallet(_to) &&
-            balanceOfInvestor(_services, _to).add(_value) < complianceConfigurationService.getMinimumHoldingsPerInvestor()
+        balanceOfInvestor(_services, _to).add(_value) < complianceConfigurationService.getMinimumHoldingsPerInvestor()
         ) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
