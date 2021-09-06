@@ -10,7 +10,7 @@ contract IDSRegistryService is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(5);
+        VERSIONS.push(6);
     }
 
     event DSRegistryServiceInvestorAdded(string investorId, address sender);

@@ -501,7 +501,7 @@ library ComplianceServiceLibrary {
 contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     function initialize() public initializer forceInitializeFromProxy {
         super.initialize();
-        VERSIONS.push(11);
+        VERSIONS.push(12);
     }
 
     function compareInvestorBalance(

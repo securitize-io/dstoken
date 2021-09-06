@@ -12,7 +12,7 @@ import "../registry/IDSRegistryService.sol";
 contract ComplianceServiceWhitelisted is ComplianceService {
     function initialize() public initializer forceInitializeFromProxy {
         ComplianceService.initialize();
-        VERSIONS.push(4);
+        VERSIONS.push(5);
     }
     function newPreTransferCheck(
         address _from,
