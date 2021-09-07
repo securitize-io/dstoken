@@ -53,11 +53,10 @@ module.exports = {
       timeoutBlocks,
     },
     quorum: {
-      host: '127.0.0.1',
-      port: 22000, // was 8545
-      network_id: '*', // Match any network id
+      provider: new HDWalletProvider(privateKey, 'http://localhost:8545'),
+      network_id: '10',
       gasPrice: 0,
-      type: 'quorum', // needed for Truffle to support Quorum
+      type: 'quorum',
     },
     live: {
       gasPrice: 40000000000,
@@ -68,6 +67,12 @@ module.exports = {
       network_id: '1',
       timeoutBlocks,
     },
+  },
+  mocha: {
+    reporter: 'eth-gas-reporter',
+    useColors: true,
+    bail: false,
+    enableTimeouts: false,
   },
   compilers: {
     solc: {
@@ -81,6 +86,6 @@ module.exports = {
     },
   },
   plugins: [
-    'truffle-contract-size'
-  ]
+    'truffle-contract-size',
+  ],
 };
