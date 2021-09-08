@@ -3,6 +3,7 @@ pragma solidity 0.5.17;
 import "./VersionedContract.sol";
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
+import "../zeppelin/math/Math.sol";
 
 /**
  @dev Based on SimpleWallet (https://github.com/christianlundkvist/simple-multisig) and uses EIP-712 standard validate a signature
@@ -24,16 +25,18 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
     // keccak256("Securitize Transaction Relayer SALT")
     bytes32 constant SALT = 0x6e31104f5170e59a0a98ebdeb5ba99f8b32ef7b56786b1722f81a5fa19dd1629;
 
-    uint256 public nonce; // (only) mutable state
-
     bytes32 DOMAIN_SEPARATOR; // hash for EIP712, computed from contract address
 
     uint8 public constant MASTER = 1;
     uint8 public constant ISSUER = 2;
 
+    mapping(bytes32 => uint256) internal noncePerInvestor;
+
+    using SafeMath for uint256;
+
     function initialize(uint256 chainId) public initializer forceInitializeFromProxy {
         ServiceConsumer.initialize();
-        VERSIONS.push(1);
+        VERSIONS.push(2);
 
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
@@ -52,12 +55,14 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         uint8 sigV,
         bytes32 sigR,
         bytes32 sigS,
+        string memory senderInvestor,
         address destination,
         uint256 value,
         bytes memory data,
         address executor,
         uint256 gasLimit
     ) public {
+        uint256 investorNonce = noncePerInvestor[toBytes32(senderInvestor)];
         // EIP712 scheme: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md
         bytes32 txInputHash = keccak256(
             abi.encode(
@@ -65,7 +70,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
                 destination,
                 value,
                 keccak256(data),
-                nonce,
+                investorNonce,
                 executor,
                 gasLimit
             )
@@ -81,7 +86,8 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
 
         // The address.call() syntax is no longer recommended, see:
         // https://github.com/ethereum/solidity/issues/2884
-        nonce = nonce + 1;
+        investorNonce = investorNonce.add(1);
+        noncePerInvestor[toBytes32(senderInvestor)] = investorNonce;
         bool success = false;
         assembly {
             success := call(
@@ -95,6 +101,13 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
             )
         }
         require(success, "transaction was not executed");
+    }
+    function nonce(string memory investorId) public view returns (uint256) {
+        return noncePerInvestor[toBytes32(investorId)];
+    }
+
+    function toBytes32(string memory str) private pure returns (bytes32) {
+        return keccak256(abi.encodePacked(str));
     }
 
     function() external payable {}

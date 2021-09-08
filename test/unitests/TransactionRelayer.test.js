@@ -53,7 +53,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
   const ISSUED_TOKENS = 1000000;
   const gasLimit = 200000000;
   const value = 0;
-
+  const investorId = '';
   before(async () => {
     await lightwallet.keystore.createVault({
       hdPathString: 'm/44\'/60\'/0\'/0',
