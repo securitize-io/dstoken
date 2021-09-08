@@ -4,14 +4,11 @@ const assertRevert = require('../utils/assertRevert');
 const deployContractBehindProxy = require('../utils').deployContractBehindProxy;
 const roles = require('../../utils/globals').roles;
 const deployContracts = require('../utils/index').deployContracts;
-const { setOmnibusTBEServicesDependencies, resetCounters, setCounters,
-  getCountersDelta, toHex, assertCounters, assertCountryCounters, assertEvent } =
+const { setOmnibusTBEServicesDependencies, resetCounters, setCounters, toHex, assertCounters } =
   require('../utils/omnibus/utils');
 const fixtures = require('../fixtures');
 const globals = require('../../utils/globals');
 const { HSMSigner } = require('../utils/specialSigners');
-
-let DOMAIN_SEPARATOR;
 
 // eslint-disable-next-line max-len
 // keccak256("MultiSigTransaction(address destination,uint256 value,bytes data,uint256 nonce,address executor,uint256 gasLimit)")
@@ -53,7 +50,6 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
   const ISSUED_TOKENS = 1000000;
   const gasLimit = 200000000;
   const value = 0;
-  const investorId = '';
   before(async () => {
     await lightwallet.keystore.createVault({
       hdPathString: 'm/44\'/60\'/0\'/0',
@@ -170,7 +166,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
         tokenInstance = await TestToken.new({ from: owner });
         assert.ok(tokenInstance);
 
-        initialNonce = await this.transactionRelayer.nonce.call();
+        initialNonce = await this.transactionRelayer.nonce('issuer');
         assert.ok(initialNonce);
       });
       describe('AND one issuer sign a TestToken.issueTokens() transaction', () => {
@@ -202,6 +198,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             sigs.sigV,
             sigs.sigR,
             sigs.sigS,
+            'issuer',
             tokenInstance.address,
             0,
             data,
@@ -209,7 +206,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             gasLimit,
             { from: executor, gasLimit });
 
-          let newNonce = await this.transactionRelayer.nonce.call();
+          let newNonce = await this.transactionRelayer.nonce('issuer');
           assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
 
           assert.equal(
@@ -244,6 +241,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
               sigs.sigV,
               sigs.sigR,
               sigs.sigS,
+              'no_issuer',
               tokenInstance.address,
               value,
               data,
@@ -275,6 +273,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
               sigs.sigV,
               sigs.sigR,
               sigs.sigS,
+              'issuer',
               tokenInstance.address,
               value,
               data,
@@ -307,6 +306,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
               sigs.sigV,
               sigs.sigR,
               sigs.sigS,
+              'issuer',
               tokenInstance.address,
               value,
               data,
@@ -340,6 +340,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
               sigs.sigV,
               sigs.sigR,
               sigs.sigS,
+              'issuer',
               tokenInstance.address,
               value,
               data,
@@ -374,6 +375,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
               sigs.sigV,
               sigs.sigR,
               sigs.sigS,
+              'issuer',
               tokenInstance.address,
               value,
               data,
@@ -388,7 +390,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
   describe('Interaction with Registry Service', () => {
     beforeEach(async () => {
       executor = acct[1];
-      initialNonce = await this.transactionRelayer.nonce.call();
+      initialNonce = await this.transactionRelayer.nonce(HOLDER_ID);
       assert.ok(initialNonce);
     });
     describe('Register a Wallet', () => {
@@ -426,6 +428,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
           sigs.sigV,
           sigs.sigR,
           sigs.sigS,
+          HOLDER_ID,
           this.walletRegistrar.address,
           0,
           data,
@@ -433,11 +436,11 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
           gasLimit,
           { from: executor, gasLimit });
 
-        let newNonce = await this.transactionRelayer.nonce.call();
-        assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
-
         const investor = await this.registryService.getInvestor(HOLDER_ADDRESS);
         assert(investor, HOLDER_ID);
+
+        let newNonce = await this.transactionRelayer.nonce(HOLDER_ID);
+        assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
       });
     });
     describe('When signing with no role a wallet', () => {
@@ -472,6 +475,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             sigs.sigV,
             sigs.sigR,
             sigs.sigS,
+            HOLDER_ID,
             this.walletRegistrar.address,
             0,
             data,
@@ -479,13 +483,16 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             gasLimit,
             { from: executor, gasLimit })
         );
+
+        let newNonce = await this.transactionRelayer.nonce(HOLDER_ID);
+        assert.equal(initialNonce.toNumber(), newNonce.toNumber());
       });
     });
   });
   describe('Interaction with OmnibusTBE', () => {
     beforeEach(async () => {
       executor = acct[1];
-      initialNonce = await this.transactionRelayer.nonce.call();
+      initialNonce = await this.transactionRelayer.nonce(HOLDER_ID,);
       assert.ok(initialNonce);
 
       await resetCounters(this);
@@ -506,7 +513,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
         let issuer = acct[0];
 
         // GIVEN
-        const valueToTranser = 1000;
+        const valueToTransfer = 1000;
         const tokenValues = ['500', '500'];
         const investorWallets = [investorWallet1, investorWallet2];
         const txCounters = {
@@ -523,12 +530,12 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
 
         // WHEN
         await this.omnibusTBEController
-          .bulkIssuance(valueToTranser, issuanceTime, txCounters.totalInvestorsCount,
+          .bulkIssuance(valueToTransfer, issuanceTime, txCounters.totalInvestorsCount,
             txCounters.accreditedInvestorsCount,
             txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
             txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
 
-        await this.token.approve(this.omnibusTBEController.address, valueToTranser, { from: omnibusWallet });
+        await this.token.approve(this.omnibusTBEController.address, valueToTransfer, { from: omnibusWallet });
 
         const data = await this.omnibusTBEController.contract.methods
           .bulkTransfer(investorWallets, tokenValues).encodeABI();
@@ -547,6 +554,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
           sigs.sigV,
           sigs.sigR,
           sigs.sigS,
+          HOLDER_ID,
           this.omnibusTBEController.address,
           0,
           data,
@@ -572,6 +580,9 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
           investorWallet2CurrentBalance.toNumber(),
           500
         );
+
+        let newNonce = await this.transactionRelayer.nonce(HOLDER_ID);
+        assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
 
         // Reset balance
         await this.token.burn(investorWallet1, 500, 'reset');
@@ -623,6 +634,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             sigs.sigV,
             sigs.sigR,
             sigs.sigS,
+            HOLDER_ID,
             this.omnibusTBEController.address,
             0,
             data,
