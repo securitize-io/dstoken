@@ -16,8 +16,8 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
     // keccak256("Securitize Transaction Relayer for pre-approved transactions")
     bytes32 constant NAME_HASH = 0x378460f4f89643d76dadb1d55fed95ff69d3c2e4b34cc81a5b565a797b10ce30;
 
-    // keccak256("1")
-    bytes32 constant VERSION_HASH = 0xc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6;
+    // keccak256("2")
+    bytes32 constant VERSION_HASH = 0xad7c5bef027816a800da1736444fb58a807ef4c9603b7848673f7e3a68eb14a5;
 
     // keccak256("TransactionRelayer(address destination,uint256 value,bytes data,uint256 nonce,address executor,uint256 gasLimit)")
     bytes32 constant TXTYPE_HASH = 0x18352269123822ee0d5f7ae54168e303ddfc22d7bd1afb2feb38c21fffe27ea7;
@@ -51,7 +51,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
     }
 
     // Note that address recovered from signatures must be strictly increasing, in order to prevent duplicates
-    function execute(
+    function executeByInvestor(
         uint8 sigV,
         bytes32 sigR,
         bytes32 sigS,
