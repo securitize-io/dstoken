@@ -27,6 +27,8 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
 
     bytes32 DOMAIN_SEPARATOR; // hash for EIP712, computed from contract address
 
+    uint256 public nonce; // (only) mutable state
+
     uint8 public constant MASTER = 1;
     uint8 public constant ISSUER = 2;
 
@@ -48,6 +50,56 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
                 SALT
             )
         );
+    }
+
+    // Note that address recovered from signatures must be strictly increasing, in order to prevent duplicates
+    function execute(
+        uint8 sigV,
+        bytes32 sigR,
+        bytes32 sigS,
+        address destination,
+        uint256 value,
+        bytes memory data,
+        address executor,
+        uint256 gasLimit
+    ) public {
+        // EIP712 scheme: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md
+        bytes32 txInputHash = keccak256(
+            abi.encode(
+                TXTYPE_HASH,
+                destination,
+                value,
+                keccak256(data),
+                nonce,
+                executor,
+                gasLimit
+            )
+        );
+        bytes32 totalHash = keccak256(
+            abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, txInputHash)
+        );
+
+        address recovered = ecrecover(totalHash, sigV, sigR, sigS);
+        // Check that the recovered address is an issuer
+        uint256 approverRole = getTrustService().getRole(recovered);
+        require(approverRole == ISSUER || approverRole == MASTER, 'Invalid signature');
+
+        // The address.call() syntax is no longer recommended, see:
+        // https://github.com/ethereum/solidity/issues/2884
+        nonce = nonce + 1;
+        bool success = false;
+        assembly {
+            success := call(
+            gasLimit,
+            destination,
+            value,
+            add(data, 0x20),
+            mload(data),
+            0,
+            0
+            )
+        }
+        require(success, "transaction was not executed");
     }
 
     // Note that address recovered from signatures must be strictly increasing, in order to prevent duplicates
@@ -102,7 +154,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         }
         require(success, "transaction was not executed");
     }
-    function nonce(string memory investorId) public view returns (uint256) {
+    function nonceByInvestor(string memory investorId) public view returns (uint256) {
         return noncePerInvestor[toBytes32(investorId)];
     }
 
