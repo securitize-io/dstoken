@@ -25,9 +25,11 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
     // keccak256("Securitize Transaction Relayer SALT")
     bytes32 constant SALT = 0x6e31104f5170e59a0a98ebdeb5ba99f8b32ef7b56786b1722f81a5fa19dd1629;
 
+    uint256 public nonce; // (only) mutable state
+
     bytes32 DOMAIN_SEPARATOR; // hash for EIP712, computed from contract address
 
-    uint256 public nonce; // (only) mutable state
+    uint256 public constant CONTRACT_VERSION = 2;
 
     uint8 public constant MASTER = 1;
     uint8 public constant ISSUER = 2;
@@ -38,7 +40,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
 
     function initialize(uint256 chainId) public initializer forceInitializeFromProxy {
         ServiceConsumer.initialize();
-        VERSIONS.push(2);
+        VERSIONS.push(CONTRACT_VERSION);
 
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
@@ -154,6 +156,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         }
         require(success, "transaction was not executed");
     }
+
     function nonceByInvestor(string memory investorId) public view returns (uint256) {
         return noncePerInvestor[toBytes32(investorId)];
     }
