@@ -19,9 +19,9 @@ contract ComplianceConfigurationDataStore is ServiceConsumerDataStore {
     uint256 public maximumHoldingsPerInvestor;
     uint256 public euRetailInvestorsLimit;
     uint256 public usLockPeriod;
-    uint256 public authorizedSecurities;
     bool public forceFullTransfer;
     bool public forceAccreditedUS;
     bool public forceAccredited;
     bool public worldWideForceFullTransfer;
+    uint256 public authorizedSecurities;
 }
