@@ -97,8 +97,8 @@ library TokenLibrary {
     }
 
     function seize(TokenData storage _tokenData, address[] memory _services, address _from, address _to, uint256 _value)
-        public
-        validSeizeParameters(_tokenData, _from, _to, _value)
+    public
+    validSeizeParameters(_tokenData, _from, _to, _value)
     {
         IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
         IDSComplianceService(_services[COMPLIANCE_SERVICE]).validateSeize(_from, _to, _value);
@@ -118,8 +118,8 @@ library TokenLibrary {
     }
 
     function omnibusSeize(TokenData storage _tokenData, address[] memory _services, address _omnibusWallet, address _from, address _to, uint256 _value)
-        public
-        validSeizeParameters(_tokenData, _omnibusWallet, _to, _value)
+    public
+    validSeizeParameters(_tokenData, _omnibusWallet, _to, _value)
     {
         IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
         IDSOmnibusWalletController omnibusController = registryService.getOmnibusWalletController(_omnibusWallet);
@@ -147,8 +147,8 @@ library TokenLibrary {
     }
 
     function applyOmnibusBalanceUpdatesOnTransfer(TokenData storage _tokenData, IDSRegistryService _registryService, address _from, address _to, uint256 _value)
-        public
-        returns (uint256)
+    public
+    returns (uint256)
     {
         if (_registryService.isOmnibusWallet(_to)) {
             IDSOmnibusWalletController omnibusWalletController = _registryService.getOmnibusWalletController(_to);

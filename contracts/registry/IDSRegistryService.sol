@@ -10,7 +10,7 @@ contract IDSRegistryService is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(5);
+        VERSIONS.push(6);
     }
 
     event DSRegistryServiceInvestorAdded(string investorId, address sender);
@@ -31,6 +31,8 @@ contract IDSRegistryService is Initializable, VersionedContract {
     uint8 public constant PENDING = 0;
     uint8 public constant APPROVED = 1;
     uint8 public constant REJECTED = 2;
+
+    uint8 public constant EXCHANGE = 4;
 
     modifier investorExists(string memory _id) {
         require(isInvestor(_id), "Unknown investor");
@@ -147,4 +149,14 @@ contract IDSRegistryService is Initializable, VersionedContract {
     function isInvestor(string memory _id) public view returns (bool);
 
     function isWallet(address _address) public view returns (bool);
+
+    function isAccreditedInvestor(string calldata _id) external view returns (bool);
+
+    function isQualifiedInvestor(string calldata _id) external view returns (bool);
+
+    function isAccreditedInvestor(address _wallet) external view returns (bool);
+
+    function isQualifiedInvestor(address _wallet) external view returns (bool);
+
+    function getInvestors(address _from, address _to) external view returns (string memory, string memory);
 }

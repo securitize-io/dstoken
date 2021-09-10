@@ -7,7 +7,7 @@ contract IDSComplianceService is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(6);
+        VERSIONS.push(7);
     }
 
     uint256 internal constant NONE = 0;
@@ -47,6 +47,14 @@ contract IDSComplianceService is Initializable, VersionedContract {
         address _from,
         address _to,
         uint256 _value /*onlyToken*/
+    ) public returns (bool);
+
+    function validateTransfer(
+        address _from,
+        address _to,
+        uint256 _value, /*onlyToken*/
+        bool _pausedToken,
+        uint256 _balanceFrom
     ) public returns (bool);
 
     function validateIssuance(

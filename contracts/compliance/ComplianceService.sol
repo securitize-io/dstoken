@@ -19,7 +19,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
     function initialize() public forceInitializeFromProxy {
         IDSComplianceService.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(6);
+        VERSIONS.push(7);
     }
 
     function validateTransfer(
@@ -31,6 +31,22 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         string memory reason;
 
         (code, reason) = preTransferCheck(_from, _to, _value);
+        require(code == 0, reason);
+
+        return recordTransfer(_from, _to, _value);
+    }
+
+    function validateTransfer(
+        address _from,
+        address _to,
+        uint256 _value,
+        bool _paused,
+        uint256 _balanceFrom
+    ) public onlyToken returns (bool) {
+        uint256 code;
+        string memory reason;
+
+        (code, reason) = newPreTransferCheck(_from, _to, _value, _balanceFrom, _paused);
         require(code == 0, reason);
 
         return recordTransfer(_from, _to, _value);
@@ -64,10 +80,31 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         address _to,
         uint256 _value
     ) public onlyToken returns (bool) {
-        IDSWalletManager walletManager = getWalletManager();
-        require(walletManager.getWalletType(_to) == walletManager.ISSUER(), "Target wallet type error");
+        require(getWalletManager().isIssuerSpecialWallet(_to), "Target wallet type error");
 
         return recordSeize(_from, _to, _value);
+    }
+
+    function newPreTransferCheck(
+        address _from,
+        address _to,
+        uint256 _value,
+        uint256 _balanceFrom,
+        bool _pausedToken
+    ) public view returns (uint256 code, string memory reason) {
+        if (_pausedToken) {
+            return (10, TOKEN_PAUSED);
+        }
+
+        if (_balanceFrom < _value) {
+            return (15, NOT_ENOUGH_TOKENS);
+        }
+
+        if (getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
+            return (16, TOKENS_LOCKED);
+        }
+
+        return checkTransfer(_from, _to, _value);
     }
 
     function preTransferCheck(

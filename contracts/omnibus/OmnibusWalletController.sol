@@ -12,9 +12,9 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
         IDSTrustService trustService = getTrustService();
         require(
             trustService.getRole(msg.sender) == trustService.ISSUER() ||
-                trustService.getRole(msg.sender) == trustService.MASTER() ||
-                trustService.isResourceOwner(omnibusWallet, msg.sender) ||
-                trustService.isResourceOperator(omnibusWallet, msg.sender),
+            trustService.getRole(msg.sender) == trustService.MASTER() ||
+            trustService.isResourceOwner(omnibusWallet, msg.sender) ||
+            trustService.isResourceOperator(omnibusWallet, msg.sender),
             "Insufficient trust level"
         );
         _;

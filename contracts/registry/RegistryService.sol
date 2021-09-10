@@ -10,7 +10,7 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
     function initialize() public initializer forceInitializeFromProxy {
         IDSRegistryService.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(5);
+        VERSIONS.push(6);
     }
 
     function registerInvestor(string memory _id, string memory _collisionHash) public onlyExchangeOrAbove newInvestor(_id) returns (bool) {
@@ -22,8 +22,7 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
     }
 
     function removeInvestor(string memory _id) public onlyExchangeOrAbove investorExists(_id) returns (bool) {
-        IDSTrustService trustManager = getTrustService();
-        require(trustManager.getRole(msg.sender) != trustManager.EXCHANGE() || investors[_id].creator == msg.sender, "Insufficient permissions");
+        require(getTrustService().getRole(msg.sender) != EXCHANGE || investors[_id].creator == msg.sender, "Insufficient permissions");
         require(investors[_id].walletCount == 0, "Investor has wallets");
 
         for (uint8 index = 0; index < 16; index++) {
@@ -141,7 +140,7 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
     }
 
     function addWallet(address _address, string memory _id) public onlyExchangeOrAbove investorExists(_id) newWallet(_address) returns (bool) {
-        require(!isSpecialWallet(_address), "Wallet has special role");
+        require(!getWalletManager().isSpecialWallet(_address), "Wallet has special role");
 
         investorsWallets[_address] = Wallet(_id, msg.sender, msg.sender);
         investors[_id].walletCount = investors[_id].walletCount.add(1);
@@ -152,8 +151,7 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
     }
 
     function removeWallet(address _address, string memory _id) public onlyExchangeOrAbove walletExists(_address) walletBelongsToInvestor(_address, _id) returns (bool) {
-        IDSTrustService trustManager = getTrustService();
-        require(trustManager.getRole(msg.sender) != trustManager.EXCHANGE() || investorsWallets[_address].creator == msg.sender, "Insufficient permissions");
+        require(getTrustService().getRole(msg.sender) != EXCHANGE || investorsWallets[_address].creator == msg.sender, "Insufficient permissions");
 
         delete investorsWallets[_address];
         investors[_id].walletCount = investors[_id].walletCount.sub(1);
@@ -199,11 +197,29 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
         return !CommonUtils.isEmptyString(investors[_id].id);
     }
 
-    function isWallet(address _address) public view returns (bool) {
-        return isInvestor(getInvestor(_address));
+    function isAccreditedInvestor(string calldata _id) external view returns (bool) {
+        return getAttributeValue(_id, ACCREDITED) == APPROVED;
     }
 
-    function isSpecialWallet(address _address) internal view returns (bool) {
-        return getWalletManager().getWalletType(_address) != getWalletManager().NONE();
+    function isAccreditedInvestor(address _wallet) external view returns (bool) {
+        string memory investor = investorsWallets[_wallet].owner;
+        return getAttributeValue(investor, ACCREDITED) == APPROVED;
+    }
+
+    function isQualifiedInvestor(address _wallet) external view returns (bool) {
+        string memory investor = investorsWallets[_wallet].owner;
+        return getAttributeValue(investor, QUALIFIED) == APPROVED;
+    }
+
+    function isQualifiedInvestor(string calldata _id) external view returns (bool) {
+        return getAttributeValue(_id, QUALIFIED) == APPROVED;
+    }
+
+    function getInvestors(address _from, address _to) external view returns (string memory, string memory) {
+        return (investorsWallets[_from].owner, investorsWallets[_to].owner);
+    }
+
+    function isWallet(address _address) public view returns (bool) {
+        return isInvestor(getInvestor(_address));
     }
 }

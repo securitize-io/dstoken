@@ -9,6 +9,7 @@
     "coverage": "truffle compile && ./node_modules/.bin/solidity-coverage",
     "compile": "truffle compile",
     "migrate": "truffle migrate",
+    "contract-size": "truffle run contract-size",
     "generate": "node ./generators/EternalStorageClientGenerator.js",
     "remixd": "./node_modules/.bin/remixd --remix-ide https://remix.ethereum.org -s ./"
   },
@@ -48,6 +49,7 @@
     "eslint-plugin-node": "^5.2.1",
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-standard": "^3.0.1",
+    "eth-gas-reporter": "^0.2.22",
     "ethereumjs-util": "^5.1.2",
     "ganache-cli": "^6.8.2",
     "minimist": "^1.2.0",
@@ -60,7 +62,8 @@
     "truffle-hdwallet-provider": "^1.0.17"
   },
   "dependencies": {
+    "eth-lightwallet": "^4.0.0",
     "nvm": "0.0.4",
-    "eth-lightwallet": "^4.0.0"
+    "truffle-contract-size": "^2.0.1"
   }
 }
