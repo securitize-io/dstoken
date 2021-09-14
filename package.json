@@ -62,8 +62,9 @@
     "truffle-hdwallet-provider": "^1.0.17"
   },
   "dependencies": {
+    "eth-gas-reporter": "^0.2.22",
     "eth-lightwallet": "^4.0.0",
     "nvm": "0.0.4",
-    "truffle-contract-size": "^2.0.1"
+    "eth-lightwallet": "^4.0.0"
   }
 }
