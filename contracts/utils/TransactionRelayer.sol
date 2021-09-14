@@ -29,11 +29,11 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
 
     bytes32 DOMAIN_SEPARATOR; // hash for EIP712, computed from contract address
 
-    uint256 public constant CONTRACT_VERSION = 2;
-
     uint8 public constant MASTER = 1;
     uint8 public constant ISSUER = 2;
 
+    uint256 public constant CONTRACT_VERSION = 2;
+    
     mapping(bytes32 => uint256) internal noncePerInvestor;
 
     using SafeMath for uint256;
