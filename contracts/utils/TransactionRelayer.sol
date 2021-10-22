@@ -33,7 +33,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
     uint8 public constant ISSUER = 2;
 
     uint256 public constant CONTRACT_VERSION = 2;
-    
+
     mapping(bytes32 => uint256) internal noncePerInvestor;
 
     using SafeMath for uint256;
@@ -163,6 +163,19 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
 
     function toBytes32(string memory str) private pure returns (bytes32) {
         return keccak256(abi.encodePacked(str));
+    }
+
+    function updateDomainSeparator(uint256 chainId) public onlyMaster {
+        DOMAIN_SEPARATOR = keccak256(
+            abi.encode(
+                EIP712DOMAINTYPE_HASH,
+                NAME_HASH,
+                VERSION_HASH,
+                chainId,
+                this,
+                SALT
+            )
+        );
     }
 
     function() external payable {}
