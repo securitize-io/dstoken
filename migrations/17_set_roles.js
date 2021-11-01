@@ -34,4 +34,10 @@ module.exports = async function(deployer) {
     configurationManager.getProxyAddressForContractName("TransactionRelayer"),
     roles.ISSUER
   );
+
+  console.log("Give issuer permissions to token reallocator");
+  await trustService.setRole(
+    configurationManager.getProxyAddressForContractName("TokenReallocator"),
+    roles.ISSUER
+  );
 };

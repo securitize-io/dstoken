@@ -90,6 +90,13 @@ async function deployContracts (
     'issuer'
   );
 
+  await deployContractBehindProxy(
+    artifacts.require('Proxy'),
+    artifacts.require('TokenReallocator'),
+    testObject,
+    'reallocator'
+  );
+
   if (partitionsSupport) {
     await deployContractBehindProxy(
       artifacts.require('Proxy'),
@@ -207,6 +214,7 @@ async function deployContracts (
       services.LOCK_MANAGER,
       services.REGISTRY_SERVICE,
       services.TOKEN_ISSUER,
+      services.TOKEN_REALLOCATOR,
       ...partitionsService,
     ],
     [
@@ -217,6 +225,7 @@ async function deployContracts (
       testObject.lockManager.address,
       testObject.registryService.address,
       testObject.issuer.address,
+      testObject.reallocator.address,
       ...partitionsServiceAddress,
     ]
   );
@@ -241,6 +250,16 @@ async function deployContracts (
         testObject.complianceConfiguration.address,
         testObject.token.address,
         ...partitionsServiceAddress,
+      ]
+    );
+
+    await setServicesDependencies(
+      testObject.reallocator,
+      [
+        services.OMNIBUS_TBE_CONTROLLER
+      ],
+      [
+        testObject.omnibusTBEController.address
       ]
     );
   }
@@ -283,8 +302,21 @@ async function deployContracts (
     ]
   );
   if(omnibusTBEAddress) {
+    testObject.trustService.setRole(testObject.omnibusTBEController.address, 2);
     testObject.walletManager.addPlatformWallet(omnibusTBEAddress);
   }
+
+  await setServicesDependencies(
+    testObject.reallocator,
+    [
+      services.REGISTRY_SERVICE,
+      services.TRUST_SERVICE
+    ],
+    [
+      testObject.registryService.address,
+      testObject.trustService.address
+    ]
+  );
 }
 
 async function deployContractBehindProxy (

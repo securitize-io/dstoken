@@ -12,6 +12,7 @@ module.exports = {
     WALLET_REGISTRAR: 1024,
     OMNIBUS_TBE_CONTROLLER: 2048,
     TRANSACTION_RELAYER: 4096,
+    TOKEN_REALLOCATOR: 8192,
   },
   roles: {
     NONE: 0,

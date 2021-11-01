@@ -25,6 +25,7 @@ contract IDSServiceConsumer is Initializable, VersionedContract {
     uint256 public constant WALLET_REGISTRAR = 1024;
     uint256 public constant OMNIBUS_TBE_CONTROLLER = 2048;
     uint256 public constant TRANSACTION_RELAYER = 4096;
+    uint256 public constant TOKEN_REALLOCATOR = 8192;
 
     modifier onlyMaster {
         require(false, "Not implemented");

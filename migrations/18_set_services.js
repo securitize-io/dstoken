@@ -10,10 +10,10 @@ const OmnibusTBEController = artifacts.require('OmnibusTBEController');
 const MultiSigWallet = artifacts.require('MultiSigWallet');
 const TransactionRelayer = artifacts.require('TransactionRelayer');
 const PartitionsManager = artifacts.require('PartitionsManager');
+const TokenReallocator = artifacts.require('TokenReallocator');
 const configurationManager = require('./utils/configurationManager');
 const globals = require('../utils/globals');
 const services = globals.services;
-
 
 module.exports = async function (deployer) {
   if (configurationManager.isTestMode()) {
@@ -70,6 +70,10 @@ module.exports = async function (deployer) {
 
   const transactionRelayer = await TransactionRelayer.at(
     configurationManager.getProxyAddressForContractName('TransactionRelayer')
+  );
+
+  const tokenReallocator = await TokenReallocator.at(
+    configurationManager.getProxyAddressForContractName('TokenReallocator')
   );
 
   const multisig = await MultiSigWallet.deployed();
@@ -142,6 +146,15 @@ module.exports = async function (deployer) {
     await token.setDSService(
       services.WALLET_REGISTRAR,
       walletRegistrar.address,
+      {
+        gas: 1e6,
+      }
+    );
+
+    console.log('Connecting token to token reallocator');
+    await token.setDSService(
+      services.TOKEN_REALLOCATOR,
+      tokenReallocator.address,
       {
         gas: 1e6,
       }
@@ -292,6 +305,14 @@ module.exports = async function (deployer) {
   await token.setDSService(services.TRANSACTION_RELAYER, transactionRelayer.address);
   console.log('Connectiong transaction relayer to trust service');
   await transactionRelayer.setDSService(services.TRUST_SERVICE, trustService.address);
+  console.log('Connecting Token Reallocator to Registry Service');
+  await tokenReallocator.setDSService(services.REGISTRY_SERVICE, registry.address);
+  console.log('Connecting Token Reallocator to Trust Service');
+  await tokenReallocator.setDSService(services.TRUST_SERVICE, trustService.address);
+  if (!configurationManager.noOmnibusWallet) {
+    console.log('Connecting Token Reallocator to Omnibus TBE Controller');
+    await tokenReallocator.setDSService(services.OMNIBUS_TBE_CONTROLLER, omnibusTBEController.address);
+  }
 
   if (!configurationManager.noOmnibusWallet) {
     const walletManager = await WalletManager.at(
@@ -395,5 +416,10 @@ module.exports = async function (deployer) {
     } | Version: ${await transactionRelayer.getVersion()}`
   );
 
+  console.log(
+    `Token Reallocator is at address: ${
+      tokenReallocator.address
+    } | Version: ${await tokenReallocator.getVersion()}`
+  );
   console.log('\n');
 };
