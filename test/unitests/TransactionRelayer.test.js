@@ -138,7 +138,6 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
     console.log('Omnibus Settings');
 
     await setOmnibusTBEServicesDependencies(this);
-    await this.trustService.setRole(this.omnibusTBEController.address, role.ISSUER);
 
     await this.registryService.registerInvestor(
       investorId.GENERAL_INVESTOR_ID_1,
