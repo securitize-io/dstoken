@@ -64,7 +64,6 @@
   "dependencies": {
     "eth-gas-reporter": "^0.2.22",
     "eth-lightwallet": "^4.0.0",
-    "nvm": "0.0.4",
-    "eth-lightwallet": "^4.0.0"
+    "nvm": "0.0.4"
   }
 }
