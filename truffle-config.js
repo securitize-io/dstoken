@@ -70,7 +70,6 @@ module.exports = {
     },
   },
   mocha: {
-    reporter: 'eth-gas-reporter',
     useColors: true,
     bail: false,
     enableTimeouts: false,
@@ -88,6 +87,5 @@ module.exports = {
   },
   plugins: [
     'truffle-contract-size',
-    'eth-gas-reporter',
   ],
 };
