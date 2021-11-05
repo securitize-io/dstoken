@@ -7,8 +7,14 @@ contract IDSTokenIssuer is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {
-        VERSIONS.push(3);
+        VERSIONS.push(4);
     }
+
+    //Same values as IDSRegistryService
+    uint8 public constant KYC_APPROVED = 1;
+    uint8 public constant ACCREDITED = 2;
+    uint8 public constant QUALIFIED = 4;
+
 
     function issueTokens(
         string memory _id,

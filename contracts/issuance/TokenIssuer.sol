@@ -8,7 +8,7 @@ contract TokenIssuer is ProxyTarget, Initializable, IDSTokenIssuer, ServiceConsu
     function initialize() public initializer forceInitializeFromProxy {
         IDSTokenIssuer.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(3);
+        VERSIONS.push(4);
     }
 
     function issueTokens(
@@ -36,9 +36,9 @@ contract TokenIssuer is ProxyTarget, Initializable, IDSTokenIssuer, ServiceConsu
 
                 if (_attributeValues.length > 0) {
                     require(_attributeValues.length == 3, "Wrong length of parameters");
-                    getRegistryService().setAttribute(_id, getRegistryService().KYC_APPROVED(), _attributeValues[0], _attributeExpirations[0], "");
-                    getRegistryService().setAttribute(_id, getRegistryService().ACCREDITED(), _attributeValues[1], _attributeExpirations[1], "");
-                    getRegistryService().setAttribute(_id, getRegistryService().QUALIFIED(), _attributeValues[2], _attributeExpirations[2], "");
+                    getRegistryService().setAttribute(_id, KYC_APPROVED, _attributeValues[0], _attributeExpirations[0], "");
+                    getRegistryService().setAttribute(_id, ACCREDITED, _attributeValues[1], _attributeExpirations[1], "");
+                    getRegistryService().setAttribute(_id, QUALIFIED, _attributeValues[2], _attributeExpirations[2], "");
                 }
 
             }
