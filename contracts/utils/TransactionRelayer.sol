@@ -38,6 +38,9 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
 
     using SafeMath for uint256;
 
+    event InvestorNonceUpdated(string investorId, uint256 newNonce);
+    event DomainSeparatorUpdated(uint256 chainId);
+
     function initialize(uint256 chainId) public initializer forceInitializeFromProxy {
         ServiceConsumer.initialize();
         VERSIONS.push(CONTRACT_VERSION);
@@ -161,10 +164,6 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         return noncePerInvestor[toBytes32(investorId)];
     }
 
-    function toBytes32(string memory str) private pure returns (bytes32) {
-        return keccak256(abi.encodePacked(str));
-    }
-
     function updateDomainSeparator(uint256 chainId) public onlyMaster {
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
@@ -176,7 +175,19 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
                 SALT
             )
         );
+        emit DomainSeparatorUpdated(chainId);
+    }
+
+    function setInvestorNonce(string memory investorId, uint256 newNonce) public onlyMaster {
+        uint256 investorNonce = noncePerInvestor[toBytes32(investorId)];
+        require(newNonce > investorNonce, "New nonce should be greater than old");
+        noncePerInvestor[toBytes32(investorId)] = newNonce;
+        emit InvestorNonceUpdated(investorId, newNonce);
     }
 
     function() external payable {}
+
+    function toBytes32(string memory str) private pure returns (bytes32) {
+        return keccak256(abi.encodePacked(str));
+    }
 }
