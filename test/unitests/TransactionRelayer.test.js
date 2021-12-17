@@ -4,7 +4,7 @@ const assertRevert = require('../utils/assertRevert');
 const deployContractBehindProxy = require('../utils').deployContractBehindProxy;
 const roles = require('../../utils/globals').roles;
 const deployContracts = require('../utils/index').deployContracts;
-const { setOmnibusTBEServicesDependencies, resetCounters, setCounters, toHex, assertCounters } =
+const { setOmnibusTBEServicesDependencies, resetCounters, setCounters, toHex, assertCounters, assertEvent } =
   require('../utils/omnibus/utils');
 const fixtures = require('../fixtures');
 const globals = require('../../utils/globals');
@@ -910,6 +910,59 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
           let newNonce = await this.transactionRelayer.nonceByInvestor(HOLDER_ID);
           assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
         });
+        it('SHOULD revert when trying to sign an pre-approved transaction after investor nonce update', async () => {
+          let issuer = acct[0];
+
+          const role = await this.trustService.getRole(issuer);
+          assert.equal(role.words[0], roles.ISSUER);
+
+          const roleRelayer = await this.trustService.getRole(this.transactionRelayer.address);
+          assert.equal(roleRelayer.words[0], roles.ISSUER);
+
+          const data = this.walletRegistrar.contract.methods.registerWallet(
+            HOLDER_ID,
+            [HOLDER_ADDRESS],
+            HOLDER_ID,
+            HOLDER_COUNTRY_CODE,
+            ['1', '2'],
+            ['1', '1'],
+            ['0', '0']
+          ).encodeABI();
+
+          let sigs = hsmSigner.preApproval(
+            issuer,
+            this.transactionRelayer.address,
+            initialNonce.toNumber(),
+            this.walletRegistrar.address,
+            value,
+            data,
+            ZEROADDR,
+            gasLimit);
+
+          const NEW_NONCE_UPDATED_BY_MASTER = initialNonce.toNumber() + 10;
+          await this.transactionRelayer.setInvestorNonce(
+            HOLDER_ID,
+            NEW_NONCE_UPDATED_BY_MASTER, { from: owner }
+          );
+          await assertEvent(this.transactionRelayer, 'InvestorNonceUpdated', {
+            investorId: HOLDER_ID,
+            newNonce: NEW_NONCE_UPDATED_BY_MASTER,
+          });
+
+          await assertRevert(
+            this.transactionRelayer.executeByInvestor(
+              sigs.sigV,
+              sigs.sigR,
+              sigs.sigS,
+              HOLDER_ID,
+              this.walletRegistrar.address,
+              0,
+              data,
+              ZEROADDR,
+              gasLimit,
+              { from: executor, gasLimit })
+          );
+        });
       });
       describe('When signing with no role a wallet', () => {
         it('SHOULD revert', async () => {
@@ -1111,6 +1164,130 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
               { from: executor, gasLimit })
           );
         });
+        it('should revert on bulk transfer when a master wallet updates nonce of investor', async () => {
+          const issuer = acct[0];
+
+          // GIVEN
+          const valueToTransfer = 1000;
+          const tokenValues = ['500', '500'];
+          const investorWallets = [investorWallet1, investorWallet2];
+          const txCounters = {
+            totalInvestorsCount: 5,
+            accreditedInvestorsCount: 5,
+            usTotalInvestorsCount: 4,
+            usAccreditedInvestorsCount: 1,
+            jpTotalInvestorsCount: 0,
+          };
+          euRetailCountries.push('ES');
+          euRetailCountryCounts.push(2);
+
+          await setCounters(txCounters, this);
+
+          // WHEN
+          await this.omnibusTBEController
+            .bulkIssuance(valueToTransfer, issuanceTime, txCounters.totalInvestorsCount,
+              txCounters.accreditedInvestorsCount,
+              txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
+              txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
+
+          await this.token.approve(this.omnibusTBEController.address, valueToTransfer, { from: omnibusWallet });
+
+          const data = await this.omnibusTBEController.contract.methods
+            .bulkTransfer(investorWallets, tokenValues).encodeABI();
+
+          let sigs = hsmSigner.preApproval(
+            issuer,
+            this.transactionRelayer.address,
+            initialNonce.toNumber(),
+            this.omnibusTBEController.address,
+            0,
+            data,
+            ZEROADDR,
+            gasLimit);
+
+          const NEW_NONCE_UPDATED_BY_MASTER = initialNonce.toNumber() + 10;
+          await this.transactionRelayer.setInvestorNonce(
+            HOLDER_ID,
+            NEW_NONCE_UPDATED_BY_MASTER, { from: owner }
+          );
+          await assertEvent(this.transactionRelayer, 'InvestorNonceUpdated', {
+            investorId: HOLDER_ID,
+            newNonce: NEW_NONCE_UPDATED_BY_MASTER,
+          });
+
+          await assertRevert(
+            this.transactionRelayer.executeByInvestor(
+              sigs.sigV,
+              sigs.sigR,
+              sigs.sigS,
+              HOLDER_ID,
+              this.omnibusTBEController.address,
+              0,
+              data,
+              ZEROADDR,
+              gasLimit,
+              { from: executor, gasLimit })
+          );
+        });
+      });
+    });
+  });
+
+  describe('updateDomainSeparator', () => {
+    beforeEach(async () => {
+      executor = acct[1];
+      tokenInstance = await TestToken.new({ from: owner });
+      assert.ok(tokenInstance);
+
+      initialNonce = await this.transactionRelayer.nonceByInvestor('issuer');
+      assert.ok(initialNonce);
+    });
+    describe('WHEN a master calls update domain separator', () => {
+      it('SHOULD throw a DomainSeparatorUpdated event', async () => {
+        //
+        await this.transactionRelayer.updateDomainSeparator(4, { from: owner });
+        await assertEvent(this.transactionRelayer, 'DomainSeparatorUpdated', {
+          chainId: 4,
+        });
+      });
+    });
+    describe('WHEN a NO master calls update domain separator', () => {
+      it('SHOULD revert', async () => {
+        await assertRevert(this.transactionRelayer.updateDomainSeparator(4, { from: investorWallet1 }));
+      });
+    });
+  });
+
+  describe('setInvestorNonce', () => {
+    const NEW_NONCE = 4;
+    beforeEach(async () => {
+      executor = acct[1];
+      tokenInstance = await TestToken.new({ from: owner });
+      assert.ok(tokenInstance);
+
+      initialNonce = await this.transactionRelayer.nonceByInvestor('issuer');
+      assert.ok(initialNonce);
+    });
+    describe('WHEN a master wallet calls set investor nonce', () => {
+      it('SHOULD set new nonce and throw a InvestorNonceUpdated event', async () => {
+        const NONCE_TO_UPDATE = initialNonce.toNumber() + 10;
+        await this.transactionRelayer.setInvestorNonce('issuer', NONCE_TO_UPDATE, { from: owner });
+        await assertEvent(this.transactionRelayer, 'InvestorNonceUpdated', {
+          investorId: 'issuer',
+          newNonce: NONCE_TO_UPDATE,
+        });
+        const nonceAfterSetNonce = await this.transactionRelayer.nonceByInvestor('issuer');
+        await assert.equal(
+          nonceAfterSetNonce,
+          NONCE_TO_UPDATE
+        );
+      });
+    });
+    describe('WHEN a NO master wallet calls update set investor nonce', () => {
+      it('SHOULD revert', async () => {
+        await assertRevert(this.transactionRelayer.setInvestorNonce('issuer', NEW_NONCE,
+          { from: investorWallet1 }
+        ));
       });
     });
   });
