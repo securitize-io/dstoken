@@ -34,9 +34,12 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
 
     uint256 public constant CONTRACT_VERSION = 2;
 
-    mapping(bytes32 => uint256) internal noncePerInvestor;
+    mapping(string => uint256) internal noncePerInvestor;
 
     using SafeMath for uint256;
+
+    event InvestorNonceUpdated(string investorId, uint256 newNonce);
+    event DomainSeparatorUpdated(uint256 chainId);
 
     function initialize(uint256 chainId) public initializer forceInitializeFromProxy {
         ServiceConsumer.initialize();
@@ -116,7 +119,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         address executor,
         uint256 gasLimit
     ) public {
-        uint256 investorNonce = noncePerInvestor[toBytes32(senderInvestor)];
+        uint256 investorNonce = noncePerInvestor[senderInvestor];
         // EIP712 scheme: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md
         bytes32 txInputHash = keccak256(
             abi.encode(
@@ -141,7 +144,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         // The address.call() syntax is no longer recommended, see:
         // https://github.com/ethereum/solidity/issues/2884
         investorNonce = investorNonce.add(1);
-        noncePerInvestor[toBytes32(senderInvestor)] = investorNonce;
+        noncePerInvestor[senderInvestor] = investorNonce;
         bool success = false;
         assembly {
             success := call(
@@ -158,11 +161,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
     }
 
     function nonceByInvestor(string memory investorId) public view returns (uint256) {
-        return noncePerInvestor[toBytes32(investorId)];
-    }
-
-    function toBytes32(string memory str) private pure returns (bytes32) {
-        return keccak256(abi.encodePacked(str));
+        return noncePerInvestor[investorId];
     }
 
     function updateDomainSeparator(uint256 chainId) public onlyMaster {
@@ -176,6 +175,14 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
                 SALT
             )
         );
+        emit DomainSeparatorUpdated(chainId);
+    }
+
+    function setInvestorNonce(string memory investorId, uint256 newNonce) public onlyMaster {
+        uint256 investorNonce = noncePerInvestor[investorId];
+        require(newNonce > investorNonce, "New nonce should be greater than old");
+        noncePerInvestor[investorId] = newNonce;
+        emit InvestorNonceUpdated(investorId, newNonce);
     }
 
     function() external payable {}
