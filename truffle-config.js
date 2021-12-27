@@ -44,6 +44,7 @@ module.exports = {
       network_id: '*', // eslint-disable-line camelcase
     },
     rinkeby: {
+      gasPrice: '80000000000',
       provider: new HDWalletProvider(
         'c9b67cb69fa6ab37c3d31a3f992678fa4bee54d4843789ea9d37efc86ca07966',
         'https://rinkeby.infura.io/v3/4f373067892b4683a053843154b71561'

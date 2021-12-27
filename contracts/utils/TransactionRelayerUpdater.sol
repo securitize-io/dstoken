@@ -19,11 +19,6 @@ contract TransactionRelayerUpdater is ProxyTarget, Initializable, ServiceConsume
 
     event InvestorNonceUpdated(string investorId, uint256 newNonce);
 
-
-    function nonceByInvestor(string memory investorId) public view returns (uint256) {
-        return noncePerInvestor[toBytes32(investorId)];
-    }
-
     function setInvestorNonce(string memory investorId, uint256 newNonce) public onlyMaster {
         uint256 investorNonce = noncePerInvestor[toBytes32(investorId)];
         require(newNonce > investorNonce, "New nonce should be greater than old");
