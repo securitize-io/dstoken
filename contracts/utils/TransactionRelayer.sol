@@ -179,34 +179,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
     ) public {
         require(params.length == 3, "Incorrect params length");
         require(params[2] >= block.number, "Transaction too old");
-        uint256 investorNonce = noncePerInvestor[toBytes32(senderInvestor)];
-        bytes32 txInputHash = createTransactionInputHash(destination, executor, data, investorNonce, params);
-
-        bytes32 totalHash = keccak256(
-            abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, txInputHash)
-        );
-
-        // Check that the recovered address is an issuer
-        uint256 approverRole = getTrustService().getRole(ecrecover(totalHash, sigV, sigR, sigS));
-        require(approverRole == ROLE_ISSUER || approverRole == ROLE_MASTER, 'Invalid signature');
-
-        investorNonce = investorNonce.add(1);
-        noncePerInvestor[toBytes32(senderInvestor)] = investorNonce;
-        bool success = false;
-        uint256 value = params[0];
-        uint256 gasLimit = params[1];
-        assembly {
-            success := call(
-            gasLimit,
-            destination,
-            value,
-            add(data, 0x20),
-            mload(data),
-            0,
-            0
-            )
-        }
-        require(success, "transaction was not executed");
+        doExecuteByInvestor(sigV, sigR, sigS, senderInvestor, destination, params[0], data, executor, params[1]);
     }
 
 
@@ -257,6 +230,59 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
                 params[1]
             )
         );
+    }
+
+    // Note that address recovered from signatures must be strictly increasing, in order to prevent duplicates
+    function doExecuteByInvestor(
+        uint8 sigV,
+        bytes32 sigR,
+        bytes32 sigS,
+        string memory senderInvestor,
+        address destination,
+        uint256 value,
+        bytes memory data,
+        address executor,
+        uint256 gasLimit
+    ) private {
+        uint256 investorNonce = noncePerInvestor[toBytes32(senderInvestor)];
+        // EIP712 scheme: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md
+        bytes32 txInputHash = keccak256(
+            abi.encode(
+                TXTYPE_HASH,
+                destination,
+                value,
+                keccak256(data),
+                investorNonce,
+                executor,
+                gasLimit
+            )
+        );
+        bytes32 totalHash = keccak256(
+            abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, txInputHash)
+        );
+
+        address recovered = ecrecover(totalHash, sigV, sigR, sigS);
+        // Check that the recovered address is an issuer
+        uint256 approverRole = getTrustService().getRole(recovered);
+        require(approverRole == ROLE_ISSUER || approverRole == ROLE_MASTER, 'Invalid signature');
+
+        // The address.call() syntax is no longer recommended, see:
+        // https://github.com/ethereum/solidity/issues/2884
+        investorNonce = investorNonce.add(1);
+        noncePerInvestor[toBytes32(senderInvestor)] = investorNonce;
+        bool success = false;
+        assembly {
+            success := call(
+            gasLimit,
+            destination,
+            value,
+            add(data, 0x20),
+            mload(data),
+            0,
+            0
+            )
+        }
+        require(success, "transaction was not executed");
     }
 
     function() external payable {}
