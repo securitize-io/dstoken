@@ -157,1080 +157,6 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
 
     await resetCounters(this);
   });
-  describe('execute', () => {
-    describe(`ERC-20 token smart contract. Transferring ${ISSUED_TOKENS} TestToken to ${destinationAddress}`, () => {
-      describe(`WHEN transferring ${ISSUED_TOKENS} TestToken `, () => {
-        beforeEach(async () => {
-          executor = acct[1];
-          tokenInstance = await TestToken.new({ from: owner });
-          assert.ok(tokenInstance);
-
-          initialNonce = await this.transactionRelayer.nonce.call();
-          assert.ok(initialNonce);
-        });
-        describe('AND one issuer sign a TestToken.issueTokens() transaction', () => {
-          it('SHOULD transfer tokens from Relayer to destinationAddress', async () => {
-            let issuer = acct[0];
-
-            await this.trustService.setRole(issuer, roles.ISSUER, {
-              from: owner,
-            });
-
-            const role = await this.trustService.getRole(issuer);
-            assert.equal(role.words[0], roles.ISSUER);
-
-            const data = tokenInstance.contract.methods.issueTokens(
-              destinationAddress,
-              ISSUED_TOKENS).encodeABI();
-
-            let sigs = hsmSigner.preApproval(
-              issuer,
-              this.transactionRelayer.address,
-              initialNonce.toNumber(),
-              tokenInstance.address,
-              0,
-              data,
-              ZEROADDR,
-              gasLimit);
-
-            await this.transactionRelayer.execute(
-              sigs.sigV,
-              sigs.sigR,
-              sigs.sigS,
-              tokenInstance.address,
-              0,
-              data,
-              ZEROADDR,
-              gasLimit,
-              { from: executor, gasLimit });
-
-            let newNonce = await this.transactionRelayer.nonce.call();
-            assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
-
-            assert.equal(
-              0,
-              await tokenInstance.balanceOf(this.transactionRelayer.address)
-            );
-
-            assert.equal(
-              ISSUED_TOKENS,
-              await tokenInstance.balanceOf(destinationAddress)
-            );
-          });
-        });
-        describe('AND only one no issuer sign a TestToken.issueTokens() transaction', () => {
-          it('SHOULD revert', async () => {
-            let issuer = acct[3];
-            const data = tokenInstance.contract.methods.issueTokens(
-              destinationAddress,
-              ISSUED_TOKENS).encodeABI();
-
-            let sigs = hsmSigner.preApproval(
-              issuer,
-              this.transactionRelayer.address,
-              initialNonce.toNumber(),
-              tokenInstance.address,
-              value,
-              data,
-              ZEROADDR,
-              gasLimit);
-            await assertRevert(
-              this.transactionRelayer.execute(
-                sigs.sigV,
-                sigs.sigR,
-                sigs.sigS,
-                tokenInstance.address,
-                value,
-                data,
-                ZEROADDR,
-                gasLimit,
-                { from: executor, gasLimit })
-            );
-          });
-        });
-        describe('WHEN signing with wrong TXTYPE_HASH ', () => {
-          it('SHOULD revert', async () => {
-            let issuer = acct[0];
-            const data = tokenInstance.contract.methods.issueTokens(
-              destinationAddress,
-              ISSUED_TOKENS).encodeABI();
-
-            let sigs = hsmSigner.preApproval(
-              issuer,
-              this.transactionRelayer.address,
-              initialNonce.toNumber(),
-              tokenInstance.address,
-              value,
-              data,
-              ZEROADDR,
-              gasLimit,
-              'wrong hash');
-            await assertRevert(
-              this.transactionRelayer.execute(
-                sigs.sigV,
-                sigs.sigR,
-                sigs.sigS,
-                tokenInstance.address,
-                value,
-                data,
-                ZEROADDR,
-                gasLimit,
-                { from: executor, gasLimit })
-            );
-          });
-        });
-        describe('WHEN signing with wrong NAME_HASH ', () => {
-          it('SHOULD revert', async () => {
-            let issuer = acct[0];
-            const data = tokenInstance.contract.methods.issueTokens(
-              destinationAddress,
-              ISSUED_TOKENS).encodeABI();
-
-            let sigs = hsmSigner.preApproval(
-              issuer,
-              this.transactionRelayer.address,
-              initialNonce.toNumber(),
-              tokenInstance.address,
-              value,
-              data,
-              ZEROADDR,
-              gasLimit,
-              TXTYPE_HASH,
-              'wrong hash');
-            await assertRevert(
-              this.transactionRelayer.execute(
-                sigs.sigV,
-                sigs.sigR,
-                sigs.sigS,
-                tokenInstance.address,
-                value,
-                data,
-                ZEROADDR,
-                gasLimit,
-                { from: executor, gasLimit })
-            );
-          });
-        });
-        describe('WHEN signing with wrong VERSION_HASH ', () => {
-          it('SHOULD revert', async () => {
-            let issuer = acct[0];
-            const data = tokenInstance.contract.methods.issueTokens(
-              destinationAddress,
-              ISSUED_TOKENS).encodeABI();
-
-            let sigs = hsmSigner.preApproval(
-              issuer,
-              this.transactionRelayer.address,
-              initialNonce.toNumber(),
-              tokenInstance.address,
-              value,
-              data,
-              ZEROADDR,
-              gasLimit,
-              TXTYPE_HASH,
-              NAME_HASH,
-              'wrong hash');
-            await assertRevert(
-              this.transactionRelayer.execute(
-                sigs.sigV,
-                sigs.sigR,
-                sigs.sigS,
-                tokenInstance.address,
-                value,
-                data,
-                ZEROADDR,
-                gasLimit,
-                { from: executor, gasLimit })
-            );
-          });
-        });
-        describe('WHEN signing with wrong EIP712DOMAINTYPE_HASH ', () => {
-          it('SHOULD revert', async () => {
-            let issuer = acct[0];
-            const data = tokenInstance.contract.methods.issueTokens(
-              destinationAddress,
-              ISSUED_TOKENS).encodeABI();
-
-            let sigs = hsmSigner.preApproval(
-              issuer,
-              this.transactionRelayer.address,
-              initialNonce.toNumber(),
-              tokenInstance.address,
-              value,
-              data,
-              ZEROADDR,
-              gasLimit,
-              TXTYPE_HASH,
-              NAME_HASH,
-              VERSION_HASH,
-              'WRONG HASH');
-            await assertRevert(
-              this.transactionRelayer.execute(
-                sigs.sigV,
-                sigs.sigR,
-                sigs.sigS,
-                tokenInstance.address,
-                value,
-                data,
-                ZEROADDR,
-                gasLimit,
-                { from: executor, gasLimit })
-            );
-          });
-        });
-      });
-    });
-    describe('Interaction with Registry Service', () => {
-      beforeEach(async () => {
-        executor = acct[1];
-        initialNonce = await this.transactionRelayer.nonce.call();
-        assert.ok(initialNonce);
-      });
-      describe('Register a Wallet', () => {
-        it('SHOULD Register a wallet signing with the relayer', async () => {
-          let issuer = acct[0];
-
-          const role = await this.trustService.getRole(issuer);
-          assert.equal(role.words[0], roles.ISSUER);
-
-          await this.trustService.setRole(this.transactionRelayer.address, roles.ISSUER, {
-            from: owner,
-          });
-
-          const data = this.walletRegistrar.contract.methods.registerWallet(
-            HOLDER_ID,
-            [HOLDER_ADDRESS],
-            HOLDER_ID,
-            HOLDER_COUNTRY_CODE,
-            ['1', '2'],
-            ['1', '1'],
-            ['0', '0']
-          ).encodeABI();
-
-          let sigs = hsmSigner.preApproval(
-            issuer,
-            this.transactionRelayer.address,
-            initialNonce.toNumber(),
-            this.walletRegistrar.address,
-            value,
-            data,
-            ZEROADDR,
-            gasLimit);
-
-          await this.transactionRelayer.execute(
-            sigs.sigV,
-            sigs.sigR,
-            sigs.sigS,
-            this.walletRegistrar.address,
-            0,
-            data,
-            ZEROADDR,
-            gasLimit,
-            { from: executor, gasLimit });
-
-          let newNonce = await this.transactionRelayer.nonce.call();
-          assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
-
-          const investor = await this.registryService.getInvestor(HOLDER_ADDRESS);
-          assert(investor, HOLDER_ID);
-        });
-      });
-      describe('When signing with no role a wallet', () => {
-        it('SHOULD revert', async () => {
-          let issuer = acct[9];
-
-          const role = await this.trustService.getRole(issuer);
-          assert.equal(role.words[0], roles.NONE);
-
-          const data = this.walletRegistrar.contract.methods.registerWallet(
-            HOLDER_ID,
-            [HOLDER_ADDRESS],
-            HOLDER_ID,
-            HOLDER_COUNTRY_CODE,
-            ['1', '2'],
-            ['1', '1'],
-            ['0', '0']
-          ).encodeABI();
-
-          let sigs = hsmSigner.preApproval(
-            issuer,
-            this.transactionRelayer.address,
-            initialNonce.toNumber(),
-            this.walletRegistrar.address,
-            value,
-            data,
-            ZEROADDR,
-            gasLimit);
-
-          await assertRevert(
-            this.transactionRelayer.execute(
-              sigs.sigV,
-              sigs.sigR,
-              sigs.sigS,
-              this.walletRegistrar.address,
-              0,
-              data,
-              ZEROADDR,
-              gasLimit,
-              { from: executor, gasLimit })
-          );
-        });
-      });
-    });
-    describe('Interaction with OmnibusTBE', () => {
-      beforeEach(async () => {
-        executor = acct[1];
-        initialNonce = await this.transactionRelayer.nonce.call();
-        assert.ok(initialNonce);
-
-        await resetCounters(this);
-        const currentBalance = await this.token.balanceOf(omnibusWallet);
-        if (currentBalance.toNumber() > 0) {
-          await this.token.burn(omnibusWallet, currentBalance, '');
-        }
-
-        await euRetailCountries.forEach((country, index) => {
-          // Reset counters
-          this.complianceService.setEURetailInvestorsCount(country, 0);
-        });
-        euRetailCountries = [];
-        euRetailCountryCounts = [];
-      });
-      describe('Bulk transfer', () => {
-        it('should bulk transfer tokens from omnibus to wallet correctly', async () => {
-          let issuer = acct[0];
-
-          // GIVEN
-          const valueToTranser = 1000;
-          const tokenValues = ['500', '500'];
-          const investorWallets = [investorWallet1, investorWallet2];
-          const txCounters = {
-            totalInvestorsCount: 5,
-            accreditedInvestorsCount: 5,
-            usTotalInvestorsCount: 4,
-            usAccreditedInvestorsCount: 1,
-            jpTotalInvestorsCount: 0,
-          };
-          euRetailCountries.push('ES');
-          euRetailCountryCounts.push(2);
-
-          await setCounters(txCounters, this);
-
-          // WHEN
-          await this.omnibusTBEController
-            .bulkIssuance(valueToTranser, issuanceTime, txCounters.totalInvestorsCount,
-              txCounters.accreditedInvestorsCount,
-              txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
-              txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
-
-          await this.token.approve(this.omnibusTBEController.address, valueToTranser, { from: omnibusWallet });
-
-          const data = await this.omnibusTBEController.contract.methods
-            .bulkTransfer(investorWallets, tokenValues).encodeABI();
-
-          let sigs = hsmSigner.preApproval(
-            issuer,
-            this.transactionRelayer.address,
-            initialNonce.toNumber(),
-            this.omnibusTBEController.address,
-            0,
-            data,
-            ZEROADDR,
-            gasLimit);
-
-          await this.transactionRelayer.execute(
-            sigs.sigV,
-            sigs.sigR,
-            sigs.sigS,
-            this.omnibusTBEController.address,
-            0,
-            data,
-            ZEROADDR,
-            gasLimit,
-            { from: executor, gasLimit });
-
-          // THEN
-          await assertCounters(this);
-
-          const omnibusCurrentBalance = await this.token.balanceOf(omnibusWallet);
-          assert.equal(
-            omnibusCurrentBalance.toNumber(),
-            0
-          );
-          const investorWallet1CurrentBalance = await this.token.balanceOf(investorWallet1);
-          assert.equal(
-            investorWallet1CurrentBalance.toNumber(),
-            500
-          );
-          const investorWallet2CurrentBalance = await this.token.balanceOf(investorWallet2);
-          assert.equal(
-            investorWallet2CurrentBalance.toNumber(),
-            500
-          );
-
-          // Reset balance
-          await this.token.burn(investorWallet1, 500, 'reset');
-          await this.token.burn(investorWallet2, 500, 'reset');
-        });
-        it('should not bulk transfer tokens from omnibus to wallet if not corresponding rights', async () => {
-          let issuer = acct[8];
-
-          // GIVEN
-          const valueToTranser = 1000;
-          const tokenValues = ['500', '500'];
-          const investorWallets = [investorWallet1, investorWallet2];
-          const txCounters = {
-            totalInvestorsCount: 5,
-            accreditedInvestorsCount: 5,
-            usTotalInvestorsCount: 4,
-            usAccreditedInvestorsCount: 1,
-            jpTotalInvestorsCount: 0,
-          };
-          euRetailCountries.push('ES');
-          euRetailCountryCounts.push(2);
-
-          await setCounters(txCounters, this);
-
-          // WHEN
-          await this.omnibusTBEController
-            .bulkIssuance(valueToTranser, issuanceTime, txCounters.totalInvestorsCount,
-              txCounters.accreditedInvestorsCount,
-              txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
-              txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
-
-          await this.token.approve(this.omnibusTBEController.address, valueToTranser, { from: omnibusWallet });
-
-          const data = await this.omnibusTBEController.contract.methods
-            .bulkTransfer(investorWallets, tokenValues).encodeABI();
-
-          let sigs = hsmSigner.preApproval(
-            issuer,
-            this.transactionRelayer.address,
-            initialNonce.toNumber(),
-            this.omnibusTBEController.address,
-            0,
-            data,
-            ZEROADDR,
-            gasLimit);
-
-          await assertRevert(
-            this.transactionRelayer.execute(
-              sigs.sigV,
-              sigs.sigR,
-              sigs.sigS,
-              this.omnibusTBEController.address,
-              0,
-              data,
-              ZEROADDR,
-              gasLimit,
-              { from: executor, gasLimit })
-          );
-        });
-      });
-    });
-  });
-
-  describe('executeByInvestor', () => {
-    describe(`ERC-20 token smart contract. Transferring ${ISSUED_TOKENS} TestToken to ${destinationAddress}`, () => {
-      describe(`WHEN transferring ${ISSUED_TOKENS} TestToken `, () => {
-        beforeEach(async () => {
-          executor = acct[1];
-          tokenInstance = await TestToken.new({ from: owner });
-          assert.ok(tokenInstance);
-
-          initialNonce = await this.transactionRelayer.nonceByInvestor('issuer');
-          assert.ok(initialNonce);
-        });
-        describe('AND one issuer sign a TestToken.issueTokens() transaction', () => {
-          it('SHOULD transfer tokens from Relayer to destinationAddress', async () => {
-            let issuer = acct[0];
-
-            const role = await this.trustService.getRole(issuer);
-            assert.equal(role.words[0], roles.ISSUER);
-
-            const data = tokenInstance.contract.methods.issueTokens(
-              destinationAddress,
-              ISSUED_TOKENS).encodeABI();
-
-            let sigs = hsmSigner.preApproval(
-              issuer,
-              this.transactionRelayer.address,
-              initialNonce.toNumber(),
-              tokenInstance.address,
-              0,
-              data,
-              ZEROADDR,
-              gasLimit);
-
-            await this.transactionRelayer.executeByInvestor(
-              sigs.sigV,
-              sigs.sigR,
-              sigs.sigS,
-              'issuer',
-              tokenInstance.address,
-              0,
-              data,
-              ZEROADDR,
-              gasLimit,
-              { from: executor, gasLimit });
-
-            let newNonce = await this.transactionRelayer.nonceByInvestor('issuer');
-            assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
-
-            assert.equal(
-              0,
-              await tokenInstance.balanceOf(this.transactionRelayer.address)
-            );
-
-            assert.equal(
-              ISSUED_TOKENS,
-              await tokenInstance.balanceOf(destinationAddress)
-            );
-          });
-        });
-        describe('AND only one no issuer sign a TestToken.issueTokens() transaction', () => {
-          it('SHOULD revert', async () => {
-            let issuer = acct[3];
-            const data = tokenInstance.contract.methods.issueTokens(
-              destinationAddress,
-              ISSUED_TOKENS).encodeABI();
-
-            let sigs = hsmSigner.preApproval(
-              issuer,
-              this.transactionRelayer.address,
-              initialNonce.toNumber(),
-              tokenInstance.address,
-              value,
-              data,
-              ZEROADDR,
-              gasLimit);
-            await assertRevert(
-              this.transactionRelayer.executeByInvestor(
-                sigs.sigV,
-                sigs.sigR,
-                sigs.sigS,
-                'no_issuer',
-                tokenInstance.address,
-                value,
-                data,
-                ZEROADDR,
-                gasLimit,
-                { from: executor, gasLimit })
-            );
-          });
-        });
-        describe('WHEN signing with wrong TXTYPE_HASH ', () => {
-          it('SHOULD revert', async () => {
-            let issuer = acct[0];
-            const data = tokenInstance.contract.methods.issueTokens(
-              destinationAddress,
-              ISSUED_TOKENS).encodeABI();
-
-            let sigs = hsmSigner.preApproval(
-              issuer,
-              this.transactionRelayer.address,
-              initialNonce.toNumber(),
-              tokenInstance.address,
-              value,
-              data,
-              ZEROADDR,
-              gasLimit,
-              'wrong hash');
-            await assertRevert(
-              this.transactionRelayer.executeByInvestor(
-                sigs.sigV,
-                sigs.sigR,
-                sigs.sigS,
-                'issuer',
-                tokenInstance.address,
-                value,
-                data,
-                ZEROADDR,
-                gasLimit,
-                { from: executor, gasLimit })
-            );
-          });
-        });
-        describe('WHEN signing with wrong NAME_HASH ', () => {
-          it('SHOULD revert', async () => {
-            let issuer = acct[0];
-            const data = tokenInstance.contract.methods.issueTokens(
-              destinationAddress,
-              ISSUED_TOKENS).encodeABI();
-
-            let sigs = hsmSigner.preApproval(
-              issuer,
-              this.transactionRelayer.address,
-              initialNonce.toNumber(),
-              tokenInstance.address,
-              value,
-              data,
-              ZEROADDR,
-              gasLimit,
-              TXTYPE_HASH,
-              'wrong hash');
-            await assertRevert(
-              this.transactionRelayer.executeByInvestor(
-                sigs.sigV,
-                sigs.sigR,
-                sigs.sigS,
-                'issuer',
-                tokenInstance.address,
-                value,
-                data,
-                ZEROADDR,
-                gasLimit,
-                { from: executor, gasLimit })
-            );
-          });
-        });
-        describe('WHEN signing with wrong VERSION_HASH ', () => {
-          it('SHOULD revert', async () => {
-            let issuer = acct[0];
-            const data = tokenInstance.contract.methods.issueTokens(
-              destinationAddress,
-              ISSUED_TOKENS).encodeABI();
-
-            let sigs = hsmSigner.preApproval(
-              issuer,
-              this.transactionRelayer.address,
-              initialNonce.toNumber(),
-              tokenInstance.address,
-              value,
-              data,
-              ZEROADDR,
-              gasLimit,
-              TXTYPE_HASH,
-              NAME_HASH,
-              'wrong hash');
-            await assertRevert(
-              this.transactionRelayer.executeByInvestor(
-                sigs.sigV,
-                sigs.sigR,
-                sigs.sigS,
-                'issuer',
-                tokenInstance.address,
-                value,
-                data,
-                ZEROADDR,
-                gasLimit,
-                { from: executor, gasLimit })
-            );
-          });
-        });
-        describe('WHEN signing with wrong EIP712DOMAINTYPE_HASH ', () => {
-          it('SHOULD revert', async () => {
-            let issuer = acct[0];
-            const data = tokenInstance.contract.methods.issueTokens(
-              destinationAddress,
-              ISSUED_TOKENS).encodeABI();
-
-            let sigs = hsmSigner.preApproval(
-              issuer,
-              this.transactionRelayer.address,
-              initialNonce.toNumber(),
-              tokenInstance.address,
-              value,
-              data,
-              ZEROADDR,
-              gasLimit,
-              TXTYPE_HASH,
-              NAME_HASH,
-              VERSION_HASH,
-              'WRONG HASH');
-            await assertRevert(
-              this.transactionRelayer.executeByInvestor(
-                sigs.sigV,
-                sigs.sigR,
-                sigs.sigS,
-                'issuer',
-                tokenInstance.address,
-                value,
-                data,
-                ZEROADDR,
-                gasLimit,
-                { from: executor, gasLimit })
-            );
-          });
-        });
-      });
-    });
-    describe('Interaction with Registry Service', () => {
-      beforeEach(async () => {
-        executor = acct[1];
-        initialNonce = await this.transactionRelayer.nonceByInvestor(HOLDER_ID);
-        assert.ok(initialNonce);
-      });
-      describe('Register a Wallet', () => {
-        it('SHOULD Register a wallet signing with the relayer', async () => {
-          let issuer = acct[0];
-
-          const role = await this.trustService.getRole(issuer);
-          assert.equal(role.words[0], roles.ISSUER);
-
-          const roleRelayer = await this.trustService.getRole(this.transactionRelayer.address);
-          assert.equal(roleRelayer.words[0], roles.ISSUER);
-
-          const data = this.walletRegistrar.contract.methods.registerWallet(
-            HOLDER_ID,
-            [HOLDER_ADDRESS],
-            HOLDER_ID,
-            HOLDER_COUNTRY_CODE,
-            ['1', '2'],
-            ['1', '1'],
-            ['0', '0']
-          ).encodeABI();
-
-          let sigs = hsmSigner.preApproval(
-            issuer,
-            this.transactionRelayer.address,
-            initialNonce.toNumber(),
-            this.walletRegistrar.address,
-            value,
-            data,
-            ZEROADDR,
-            gasLimit);
-
-          await this.transactionRelayer.executeByInvestor(
-            sigs.sigV,
-            sigs.sigR,
-            sigs.sigS,
-            HOLDER_ID,
-            this.walletRegistrar.address,
-            0,
-            data,
-            ZEROADDR,
-            gasLimit,
-            { from: executor, gasLimit });
-
-          const investor = await this.registryService.getInvestor(HOLDER_ADDRESS);
-          assert(investor, HOLDER_ID);
-
-          let newNonce = await this.transactionRelayer.nonceByInvestor(HOLDER_ID);
-          assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
-        });
-        it('SHOULD revert when trying to sign an pre-approved transaction after investor nonce update', async () => {
-          let issuer = acct[0];
-
-          const role = await this.trustService.getRole(issuer);
-          assert.equal(role.words[0], roles.ISSUER);
-
-          const roleRelayer = await this.trustService.getRole(this.transactionRelayer.address);
-          assert.equal(roleRelayer.words[0], roles.ISSUER);
-
-          const data = this.walletRegistrar.contract.methods.registerWallet(
-            HOLDER_ID,
-            [HOLDER_ADDRESS],
-            HOLDER_ID,
-            HOLDER_COUNTRY_CODE,
-            ['1', '2'],
-            ['1', '1'],
-            ['0', '0']
-          ).encodeABI();
-
-          let sigs = hsmSigner.preApproval(
-            issuer,
-            this.transactionRelayer.address,
-            initialNonce.toNumber(),
-            this.walletRegistrar.address,
-            value,
-            data,
-            ZEROADDR,
-            gasLimit);
-
-          const NEW_NONCE_UPDATED_BY_MASTER = initialNonce.toNumber() + 10;
-          await this.transactionRelayer.setInvestorNonce(
-            HOLDER_ID,
-            NEW_NONCE_UPDATED_BY_MASTER, { from: owner }
-          );
-          await assertEvent(this.transactionRelayer, 'InvestorNonceUpdated', {
-            investorId: HOLDER_ID,
-            newNonce: NEW_NONCE_UPDATED_BY_MASTER,
-          });
-
-          await assertRevert(
-            this.transactionRelayer.executeByInvestor(
-              sigs.sigV,
-              sigs.sigR,
-              sigs.sigS,
-              HOLDER_ID,
-              this.walletRegistrar.address,
-              0,
-              data,
-              ZEROADDR,
-              gasLimit,
-              { from: executor, gasLimit })
-          );
-        });
-      });
-      describe('When signing with no role a wallet', () => {
-        it('SHOULD revert', async () => {
-          let issuer = acct[9];
-
-          const role = await this.trustService.getRole(issuer);
-          assert.equal(role.words[0], roles.NONE);
-
-          const data = this.walletRegistrar.contract.methods.registerWallet(
-            HOLDER_ID,
-            [HOLDER_ADDRESS],
-            HOLDER_ID,
-            HOLDER_COUNTRY_CODE,
-            ['1', '2'],
-            ['1', '1'],
-            ['0', '0']
-          ).encodeABI();
-
-          let sigs = hsmSigner.preApproval(
-            issuer,
-            this.transactionRelayer.address,
-            initialNonce.toNumber(),
-            this.walletRegistrar.address,
-            value,
-            data,
-            ZEROADDR,
-            gasLimit);
-
-          await assertRevert(
-            this.transactionRelayer.executeByInvestor(
-              sigs.sigV,
-              sigs.sigR,
-              sigs.sigS,
-              HOLDER_ID,
-              this.walletRegistrar.address,
-              0,
-              data,
-              ZEROADDR,
-              gasLimit,
-              { from: executor, gasLimit })
-          );
-
-          let newNonce = await this.transactionRelayer.nonceByInvestor(HOLDER_ID);
-          assert.equal(initialNonce.toNumber(), newNonce.toNumber());
-        });
-      });
-    });
-    describe('Interaction with OmnibusTBE', () => {
-      beforeEach(async () => {
-        executor = acct[1];
-        initialNonce = await this.transactionRelayer.nonceByInvestor(HOLDER_ID);
-        assert.ok(initialNonce);
-
-        await resetCounters(this);
-        const currentBalance = await this.token.balanceOf(omnibusWallet);
-        if (currentBalance.toNumber() > 0) {
-          await this.token.burn(omnibusWallet, currentBalance, '');
-        }
-
-        await euRetailCountries.forEach((country, index) => {
-          // Reset counters
-          this.complianceService.setEURetailInvestorsCount(country, 0);
-        });
-        euRetailCountries = [];
-        euRetailCountryCounts = [];
-      });
-      describe('Bulk transfer', () => {
-        it('should bulk transfer tokens from omnibus to wallet correctly', async () => {
-          let issuer = acct[0];
-
-          // GIVEN
-          const valueToTransfer = 1000;
-          const tokenValues = ['500', '500'];
-          const investorWallets = [investorWallet1, investorWallet2];
-          const txCounters = {
-            totalInvestorsCount: 5,
-            accreditedInvestorsCount: 5,
-            usTotalInvestorsCount: 4,
-            usAccreditedInvestorsCount: 1,
-            jpTotalInvestorsCount: 0,
-          };
-          euRetailCountries.push('ES');
-          euRetailCountryCounts.push(2);
-
-          await setCounters(txCounters, this);
-
-          // WHEN
-          await this.omnibusTBEController
-            .bulkIssuance(valueToTransfer, issuanceTime, txCounters.totalInvestorsCount,
-              txCounters.accreditedInvestorsCount,
-              txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
-              txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
-
-          await this.token.approve(this.omnibusTBEController.address, valueToTransfer, { from: omnibusWallet });
-
-          const data = await this.omnibusTBEController.contract.methods
-            .bulkTransfer(investorWallets, tokenValues).encodeABI();
-
-          let sigs = hsmSigner.preApproval(
-            issuer,
-            this.transactionRelayer.address,
-            initialNonce.toNumber(),
-            this.omnibusTBEController.address,
-            0,
-            data,
-            ZEROADDR,
-            gasLimit);
-
-          await this.transactionRelayer.executeByInvestor(
-            sigs.sigV,
-            sigs.sigR,
-            sigs.sigS,
-            HOLDER_ID,
-            this.omnibusTBEController.address,
-            0,
-            data,
-            ZEROADDR,
-            gasLimit,
-            { from: executor, gasLimit });
-
-          // THEN
-          await assertCounters(this);
-
-          const omnibusCurrentBalance = await this.token.balanceOf(omnibusWallet);
-          assert.equal(
-            omnibusCurrentBalance.toNumber(),
-            0
-          );
-          const investorWallet1CurrentBalance = await this.token.balanceOf(investorWallet1);
-          assert.equal(
-            investorWallet1CurrentBalance.toNumber(),
-            500
-          );
-          const investorWallet2CurrentBalance = await this.token.balanceOf(investorWallet2);
-          assert.equal(
-            investorWallet2CurrentBalance.toNumber(),
-            500
-          );
-
-          let newNonce = await this.transactionRelayer.nonceByInvestor(HOLDER_ID);
-          assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
-
-          // Reset balance
-          await this.token.burn(investorWallet1, 500, 'reset');
-          await this.token.burn(investorWallet2, 500, 'reset');
-        });
-        it('should not bulk transfer tokens from omnibus to wallet if not corresponding rights', async () => {
-          let issuer = acct[8];
-
-          // GIVEN
-          const valueToTranser = 1000;
-          const tokenValues = ['500', '500'];
-          const investorWallets = [investorWallet1, investorWallet2];
-          const txCounters = {
-            totalInvestorsCount: 5,
-            accreditedInvestorsCount: 5,
-            usTotalInvestorsCount: 4,
-            usAccreditedInvestorsCount: 1,
-            jpTotalInvestorsCount: 0,
-          };
-          euRetailCountries.push('ES');
-          euRetailCountryCounts.push(2);
-
-          await setCounters(txCounters, this);
-
-          // WHEN
-          await this.omnibusTBEController
-            .bulkIssuance(valueToTranser, issuanceTime, txCounters.totalInvestorsCount,
-              txCounters.accreditedInvestorsCount,
-              txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
-              txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
-
-          await this.token.approve(this.omnibusTBEController.address, valueToTranser, { from: omnibusWallet });
-
-          const data = await this.omnibusTBEController.contract.methods
-            .bulkTransfer(investorWallets, tokenValues).encodeABI();
-
-          let sigs = hsmSigner.preApproval(
-            issuer,
-            this.transactionRelayer.address,
-            initialNonce.toNumber(),
-            this.omnibusTBEController.address,
-            0,
-            data,
-            ZEROADDR,
-            gasLimit);
-
-          await assertRevert(
-            this.transactionRelayer.executeByInvestor(
-              sigs.sigV,
-              sigs.sigR,
-              sigs.sigS,
-              HOLDER_ID,
-              this.omnibusTBEController.address,
-              0,
-              data,
-              ZEROADDR,
-              gasLimit,
-              { from: executor, gasLimit })
-          );
-        });
-        it('should revert on bulk transfer when a master wallet updates nonce of investor', async () => {
-          const issuer = acct[0];
-
-          // GIVEN
-          const valueToTransfer = 1000;
-          const tokenValues = ['500', '500'];
-          const investorWallets = [investorWallet1, investorWallet2];
-          const txCounters = {
-            totalInvestorsCount: 5,
-            accreditedInvestorsCount: 5,
-            usTotalInvestorsCount: 4,
-            usAccreditedInvestorsCount: 1,
-            jpTotalInvestorsCount: 0,
-          };
-          euRetailCountries.push('ES');
-          euRetailCountryCounts.push(2);
-
-          await setCounters(txCounters, this);
-
-          // WHEN
-          await this.omnibusTBEController
-            .bulkIssuance(valueToTransfer, issuanceTime, txCounters.totalInvestorsCount,
-              txCounters.accreditedInvestorsCount,
-              txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
-              txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
-
-          await this.token.approve(this.omnibusTBEController.address, valueToTransfer, { from: omnibusWallet });
-
-          const data = await this.omnibusTBEController.contract.methods
-            .bulkTransfer(investorWallets, tokenValues).encodeABI();
-
-          let sigs = hsmSigner.preApproval(
-            issuer,
-            this.transactionRelayer.address,
-            initialNonce.toNumber(),
-            this.omnibusTBEController.address,
-            0,
-            data,
-            ZEROADDR,
-            gasLimit);
-
-          const NEW_NONCE_UPDATED_BY_MASTER = initialNonce.toNumber() + 10;
-          await this.transactionRelayer.setInvestorNonce(
-            HOLDER_ID,
-            NEW_NONCE_UPDATED_BY_MASTER, { from: owner }
-          );
-          await assertEvent(this.transactionRelayer, 'InvestorNonceUpdated', {
-            investorId: HOLDER_ID,
-            newNonce: NEW_NONCE_UPDATED_BY_MASTER,
-          });
-
-          await assertRevert(
-            this.transactionRelayer.executeByInvestor(
-              sigs.sigV,
-              sigs.sigR,
-              sigs.sigS,
-              HOLDER_ID,
-              this.omnibusTBEController.address,
-              0,
-              data,
-              ZEROADDR,
-              gasLimit,
-              { from: executor, gasLimit })
-          );
-        });
-      });
-    });
-  });
 
   describe('investorExecution', () => {
     describe(`ERC-20 token smart contract. Transferring ${ISSUED_TOKENS} TestToken to ${destinationAddress}`, () => {
@@ -1247,8 +173,6 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
           assert.ok(initialNonce);
 
           issuer = acct[0];
-          const role = await this.trustService.getRole(issuer);
-          assert.equal(role.words[0], roles.ISSUER);
 
           data = tokenInstance.contract.methods.issueTokens(
             destinationAddress,
@@ -1268,6 +192,18 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
         });
         describe('AND one issuer sign a TestToken.issueTokens() transaction', () => {
           it('SHOULD transfer tokens from Relayer to destinationAddress', async () => {
+            await this.trustService.setRole(issuer, roles.ISSUER, {
+              from: owner,
+            });
+            const role = await this.trustService.getRole(issuer);
+            assert.equal(role.words[0], roles.ISSUER);
+
+            await this.trustService.setRole(this.transactionRelayer.address, roles.ISSUER, {
+              from: owner,
+            });
+            const roleRelayer = await this.trustService.getRole(this.transactionRelayer.address);
+            assert.equal(roleRelayer.words[0], roles.ISSUER);
+
             const currentBlockNumber = await web3.eth.getBlockNumber();
             const params = [0, gasLimit, currentBlockNumber + 5];
             await this.transactionRelayer.investorExecution(
@@ -1692,6 +628,291 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
               params,
               { from: executor, gasLimit })
           );
+        });
+      });
+    });
+  });
+
+  describe('execute', () => {
+    describe(`ERC-20 token smart contract. Transferring ${ISSUED_TOKENS} TestToken to ${destinationAddress}`, () => {
+      describe(`WHEN transferring ${ISSUED_TOKENS} TestToken `, () => {
+        beforeEach(async () => {
+          executor = acct[1];
+          tokenInstance = await TestToken.new({ from: owner });
+          assert.ok(tokenInstance);
+
+          initialNonce = await this.transactionRelayer.nonce.call();
+          assert.ok(initialNonce);
+        });
+        describe('AND one issuer sign a TestToken.issueTokens() transaction', () => {
+          it('SHOULD transfer tokens from Relayer to destinationAddress', async () => {
+            let issuer = acct[0];
+
+            const data = tokenInstance.contract.methods.issueTokens(
+              destinationAddress,
+              ISSUED_TOKENS).encodeABI();
+
+            let sigs = hsmSigner.preApproval(
+              issuer,
+              this.transactionRelayer.address,
+              initialNonce.toNumber(),
+              tokenInstance.address,
+              0,
+              data,
+              ZEROADDR,
+              gasLimit);
+
+            await this.transactionRelayer.execute(
+              sigs.sigV,
+              sigs.sigR,
+              sigs.sigS,
+              tokenInstance.address,
+              0,
+              data,
+              ZEROADDR,
+              gasLimit,
+              { from: executor, gasLimit });
+
+            let newNonce = await this.transactionRelayer.nonce.call();
+            assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
+
+            assert.equal(
+              0,
+              await tokenInstance.balanceOf(this.transactionRelayer.address)
+            );
+
+            assert.equal(
+              ISSUED_TOKENS,
+              await tokenInstance.balanceOf(destinationAddress)
+            );
+          });
+        });
+      });
+    });
+  });
+
+  describe('executeByInvestor', () => {
+    describe(`ERC-20 token smart contract. Transferring ${ISSUED_TOKENS} TestToken to ${destinationAddress}`, () => {
+      describe(`WHEN transferring ${ISSUED_TOKENS} TestToken `, () => {
+        beforeEach(async () => {
+          executor = acct[1];
+          tokenInstance = await TestToken.new({ from: owner });
+          assert.ok(tokenInstance);
+
+          initialNonce = await this.transactionRelayer.nonceByInvestor('issuer');
+          assert.ok(initialNonce);
+        });
+        describe('AND one issuer sign a TestToken.issueTokens() transaction', () => {
+          it('SHOULD transfer tokens from Relayer to destinationAddress', async () => {
+            let issuer = acct[0];
+
+            const role = await this.trustService.getRole(issuer);
+            assert.equal(role.words[0], roles.ISSUER);
+
+            const data = tokenInstance.contract.methods.issueTokens(
+              destinationAddress,
+              ISSUED_TOKENS).encodeABI();
+
+            let sigs = hsmSigner.preApproval(
+              issuer,
+              this.transactionRelayer.address,
+              initialNonce.toNumber(),
+              tokenInstance.address,
+              0,
+              data,
+              ZEROADDR,
+              gasLimit);
+
+            await this.transactionRelayer.executeByInvestor(
+              sigs.sigV,
+              sigs.sigR,
+              sigs.sigS,
+              'issuer',
+              tokenInstance.address,
+              0,
+              data,
+              ZEROADDR,
+              gasLimit,
+              { from: executor, gasLimit });
+
+            let newNonce = await this.transactionRelayer.nonceByInvestor('issuer');
+            assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
+
+            assert.equal(
+              0,
+              await tokenInstance.balanceOf(this.transactionRelayer.address)
+            );
+
+            assert.equal(
+              ISSUED_TOKENS,
+              await tokenInstance.balanceOf(destinationAddress)
+            );
+          });
+        });
+        describe('AND only one no issuer sign a TestToken.issueTokens() transaction', () => {
+          it('SHOULD revert', async () => {
+            let issuer = acct[3];
+            const data = tokenInstance.contract.methods.issueTokens(
+              destinationAddress,
+              ISSUED_TOKENS).encodeABI();
+
+            let sigs = hsmSigner.preApproval(
+              issuer,
+              this.transactionRelayer.address,
+              initialNonce.toNumber(),
+              tokenInstance.address,
+              value,
+              data,
+              ZEROADDR,
+              gasLimit);
+            await assertRevert(
+              this.transactionRelayer.executeByInvestor(
+                sigs.sigV,
+                sigs.sigR,
+                sigs.sigS,
+                'no_issuer',
+                tokenInstance.address,
+                value,
+                data,
+                ZEROADDR,
+                gasLimit,
+                { from: executor, gasLimit })
+            );
+          });
+        });
+        describe('WHEN signing with wrong TXTYPE_HASH ', () => {
+          it('SHOULD revert', async () => {
+            let issuer = acct[0];
+            const data = tokenInstance.contract.methods.issueTokens(
+              destinationAddress,
+              ISSUED_TOKENS).encodeABI();
+
+            let sigs = hsmSigner.preApproval(
+              issuer,
+              this.transactionRelayer.address,
+              initialNonce.toNumber(),
+              tokenInstance.address,
+              value,
+              data,
+              ZEROADDR,
+              gasLimit,
+              'wrong hash');
+            await assertRevert(
+              this.transactionRelayer.executeByInvestor(
+                sigs.sigV,
+                sigs.sigR,
+                sigs.sigS,
+                'issuer',
+                tokenInstance.address,
+                value,
+                data,
+                ZEROADDR,
+                gasLimit,
+                { from: executor, gasLimit })
+            );
+          });
+        });
+        describe('WHEN signing with wrong NAME_HASH ', () => {
+          it('SHOULD revert', async () => {
+            let issuer = acct[0];
+            const data = tokenInstance.contract.methods.issueTokens(
+              destinationAddress,
+              ISSUED_TOKENS).encodeABI();
+
+            let sigs = hsmSigner.preApproval(
+              issuer,
+              this.transactionRelayer.address,
+              initialNonce.toNumber(),
+              tokenInstance.address,
+              value,
+              data,
+              ZEROADDR,
+              gasLimit,
+              TXTYPE_HASH,
+              'wrong hash');
+            await assertRevert(
+              this.transactionRelayer.executeByInvestor(
+                sigs.sigV,
+                sigs.sigR,
+                sigs.sigS,
+                'issuer',
+                tokenInstance.address,
+                value,
+                data,
+                ZEROADDR,
+                gasLimit,
+                { from: executor, gasLimit })
+            );
+          });
+        });
+        describe('WHEN signing with wrong VERSION_HASH ', () => {
+          it('SHOULD revert', async () => {
+            let issuer = acct[0];
+            const data = tokenInstance.contract.methods.issueTokens(
+              destinationAddress,
+              ISSUED_TOKENS).encodeABI();
+
+            let sigs = hsmSigner.preApproval(
+              issuer,
+              this.transactionRelayer.address,
+              initialNonce.toNumber(),
+              tokenInstance.address,
+              value,
+              data,
+              ZEROADDR,
+              gasLimit,
+              TXTYPE_HASH,
+              NAME_HASH,
+              'wrong hash');
+            await assertRevert(
+              this.transactionRelayer.executeByInvestor(
+                sigs.sigV,
+                sigs.sigR,
+                sigs.sigS,
+                'issuer',
+                tokenInstance.address,
+                value,
+                data,
+                ZEROADDR,
+                gasLimit,
+                { from: executor, gasLimit })
+            );
+          });
+        });
+        describe('WHEN signing with wrong EIP712DOMAINTYPE_HASH ', () => {
+          it('SHOULD revert', async () => {
+            let issuer = acct[0];
+            const data = tokenInstance.contract.methods.issueTokens(
+              destinationAddress,
+              ISSUED_TOKENS).encodeABI();
+
+            let sigs = hsmSigner.preApproval(
+              issuer,
+              this.transactionRelayer.address,
+              initialNonce.toNumber(),
+              tokenInstance.address,
+              value,
+              data,
+              ZEROADDR,
+              gasLimit,
+              TXTYPE_HASH,
+              NAME_HASH,
+              VERSION_HASH,
+              'WRONG HASH');
+            await assertRevert(
+              this.transactionRelayer.executeByInvestor(
+                sigs.sigV,
+                sigs.sigR,
+                sigs.sigS,
+                'issuer',
+                tokenInstance.address,
+                value,
+                data,
+                ZEROADDR,
+                gasLimit,
+                { from: executor, gasLimit })
+            );
+          });
         });
       });
     });
