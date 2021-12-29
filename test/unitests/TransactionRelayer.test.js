@@ -38,7 +38,7 @@ const issuanceTime = 15495894;
 
 let hsmSigner = null;
 
-contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWallet, investorWallet1,
+contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibusWallet, investorWallet1,
   investorWallet2]) {
   let keyFromPw;
   let acct;
@@ -1227,6 +1227,68 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
               gasLimit,
               { from: executor, gasLimit })
           );
+        });
+      });
+    });
+  });
+
+  describe('executeByInvestor2', () => {
+    describe(`ERC-20 token smart contract. Transferring ${ISSUED_TOKENS} TestToken to ${destinationAddress}`, () => {
+      describe(`WHEN transferring ${ISSUED_TOKENS} TestToken `, () => {
+        beforeEach(async () => {
+          executor = acct[1];
+          tokenInstance = await TestToken.new({ from: owner });
+          assert.ok(tokenInstance);
+
+          initialNonce = await this.transactionRelayer.nonceByInvestor('issuer');
+          assert.ok(initialNonce);
+        });
+        describe('AND one issuer sign a TestToken.issueTokens() transaction', () => {
+          it('SHOULD transfer tokens from Relayer to destinationAddress', async () => {
+            let issuer = acct[0];
+
+            const role = await this.trustService.getRole(issuer);
+            assert.equal(role.words[0], roles.ISSUER);
+
+            const data = tokenInstance.contract.methods.issueTokens(
+              destinationAddress,
+              ISSUED_TOKENS).encodeABI();
+
+            let sigs = hsmSigner.preApproval(
+              issuer,
+              this.transactionRelayer.address,
+              initialNonce.toNumber(),
+              tokenInstance.address,
+              0,
+              data,
+              ZEROADDR,
+              gasLimit);
+
+            const params = [0, gasLimit];
+            await this.transactionRelayer.executeByInvestor2(
+              sigs.sigV,
+              sigs.sigR,
+              sigs.sigS,
+              'issuer',
+              tokenInstance.address,
+              ZEROADDR,
+              data,
+              params,
+              { from: executor, gasLimit });
+
+            let newNonce = await this.transactionRelayer.nonceByInvestor('issuer');
+            assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
+
+            assert.equal(
+              0,
+              await tokenInstance.balanceOf(this.transactionRelayer.address)
+            );
+
+            assert.equal(
+              ISSUED_TOKENS,
+              await tokenInstance.balanceOf(destinationAddress)
+            );
+          });
         });
       });
     });

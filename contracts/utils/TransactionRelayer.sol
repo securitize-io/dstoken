@@ -157,6 +157,57 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         require(success, "transaction was not executed");
     }
 
+    /**
+     * @dev Validates off-chain signatures and executes transaction.
+     * @param sigV V signature
+     * @param sigR R signature
+     * @param sigR R signature
+     * @param senderInvestor investor id created by registryService
+     * @param destination address
+     * @param data encoded transaction data. For example issue token
+     * @param params array of params. params[0] = value, params[1] = gasLimit, params[0] = blockLimit
+     */
+    function executeByInvestor2(
+        uint8 sigV,
+        bytes32 sigR,
+        bytes32 sigS,
+        string memory senderInvestor,
+        address destination,
+        address executor,
+        bytes memory data,
+        uint256[] memory params
+    ) public {
+        uint256 investorNonce = noncePerInvestor[toBytes32(senderInvestor)];
+        bytes32 txInputHash = createTransactionInputHash(destination, executor, data, investorNonce, params);
+
+        bytes32 totalHash = keccak256(
+            abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, txInputHash)
+        );
+
+        // Check that the recovered address is an issuer
+        uint256 approverRole = getTrustService().getRole(ecrecover(totalHash, sigV, sigR, sigS));
+        require(approverRole == ROLE_ISSUER || approverRole == ROLE_MASTER, 'Invalid signature');
+
+        investorNonce = investorNonce.add(1);
+        noncePerInvestor[toBytes32(senderInvestor)] = investorNonce;
+        bool success = false;
+        uint256 value = params[0];
+        uint256 gasLimit = params[1];
+        assembly {
+            success := call(
+            gasLimit,
+            destination,
+            value,
+            add(data, 0x20),
+            mload(data),
+            0,
+            0
+            )
+        }
+        require(success, "transaction was not executed");
+    }
+
+
     function nonceByInvestor(string memory investorId) public view returns (uint256) {
         return noncePerInvestor[toBytes32(investorId)];
     }
@@ -184,6 +235,26 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
 
     function toBytes32(string memory str) private pure returns (bytes32) {
         return keccak256(abi.encodePacked(str));
+    }
+
+    function createTransactionInputHash(
+        address destination,
+        address executor,
+        bytes memory data,
+        uint256 investorNonce,
+        uint256[] memory params
+    ) private pure returns (bytes32) {
+        return keccak256(
+            abi.encode(
+                TXTYPE_HASH,
+                destination,
+                params[0],
+                keccak256(data),
+                investorNonce,
+                executor,
+                params[1]
+            )
+        );
     }
 
     function() external payable {}
