@@ -16,8 +16,8 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
     // keccak256("Securitize Transaction Relayer for pre-approved transactions")
     bytes32 constant NAME_HASH = 0x378460f4f89643d76dadb1d55fed95ff69d3c2e4b34cc81a5b565a797b10ce30;
 
-    // keccak256("2")
-    bytes32 constant VERSION_HASH = 0xad7c5bef027816a800da1736444fb58a807ef4c9603b7848673f7e3a68eb14a5;
+    // keccak256("3")
+    bytes32 constant VERSION_HASH = 0x2a80e1ef1d7842f27f2e6be0972bb708b9a135c38860dbe73c27c3486c34f4de;
 
     // keccak256("TransactionRelayer(address destination,uint256 value,bytes data,uint256 nonce,address executor,uint256 gasLimit)")
     bytes32 constant TXTYPE_HASH = 0x18352269123822ee0d5f7ae54168e303ddfc22d7bd1afb2feb38c21fffe27ea7;
@@ -29,10 +29,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
 
     bytes32 DOMAIN_SEPARATOR; // hash for EIP712, computed from contract address
 
-    uint8 public constant MASTER = 1;
-    uint8 public constant ISSUER = 2;
-
-    uint256 public constant CONTRACT_VERSION = 2;
+    uint256 public constant CONTRACT_VERSION = 3;
 
     mapping(bytes32 => uint256) internal noncePerInvestor;
 
@@ -87,7 +84,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         address recovered = ecrecover(totalHash, sigV, sigR, sigS);
         // Check that the recovered address is an issuer
         uint256 approverRole = getTrustService().getRole(recovered);
-        require(approverRole == ISSUER || approverRole == MASTER, 'Invalid signature');
+        require(approverRole == ROLE_ISSUER || approverRole == ROLE_MASTER, 'Invalid signature');
 
         // The address.call() syntax is no longer recommended, see:
         // https://github.com/ethereum/solidity/issues/2884
@@ -139,7 +136,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         address recovered = ecrecover(totalHash, sigV, sigR, sigS);
         // Check that the recovered address is an issuer
         uint256 approverRole = getTrustService().getRole(recovered);
-        require(approverRole == ISSUER || approverRole == MASTER, 'Invalid signature');
+        require(approverRole == ROLE_ISSUER || approverRole == ROLE_MASTER, 'Invalid signature');
 
         // The address.call() syntax is no longer recommended, see:
         // https://github.com/ethereum/solidity/issues/2884
@@ -178,7 +175,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         emit DomainSeparatorUpdated(chainId);
     }
 
-    function setInvestorNonce(string memory investorId, uint256 newNonce) public onlyMaster {
+    function setInvestorNonce(string memory investorId, uint256 newNonce) public onlyIssuerOrAbove {
         uint256 investorNonce = noncePerInvestor[toBytes32(investorId)];
         require(newNonce > investorNonce, "New nonce should be greater than old");
         noncePerInvestor[toBytes32(investorId)] = newNonce;

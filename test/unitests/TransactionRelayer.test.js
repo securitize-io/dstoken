@@ -11,10 +11,9 @@ const globals = require('../../utils/globals');
 const { HSMSigner } = require('../utils/specialSigners');
 
 // eslint-disable-next-line max-len
-// keccak256("MultiSigTransaction(address destination,uint256 value,bytes data,uint256 nonce,address executor,uint256 gasLimit)")
 const TXTYPE_HASH = '0x18352269123822ee0d5f7ae54168e303ddfc22d7bd1afb2feb38c21fffe27ea7';
 const NAME_HASH = '0x378460f4f89643d76dadb1d55fed95ff69d3c2e4b34cc81a5b565a797b10ce30';
-const VERSION_HASH = '0xad7c5bef027816a800da1736444fb58a807ef4c9603b7848673f7e3a68eb14a5';
+const VERSION_HASH = '0x2a80e1ef1d7842f27f2e6be0972bb708b9a135c38860dbe73c27c3486c34f4de';
 const EIP712DOMAINTYPE_HASH = '0xd87cd6ef79d4e2b95e15ce8abf732db51ec771f1ca2edccf22a46c729ac56472';
 const SALT = '0x6e31104f5170e59a0a98ebdeb5ba99f8b32ef7b56786b1722f81a5fa19dd1629';
 
