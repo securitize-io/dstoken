@@ -65,43 +65,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         address executor,
         uint256 gasLimit
     ) public {
-        // EIP712 scheme: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md
-        bytes32 txInputHash = keccak256(
-            abi.encode(
-                TXTYPE_HASH,
-                destination,
-                value,
-                keccak256(data),
-                nonce,
-                executor,
-                gasLimit
-            )
-        );
-        bytes32 totalHash = keccak256(
-            abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, txInputHash)
-        );
-
-        address recovered = ecrecover(totalHash, sigV, sigR, sigS);
-        // Check that the recovered address is an issuer
-        uint256 approverRole = getTrustService().getRole(recovered);
-        require(approverRole == ROLE_ISSUER || approverRole == ROLE_MASTER, 'Invalid signature');
-
-        // The address.call() syntax is no longer recommended, see:
-        // https://github.com/ethereum/solidity/issues/2884
-        nonce = nonce + 1;
-        bool success = false;
-        assembly {
-            success := call(
-            gasLimit,
-            destination,
-            value,
-            add(data, 0x20),
-            mload(data),
-            0,
-            0
-            )
-        }
-        require(success, "transaction was not executed");
+        require(false, "not implemented");
     }
 
     // Note that address recovered from signatures must be strictly increasing, in order to prevent duplicates
@@ -116,45 +80,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         address executor,
         uint256 gasLimit
     ) public {
-        uint256 investorNonce = noncePerInvestor[toBytes32(senderInvestor)];
-        // EIP712 scheme: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md
-        bytes32 txInputHash = keccak256(
-            abi.encode(
-                TXTYPE_HASH,
-                destination,
-                value,
-                keccak256(data),
-                investorNonce,
-                executor,
-                gasLimit
-            )
-        );
-        bytes32 totalHash = keccak256(
-            abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, txInputHash)
-        );
-
-        address recovered = ecrecover(totalHash, sigV, sigR, sigS);
-        // Check that the recovered address is an issuer
-        uint256 approverRole = getTrustService().getRole(recovered);
-        require(approverRole == ROLE_ISSUER || approverRole == ROLE_MASTER, 'Invalid signature');
-
-        // The address.call() syntax is no longer recommended, see:
-        // https://github.com/ethereum/solidity/issues/2884
-        investorNonce = investorNonce.add(1);
-        noncePerInvestor[toBytes32(senderInvestor)] = investorNonce;
-        bool success = false;
-        assembly {
-            success := call(
-            gasLimit,
-            destination,
-            value,
-            add(data, 0x20),
-            mload(data),
-            0,
-            0
-            )
-        }
-        require(success, "transaction was not executed");
+        require(false, "not implemented");
     }
 
     /**
@@ -167,7 +93,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
      * @param data encoded transaction data. For example issue token
      * @param params array of params. params[0] = value, params[1] = gasLimit, params[0] = blockLimit
      */
-    function investorExecution(
+    function executeByInvestorWithBlockLimit(
         uint8 sigV,
         bytes32 sigR,
         bytes32 sigS,
