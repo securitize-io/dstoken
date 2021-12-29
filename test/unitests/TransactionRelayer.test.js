@@ -1232,7 +1232,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
     });
   });
 
-  describe('executeByInvestor2', () => {
+  describe('investorExecution', () => {
     describe(`ERC-20 token smart contract. Transferring ${ISSUED_TOKENS} TestToken to ${destinationAddress}`, () => {
       describe(`WHEN transferring ${ISSUED_TOKENS} TestToken `, () => {
         let issuer;
@@ -1270,7 +1270,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
           it('SHOULD transfer tokens from Relayer to destinationAddress', async () => {
             const currentBlockNumber = await web3.eth.getBlockNumber();
             const params = [0, gasLimit, currentBlockNumber + 5];
-            await this.transactionRelayer.executeByInvestor2(
+            await this.transactionRelayer.investorExecution(
               sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -1298,7 +1298,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
             let params = [0, gasLimit];
 
             await assertRevert(
-              this.transactionRelayer.executeByInvestor2(
+              this.transactionRelayer.investorExecution(
                 sigs.sigV,
                 sigs.sigR,
                 sigs.sigS,
@@ -1311,7 +1311,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
             );
             params = [0, gasLimit, 100000000, 1000000];
             await assertRevert(
-              this.transactionRelayer.executeByInvestor2(
+              this.transactionRelayer.investorExecution(
                 sigs.sigV,
                 sigs.sigR,
                 sigs.sigS,
@@ -1328,7 +1328,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
             const params = [0, gasLimit, currentBlockNumber - 1];
 
             await assertRevert(
-              this.transactionRelayer.executeByInvestor2(
+              this.transactionRelayer.investorExecution(
                 sigs.sigV,
                 sigs.sigR,
                 sigs.sigS,
@@ -1388,7 +1388,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
       });
       describe('Register a Wallet', () => {
         it('SHOULD Register a wallet signing with the relayer', async () => {
-          await this.transactionRelayer.executeByInvestor2(
+          await this.transactionRelayer.investorExecution(
             sigs.sigV,
             sigs.sigR,
             sigs.sigS,
@@ -1417,7 +1417,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
           });
 
           await assertRevert(
-            this.transactionRelayer.executeByInvestor2(
+            this.transactionRelayer.investorExecution(
               sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -1448,7 +1448,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
             gasLimit);
 
           await assertRevert(
-            this.transactionRelayer.executeByInvestor2(
+            this.transactionRelayer.investorExecution(
               sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -1530,7 +1530,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
           assert.ok(currentBlockNumber);
           const params = [0, gasLimit, currentBlockNumber + 10];
 
-          await this.transactionRelayer.executeByInvestor2(
+          await this.transactionRelayer.investorExecution(
             sigs.sigV,
             sigs.sigR,
             sigs.sigS,
@@ -1613,7 +1613,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
           const params = [0, gasLimit, currentBlockNumber + 10];
 
           await assertRevert(
-            this.transactionRelayer.executeByInvestor2(
+            this.transactionRelayer.investorExecution(
               sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -1681,7 +1681,7 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
           const params = [0, gasLimit, currentBlockNumber + 10];
 
           await assertRevert(
-            this.transactionRelayer.executeByInvestor2(
+            this.transactionRelayer.investorExecution(
               sigs.sigV,
               sigs.sigR,
               sigs.sigS,

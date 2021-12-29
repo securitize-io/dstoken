@@ -167,7 +167,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
      * @param data encoded transaction data. For example issue token
      * @param params array of params. params[0] = value, params[1] = gasLimit, params[0] = blockLimit
      */
-    function executeByInvestor2(
+    function investorExecution(
         uint8 sigV,
         bytes32 sigR,
         bytes32 sigS,
