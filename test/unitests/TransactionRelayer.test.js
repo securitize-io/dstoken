@@ -1263,8 +1263,8 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
               data,
               ZEROADDR,
               gasLimit);
-
-            const params = [0, gasLimit];
+            const currentBlockNumber = await web3.eth.getBlockNumber();
+            const params = [0, gasLimit, currentBlockNumber + 5];
             await this.transactionRelayer.executeByInvestor2(
               sigs.sigV,
               sigs.sigR,
@@ -1287,6 +1287,88 @@ contract.only('TransactionRelayer', function ([owner, destinationAddress, omnibu
             assert.equal(
               ISSUED_TOKENS,
               await tokenInstance.balanceOf(destinationAddress)
+            );
+          });
+          it('SHOULD revert when passing wrong params array length', async () => {
+            let issuer = acct[0];
+
+            const role = await this.trustService.getRole(issuer);
+            assert.equal(role.words[0], roles.ISSUER);
+
+            const data = tokenInstance.contract.methods.issueTokens(
+              destinationAddress,
+              ISSUED_TOKENS).encodeABI();
+
+            let sigs = hsmSigner.preApproval(
+              issuer,
+              this.transactionRelayer.address,
+              initialNonce.toNumber(),
+              tokenInstance.address,
+              0,
+              data,
+              ZEROADDR,
+              gasLimit);
+            let params = [0, gasLimit];
+
+            await assertRevert(
+              this.transactionRelayer.executeByInvestor2(
+                sigs.sigV,
+                sigs.sigR,
+                sigs.sigS,
+                'issuer',
+                tokenInstance.address,
+                ZEROADDR,
+                data,
+                params,
+                { from: executor, gasLimit })
+            );
+            params = [0, gasLimit, 100000000, 1000000];
+            await assertRevert(
+              this.transactionRelayer.executeByInvestor2(
+                sigs.sigV,
+                sigs.sigR,
+                sigs.sigS,
+                'issuer',
+                tokenInstance.address,
+                ZEROADDR,
+                data,
+                params,
+                { from: executor, gasLimit })
+            );
+          });
+          it('SHOULD revert when blockLimit is less than current block number', async () => {
+            let issuer = acct[0];
+
+            const role = await this.trustService.getRole(issuer);
+            assert.equal(role.words[0], roles.ISSUER);
+
+            const data = tokenInstance.contract.methods.issueTokens(
+              destinationAddress,
+              ISSUED_TOKENS).encodeABI();
+
+            let sigs = hsmSigner.preApproval(
+              issuer,
+              this.transactionRelayer.address,
+              initialNonce.toNumber(),
+              tokenInstance.address,
+              0,
+              data,
+              ZEROADDR,
+              gasLimit);
+            const currentBlockNumber = await web3.eth.getBlockNumber();
+            const params = [0, gasLimit, currentBlockNumber - 1];
+
+            await assertRevert(
+              this.transactionRelayer.executeByInvestor2(
+                sigs.sigV,
+                sigs.sigR,
+                sigs.sigS,
+                'issuer',
+                tokenInstance.address,
+                ZEROADDR,
+                data,
+                params,
+                { from: executor, gasLimit })
             );
           });
         });

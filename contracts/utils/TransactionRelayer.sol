@@ -177,6 +177,8 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         bytes memory data,
         uint256[] memory params
     ) public {
+        require(params.length == 3, "Incorrect params length");
+        require(params[2] >= block.number, "Transaction too old");
         uint256 investorNonce = noncePerInvestor[toBytes32(senderInvestor)];
         bytes32 txInputHash = createTransactionInputHash(destination, executor, data, investorNonce, params);
 
