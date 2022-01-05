@@ -178,17 +178,6 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
           assert.ok(data);
-
-          sigs = hsmSigner.preApproval(
-            issuer,
-            this.transactionRelayer.address,
-            initialNonce.toNumber(),
-            tokenInstance.address,
-            0,
-            data,
-            ZEROADDR,
-            gasLimit);
-          assert.ok(sigs);
         });
         describe('AND one issuer sign a TestToken.issueTokens() transaction', () => {
           it('SHOULD transfer tokens from Relayer to destinationAddress', async () => {
@@ -205,7 +194,23 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             assert.equal(roleRelayer.words[0], roles.ISSUER);
 
             const currentBlockNumber = await web3.eth.getBlockNumber();
-            const params = [0, gasLimit, currentBlockNumber + 5];
+            const blockLimit = currentBlockNumber + 5;
+            const sigs = hsmSigner.preApproval(
+              issuer,
+              this.transactionRelayer.address,
+              initialNonce.toNumber(),
+              tokenInstance.address,
+              0,
+              data,
+              ZEROADDR,
+              gasLimit,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              blockLimit);
+            assert.ok(sigs);
+            const params = [0, gasLimit, blockLimit];
             await this.transactionRelayer.executeByInvestorWithBlockLimit(
               sigs.sigV,
               sigs.sigR,
@@ -232,7 +237,15 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
           });
           it('SHOULD revert when passing wrong params array length', async () => {
             let params = [0, gasLimit];
-
+            let sigs = hsmSigner.preApproval(
+              issuer,
+              this.transactionRelayer.address,
+              initialNonce.toNumber(),
+              tokenInstance.address,
+              0,
+              data,
+              ZEROADDR,
+              gasLimit);
             await assertRevert(
               this.transactionRelayer.executeByInvestorWithBlockLimit(
                 sigs.sigV,
@@ -245,6 +258,21 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
                 params,
                 { from: executor, gasLimit })
             );
+
+            sigs = hsmSigner.preApproval(
+              issuer,
+              this.transactionRelayer.address,
+              initialNonce.toNumber(),
+              tokenInstance.address,
+              0,
+              data,
+              ZEROADDR,
+              gasLimit,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              1000000);
             params = [0, gasLimit, 100000000, 1000000];
             await assertRevert(
               this.transactionRelayer.executeByInvestorWithBlockLimit(
@@ -261,7 +289,23 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
           });
           it('SHOULD revert when blockLimit is less than current block number', async () => {
             const currentBlockNumber = await web3.eth.getBlockNumber();
-            const params = [0, gasLimit, currentBlockNumber - 1];
+            const blockLimit = currentBlockNumber - 1;
+            const sigs = hsmSigner.preApproval(
+              issuer,
+              this.transactionRelayer.address,
+              initialNonce.toNumber(),
+              tokenInstance.address,
+              0,
+              data,
+              ZEROADDR,
+              gasLimit,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              blockLimit);
+
+            const params = [0, gasLimit, blockLimit];
 
             await assertRevert(
               this.transactionRelayer.executeByInvestorWithBlockLimit(
@@ -432,6 +476,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
       let data;
       let sigs;
       let params;
+      let blockLimit;
       beforeEach(async () => {
         executor = acct[1];
         initialNonce = await this.transactionRelayer.nonceByInvestor(HOLDER_ID);
@@ -455,6 +500,11 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
         ).encodeABI();
         assert.ok(data);
 
+        const currentBlockNumber = await web3.eth.getBlockNumber();
+        assert.ok(currentBlockNumber);
+        blockLimit = currentBlockNumber + 10;
+        params = [0, gasLimit, blockLimit];
+
         sigs = hsmSigner.preApproval(
           issuer,
           this.transactionRelayer.address,
@@ -463,12 +513,12 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
           value,
           data,
           ZEROADDR,
-          gasLimit);
+          gasLimit,
+          undefined,
+          undefined,
+          undefined,
+          undefined, blockLimit);
         assert.ok(sigs);
-
-        const currentBlockNumber = await web3.eth.getBlockNumber();
-        assert.ok(currentBlockNumber);
-        params = [0, gasLimit, currentBlockNumber + 10];
       });
       describe('Register a Wallet', () => {
         it('SHOULD Register a wallet signing with the relayer', async () => {
@@ -529,7 +579,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             value,
             data,
             ZEROADDR,
-            gasLimit);
+            gasLimit, undefined, undefined, undefined, undefined, blockLimit);
 
           await assertRevert(
             this.transactionRelayer.executeByInvestorWithBlockLimit(
@@ -600,6 +650,11 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
           const data = await this.omnibusTBEController.contract.methods
             .bulkTransfer(investorWallets, tokenValues).encodeABI();
 
+          const currentBlockNumber = await web3.eth.getBlockNumber();
+          assert.ok(currentBlockNumber);
+          const blockLimit = currentBlockNumber + 10;
+          const params = [0, gasLimit, blockLimit];
+
           let sigs = hsmSigner.preApproval(
             issuer,
             this.transactionRelayer.address,
@@ -608,11 +663,12 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             0,
             data,
             ZEROADDR,
-            gasLimit);
-
-          const currentBlockNumber = await web3.eth.getBlockNumber();
-          assert.ok(currentBlockNumber);
-          const params = [0, gasLimit, currentBlockNumber + 10];
+            gasLimit,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            blockLimit);
 
           await this.transactionRelayer.executeByInvestorWithBlockLimit(
             sigs.sigV,

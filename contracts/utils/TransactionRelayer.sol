@@ -91,7 +91,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
      * @param senderInvestor investor id created by registryService
      * @param destination address
      * @param data encoded transaction data. For example issue token
-     * @param params array of params. params[0] = value, params[1] = gasLimit, params[0] = blockLimit
+     * @param params array of params. params[0] = value, params[1] = gasLimit, params[2] = blockLimit
      */
     function executeByInvestorWithBlockLimit(
         uint8 sigV,
@@ -105,7 +105,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
     ) public {
         require(params.length == 3, "Incorrect params length");
         require(params[2] >= block.number, "Transaction too old");
-        doExecuteByInvestor(sigV, sigR, sigS, senderInvestor, destination, params[0], data, executor, params[1]);
+        doExecuteByInvestor(sigV, sigR, sigS, senderInvestor, destination, data, executor, params);
     }
 
 
@@ -165,22 +165,21 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         bytes32 sigS,
         string memory senderInvestor,
         address destination,
-        uint256 value,
         bytes memory data,
         address executor,
-        uint256 gasLimit
+        uint256[] memory params
     ) private {
-        uint256 investorNonce = noncePerInvestor[toBytes32(senderInvestor)];
         // EIP712 scheme: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md
         bytes32 txInputHash = keccak256(
             abi.encode(
                 TXTYPE_HASH,
                 destination,
-                value,
+                params[0],
                 keccak256(data),
-                investorNonce,
+                noncePerInvestor[toBytes32(senderInvestor)],
                 executor,
-                gasLimit
+                params[1],
+                params[2]
             )
         );
         bytes32 totalHash = keccak256(
@@ -192,11 +191,10 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         uint256 approverRole = getTrustService().getRole(recovered);
         require(approverRole == ROLE_ISSUER || approverRole == ROLE_MASTER, 'Invalid signature');
 
-        // The address.call() syntax is no longer recommended, see:
-        // https://github.com/ethereum/solidity/issues/2884
-        investorNonce = investorNonce.add(1);
-        noncePerInvestor[toBytes32(senderInvestor)] = investorNonce;
+        noncePerInvestor[toBytes32(senderInvestor)] = noncePerInvestor[toBytes32(senderInvestor)].add(1);
         bool success = false;
+        uint256 value = params[0];
+        uint256 gasLimit = params[1];
         assembly {
             success := call(
             gasLimit,
