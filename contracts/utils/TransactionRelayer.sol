@@ -127,7 +127,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         emit DomainSeparatorUpdated(chainId);
     }
 
-    function setInvestorNonce(string memory investorId, uint256 newNonce) public onlyIssuerOrAbove {
+    function setInvestorNonce(string memory investorId, uint256 newNonce) public onlyMaster {
         uint256 investorNonce = noncePerInvestor[toBytes32(investorId)];
         require(newNonce > investorNonce, "New nonce should be greater than old");
         noncePerInvestor[toBytes32(investorId)] = newNonce;
