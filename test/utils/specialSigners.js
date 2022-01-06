@@ -23,8 +23,8 @@ class BaseSigner {
     txTypeHash = this.txTypeHash,
     nameHash = this.nameHash,
     versionHash = this.versionHash,
-    eip712DomainTypeHash = this.eip712DomainTypeHash) {
-
+    eip712DomainTypeHash = this.eip712DomainTypeHash,
+    blockLimit = null) {
     const domainData = eip712DomainTypeHash +
       nameHash.slice(2) +
       versionHash.slice(2) +
@@ -39,6 +39,9 @@ class BaseSigner {
       nonce.toString('16').padStart(64, '0') +
       executor.slice(2).padStart(64, '0') +
       gasLimit.toString('16').padStart(64, '0');
+    if (blockLimit) {
+      txInput = txInput + blockLimit.toString('16').padStart(64, '0');
+    }
     let txInputHash = web3.utils.sha3(txInput, { encoding: 'hex' });
     let input = '0x19' + '01' + domainSepartor.slice(2) + txInputHash.slice(2);
     let hash = web3.utils.sha3(input, { encoding: 'hex' });
@@ -108,7 +111,8 @@ class HSMSigner extends BaseSigner {
     txTypeHash = this.txTypeHash,
     nameHash = this.nameHash,
     versionHash = this.versionHash,
-    eip712DomainTypeHash = this.eip712DomainTypeHash) {
+    eip712DomainTypeHash = this.eip712DomainTypeHash,
+    blockLimit = null) {
     // eslint-disable-next-line no-return-assign
     const res = this.sign([signer],
       multisigAddr,
@@ -121,7 +125,9 @@ class HSMSigner extends BaseSigner {
       txTypeHash,
       nameHash,
       versionHash,
-      eip712DomainTypeHash);
+      eip712DomainTypeHash,
+      blockLimit
+    );
 
     return { sigV: res.sigV[0], sigR: res.sigR[0], sigS: res.sigS[0] };
   }
@@ -129,5 +135,5 @@ class HSMSigner extends BaseSigner {
 
 module.exports = {
   MultiSigSigner,
-  HSMSigner
+  HSMSigner,
 };
