@@ -138,26 +138,6 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         return keccak256(abi.encodePacked(str));
     }
 
-    function createTransactionInputHash(
-        address destination,
-        address executor,
-        bytes memory data,
-        uint256 investorNonce,
-        uint256[] memory params
-    ) private pure returns (bytes32) {
-        return keccak256(
-            abi.encode(
-                TXTYPE_HASH,
-                destination,
-                params[0],
-                keccak256(data),
-                investorNonce,
-                executor,
-                params[1]
-            )
-        );
-    }
-
     // Note that address recovered from signatures must be strictly increasing, in order to prevent duplicates
     function doExecuteByInvestor(
         uint8 sigV,
