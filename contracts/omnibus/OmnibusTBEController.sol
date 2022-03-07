@@ -38,19 +38,24 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
             usAccreditedInvestors, usTotalInvestors, jpTotalInvestors, euRetailCountries, euRetailCountryCounts, false);
         if(isPartitionedToken) {
             IDSTokenPartitioned token = getTokenPartitioned();
-            bool done;
-            for (uint i = 0; i < token.partitionCountOf(omnibusWallet); i++) {
-                bytes32 partition = token.partitionOf(omnibusWallet, i);
-                if(token.balanceOfByPartition(omnibusWallet, partition) >= value) {
-                    token.burnByPartition(omnibusWallet, value, 'Omnibus burn by partition', partition);
-                    done = true;
-                }
+            uint256 pendingBurn = value;
+            uint256 currentPartitionBalance;
+            bytes32 partition;
+            while(pendingBurn > 0) {
+                require(token.partitionCountOf(omnibusWallet) > 0, 'Not enough tokens in partitions to burn the required value');
+                partition = token.partitionOf(omnibusWallet, 0);
+                currentPartitionBalance = token.balanceOfByPartition(omnibusWallet, partition);
+                require(currentPartitionBalance > 0, 'Not enough tokens in remaining partitions to burn the required value');
+                uint256 amountToBurn = currentPartitionBalance >= pendingBurn ? pendingBurn : currentPartitionBalance;
+                token.burnByPartition(omnibusWallet, amountToBurn, 'Omnibus burn by partition', partition);
+                pendingBurn = pendingBurn.sub(amountToBurn);
             }
-            require(done, "Could not find partition to burn tokens from");
             return;
+        } else {
+            // Burn non partitioned tokens
+            getToken().burn(omnibusWallet, value, 'Omnibus');
         }
-        // Burn tokens
-        getToken().burn(omnibusWallet, value, 'Omnibus');
+
         emitTBEOperationEvent(totalInvestors, accreditedInvestors, usAccreditedInvestors, usTotalInvestors, jpTotalInvestors, false);
     }
 
@@ -91,7 +96,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
             usTotalDelta < 0 ? uint256(usTotalDelta * -1) : 0,
             jpTotalDelta < 0 ? uint256(jpTotalDelta * -1) : 0,
             euRetailCountries,
-                getUintEuCountriesDeltas(euRetailCountryDeltas, false),
+            getUintEuCountriesDeltas(euRetailCountryDeltas, false),
             false
         );
         getToken().emitOmnibusTBEEvent(
