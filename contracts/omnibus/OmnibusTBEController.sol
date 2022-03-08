@@ -50,7 +50,6 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
                 token.burnByPartition(omnibusWallet, amountToBurn, 'Omnibus burn by partition', partition);
                 pendingBurn = pendingBurn.sub(amountToBurn);
             }
-            return;
         } else {
             // Burn non partitioned tokens
             getToken().burn(omnibusWallet, value, 'Omnibus');

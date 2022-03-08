@@ -3,11 +3,11 @@ const globals = require('../../utils/globals');
 const fixtures = require('../fixtures');
 const assertRevert = require('../utils/assertRevert');
 const { setOmnibusTBEServicesDependencies, resetCounters, setCounters,
-  getCountersDelta, toHex, assertCounters, assertCountryCounters } =
+  getCountersDelta, toHex, assertCounters, assertCountryCounters, assertEvent
+} =
     require('../utils/omnibus/utils');
 
 const lockManagerType = globals.lockManagerType;
-const role = globals.roles;
 const compliance = globals.complianceType;
 
 const investorId = fixtures.InvestorId;
@@ -366,6 +366,7 @@ contract('OmnibusTBEControllerPartitioned', ([
           txBurnCounters.jpTotalInvestorsCount, [], []);
     });
 
+    // eslint-disable-next-line max-len
     it('should burn tokens from first partition when there are exactly the same tokens as in the first one', async function () {
       const txCounters = {
         totalInvestorsCount: 0,
@@ -430,6 +431,79 @@ contract('OmnibusTBEControllerPartitioned', ([
       // Cleanup: burn remaining tokens
       await this.omnibusTBEController
         .bulkBurn(500, txBurnCounters.totalInvestorsCount, txBurnCounters.accreditedInvestorsCount,
+          txBurnCounters.usAccreditedInvestorsCount, txBurnCounters.usTotalInvestorsCount,
+          txBurnCounters.jpTotalInvestorsCount, [], []);
+    });
+
+    it('should burn tokens from multiple partitions and generate OmnibusTBEOperation event', async function () {
+      const txCounters = {
+        totalInvestorsCount: 0,
+        accreditedInvestorsCount: 0,
+        usTotalInvestorsCount: 0,
+        usAccreditedInvestorsCount: 0,
+        jpTotalInvestorsCount: 0,
+      };
+
+      const txBurnCounters = {
+        totalInvestorsCount: 0,
+        accreditedInvestorsCount: 0,
+        usTotalInvestorsCount: 0,
+        usAccreditedInvestorsCount: 0,
+        jpTotalInvestorsCount: 0,
+      };
+
+      await this.omnibusTBEController
+        .bulkIssuance(100, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
+          txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
+          txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
+
+      await this.omnibusTBEController
+        .bulkIssuance(200, issuanceTime + 1, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
+          txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
+          txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
+
+      await this.omnibusTBEController
+        .bulkIssuance(300, issuanceTime + 2, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
+          txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
+          txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
+
+      let currentBalance = await this.token.balanceOf(omnibusWallet);
+      // Check resulting balance
+      await assert.equal(
+        currentBalance,
+        600
+      );
+
+      // Check that we have 3 partitions
+      let numPartitions = await this.token.partitionCountOf(omnibusWallet);
+      assert.equal(numPartitions, 3, 'Not the expected 3 partitions');
+
+      // Burn 100 tokens
+      await this.omnibusTBEController
+        .bulkBurn(500, txBurnCounters.totalInvestorsCount, txBurnCounters.accreditedInvestorsCount,
+          txBurnCounters.usAccreditedInvestorsCount, txBurnCounters.usTotalInvestorsCount,
+          txBurnCounters.jpTotalInvestorsCount, [], []);
+
+      // Check that we still have 100 tokens in the TBE wallet
+      currentBalance = await this.token.balanceOf(omnibusWallet);
+      // Check resulting balance
+      await assert.equal(
+        currentBalance,
+        100
+      );
+
+      await assertEvent(this.token, "OmnibusTBEOperation", {
+        omnibusWallet,
+        totalDelta: 0,
+        accreditedDelta: 0,
+        usAccreditedDelta: 0,
+        usTotalDelta: 0,
+        jpTotalDelta: 0,
+      });
+
+      // Cleanup: burn remaining tokens
+      await this.omnibusTBEController
+        .bulkBurn(100, txBurnCounters.totalInvestorsCount, txBurnCounters.accreditedInvestorsCount,
           txBurnCounters.usAccreditedInvestorsCount, txBurnCounters.usTotalInvestorsCount,
           txBurnCounters.jpTotalInvestorsCount, [], []);
     });
