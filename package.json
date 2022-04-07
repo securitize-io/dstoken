@@ -50,7 +50,7 @@
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-standard": "^3.0.1",
     "eth-gas-reporter": "^0.2.22",
-    "ethereumjs-util": "^5.1.2",
+    "ethereumjs-util": "^7.1.4",
     "ganache-cli": "^6.8.2",
     "minimist": "^1.2.0",
     "prettier": "^1.19.1",
