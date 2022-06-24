@@ -316,12 +316,19 @@ module.exports = async function (deployer) {
 
   if (!configurationManager.noOmnibusWallet) {
     const walletManager = await WalletManager.at(
-      configurationManager.getProxyAddressForContractName("WalletManager")
+      configurationManager.getProxyAddressForContractName('WalletManager')
     );
-    console.log("Set omnibus wallet as Platform wallet");
+    console.log('Set omnibus wallet as Platform wallet');
     // Could not be done before connecting the services
     await walletManager.addPlatformWallet(
       configurationManager.omnibusWallet
+    );
+  }
+
+  if (configurationManager.redemptionWallet) {
+    console.log('Set redemption wallet as Plaform wallet');
+    await walletManager.addPlatformWallet(
+      configurationManager.redemptionWallet
     );
   }
 
