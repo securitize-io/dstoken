@@ -309,6 +309,8 @@ module.exports = async function (deployer) {
   await tokenReallocator.setDSService(services.REGISTRY_SERVICE, registry.address);
   console.log('Connecting Token Reallocator to Trust Service');
   await tokenReallocator.setDSService(services.TRUST_SERVICE, trustService.address);
+  console.log('Connecting token reallocator to lock manager');
+  await tokenReallocator.setDSService(services.LOCK_MANAGER, lockManager.address);
   if (!configurationManager.noOmnibusWallet) {
     console.log('Connecting Token Reallocator to Omnibus TBE Controller');
     await tokenReallocator.setDSService(services.OMNIBUS_TBE_CONTROLLER, omnibusTBEController.address);
