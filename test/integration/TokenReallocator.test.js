@@ -44,7 +44,7 @@ contract('TokenReallocator', function ([
         [], []);
       await this.reallocator.reallocateTokens(investorId.GENERAL_INVESTOR_ID_1,
         wallet, investorId.GENERAL_INVESTOR_ID_1,
-        'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200);
+        'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, false);
 
       const tbeWallet = await this.omnibusTBEController.getOmnibusWallet.call();
       assert.equal(await this.token.balanceOf.call(wallet), 200);
@@ -52,6 +52,7 @@ contract('TokenReallocator', function ([
 
       const country = await this.registryService.getCountry.call(investorId.GENERAL_INVESTOR_ID_1);
       assert.equal(country, 'US');
+      assert.equal(await this.lockManager.isInvestorLocked.call(investorId.GENERAL_INVESTOR_ID_1), false);
     });
 
     it('Should NOT allow to reallocate tokens to a non-issuer or above wallet', async function () {
@@ -60,7 +61,7 @@ contract('TokenReallocator', function ([
         [], []);
       assertRevert(this.reallocator.reallocateTokens(investorId.GENERAL_INVESTOR_ID_1,
         wallet, investorId.GENERAL_INVESTOR_ID_1,
-        'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, { from: exchangeWallet }));
+        'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, false, { from: exchangeWallet }));
     });
 
     it('Should allow to reallocate tokens to a non-master but issuer wallet', async function () {
@@ -69,7 +70,7 @@ contract('TokenReallocator', function ([
         [], []);
       await this.reallocator.reallocateTokens(investorId.GENERAL_INVESTOR_ID_1,
         wallet, investorId.GENERAL_INVESTOR_ID_1,
-        'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, { from: issuerWallet });
+        'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, false, { from: issuerWallet });
     });
 
     it('Should NOT allow to use Reallocator if the wallet already exists in another investor',
@@ -79,10 +80,10 @@ contract('TokenReallocator', function ([
           [], []);
         await this.reallocator.reallocateTokens(investorId.GENERAL_INVESTOR_ID_2,
           wallet, investorId.GENERAL_INVESTOR_ID_2,
-          'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200);
+          'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, false);
         assertRevert(this.reallocator.reallocateTokens(investorId.GENERAL_INVESTOR_ID_1,
           wallet, investorId.GENERAL_INVESTOR_ID_1,
-          'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 250, { from: issuerWallet }));
+          'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 250, false, { from: issuerWallet }));
       });
 
     it('Should allow to use Reallocator if the investor already exists but not the wallet',
@@ -92,14 +93,28 @@ contract('TokenReallocator', function ([
           [], []);
         await this.reallocator.reallocateTokens(investorId.GENERAL_INVESTOR_ID_1,
           wallet, investorId.GENERAL_INVESTOR_ID_1,
-          'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200);
+          'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, false);
         await this.reallocator.reallocateTokens(investorId.GENERAL_INVESTOR_ID_1,
           newWallet, investorId.GENERAL_INVESTOR_ID_1,
-          'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 250, { from: issuerWallet });
+          'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 250, false, { from: issuerWallet });
 
         assert.equal(await this.token.balanceOf.call(wallet), 200);
         assert.equal(await this.token.balanceOf.call(newWallet), 250);
         assert.equal(await this.token.balanceOfInvestor.call(investorId.GENERAL_INVESTOR_ID_1), 450);
       });
+
+    it('Should reallocate tokens and lock the investor - isAffiliate', async function () {
+      // Fund the Omnibus TBE wallet
+      await this.omnibusTBEController.bulkIssuance(500, 1, 0, 0, 0, 0, 0,
+        [], []);
+      await this.reallocator.reallocateTokens(investorId.GENERAL_INVESTOR_ID_1,
+        wallet, investorId.GENERAL_INVESTOR_ID_1,
+        'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, true, { from: issuerWallet });
+
+      const tbeWallet = await this.omnibusTBEController.getOmnibusWallet.call();
+      assert.equal(await this.token.balanceOf.call(wallet), 200);
+      assert.equal(await this.token.balanceOf.call(tbeWallet), 300);
+      assert.equal(await this.lockManager.isInvestorLocked.call(investorId.GENERAL_INVESTOR_ID_1), true);
+    });
   });
 });

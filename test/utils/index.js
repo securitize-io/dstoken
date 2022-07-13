@@ -310,11 +310,13 @@ async function deployContracts (
     testObject.reallocator,
     [
       services.REGISTRY_SERVICE,
-      services.TRUST_SERVICE
+      services.TRUST_SERVICE,
+      services.LOCK_MANAGER,
     ],
     [
       testObject.registryService.address,
-      testObject.trustService.address
+      testObject.trustService.address,
+      testObject.lockManager.address,
     ]
   );
 }

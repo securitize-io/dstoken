@@ -18,6 +18,7 @@ contract IDSTokenReallocator is Initializable, VersionedContract {
         uint8[] memory _attributeIds,
         uint256[] memory _attributeValues,
         uint256[] memory _attributeExpirations,
-        uint256 _value /*onlyOwner*/
+        uint256 _value, /*onlyOwner*/
+        bool isAffiliate
     ) public returns (bool);
 }

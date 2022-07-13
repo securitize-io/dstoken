@@ -18,7 +18,8 @@ contract TokenReallocator is ProxyTarget, Initializable, ServiceConsumer, IDSTok
         uint8[] memory _attributeIds,
         uint256[] memory _attributeValues,
         uint256[] memory _attributeExpirations,
-        uint256 _value
+        uint256 _value,
+        bool isAffiliate
     ) public onlyIssuerOrAbove returns (bool) {
         require(_attributeValues.length == _attributeIds.length, "Wrong length of parameters");
         require(_attributeIds.length == _attributeExpirations.length, "Wrong length of parameters");
@@ -38,12 +39,15 @@ contract TokenReallocator is ProxyTarget, Initializable, ServiceConsumer, IDSTok
             registryService.addWallet(_wallet, _id);
         }
 
-        IDSOmnibusTBEController tbeController = getOmnibusTBEController();
         address[] memory addresses = new address[](1);
         uint256[] memory values = new uint256[](1);
         addresses[0] = _wallet;
         values[0] = _value;
-        tbeController.bulkTransfer(addresses, values);
+        getOmnibusTBEController().bulkTransfer(addresses, values);
+
+        if (isAffiliate && !getLockManager().isInvestorLocked(_id)) {
+            getLockManager().lockInvestor(_id);
+        }
         return true;
     }
 }
