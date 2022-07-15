@@ -41,7 +41,7 @@ contract("Integration", function([
     );
   });
 
-  describe.only("Issuance", function() {
+  describe("Issuance", function() {
     it("Should setup country compliance", async function() {
       // Basic seed
       await this.complianceConfiguration.setCountryCompliance(
