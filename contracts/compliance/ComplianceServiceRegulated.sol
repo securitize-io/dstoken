@@ -519,10 +519,6 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     ) internal returns (bool) {
         if (!(ComplianceServiceLibrary.isOmnibusTBE(getOmnibusTBEController(), _from) ||
         ComplianceServiceLibrary.isOmnibusTBE(getOmnibusTBEController(), _to))) {
-            if (compareInvestorBalance(_from, _value, _value)) {
-                adjustTransferCounts(_from, CommonUtils.IncDec.Decrease);
-            }
-
             if (compareInvestorBalance(_to, _value, 0)) {
                 adjustTransferCounts(_to, CommonUtils.IncDec.Increase);
             }
@@ -551,9 +547,6 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function recordBurn(address _who, uint256 _value) internal returns (bool) {
-        if (compareInvestorBalance(_who, _value, _value)) {
-            adjustTotalInvestorsCounts(_who, CommonUtils.IncDec.Decrease);
-        }
         return true;
     }
 
@@ -574,7 +567,6 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
             return false;
         }
 
-        adjustInvestorsCountsByCountry(_prevCountry, _id, CommonUtils.IncDec.Decrease);
         adjustInvestorsCountsByCountry(_country, _id, CommonUtils.IncDec.Increase);
 
         return true;
@@ -582,7 +574,9 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
     function adjustTotalInvestorsCounts(address _wallet, CommonUtils.IncDec _increase) internal {
         if (!getWalletManager().isSpecialWallet(_wallet)) {
-            totalInvestors = _increase == CommonUtils.IncDec.Increase ? totalInvestors.add(1) : totalInvestors.sub(1);
+            if (_increase == CommonUtils.IncDec.Increase) {
+                totalInvestors = totalInvestors.add(1);
+            }
 
             string memory id = getRegistryService().getInvestor(_wallet);
             string memory country = getRegistryService().getCountry(id);
@@ -599,19 +593,28 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         uint256 countryCompliance = getComplianceConfigurationService().getCountryCompliance(_country);
 
         if (getRegistryService().isAccreditedInvestor(_id)) {
-            accreditedInvestorsCount = _increase == CommonUtils.IncDec.Increase ? accreditedInvestorsCount.add(1) : accreditedInvestorsCount.sub(1);
-
+            if(_increase == CommonUtils.IncDec.Increase) {
+                accreditedInvestorsCount = accreditedInvestorsCount.add(1);
+            }
             if (countryCompliance == US) {
-                usAccreditedInvestorsCount = _increase == CommonUtils.IncDec.Increase ? usAccreditedInvestorsCount.add(1) : usAccreditedInvestorsCount.sub(1);
+                if(_increase == CommonUtils.IncDec.Increase) {
+                    usAccreditedInvestorsCount = usAccreditedInvestorsCount.add(1);
+                }
             }
         }
 
         if (countryCompliance == US) {
-            usInvestorsCount = _increase == CommonUtils.IncDec.Increase ? usInvestorsCount.add(1) : usInvestorsCount.sub(1);
+            if(_increase == CommonUtils.IncDec.Increase) {
+                usInvestorsCount = usInvestorsCount.add(1);
+            }
         } else if (countryCompliance == EU && !getRegistryService().isQualifiedInvestor(_id)) {
-            euRetailInvestorsCount[_country] = _increase == CommonUtils.IncDec.Increase ? euRetailInvestorsCount[_country].add(1) : euRetailInvestorsCount[_country].sub(1);
+            if(_increase == CommonUtils.IncDec.Increase) {
+                euRetailInvestorsCount[_country] = euRetailInvestorsCount[_country].add(1);
+            }
         } else if (countryCompliance == JP) {
-            jpInvestorsCount = _increase == CommonUtils.IncDec.Increase ? jpInvestorsCount.add(1) : jpInvestorsCount.sub(1);
+            if(_increase == CommonUtils.IncDec.Increase) {
+                jpInvestorsCount = jpInvestorsCount.add(1);
+            }
         }
     }
 
