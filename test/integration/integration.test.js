@@ -449,7 +449,7 @@ contract("Integration", function([
       assert.equal(count.toNumber(), 5); // USinvestor, usinvestorSecondary,usinvestor2,IsraelInvestor, and germanyInvestor2
 
       count = await this.complianceService.getTotalInvestorsCount.call(); // USInvestor, USInvestor2, IsraelInvestor, GermanyInvestor2
-      assert.equal(count.toNumber(), 4);
+      assert.equal(count.toNumber(), 7);
     });
   });
   describe("Special operations", function() {
