@@ -359,7 +359,7 @@ contract("Integration", function([
       assert.equal(tx.logs[0].args.to.valueOf(), usInvestor2Wallet);
       assert.equal(tx.logs[0].args.value.valueOf(), 2500);
       let usInvestorsCount = await this.complianceService.getUSInvestorsCount.call();
-      assert.equal(usInvestorsCount, 3); // should now be 3, because counters wont decrement
+      assert.equal(usInvestorsCount, 5); // should be 5, because counters wont decrement
 
       res = await this.complianceService.preTransferCheck(
         germanyInvestor2Wallet,
@@ -380,7 +380,7 @@ contract("Integration", function([
       let euRetailInvestorsCount = await this.complianceService.getEURetailInvestorsCount.call(
         country.GERMANY
       );
-      assert.equal(euRetailInvestorsCount.toNumber(), 0); // We have only one investor, and he's qualified
+      assert.equal(euRetailInvestorsCount.toNumber(), 2); // Counters wont decrement regardless of no balance
     });
     it("Manual locks should behave correctly", async function() {
       // germany investor 1 should have 1000 + 500 - 250 transferable tokens
