@@ -220,7 +220,7 @@ contract("ComplianceServiceRegulated", function([
       await assertRevert(this.token.transfer(owner, 100, {from: wallet}));
     });
 
-    it("Should decrease total investors value when transfer tokens", async function() {
+    it("Should NOT decrease total investors value when transfer tokens", async function() {
       assert.equal(
         (await this.complianceService.getTotalInvestorsCount()).toNumber(),
         0
@@ -263,7 +263,7 @@ contract("ComplianceServiceRegulated", function([
 
       assert.equal(
         (await this.complianceService.getTotalInvestorsCount()).toNumber(),
-        1
+        2
       );
     });
 
@@ -582,24 +582,38 @@ contract("ComplianceServiceRegulated", function([
       await assertRevert(this.token.burn(omnibusWallet, 40, "Test"));
     });
 
-    it("Should decrease total investors value when burn tokens", async function() {
+    it("Should not decrease total investors value when burn tokens", async function() {
+      assert.equal(
+        (await this.complianceService.getTotalInvestorsCount()).toNumber(),
+        0
+      );
       await this.registryService.registerInvestor(
-        investorId.GENERAL_INVESTOR_ID_2,
-        investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
       );
       await this.registryService.addWallet(
-        owner,
-        investorId.GENERAL_INVESTOR_ID_2
+        wallet,
+        investorId.GENERAL_INVESTOR_ID_1
       );
       await this.token.setCap(1000);
-      await this.token.issueTokens(owner, 100);
+      await this.token.issueTokens(wallet, 100, {gas: 2e6});
       assert.equal(
-        await this.registryService.getInvestor(owner),
-        investorId.GENERAL_INVESTOR_ID_2
+        await this.registryService.getInvestor(wallet),
+        investorId.GENERAL_INVESTOR_ID_1
       );
-      assert.equal(await this.token.balanceOf(owner), 100);
-      await this.token.burn(owner, 100, "Test");
-      assert.equal(await this.token.balanceOf(owner), 0);
+      assert.equal(
+        (await this.complianceService.getTotalInvestorsCount()).toNumber(),
+        1
+      );
+
+      assert.equal(await this.token.balanceOf(wallet), 100);
+      await this.token.burn(wallet, 100, "Test");
+      assert.equal(await this.token.balanceOf(wallet), 0);
+
+      assert.equal(
+        (await this.complianceService.getTotalInvestorsCount()).toNumber(),
+        1
+      );
     });
 
     it("Should burn tokens", async function() {
@@ -668,6 +682,40 @@ contract("ComplianceServiceRegulated", function([
       await this.token.transfer(omnibusWallet, 50, {from: wallet});
       await assertRevert(
         this.token.seize(omnibusWallet, issuerWallet, 40, "Test")
+      );
+    });
+
+    it("Should NOT decrease total investors value when seizing tokens", async function() {
+      assert.equal(
+        (await this.complianceService.getTotalInvestorsCount()).toNumber(),
+        0
+      );
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1
+      );
+      await this.registryService.addWallet(
+        wallet,
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      await this.token.setCap(1000);
+      await this.token.issueTokens(wallet, 100);
+      assert.equal(
+        await this.registryService.getInvestor(wallet),
+        investorId.GENERAL_INVESTOR_ID_1
+      );
+      assert.equal(
+        (await this.complianceService.getTotalInvestorsCount()).toNumber(),
+        1
+      );
+
+      assert.equal(await this.token.balanceOf(wallet), 100);
+      await this.token.seize(wallet, issuerWallet, 100, "Test");
+      assert.equal(await this.token.balanceOf(wallet), 0);
+
+      assert.equal(
+        (await this.complianceService.getTotalInvestorsCount()).toNumber(),
+        1
       );
     });
 
