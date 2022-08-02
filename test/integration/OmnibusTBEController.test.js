@@ -68,7 +68,7 @@ contract('OmnibusTBEController', ([
     euRetailCountryCounts = [];
   });
 
-  describe.only('Bulk issuance', function () {
+  describe('Bulk issuance', function () {
     it('should bulk issue tokens correctly', async function () {
       // GIVEN
       await this.complianceService.setTotalInvestorsCount(1);
@@ -196,7 +196,7 @@ contract('OmnibusTBEController', ([
           txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts));
     });
   });
-  describe.only('Bulk burn', function () {
+  describe('Bulk burn', function () {
     it('should bulk burn tokens correctly without decrement counters', async function () {
       // GIVEN
       const value = 1000;
@@ -248,7 +248,7 @@ contract('OmnibusTBEController', ([
       });
     });
   });
-  describe.only('Bulk transfer', function () {
+  describe('Bulk transfer', function () {
     it('should bulk transfer tokens from omnibus to wallet correctly', async function () {
       // GIVEN
       const value = 1000;
@@ -408,7 +408,7 @@ contract('OmnibusTBEController', ([
         await this.token.burn(investorWallet1, 700, 'reset');
       });
   });
-  describe.only('Adjust counters', function () {
+  describe('Adjust counters', function () {
     it('should adjust counters with positive value correctly', async function () {
       // GIVEN
       const txCounters = {
@@ -431,7 +431,7 @@ contract('OmnibusTBEController', ([
       await assertCounters(this);
     });
   });
-  describe.only('Internal TBE Transfer', function () {
+  describe('Internal TBE Transfer', function () {
     it('should correctly reflect an internal TBE transfer', async function () {
       // GIVEN
       const value = 1000;

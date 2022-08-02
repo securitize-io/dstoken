@@ -12,7 +12,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
     string internal constant MAX_INVESTORS_IN_CATEGORY = "Max investors in category";
 
     function initialize(address _omnibusWallet, bool _isPartitionedToken) public initializer forceInitializeFromProxy {
-        VERSIONS.push(3);
+        VERSIONS.push(4);
         ServiceConsumer.initialize();
 
         omnibusWallet = _omnibusWallet;

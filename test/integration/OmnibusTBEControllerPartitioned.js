@@ -60,7 +60,7 @@ contract('OmnibusTBEControllerPartitioned', ([
     }
   });
 
-  describe.only('Bulk issuance', function () {
+  describe('Bulk issuance', function () {
     it('should bulk issue tokens correctly', async function () {
       // GIVEN
       await this.complianceService.setTotalInvestorsCount(1);
@@ -103,7 +103,7 @@ contract('OmnibusTBEControllerPartitioned', ([
       });
     });
   });
-  describe.only('Bulk burn', function () {
+  describe('Bulk burn', function () {
     it('should bulk burn tokens correctly', async function () {
       // GIVEN
       const value = 1000;
@@ -507,7 +507,7 @@ contract('OmnibusTBEControllerPartitioned', ([
     });
   });
 
-  describe.only('Bulk transfer', function () {
+  describe('Bulk transfer', function () {
     it('should bulk transfer tokens from omnibus to wallet correctly', async function () {
       // GIVEN
       const value = 1000;
@@ -570,7 +570,7 @@ contract('OmnibusTBEControllerPartitioned', ([
       });
     });
   });
-  describe.only('Adjust counters', function () {
+  describe('Adjust counters', function () {
     it('should adjust counters with positive value correctly', async function () {
       // GIVEN
       const txCounters = {
