@@ -60,7 +60,7 @@ contract('OmnibusTBEControllerPartitioned', ([
     }
   });
 
-  describe('Bulk issuance', function () {
+  describe.only('Bulk issuance', function () {
     it('should bulk issue tokens correctly', async function () {
       // GIVEN
       await this.complianceService.setTotalInvestorsCount(1);
@@ -103,7 +103,7 @@ contract('OmnibusTBEControllerPartitioned', ([
       });
     });
   });
-  describe('Bulk burn', function () {
+  describe.only('Bulk burn', function () {
     it('should bulk burn tokens correctly', async function () {
       // GIVEN
       const value = 1000;
@@ -136,8 +136,6 @@ contract('OmnibusTBEControllerPartitioned', ([
         .bulkBurn(burnValue, txBurnCounters.totalInvestorsCount, txBurnCounters.accreditedInvestorsCount,
           txBurnCounters.usAccreditedInvestorsCount, txBurnCounters.usTotalInvestorsCount,
           txBurnCounters.jpTotalInvestorsCount, [], []);
-
-      await getCountersDelta(txBurnCounters);
 
       // THEN
       await assertCounters(this);
@@ -509,7 +507,7 @@ contract('OmnibusTBEControllerPartitioned', ([
     });
   });
 
-  describe('Bulk transfer', function () {
+  describe.only('Bulk transfer', function () {
     it('should bulk transfer tokens from omnibus to wallet correctly', async function () {
       // GIVEN
       const value = 1000;
@@ -572,7 +570,7 @@ contract('OmnibusTBEControllerPartitioned', ([
       });
     });
   });
-  describe('Adjust counters', function () {
+  describe.only('Adjust counters', function () {
     it('should adjust counters with positive value correctly', async function () {
       // GIVEN
       const txCounters = {
@@ -625,8 +623,6 @@ contract('OmnibusTBEControllerPartitioned', ([
         .adjustCounters(negativeCounters.totalInvestorsCount, negativeCounters.accreditedInvestorsCount,
           negativeCounters.usAccreditedInvestorsCount, negativeCounters.usTotalInvestorsCount,
           negativeCounters.jpTotalInvestorsCount, [], []);
-
-      await getCountersDelta(negativeCounters);
 
       // THEN
       await assertCounters(this);

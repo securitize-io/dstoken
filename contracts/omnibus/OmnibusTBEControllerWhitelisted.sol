@@ -71,10 +71,11 @@ contract OmnibusTBEControllerWhitelisted is ProxyTarget, Initializable, IDSOmnib
         uint256 _usAccreditedInvestors, uint256 _usTotalInvestors, uint256 _jpTotalInvestors, bool _increase) internal {
         getToken().emitOmnibusTBEEvent(
             omnibusWallet,
-            _increase ? int256(_totalInvestors) : int256(_totalInvestors) * -1,
-            _increase ? int256(_accreditedInvestors) : int256(_accreditedInvestors) * -1,
-            _increase ? int256(_usAccreditedInvestors) : int256(_usAccreditedInvestors) * -1,
-            _increase ? int256(_usTotalInvestors) : int256(_usTotalInvestors) * -1,
-            _increase ? int256(_jpTotalInvestors) : int256(_jpTotalInvestors) * -1);
+            int256(_totalInvestors),
+            int256(_accreditedInvestors),
+            int256(_usAccreditedInvestors),
+            int256(_usTotalInvestors),
+            int256(_jpTotalInvestors)
+        );
     }
 }

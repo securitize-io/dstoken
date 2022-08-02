@@ -68,7 +68,7 @@ contract('OmnibusTBEController', ([
     euRetailCountryCounts = [];
   });
 
-  describe('Bulk issuance', function () {
+  describe.only('Bulk issuance', function () {
     it('should bulk issue tokens correctly', async function () {
       // GIVEN
       await this.complianceService.setTotalInvestorsCount(1);
@@ -196,8 +196,8 @@ contract('OmnibusTBEController', ([
           txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts));
     });
   });
-  describe('Bulk burn', function () {
-    it('should bulk burn tokens correctly', async function () {
+  describe.only('Bulk burn', function () {
+    it('should bulk burn tokens correctly without decrement counters', async function () {
       // GIVEN
       const value = 1000;
       const txCounters = {
@@ -230,8 +230,6 @@ contract('OmnibusTBEController', ([
           txBurnCounters.usAccreditedInvestorsCount, txBurnCounters.usTotalInvestorsCount,
           txBurnCounters.jpTotalInvestorsCount, [], []);
 
-      await getCountersDelta(txBurnCounters);
-
       // THEN
       await assertCounters(this);
 
@@ -242,15 +240,15 @@ contract('OmnibusTBEController', ([
       );
       await assertEvent(this.token, "OmnibusTBEOperation", {
         omnibusWallet,
-        totalDelta: -1,
-        accreditedDelta: -1,
+        totalDelta: 1,
+        accreditedDelta: 1,
         usAccreditedDelta: 0,
         usTotalDelta: 0,
         jpTotalDelta: 0,
       });
     });
   });
-  describe('Bulk transfer', function () {
+  describe.only('Bulk transfer', function () {
     it('should bulk transfer tokens from omnibus to wallet correctly', async function () {
       // GIVEN
       const value = 1000;
@@ -410,7 +408,7 @@ contract('OmnibusTBEController', ([
         await this.token.burn(investorWallet1, 700, 'reset');
       });
   });
-  describe('Adjust counters', function () {
+  describe.only('Adjust counters', function () {
     it('should adjust counters with positive value correctly', async function () {
       // GIVEN
       const txCounters = {
@@ -432,53 +430,8 @@ contract('OmnibusTBEController', ([
       // THEN
       await assertCounters(this);
     });
-    it('should adjust counters with negative value correctly', async function () {
-      // GIVEN
-      const value = 1000;
-      const txCounters = {
-        totalInvestorsCount: 6,
-        accreditedInvestorsCount: 5,
-        usTotalInvestorsCount: 4,
-        usAccreditedInvestorsCount: 1,
-        jpTotalInvestorsCount: 0,
-      };
-
-      const negativeCounters = {
-        totalInvestorsCount: -1,
-        accreditedInvestorsCount: -1,
-        usTotalInvestorsCount: -1,
-        usAccreditedInvestorsCount: -1,
-        jpTotalInvestorsCount: 0,
-      };
-
-      await setCounters(txCounters, this);
-
-      // WHEN
-      await this.omnibusTBEController
-        .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
-          txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
-          txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
-      await assertEvent(this.token, "OmnibusTBEOperation", {
-        omnibusWallet,
-        totalDelta: 6,
-        accreditedDelta: 5,
-        usAccreditedDelta: 1,
-        usTotalDelta: 4,
-        jpTotalDelta: 0,
-      });
-
-      await this.omnibusTBEController
-        .adjustCounters(negativeCounters.totalInvestorsCount, negativeCounters.accreditedInvestorsCount,
-          negativeCounters.usAccreditedInvestorsCount, negativeCounters.usTotalInvestorsCount,
-          negativeCounters.jpTotalInvestorsCount, [], []);
-
-      await getCountersDelta(negativeCounters);
-
-      // THEN
-      await assertCounters(this);
-    });
   });
-  describe('Internal TBE Transfer', function () {
+  describe.only('Internal TBE Transfer', function () {
     it('should correctly reflect an internal TBE transfer', async function () {
       // GIVEN
       const value = 1000;
@@ -524,8 +477,6 @@ contract('OmnibusTBEController', ([
         omnibusWallet,
         externalId: 'this_is_externalID',
       });
-
-      await getCountersDelta(negativeCounters);
 
       // THEN
       await assertCounters(this);

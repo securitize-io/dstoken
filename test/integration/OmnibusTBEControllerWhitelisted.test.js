@@ -61,7 +61,7 @@ contract('OmnibusTBEControllerWhitelisted', ([
     euRetailCountryCounts = [];
   });
 
-  describe('Bulk issuance', function () {
+  describe.only('Bulk issuance', function () {
     it('should bulk issue tokens correctly', async function () {
       // GIVEN
       const value = 1000;
@@ -154,7 +154,7 @@ contract('OmnibusTBEControllerWhitelisted', ([
           txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts));
     });
   });
-  describe('Bulk burn', function () {
+  describe.only('Bulk burn', function () {
     it('should bulk burn tokens correctly', async function () {
       // GIVEN
       const value = 1000;
@@ -196,8 +196,8 @@ contract('OmnibusTBEControllerWhitelisted', ([
       );
       await assertEvent(this.token, "OmnibusTBEOperation", {
         omnibusWallet,
-        totalDelta: -1,
-        accreditedDelta: -1,
+        totalDelta: 1,
+        accreditedDelta: 1,
         usAccreditedDelta: 0,
         usTotalDelta: 0,
         jpTotalDelta: 0,
@@ -223,7 +223,7 @@ contract('OmnibusTBEControllerWhitelisted', ([
       );
     });
   });
-  describe('Bulk transfer', function () {
+  describe.only('Bulk transfer', function () {
     it('should bulk transfer tokens from omnibus to wallet correctly', async function () {
       // GIVEN
       const value = 1000;
@@ -373,7 +373,7 @@ contract('OmnibusTBEControllerWhitelisted', ([
         await this.token.burn(investorWallet1, 2500, 'reset');
       });
   });
-  describe('Adjust counters', function () {
+  describe.only('Adjust counters', function () {
     it('should adjust counters with positive value correctly', async function () {
       // GIVEN
       const txCounters = {
@@ -446,7 +446,7 @@ contract('OmnibusTBEControllerWhitelisted', ([
           negativeCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), []));
     });
   });
-  describe('Internal TBE Transfer', function () {
+  describe.only('Internal TBE Transfer', function () {
     it('should correctly reflect an internal TBE transfer', async function () {
       // GIVEN
       const value = 1000;
