@@ -137,8 +137,6 @@ contract('OmnibusTBEControllerPartitioned', ([
           txBurnCounters.usAccreditedInvestorsCount, txBurnCounters.usTotalInvestorsCount,
           txBurnCounters.jpTotalInvestorsCount, [], []);
 
-      await getCountersDelta(txBurnCounters);
-
       // THEN
       await assertCounters(this);
 
@@ -625,8 +623,6 @@ contract('OmnibusTBEControllerPartitioned', ([
         .adjustCounters(negativeCounters.totalInvestorsCount, negativeCounters.accreditedInvestorsCount,
           negativeCounters.usAccreditedInvestorsCount, negativeCounters.usTotalInvestorsCount,
           negativeCounters.jpTotalInvestorsCount, [], []);
-
-      await getCountersDelta(negativeCounters);
 
       // THEN
       await assertCounters(this);

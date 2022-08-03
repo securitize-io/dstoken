@@ -196,8 +196,8 @@ contract('OmnibusTBEControllerWhitelisted', ([
       );
       await assertEvent(this.token, "OmnibusTBEOperation", {
         omnibusWallet,
-        totalDelta: -1,
-        accreditedDelta: -1,
+        totalDelta: 1,
+        accreditedDelta: 1,
         usAccreditedDelta: 0,
         usTotalDelta: 0,
         jpTotalDelta: 0,
