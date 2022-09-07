@@ -28,7 +28,6 @@ contract IDSLockManager is Initializable, VersionedContract {
      * @param _valueLocked value of tokens to lock
      * @param _reason reason for lock
      * @param _releaseTime timestamp to release the lock (or 0 for locks which can only released by an unlockTokens call)
-     * @return A unique id for the newly created lock.
      * Note: The user MAY have at a certain time more locked tokens than actual tokens
      */
 
@@ -46,7 +45,6 @@ contract IDSLockManager is Initializable, VersionedContract {
      * @param _reasonCode reason code for lock
      * @param _reasonString reason for lock
      * @param _releaseTime timestamp to release the lock (or 0 for locks which can only released by an unlockTokens call)
-     * @return A unique id for the newly created lock.
      * Note: The user MAY have at a certain time more locked tokens than actual tokens
      */
 
@@ -110,9 +108,8 @@ contract IDSLockManager is Initializable, VersionedContract {
      * can be used to iterate through the locks of a user
      * @param _who address to get token lock for
      * @param _lockIndex the 0 based index of the lock.
-     * @return id the unique lock id
-     * @return type the lock type (manual or other)
-     * @return reason the reason for the lock
+     * @return reasonCode the reason code
+     * @return reasonString the reason for the lock
      * @return value the value of tokens locked
      * @return autoReleaseTime the timestamp in which the lock will be inactive (or 0 if it's always active until removed)
      *
@@ -125,15 +122,13 @@ contract IDSLockManager is Initializable, VersionedContract {
      * can be used to iterate through the locks of a user
      * @param _investorId investorId to get token lock for
      * @param _lockIndex the 0 based index of the lock.
-     * @return id the unique lock id
-     * @return type the lock type (manual or other)
-     * @return reason the reason for the lock
+     * @return reasonCode the reason code
+     * @return reasonString the reason for the lock
      * @return value the value of tokens locked
      * @return autoReleaseTime the timestamp in which the lock will be inactive (or 0 if it's always active until removed)
      *
      * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
      */
-
     function lockInfoForInvestor(string memory _investorId, uint256 _lockIndex)
         public
         view
