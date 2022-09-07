@@ -1,9 +1,10 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../service/ServiceConsumer.sol";
 import "../data-stores/TokenDataStore.sol";
 import "../omnibus/OmnibusTBEController.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataStore {
     event Pause();
     event Unpause();

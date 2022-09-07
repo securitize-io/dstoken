@@ -1,9 +1,10 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./IDSToken.sol";
 import "../utils/ProxyTarget.sol";
 import "./StandardToken.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     // using FeaturesLibrary for SupportedFeatures;
     uint256 internal constant OMNIBUS_NO_ACTION = 0;

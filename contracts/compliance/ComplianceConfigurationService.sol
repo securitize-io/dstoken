@@ -1,10 +1,11 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./IDSComplianceConfigurationService.sol";
 import "../data-stores/ComplianceConfigurationDataStore.sol";
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurationService, ServiceConsumer, ComplianceConfigurationDataStore {
     function initialize() public initializer forceInitializeFromProxy {
         IDSComplianceConfigurationService.initialize();

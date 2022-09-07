@@ -1,11 +1,12 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../utils/CommonUtils.sol";
-import "../zeppelin/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 import "../omnibus/IDSOmnibusWalletController.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 contract IDSToken is IERC20, Initializable, VersionedContract {
     event Issue(address indexed to, uint256 value, uint256 valueLocked);
     event Burn(address indexed burner, uint256 value, string reason);

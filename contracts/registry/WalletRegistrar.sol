@@ -1,9 +1,10 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./IDSWalletRegistrar.sol";
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 contract WalletRegistrar is ProxyTarget, Initializable, IDSWalletRegistrar, ServiceConsumer {
     function initialize() public initializer forceInitializeFromProxy {
         IDSWalletRegistrar.initialize();

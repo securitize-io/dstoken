@@ -1,9 +1,9 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
-
+//SPDX-License-Identifier: UNLICENSED
 contract IDSOmnibusWalletController is Initializable, VersionedContract {
     uint8 public constant BENEFICIARY = 0;
     uint8 public constant HOLDER_OF_RECORD = 1;

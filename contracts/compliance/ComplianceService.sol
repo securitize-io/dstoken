@@ -1,4 +1,4 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../utils/ProxyTarget.sol";
 import "./IDSComplianceService.sol";
@@ -15,6 +15,7 @@ import "../data-stores/ComplianceServiceDataStore.sol";
  *   and implement the five functions - recordIssuance,checkTransfer,recordTransfer,recordBurn and recordSeize.
  *   The rest of the functions should only be overridden in rare circumstances.
  */
+//SPDX-License-Identifier: UNLICENSED
 contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, ServiceConsumer, ComplianceServiceDataStore {
     function initialize() public forceInitializeFromProxy {
         IDSComplianceService.initialize();

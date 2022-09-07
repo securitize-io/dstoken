@@ -1,12 +1,13 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./LockManager.sol";
 import "./IDSLockManagerPartitioned.sol";
 import "./InvestorLockManagerBase.sol";
-import "../zeppelin/math/Math.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 // import "../data-stores/LockManagerPartitionedDataStore.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLockManagerBase {
     uint256 constant MAX_LOCKS_PER_INVESTOR_PARTITION = 30;
 

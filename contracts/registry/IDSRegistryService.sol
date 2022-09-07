@@ -1,11 +1,11 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../utils/CommonUtils.sol";
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 import "../omnibus/IDSOmnibusWalletController.sol";
 
-
+//SPDX-License-Identifier: UNLICENSED
 contract IDSRegistryService is Initializable, VersionedContract {
     constructor() internal {}
 

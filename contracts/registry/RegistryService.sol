@@ -1,11 +1,12 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
-import "../zeppelin/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./IDSRegistryService.sol";
 import "../service/ServiceConsumer.sol";
 import "../data-stores/RegistryServiceDataStore.sol";
 import "../utils/ProxyTarget.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, ServiceConsumer, RegistryServiceDataStore {
     function initialize() public initializer forceInitializeFromProxy {
         IDSRegistryService.initialize();

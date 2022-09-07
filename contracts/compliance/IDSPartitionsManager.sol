@@ -1,8 +1,9 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../service/IDSServiceConsumer.sol";
 import "../utils/Initializable.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 contract IDSPartitionsManager is Initializable, IDSServiceConsumer {
     constructor() internal {}
 

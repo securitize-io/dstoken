@@ -1,7 +1,8 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./ServiceConsumerDataStore.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 contract ComplianceConfigurationDataStore is ServiceConsumerDataStore {
     mapping(string => uint256) public countriesCompliances;
     uint256 public totalInvestorsLimit;

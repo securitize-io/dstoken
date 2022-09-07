@@ -51,17 +51,18 @@
     "eslint-plugin-standard": "^3.0.1",
     "eth-gas-reporter": "^0.2.22",
     "ethereumjs-util": "^7.1.4",
-    "ganache-cli": "^6.8.2",
+    "ganache": "^7.0.2",
     "minimist": "^1.2.0",
     "prettier": "^1.19.1",
     "prettier-plugin-solidity": "^1.0.0-alpha.36",
     "remixd": "^0.2.0-alpha.5",
     "solidity-coverage": "^0.5.0",
     "solium": "^1.1.7",
-    "truffle": "^5.0.22",
-    "truffle-hdwallet-provider": "^1.0.17"
+    "truffle-hdwallet-provider": "^1.0.17",
+    "truffle": "^5.5.28"
   },
   "dependencies": {
+    "@openzeppelin/contracts": "^4.7.3",
     "eth-gas-reporter": "^0.2.22",
     "eth-lightwallet": "^4.0.0",
     "nvm": "0.0.4"

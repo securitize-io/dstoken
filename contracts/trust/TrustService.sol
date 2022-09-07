@@ -1,4 +1,4 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../utils/CommonUtils.sol";
 import "../utils/ProxyTarget.sol";
@@ -10,6 +10,7 @@ import "../data-stores/TrustServiceDataStore.sol";
  * @dev A trust service which allows role-based access control for other contracts.
  * @dev Implements IDSTrustService.
  */
+//SPDX-License-Identifier: UNLICENSED
 contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServiceDataStore {
     function initialize() public initializer forceInitializeFromProxy {
         IDSTrustService.initialize();

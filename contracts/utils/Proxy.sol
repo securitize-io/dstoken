@@ -1,5 +1,6 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
+//SPDX-License-Identifier: UNLICENSED
 contract Proxy {
     address public owner;
     address public target;
@@ -29,15 +30,15 @@ contract Proxy {
         emit ProxyOwnerChanged(_owner);
     }
 
-    function() external payable {
+    fallback() external payable {
         address _impl = target;
         require(_impl != address(0), "Target not set");
 
         assembly {
             let ptr := mload(0x40)
-            calldatacopy(ptr, 0, calldatasize)
-            let result := delegatecall(gas, _impl, ptr, calldatasize, 0, 0)
-            let size := returndatasize
+            calldatacopy(ptr, 0, calldatasize())
+            let result := delegatecall(gas(), _impl, ptr, calldatasize(), 0, 0)
+            let size := returndatasize()
             returndatacopy(ptr, 0, size)
 
             switch result

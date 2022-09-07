@@ -1,9 +1,8 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../service/ServiceConsumer.sol";
 import "./IDSLockManager.sol";
-import "../zeppelin/math/Math.sol";
-import "../zeppelin/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../utils/ProxyTarget.sol";
 import "../data-stores/LockManagerDataStore.sol";
 
@@ -11,6 +10,7 @@ import "../data-stores/LockManagerDataStore.sol";
  * @title LockManager
  * @dev An interface for controlling and getting information about locked funds in a compliance manager
  */
+//SPDX-License-Identifier: UNLICENSED
 contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsumer, LockManagerDataStore {
     using SafeMath for uint256;
 

@@ -1,10 +1,11 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./DSToken.sol";
 import "./IDSTokenPartitioned.sol";
 import "../compliance/IDSPartitionsManager.sol";
 import "./TokenPartitionsLibrary.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
     function initialize(string memory _name, string memory _symbol, uint8 _decimals) public initializer forceInitializeFromProxy {
         DSToken.initialize(_name, _symbol, _decimals);

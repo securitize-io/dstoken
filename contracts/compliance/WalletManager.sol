@@ -1,4 +1,4 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../service/ServiceConsumer.sol";
 import "./IDSWalletManager.sol";
@@ -10,6 +10,7 @@ import "../data-stores/WalletManagerDataStore.sol";
  * @dev A wallet manager which allows marking special wallets in the system.
  * @dev Implements DSTrustServiceInterface and ESServiceConsumer.
  */
+//SPDX-License-Identifier: UNLICENSED
 contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceConsumer, WalletManagerDataStore {
     function initialize() public initializer forceInitializeFromProxy {
         IDSWalletManager.initialize();

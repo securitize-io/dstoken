@@ -1,9 +1,10 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
 import "./IDSTokenReallocator.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 contract TokenReallocator is ProxyTarget, Initializable, ServiceConsumer, IDSTokenReallocator {
     function initialize() public initializer forceInitializeFromProxy {
         ServiceConsumer.initialize();

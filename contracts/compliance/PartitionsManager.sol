@@ -1,4 +1,4 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 
 import "../service/ServiceConsumer.sol";
@@ -6,6 +6,7 @@ import "./IDSPartitionsManager.sol";
 import "../data-stores/PartitionsManagerDataStore.sol";
 import "../utils/ProxyTarget.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 contract PartitionsManager is ProxyTarget, Initializable,  IDSPartitionsManager, ServiceConsumer, PartitionsManagerDataStore {
 
   function initialize() public initializer forceInitializeFromProxy {

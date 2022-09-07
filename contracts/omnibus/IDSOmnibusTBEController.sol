@@ -1,4 +1,4 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
@@ -6,6 +6,7 @@ import "../data-stores/OmnibusTBEControllerDataStore.sol";
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 contract IDSOmnibusTBEController is Initializable, VersionedContract {
     using SafeMath for uint256;
 

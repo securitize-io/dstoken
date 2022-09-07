@@ -1,8 +1,8 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./Initializable.sol";
 
-
+//SPDX-License-Identifier: UNLICENSED
 contract Ownable is Initializable {
     address private _owner;
 

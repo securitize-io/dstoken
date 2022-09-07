@@ -1,8 +1,9 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./ServiceConsumerDataStore.sol";
 import "../omnibus/IDSOmnibusWalletController.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 contract RegistryServiceDataStore is ServiceConsumerDataStore {
     struct Attribute {
         uint256 value;

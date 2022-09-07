@@ -1,13 +1,14 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./VersionedContract.sol";
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
-import "../zeppelin/math/Math.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 /**
  @dev Based on SimpleWallet (https://github.com/christianlundkvist/simple-multisig) and uses EIP-712 standard validate a signature
 */
+//SPDX-License-Identifier: UNLICENSED
 contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
     // EIP712 Precomputed hashes:
     // keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract,bytes32 salt)")
@@ -190,5 +191,5 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         require(success, "transaction was not executed");
     }
 
-    function() external payable {}
+    fallback() external payable {}
 }

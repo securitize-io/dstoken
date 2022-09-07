@@ -1,8 +1,9 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 contract IDSTokenReallocator is Initializable, VersionedContract {
     constructor() internal {}
 

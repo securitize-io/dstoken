@@ -1,8 +1,7 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../utils/CommonUtils.sol";
-import "../zeppelin/math/SafeMath.sol";
-import "../zeppelin/math/Math.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../compliance/IDSComplianceServicePartitioned.sol";
 import "../compliance/IDSLockManagerPartitioned.sol";
 import "../registry/IDSRegistryService.sol";
@@ -10,6 +9,7 @@ import "../compliance/IDSComplianceConfigurationService.sol";
 import "../compliance/IDSPartitionsManager.sol";
 import "../omnibus/IDSOmnibusTBEController.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 library TokenPartitionsLibrary {
     using SafeMath for uint256;
 

@@ -1,6 +1,7 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 /// @title Test token contract - Allows testing of token transfers with multisig wallet.
+//SPDX-License-Identifier: UNLICENSED
 contract TestToken {
     /*
      *  Events

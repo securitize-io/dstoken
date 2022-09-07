@@ -1,4 +1,4 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./ComplianceService.sol";
 import "../registry/IDSRegistryService.sol";
@@ -8,7 +8,7 @@ import "../registry/IDSRegistryService.sol";
 *
 *   This simple compliance service is meant to be used for tokens that only need to be validated against an investor registry.
 */
-
+//SPDX-License-Identifier: UNLICENSED
 contract ComplianceServiceWhitelisted is ComplianceService {
     function initialize() public initializer forceInitializeFromProxy {
         ComplianceService.initialize();

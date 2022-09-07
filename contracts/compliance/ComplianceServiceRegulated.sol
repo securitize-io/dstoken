@@ -1,7 +1,7 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./ComplianceServiceWhitelisted.sol";
-import "../zeppelin/math/Math.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 library ComplianceServiceLibrary {
     uint256 internal constant DS_TOKEN = 0;
@@ -497,7 +497,7 @@ library ComplianceServiceLibrary {
  *   @title Concrete compliance service for tokens with regulation
  *
  */
-
+//SPDX-License-Identifier: UNLICENSED
 contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     function initialize() public initializer forceInitializeFromProxy {
         super.initialize();
