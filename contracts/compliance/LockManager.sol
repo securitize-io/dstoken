@@ -2,9 +2,10 @@ pragma solidity ^0.8.13;
 
 import "../service/ServiceConsumer.sol";
 import "./IDSLockManager.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../utils/ProxyTarget.sol";
 import "../data-stores/LockManagerDataStore.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 /**
  * @title LockManager
@@ -58,13 +59,13 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
 
     function createLock(address _to, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime) internal {
         //Get total count
-        uint256 lockCount = locksCounts[_to];
+        uint256 totalLockCount = locksCounts[_to];
 
         //Only allow MAX_LOCKS_PER_ADDRESS locks per address, to prevent out-of-gas at transfer scenarios
-        require(lockCount < MAX_LOCKS_PER_ADDRESS, "Too many locks for this address");
+        require(totalLockCount < MAX_LOCKS_PER_ADDRESS, "Too many locks for this address");
 
         //Add the lock
-        setLockInfoImpl(_to, lockCount, _valueLocked, _reasonCode, _reasonString, _releaseTime);
+        setLockInfoImpl(_to, totalLockCount, _valueLocked, _reasonCode, _reasonString, _releaseTime);
 
         //Increase the lock counter for the user
         locksCounts[_to] = locksCounts[_to].add(1);

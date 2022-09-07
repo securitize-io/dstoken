@@ -6,6 +6,7 @@ import "../data-stores/InvestorLockManagerDataStore.sol";
 import "../utils/ProxyTarget.sol";
 import "../service/ServiceConsumer.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
@@ -55,12 +56,12 @@ contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
         onlyIssuerOrAboveOrToken
     {
         //Get total count
-        uint256 lockCount = investorsLocksCounts[_investor];
+        uint256 totalLockCount = investorsLocksCounts[_investor];
         //Only allow MAX_LOCKS_PER_INVESTOR locks per address, to prevent out-of-gas at transfer scenarios
-        require(lockCount < MAX_LOCKS_PER_INVESTOR, "Too many locks for this investor");
-        setLockInfoImpl(_investor, lockCount, _valueLocked, _reasonCode, _reasonString, _releaseTime);
-        lockCount += 1;
-        investorsLocksCounts[_investor] = lockCount;
+        require(totalLockCount < MAX_LOCKS_PER_INVESTOR, "Too many locks for this investor");
+        setLockInfoImpl(_investor, totalLockCount, _valueLocked, _reasonCode, _reasonString, _releaseTime);
+        totalLockCount += 1;
+        investorsLocksCounts[_investor] = totalLockCount;
         emit HolderLocked(_investor, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
 

@@ -2,6 +2,7 @@ pragma solidity ^0.8.13;
 
 import "./ComplianceServiceWhitelisted.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 library ComplianceServiceLibrary {
     uint256 internal constant DS_TOKEN = 0;

@@ -4,6 +4,7 @@ import "./LockManager.sol";
 import "./IDSLockManagerPartitioned.sol";
 import "./InvestorLockManagerBase.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 // import "../data-stores/LockManagerPartitionedDataStore.sol";
 
@@ -22,12 +23,12 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         validLock(_valueLocked, _releaseTime)
         onlyIssuerOrAboveOrToken
     {
-        uint256 lockCount = investorsPartitionsLocksCounts[_investorId][_partition];
+        uint256 totalLockCount = investorsPartitionsLocksCounts[_investorId][_partition];
 
         //Only allow MAX_LOCKS_PER_INVESTOR locks per address, to prevent out-of-gas at transfer scenarios
         require(lockCount < MAX_LOCKS_PER_INVESTOR_PARTITION, "Too many locks for this investor partition");
 
-        investorsPartitionsLocks[_investorId][_partition][lockCount] = Lock(_valueLocked, _reasonCode, _reasonString, _releaseTime);
+        investorsPartitionsLocks[_investorId][_partition][totalLockCount] = Lock(_valueLocked, _reasonCode, _reasonString, _releaseTime);
         investorsPartitionsLocksCounts[_investorId][_partition] += 1;
 
         emit HolderLockedPartition(_investorId, _valueLocked, _reasonCode, _reasonString, _releaseTime, _partition);
@@ -161,7 +162,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
 
     function lockCount(
         address /*_who*/
-    ) public view returns (uint256) {
+    ) public pure returns (uint256) {
         revertedFunction();
     }
 
