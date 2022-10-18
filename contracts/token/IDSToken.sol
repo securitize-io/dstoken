@@ -7,7 +7,7 @@ import "../utils/Initializable.sol";
 import "../omnibus/IDSOmnibusWalletController.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-contract IDSToken is IERC20, Initializable, VersionedContract {
+abstract contract IDSToken is IERC20, Initializable, VersionedContract {
     event Issue(address indexed to, uint256 value, uint256 valueLocked);
     event Burn(address indexed burner, uint256 value, string reason);
     event Seize(address indexed from, address indexed to, uint256 value, string reason);
@@ -25,7 +25,7 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
 
     constructor() internal {}
 
-    function initialize() public {
+    function initialize() public virtual {
         VERSIONS.push(3);
     }
 

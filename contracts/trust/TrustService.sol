@@ -103,7 +103,6 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
    * @dev Sets or removes a role for a wallet. (internal)
    * @param _address The wallet whose role needs to be set or removed.
    * @param _role The role to be set. NONE (0) indicates role removal.
-   * @return A boolean that indicates if the operation was successful.
    */
     function setRoleImpl(address _address, uint8 _role) internal {
         uint8 old_role = roles[_address];

@@ -153,11 +153,8 @@ contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
     /**
      * @dev Get details of a specific lock associated with an address
      * can be used to iterate through the locks of a user
-     * @param _who address to get token lock for
-     * @param _lockIndex the 0 based index of the lock.
-     * @return id the unique lock id
-     * @return type the lock type (manual or other)
-     * @return reason the reason for the lock
+     * @return reasonCode the reason code for the lock
+     * @return reasonString the reason for the lock
      * @return value the value of tokens locked
      * @return autoReleaseTime the timestamp in which the lock will be inactive (or 0 if it's always active until removed)
      *

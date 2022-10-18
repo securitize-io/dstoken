@@ -4,7 +4,7 @@ import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-contract IDSComplianceService is Initializable, VersionedContract {
+abstract contract IDSComplianceService is Initializable, VersionedContract {
     constructor() internal {}
 
     function initialize() public {

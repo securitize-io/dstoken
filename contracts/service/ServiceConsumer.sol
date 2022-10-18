@@ -26,26 +26,26 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
     uint8 public constant ROLE_ISSUER = 2;
     uint8 public constant ROLE_EXCHANGE = 4;
 
-    function initialize() public {
+    function initialize() public override {
         IDSServiceConsumer.initialize();
         Ownable.initialize();
 
         VERSIONS.push(6);
     }
 
-    modifier onlyMaster {
+    modifier onlyMaster override {
         IDSTrustService trustManager = getTrustService();
         require(this.contractOwner() == msg.sender || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
         _;
     }
 
-    modifier onlyIssuerOrAbove {
+    modifier onlyIssuerOrAbove override {
         IDSTrustService trustManager = getTrustService();
         require(trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
         _;
     }
 
-    modifier onlyExchangeOrAbove {
+    modifier onlyExchangeOrAbove override {
         IDSTrustService trustManager = getTrustService();
         require(
             trustManager.getRole(msg.sender) == ROLE_EXCHANGE || trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER,
@@ -54,17 +54,17 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
         _;
     }
 
-    modifier onlyToken {
+    modifier onlyToken override {
         require(msg.sender == getDSService(DS_TOKEN), "This function can only called by the associated token");
         _;
     }
 
-    modifier onlyRegistry {
+    modifier onlyRegistry override {
         require(msg.sender == getDSService(REGISTRY_SERVICE), "This function can only called by the registry service");
         _;
     }
 
-    modifier onlyIssuerOrAboveOrToken {
+    modifier onlyIssuerOrAboveOrToken override {
         if (msg.sender != getDSService(DS_TOKEN)) {
             IDSTrustService trustManager = IDSTrustService(getDSService(TRUST_SERVICE));
             require(trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
@@ -72,24 +72,24 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
         _;
     }
 
-    modifier onlyOmnibusWalletController(address omnibusWallet, IDSOmnibusWalletController omnibusWalletController) {
+    modifier onlyOmnibusWalletController(address omnibusWallet, IDSOmnibusWalletController omnibusWalletController) override {
         require(getRegistryService().getOmnibusWalletController(omnibusWallet) == omnibusWalletController, "Wrong controller address");
         _;
     }
 
-    modifier onlyTBEOmnibus {
+    modifier onlyTBEOmnibus override {
         require(msg.sender == address(getOmnibusTBEController()), "Not authorized");
         _;
     }
 
-    modifier onlyMasterOrTBEOmnibus {
+    modifier onlyMasterOrTBEOmnibus override {
         IDSTrustService trustManager = getTrustService();
         require(msg.sender == address(getOmnibusTBEController()) ||
         this.contractOwner() == msg.sender || trustManager.getRole(msg.sender) == ROLE_MASTER, "Not authorized");
         _;
     }
 
-    modifier onlyOwnerOrIssuerOrAbove {
+    modifier onlyOwnerOrIssuerOrAbove override {
         if(!isOwner()) {
             IDSTrustService trustManager = getTrustService();
             require(trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
@@ -97,11 +97,11 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
         _;
     }
 
-    function getDSService(uint256 _serviceId) public view returns (address) {
+    function getDSService(uint256 _serviceId) public view override returns (address) {
         return services[_serviceId];
     }
 
-    function setDSService(uint256 _serviceId, address _address) public onlyMaster returns (bool) {
+    function setDSService(uint256 _serviceId, address _address) public override onlyMaster returns (bool) {
         services[_serviceId] = _address;
         emit DSServiceSet(_serviceId, _address);
         return true;

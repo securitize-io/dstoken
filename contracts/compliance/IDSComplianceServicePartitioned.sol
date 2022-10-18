@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 import "./IDSComplianceService.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-contract IDSComplianceServicePartitioned is IDSComplianceService {
+abstract contract IDSComplianceServicePartitioned is IDSComplianceService {
     constructor() internal {}
 
     function initialize() public {

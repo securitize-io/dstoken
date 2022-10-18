@@ -4,7 +4,7 @@ import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-contract IDSOmnibusWalletController is Initializable, VersionedContract {
+abstract contract IDSOmnibusWalletController is Initializable, VersionedContract {
     uint8 public constant BENEFICIARY = 0;
     uint8 public constant HOLDER_OF_RECORD = 1;
 

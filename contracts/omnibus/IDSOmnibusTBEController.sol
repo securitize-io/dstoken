@@ -7,10 +7,10 @@ import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-contract IDSOmnibusTBEController is Initializable, VersionedContract {
+abstract contract IDSOmnibusTBEController is Initializable, VersionedContract {
     using SafeMath for uint256;
 
-    function initialize(address _omnibusWallet, bool _isPartitionedToken) public;
+    function initialize(address _omnibusWallet, bool _isPartitionedToken) public virtual;
 
     function bulkIssuance(uint256 value, uint256 issuanceTime, uint256 totalInvestors, uint256 accreditedInvestors,
         uint256 usAccreditedInvestors, uint256 usTotalInvestors, uint256 jpTotalInvestors, bytes32[] memory euRetailCountries,

@@ -6,10 +6,10 @@ import "../utils/Initializable.sol";
 import "../omnibus/IDSOmnibusWalletController.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-contract IDSRegistryService is Initializable, VersionedContract {
+abstract contract IDSRegistryService is Initializable, VersionedContract {
     constructor() internal {}
 
-    function initialize() public {
+    function initialize() public virtual {
         VERSIONS.push(6);
     }
 

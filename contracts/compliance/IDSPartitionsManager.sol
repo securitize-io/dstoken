@@ -4,10 +4,10 @@ import "../service/IDSServiceConsumer.sol";
 import "../utils/Initializable.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-contract IDSPartitionsManager is Initializable, IDSServiceConsumer {
+abstract contract IDSPartitionsManager is Initializable, IDSServiceConsumer {
     constructor() internal {}
 
-    function initialize() public {
+    function initialize() public virtual {
         VERSIONS.push(2);
     }
 

@@ -3,9 +3,9 @@ pragma solidity ^0.8.13;
 import "./IDSToken.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-contract IDSTokenPartitioned is IDSToken {
+abstract contract IDSTokenPartitioned is IDSToken {
     constructor() internal {}
-    function initialize() public {}
+    function initialize() public override {}
     function balanceOfByPartition(address _who, bytes32 _partition) public view returns (uint256);
     function balanceOfInvestorByPartition(string memory _id, bytes32 _partition) public view returns (uint256);
     function partitionCountOf(address _who) public view returns (uint256);

@@ -5,10 +5,10 @@ import "../utils/Initializable.sol";
 import "../omnibus/IDSOmnibusWalletController.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-contract IDSServiceConsumer is Initializable, VersionedContract {
+abstract contract IDSServiceConsumer is Initializable, VersionedContract {
     constructor() internal {}
 
-    function initialize() public {
+    function initialize() public virtual {
         VERSIONS.push(6);
     }
 
@@ -27,62 +27,62 @@ contract IDSServiceConsumer is Initializable, VersionedContract {
     uint256 public constant TRANSACTION_RELAYER = 4096;
     uint256 public constant TOKEN_REALLOCATOR = 8192;
 
-    modifier onlyMaster {
+    modifier onlyMaster virtual {
         require(false, "Not implemented");
         _;
     }
 
-    modifier onlyIssuerOrAbove {
+    modifier onlyIssuerOrAbove virtual {
         require(false, "Not implemented");
         _;
     }
 
-    modifier onlyExchangeOrAbove {
+    modifier onlyExchangeOrAbove virtual {
         require(false, "Not implemented");
         _;
     }
 
-    modifier onlyToken {
+    modifier onlyToken virtual {
         require(false, "Not implemented");
         _;
     }
 
-    modifier onlyRegistry {
+    modifier onlyRegistry virtual {
         require(false, "Not implemented");
         _;
     }
 
-    modifier onlyIssuerOrAboveOrToken {
+    modifier onlyIssuerOrAboveOrToken virtual {
         require(false, "Not implemented");
         _;
     }
 
-    modifier onlyOmnibusWalletController(address omnibusWallet, IDSOmnibusWalletController omnibusWalletController) {
+    modifier onlyOmnibusWalletController(address omnibusWallet, IDSOmnibusWalletController omnibusWalletController) virtual {
         require(false, "Not implemented");
         _;
     }
 
-    modifier onlyTBEOmnibus {
+    modifier onlyTBEOmnibus virtual {
         require(false, "Not implemented");
         _;
     }
 
-    modifier onlyMasterOrTBEOmnibus {
+    modifier onlyMasterOrTBEOmnibus virtual {
         require(false, "Not implemented");
         _;
     }
 
-    modifier onlyOwnerOrIssuerOrAbove {
+    modifier onlyOwnerOrIssuerOrAbove virtual {
         require(false, "Not implemented");
         _;
     }
 
-    function getDSService(uint256 _serviceId) public view returns (address);
+    function getDSService(uint256 _serviceId) public view virtual returns (address);
 
     function setDSService(
         uint256 _serviceId,
         address _address /*onlyMaster*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     event DSServiceSet(uint256 serviceId, address serviceAddress);
 }

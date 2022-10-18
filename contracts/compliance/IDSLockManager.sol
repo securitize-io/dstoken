@@ -4,10 +4,10 @@ import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-contract IDSLockManager is Initializable, VersionedContract {
+abstract contract IDSLockManager is Initializable, VersionedContract {
     constructor() internal {}
 
-    function initialize() public {
+    function initialize() public virtual {
         VERSIONS.push(3);
     }
 

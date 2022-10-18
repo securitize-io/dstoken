@@ -9,10 +9,10 @@ import "../utils/Initializable.sol";
  * @dev An interface for a trust service which allows role-based access control for other contracts.
  */
 //SPDX-License-Identifier: UNLICENSED
-contract IDSTrustService is Initializable, VersionedContract {
+abstract contract IDSTrustService is Initializable, VersionedContract {
     constructor() internal {}
 
-    function initialize() public {
+    function initialize() public virtual {
         VERSIONS.push(3);
     }
 
