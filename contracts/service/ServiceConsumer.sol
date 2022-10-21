@@ -26,7 +26,7 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
     uint8 public constant ROLE_ISSUER = 2;
     uint8 public constant ROLE_EXCHANGE = 4;
 
-    function initialize() public override {
+    function initialize() public virtual override(IDSServiceConsumer, Ownable) {
         IDSServiceConsumer.initialize();
         Ownable.initialize();
 

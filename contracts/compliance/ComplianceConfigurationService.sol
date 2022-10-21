@@ -7,7 +7,7 @@ import "../utils/ProxyTarget.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurationService, ServiceConsumer, ComplianceConfigurationDataStore {
-    function initialize() public override initializer forceInitializeFromProxy {
+    function initialize() public override(IDSComplianceConfigurationService, ServiceConsumer) initializer forceInitializeFromProxy {
         IDSComplianceConfigurationService.initialize();
         ServiceConsumer.initialize();
         VERSIONS.push(7);

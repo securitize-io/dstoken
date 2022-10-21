@@ -54,7 +54,7 @@ abstract contract IDSLockManager is Initializable, VersionedContract {
         uint256 _reasonCode,
         string memory _reasonString,
         uint256 _releaseTime /*onlyIssuerOrAboveOrToken*/
-    ) public;
+    ) public virtual;
 
     /**
      * @dev Releases a specific lock record for a wallet
@@ -67,7 +67,7 @@ abstract contract IDSLockManager is Initializable, VersionedContract {
     function removeLockRecord(
         address _to,
         uint256 _lockIndex /*issuerOrAbove*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     /**
      * @dev Releases a specific lock record for a investor
@@ -80,7 +80,7 @@ abstract contract IDSLockManager is Initializable, VersionedContract {
     function removeLockRecordForInvestor(
         string memory _investorId,
         uint256 _lockIndex /*onlyIssuerOrAbove*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     /**
      * @dev Get number of locks currently associated with an address
@@ -90,7 +90,7 @@ abstract contract IDSLockManager is Initializable, VersionedContract {
      *
      * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
      */
-    function lockCount(address _who) public view returns (uint256);
+    function lockCount(address _who) public view virtual returns (uint256);
 
     /**
      * @dev Get number of locks currently associated with a investor
@@ -101,7 +101,7 @@ abstract contract IDSLockManager is Initializable, VersionedContract {
      * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
      */
 
-    function lockCountForInvestor(string memory _investorId) public view returns (uint256);
+    function lockCountForInvestor(string memory _investorId) public view virtual returns (uint256);
 
     /**
      * @dev Get details of a specific lock associated with an address
@@ -115,7 +115,7 @@ abstract contract IDSLockManager is Initializable, VersionedContract {
      *
      * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
      */
-    function lockInfo(address _who, uint256 _lockIndex) public view returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime);
+    function lockInfo(address _who, uint256 _lockIndex) public view virtual returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime);
 
     /**
      * @dev Get details of a specific lock associated with a investor
@@ -129,24 +129,24 @@ abstract contract IDSLockManager is Initializable, VersionedContract {
      *
      * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
      */
-    function lockInfoForInvestor(string memory _investorId, uint256 _lockIndex)
-        public
-        view
-        returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime);
+    function lockInfoForInvestor(
+        string memory _investorId,
+        uint256 _lockIndex
+    ) public view virtual  returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime);
 
     /**
      * @dev get total number of transferable tokens for a wallet, at a certain time
      * @param _who address to get number of transferable tokens for
      * @param _time time to calculate for
      */
-    function getTransferableTokens(address _who, uint64 _time) public view returns (uint256);
+    function getTransferableTokens(address _who, uint64 _time) public view virtual returns (uint256);
 
     /**
      * @dev get total number of transferable tokens for a investor, at a certain time
      * @param _investorId investor id
      * @param _time time to calculate for
      */
-    function getTransferableTokensForInvestor(string memory _investorId, uint64 _time) public view returns (uint256);
+    function getTransferableTokensForInvestor(string memory _investorId, uint64 _time) public view virtual returns (uint256);
 
     /**
      * @dev pause investor
@@ -154,7 +154,7 @@ abstract contract IDSLockManager is Initializable, VersionedContract {
      */
     function lockInvestor(
         string memory _investorId /*issuerOrAbove*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     /**
      * @dev unpauses investor
@@ -162,11 +162,11 @@ abstract contract IDSLockManager is Initializable, VersionedContract {
      */
     function unlockInvestor(
         string memory _investorId /*issuerOrAbove*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     /**
      * @dev Returns true if paused, otherwise false
      * @param _investorId investor id
      */
-    function isInvestorLocked(string memory _investorId) public view returns (bool);
+    function isInvestorLocked(string memory _investorId) public view virtual returns (bool);
 }
