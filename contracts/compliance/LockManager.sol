@@ -45,7 +45,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
 
     /******************************/
 
-    function initialize() public initializer forceInitializeFromProxy {
+    function initialize() public override(IDSLockManager, ServiceConsumer) initializer forceInitializeFromProxy {
         IDSLockManager.initialize();
         ServiceConsumer.initialize();
         VERSIONS.push(3);
@@ -75,6 +75,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
 
     function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime)
         public
+        override
         onlyIssuerOrAboveOrToken
         validLock(_valueLocked, _releaseTime)
     {
@@ -90,7 +91,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
      * note - this may change the order of the locks on an address, so if iterating the iteration should be restarted.
      * @return true on success
      */
-    function removeLockRecord(address _to, uint256 _lockIndex) public onlyIssuerOrAbove returns (bool) {
+    function removeLockRecord(address _to, uint256 _lockIndex) public override onlyIssuerOrAbove returns (bool) {
         require(_to != address(0), "Invalid address");
         //Put the last lock instead of the lock to remove (this will work even with 1 lock in the list)
         uint256 lastLockNumber = locksCounts[_to];
@@ -113,6 +114,8 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
 
         //decrease the lock counter for the user
         locksCounts[_to] = lastLockNumber;
+
+        return true;
     }
 
     /**
@@ -123,7 +126,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
      *
      * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
      */
-    function lockCount(address _who) public view returns (uint256) {
+    function lockCount(address _who) public view override returns (uint256) {
         require(_who != address(0), "Invalid address");
         return locksCounts[_who];
     }
@@ -138,7 +141,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
      *
      * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
      */
-    function lockInfo(address _who, uint256 _lockIndex) public view returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime) {
+    function lockInfo(address _who, uint256 _lockIndex) public view override returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime) {
         require(_who != address(0), "Invalid address");
         uint256 lastLockNumber = locksCounts[_who];
         require(_lockIndex < lastLockNumber, "Index is greater than the number of locks");
@@ -148,7 +151,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         autoReleaseTime = locks[_who][_lockIndex].releaseTime;
     }
 
-    function getTransferableTokens(address _who, uint64 _time) public view returns (uint256) {
+    function getTransferableTokens(address _who, uint64 _time) public view override returns (uint256) {
         require(_time > 0, "Time must be greater than zero");
 
         uint256 balanceOfInvestor = getToken().balanceOf(_who);
@@ -175,39 +178,23 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         return transferable;
     }
 
-    function getTransferableTokensForInvestor(string memory, uint64) public view returns (uint256) {
+    function getTransferableTokensForInvestor(string memory, uint64) public view override returns (uint256) {
         return 0;
     }
 
-    function lockInfoForInvestor(string memory, uint256) public view returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime) {
+    function lockInfoForInvestor(string memory, uint256) public view override returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime) {
         return (0, "", 0, 0);
     }
 
-    function lockCountForInvestor(string memory) public view returns (uint256) {
+    function lockCountForInvestor(string memory) public view override returns (uint256) {
         return 0;
     }
 
-    function createLockForInvestor(string memory, uint256, uint256, string memory, uint256) public onlyIssuerOrAboveOrToken {
+    function createLockForInvestor(string memory, uint256, uint256, string memory, uint256) public override onlyIssuerOrAboveOrToken {
         revertInvestorLevelMethod();
     }
 
-    function removeLockRecordForInvestor(string memory, uint256) public onlyIssuerOrAbove returns (bool) {
-        revertInvestorLevelMethod();
-    }
-
-    function lockInvestor(
-        string memory /*_investorId*/
-    ) public returns (bool) {
-        revertInvestorLevelMethod();
-    }
-    function unlockInvestor(
-        string memory /*_investorId*/
-    ) public returns (bool) {
-        revertInvestorLevelMethod();
-    }
-    function isInvestorLocked(
-        string memory /*_investorId*/
-    ) public view returns (bool) {
+    function removeLockRecordForInvestor(string memory, uint256) public override onlyIssuerOrAbove returns (bool) {
         revertInvestorLevelMethod();
     }
 

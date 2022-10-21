@@ -36,7 +36,7 @@ abstract contract IDSLockManager is Initializable, VersionedContract {
         uint256 _valueLocked,
         string memory _reason,
         uint256 _releaseTime /*issuerOrAboveOrToken*/
-    ) public;
+    ) public virtual;
 
     /**
      * @dev creates a lock record for investor Id
@@ -147,26 +147,4 @@ abstract contract IDSLockManager is Initializable, VersionedContract {
      * @param _time time to calculate for
      */
     function getTransferableTokensForInvestor(string memory _investorId, uint64 _time) public view virtual returns (uint256);
-
-    /**
-     * @dev pause investor
-     * @param _investorId investor id
-     */
-    function lockInvestor(
-        string memory _investorId /*issuerOrAbove*/
-    ) public virtual returns (bool);
-
-    /**
-     * @dev unpauses investor
-     * @param _investorId investor id
-     */
-    function unlockInvestor(
-        string memory _investorId /*issuerOrAbove*/
-    ) public virtual returns (bool);
-
-    /**
-     * @dev Returns true if paused, otherwise false
-     * @param _investorId investor id
-     */
-    function isInvestorLocked(string memory _investorId) public view virtual returns (bool);
 }

@@ -6,7 +6,7 @@ import "./IDSLockManager.sol";
 abstract contract IDSLockManagerPartitioned is IDSLockManager {
     constructor() internal {}
 
-    function initialize() public override {
+    function initialize() public virtual override {
         VERSIONS.push(2);
     }
 

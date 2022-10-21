@@ -75,7 +75,7 @@ abstract contract IDSComplianceService is Initializable, VersionedContract {
         uint256 _value /*onlyToken*/
     ) public virtual returns (bool);
 
-    function preIssuanceCheck(address _to, uint256 _value) public view returns (uint256 code, string memory reason);
+    function preIssuanceCheck(address _to, uint256 _value) public view virtual returns (uint256 code, string memory reason);
 
     function preTransferCheck(
         address _from,

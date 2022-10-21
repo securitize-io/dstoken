@@ -16,8 +16,8 @@ import "../data-stores/ComplianceServiceDataStore.sol";
  *   The rest of the functions should only be overridden in rare circumstances.
  */
 //SPDX-License-Identifier: UNLICENSED
-contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, ServiceConsumer, ComplianceServiceDataStore {
-    function initialize() public override(IDSComplianceService, ServiceConsumer) forceInitializeFromProxy {
+abstract contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, ServiceConsumer, ComplianceServiceDataStore {
+    function initialize() public virtual override(IDSComplianceService, ServiceConsumer) forceInitializeFromProxy {
         IDSComplianceService.initialize();
         ServiceConsumer.initialize();
         VERSIONS.push(7);
@@ -43,7 +43,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         uint256 _value,
         bool _paused,
         uint256 _balanceFrom
-    ) public override onlyToken returns (bool) {
+    ) public virtual override onlyToken returns (bool) {
         uint256 code;
         string memory reason;
 
@@ -57,7 +57,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         address _to,
         uint256 _value,
         uint256 _issuanceTime
-    ) public override onlyToken returns (bool) {
+    ) public virtual override onlyToken returns (bool) {
         uint256 code;
         string memory reason;
 
@@ -72,7 +72,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         return recordIssuance(_to, _value, _issuanceTime);
     }
 
-    function validateBurn(address _who, uint256 _value) public override onlyToken returns (bool) {
+    function validateBurn(address _who, uint256 _value) public virtual override onlyToken returns (bool) {
         return recordBurn(_who, _value);
     }
 
@@ -80,7 +80,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         address _from,
         address _to,
         uint256 _value
-    ) public override onlyToken returns (bool) {
+    ) public virtual override onlyToken returns (bool) {
         require(getWalletManager().isIssuerSpecialWallet(_to), "Target wallet type error");
 
         return recordSeize(_from, _to, _value);
@@ -92,7 +92,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         uint256 _value,
         uint256 _balanceFrom,
         bool _pausedToken
-    ) public view override returns (uint256 code, string memory reason) {
+    ) public view virtual returns (uint256 code, string memory reason) {
         if (_pausedToken) {
             return (10, TOKEN_PAUSED);
         }
@@ -112,7 +112,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         address _from,
         address _to,
         uint256 _value
-    ) public view override returns (uint256 code, string memory reason) {
+    ) public view virtual override returns (uint256 code, string memory reason) {
         if (getToken().isPaused()) {
             return (10, TOKEN_PAUSED);
         }
@@ -132,7 +132,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         address _from,
         address _to,
         uint256 _value
-    ) public view override returns (uint256 code, string memory reason) {
+    ) public view virtual override returns (uint256 code, string memory reason) {
         if (getToken().isPaused()) {
             return (10, TOKEN_PAUSED);
         }
@@ -143,7 +143,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
     function preIssuanceCheck(
         address, /*_to*/
         uint256 /*_value*/
-    ) public view override returns (uint256 code, string memory reason) {
+    ) public view virtual override returns (uint256 code, string memory reason) {
         return (0, VALID);
     }
 
@@ -151,7 +151,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         string memory, /*_id*/
         string memory, /*_country*/
         string memory /*_prevCountry*/
-    ) public override returns (bool) {
+    ) public virtual override returns (bool) {
         return true;
     }
 

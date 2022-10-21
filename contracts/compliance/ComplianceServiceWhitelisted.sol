@@ -10,7 +10,7 @@ import "../registry/IDSRegistryService.sol";
 */
 //SPDX-License-Identifier: UNLICENSED
 contract ComplianceServiceWhitelisted is ComplianceService {
-    function initialize() public override initializer forceInitializeFromProxy {
+    function initialize() public virtual override initializer forceInitializeFromProxy {
         ComplianceService.initialize();
         VERSIONS.push(5);
     }
@@ -20,7 +20,7 @@ contract ComplianceServiceWhitelisted is ComplianceService {
         uint256 _value,
         uint256 _balanceFrom,
         bool _pausedToken
-    ) public view override returns (uint256 code, string memory reason) {
+    ) public view virtual override returns (uint256 code, string memory reason) {
         return doPreTransferCheckWhitelisted(_from, _to, _value, _balanceFrom, _pausedToken);
     }
 
@@ -28,19 +28,19 @@ contract ComplianceServiceWhitelisted is ComplianceService {
         address _from,
         address _to,
         uint256 _value
-    ) public view override returns (uint256 code, string memory reason) {
+    ) public view virtual override returns (uint256 code, string memory reason) {
         return doPreTransferCheckWhitelisted(_from, _to, _value, getToken().balanceOf(_from), getToken().isPaused());
     }
 
-    function checkWhitelisted(address _who) public view override returns (bool) {
+    function checkWhitelisted(address _who) public view returns (bool) {
         return getWalletManager().isPlatformWallet(_who) || !CommonUtils.isEmptyString(getRegistryService().getInvestor(_who));
     }
 
-    function recordIssuance(address, uint256, uint256) internal override returns (bool) {
+    function recordIssuance(address, uint256, uint256) internal virtual override returns (bool) {
         return true;
     }
 
-    function recordTransfer(address, address, uint256) internal override returns (bool) {
+    function recordTransfer(address, address, uint256) internal virtual override returns (bool) {
         return true;
     }
 
@@ -52,7 +52,7 @@ contract ComplianceServiceWhitelisted is ComplianceService {
         return (0, VALID);
     }
 
-    function preIssuanceCheck(address _to, uint256) public view override returns (uint256, string memory) {
+    function preIssuanceCheck(address _to, uint256) public view virtual override returns (uint256, string memory) {
         if (!checkWhitelisted(_to)) {
             return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
         }
@@ -60,11 +60,11 @@ contract ComplianceServiceWhitelisted is ComplianceService {
         return (0, VALID);
     }
 
-    function recordBurn(address, uint256) internal override returns (bool) {
+    function recordBurn(address, uint256) internal virtual override returns (bool) {
         return true;
     }
 
-    function recordSeize(address, address, uint256) internal override returns (bool) {
+    function recordSeize(address, address, uint256) internal virtual override returns (bool) {
         return true;
     }
 
@@ -74,7 +74,7 @@ contract ComplianceServiceWhitelisted is ComplianceService {
         uint256 _value,
         uint256 _balanceFrom,
         bool _pausedToken
-    ) internal view override returns (uint256 code, string memory reason) {
+    ) internal view returns (uint256 code, string memory reason) {
         if (_pausedToken) {
             return (10, TOKEN_PAUSED);
         }

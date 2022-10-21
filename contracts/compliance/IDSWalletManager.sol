@@ -7,7 +7,7 @@ import "../utils/Initializable.sol";
 abstract contract IDSWalletManager is Initializable, VersionedContract {
     constructor() internal {}
 
-    function initialize() public {
+    function initialize() public virtual {
         VERSIONS.push(4);
     }
 
@@ -36,31 +36,31 @@ abstract contract IDSWalletManager is Initializable, VersionedContract {
      * @param _type The type of the wallet.
      * @return A boolean that indicates if the operation was successful.
      */
-    function setSpecialWallet(address _wallet, uint8 _type) internal returns (bool);
+    function setSpecialWallet(address _wallet, uint8 _type) internal virtual returns (bool);
 
     /**
      * @dev gets a wallet type
      * @param _wallet the address of the wallet to check.
      */
-    function getWalletType(address _wallet) public view returns (uint8);
+    function getWalletType(address _wallet) public view virtual returns (uint8);
 
     /**
      * @dev Returns true if it is platform wallet
      * @param _wallet the address of the wallet to check.
      */
-    function isPlatformWallet(address _wallet) external view returns (bool);
+    function isPlatformWallet(address _wallet) external view virtual returns (bool);
 
     /**
      * @dev Returns true if it is special wallet
      * @param _wallet the address of the wallet to check.
      */
-    function isSpecialWallet(address _wallet) external view returns (bool);
+    function isSpecialWallet(address _wallet) external view virtual returns (bool);
 
     /**
      * @dev Returns true if it is issuer special wallet
      * @param _wallet the address of the wallet to check.
      */
-    function isIssuerSpecialWallet(address _wallet) external view returns (bool);
+    function isIssuerSpecialWallet(address _wallet) external view virtual returns (bool);
 
     /**
      * @dev Sets a wallet to be an issuer wallet.
@@ -69,7 +69,7 @@ abstract contract IDSWalletManager is Initializable, VersionedContract {
      */
     function addIssuerWallet(
         address _wallet /*onlyIssuerOrAbove*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     /**
      * @dev Sets a wallet to be a platform wallet.
@@ -78,7 +78,7 @@ abstract contract IDSWalletManager is Initializable, VersionedContract {
      */
     function addPlatformWallet(
         address _wallet /*onlyIssuerOrAbove*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     /**
      * @dev Sets a wallet to be an exchange wallet.
@@ -86,7 +86,7 @@ abstract contract IDSWalletManager is Initializable, VersionedContract {
      * @param _owner The address of the owner.
      * @return A boolean that indicates if the operation was successful.
      */
-    function addExchangeWallet(address _wallet, address _owner) public returns (bool);
+    function addExchangeWallet(address _wallet, address _owner) public virtual returns (bool);
 
     /**
      * @dev Removes a special wallet.
@@ -95,7 +95,7 @@ abstract contract IDSWalletManager is Initializable, VersionedContract {
      */
     function removeSpecialWallet(
         address _wallet /*onlyIssuerOrAbove*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     /**
      * @dev Sets the amount of reserved slots for a wallet based on country and accreditation status.
@@ -110,7 +110,7 @@ abstract contract IDSWalletManager is Initializable, VersionedContract {
         string memory _country,
         uint8 _accreditationStatus,
         uint256 _slots /*onlyIssuerOrAbove*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     /**
      * @dev Gets the amount of reserved slots for a wallet based on country and accreditation status.
@@ -123,5 +123,5 @@ abstract contract IDSWalletManager is Initializable, VersionedContract {
         address _wallet,
         string memory _country,
         uint8 _accreditationStatus
-    ) public view returns (uint256);
+    ) public view virtual returns (uint256);
 }

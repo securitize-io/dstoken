@@ -10,33 +10,33 @@ import "./ComplianceService.sol";
 */
 //SPDX-License-Identifier: UNLICENSED
 contract ComplianceServiceNotRegulated is ComplianceService {
-    function initialize() public initializer forceInitializeFromProxy {
+    function initialize() public override initializer forceInitializeFromProxy {
         ComplianceService.initialize();
         VERSIONS.push(3);
     }
 
-    function recordIssuance(address, uint256, uint256) internal returns (bool) {
+    function recordIssuance(address, uint256, uint256) internal override returns (bool) {
         return true;
     }
 
-    function recordTransfer(address, address, uint256) internal returns (bool) {
+    function recordTransfer(address, address, uint256) internal override returns (bool) {
         return true;
     }
 
-    function checkTransfer(address, address, uint256) internal view returns (uint256, string memory) {
+    function checkTransfer(address, address, uint256) internal view override returns (uint256, string memory) {
         return (0, VALID);
     }
 
-    function preIssuanceCheck(address, uint256) public view returns (uint256 code, string memory reason) {
+    function preIssuanceCheck(address, uint256) public view override returns (uint256 code, string memory reason) {
         code = 0;
         reason = VALID;
     }
 
-    function recordBurn(address, uint256) internal returns (bool) {
+    function recordBurn(address, uint256) internal override returns (bool) {
         return true;
     }
 
-    function recordSeize(address, address, uint256) internal returns (bool) {
+    function recordSeize(address, address, uint256) internal override returns (bool) {
         return true;
     }
 }

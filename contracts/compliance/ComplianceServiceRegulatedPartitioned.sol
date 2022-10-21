@@ -388,17 +388,17 @@ library ComplianceServicePartitionedLibrary {
 contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitioned, ComplianceServiceRegulated {
     using SafeMath for uint256;
 
-    function initialize() public initializer forceInitializeFromProxy {
+    function initialize() public override(ComplianceServiceRegulated, IDSComplianceServicePartitioned) initializer forceInitializeFromProxy {
         ComplianceServiceRegulated.initialize();
         IDSComplianceServicePartitioned.initialize();
         VERSIONS.push(7);
     }
 
-    function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
+    function preTransferCheck(address _from, address _to, uint256 _value) public view override(IDSComplianceService, ComplianceServiceRegulated) returns (uint256 code, string memory reason) {
         return ComplianceServicePartitionedLibrary.preTransferCheck(getServices(), _from, _to, _value);
     }
 
-    function newPreTransferCheck(address _from, address _to, uint256 _value, uint256 _balanceFrom, bool _paused) public view returns (uint256 code, string memory reason) {
+    function newPreTransferCheck(address _from, address _to, uint256 _value, uint256 _balanceFrom, bool _paused) public view override returns (uint256 code, string memory reason) {
         return ComplianceServicePartitionedLibrary.newPreTransferCheck(getServices(), _from, _to, _value, _balanceFrom, _paused);
     }
 
@@ -408,14 +408,14 @@ contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitione
         return ComplianceServicePartitionedLibrary.getLockTime(complianceConfiguration, partitionRegion, _checkFlowback);
     }
 
-    function getComplianceTransferableTokens(address _who, uint256 _time, bool _checkFlowback) public view returns (uint256 transferable) {
+    function getComplianceTransferableTokens(address _who, uint256 _time, bool _checkFlowback) public view override returns (uint256 transferable) {
         for (uint256 index = 0; index < getTokenPartitioned().partitionCountOf(_who); ++index) {
             bytes32 partition = getTokenPartitioned().partitionOf(_who, index);
             transferable = SafeMath.add(transferable, getComplianceTransferableTokens(_who, _time, _checkFlowback, partition));
         }
     }
 
-    function getComplianceTransferableTokens(address _who, uint256 _time, bool _checkFlowback, bytes32 _partition) public view returns (uint256) {
+    function getComplianceTransferableTokens(address _who, uint256 _time, bool _checkFlowback, bytes32 _partition) public view override returns (uint256) {
         require(_time != 0, "non zero time required");
         if (getPartitionsManager().getPartitionIssuanceDate(_partition).add(getLockTime(_checkFlowback, _partition)) > _time) {
             return 0;
@@ -424,11 +424,11 @@ contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitione
         return getLockManagerPartitioned().getTransferableTokens(_who, uint64(_time), _partition);
     }
 
-    function getComplianceTransferableTokens(address _who, uint256 _time, address _to) public view returns (uint256 transferable) {
+    function getComplianceTransferableTokens(address _who, uint256 _time, address _to) public view override returns (uint256 transferable) {
         return getComplianceTransferableTokens(_who, _time, getRegion(_to) == US);
     }
 
-    function getComplianceTransferableTokens(address _who, uint256 _time, address _to, bytes32 _partition) public view returns (uint256) {
+    function getComplianceTransferableTokens(address _who, uint256 _time, address _to, bytes32 _partition) public view override returns (uint256) {
         return getComplianceTransferableTokens(_who, _time, getRegion(_to) == US, _partition);
     }
 

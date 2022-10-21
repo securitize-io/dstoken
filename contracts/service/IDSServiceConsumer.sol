@@ -26,56 +26,7 @@ abstract contract IDSServiceConsumer is Initializable, VersionedContract {
     uint256 public constant OMNIBUS_TBE_CONTROLLER = 2048;
     uint256 public constant TRANSACTION_RELAYER = 4096;
     uint256 public constant TOKEN_REALLOCATOR = 8192;
-
-    modifier onlyMaster virtual {
-        require(false, "Not implemented");
-        _;
-    }
-
-    modifier onlyIssuerOrAbove virtual {
-        require(false, "Not implemented");
-        _;
-    }
-
-    modifier onlyExchangeOrAbove virtual {
-        require(false, "Not implemented");
-        _;
-    }
-
-    modifier onlyToken virtual {
-        require(false, "Not implemented");
-        _;
-    }
-
-    modifier onlyRegistry virtual {
-        require(false, "Not implemented");
-        _;
-    }
-
-    modifier onlyIssuerOrAboveOrToken virtual {
-        require(false, "Not implemented");
-        _;
-    }
-
-    modifier onlyOmnibusWalletController(address omnibusWallet, IDSOmnibusWalletController omnibusWalletController) virtual {
-        require(false, "Not implemented");
-        _;
-    }
-
-    modifier onlyTBEOmnibus virtual {
-        require(false, "Not implemented");
-        _;
-    }
-
-    modifier onlyMasterOrTBEOmnibus virtual {
-        require(false, "Not implemented");
-        _;
-    }
-
-    modifier onlyOwnerOrIssuerOrAbove virtual {
-        require(false, "Not implemented");
-        _;
-    }
+    uint256 public constant SECURITIZE_SWAP = 16384;
 
     function getDSService(uint256 _serviceId) public view virtual returns (address);
 

@@ -500,7 +500,7 @@ library ComplianceServiceLibrary {
  */
 //SPDX-License-Identifier: UNLICENSED
 contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
-    function initialize() public override initializer forceInitializeFromProxy {
+    function initialize() public virtual override initializer forceInitializeFromProxy {
         super.initialize();
         VERSIONS.push(13);
     }
@@ -531,7 +531,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     function adjustTransferCounts(
         address _from,
         CommonUtils.IncDec _increase
-    ) internal override {
+    ) internal {
         adjustTotalInvestorsCounts(_from, _increase);
     }
 
@@ -573,7 +573,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return true;
     }
 
-    function adjustTotalInvestorsCounts(address _wallet, CommonUtils.IncDec _increase) internal override {
+    function adjustTotalInvestorsCounts(address _wallet, CommonUtils.IncDec _increase) internal {
         if (!getWalletManager().isSpecialWallet(_wallet)) {
             if (_increase == CommonUtils.IncDec.Increase) {
                 totalInvestors = totalInvestors.add(1);
@@ -590,7 +590,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         string memory _country,
         string memory _id,
         CommonUtils.IncDec _increase
-    ) internal override {
+    ) internal {
         uint256 countryCompliance = getComplianceConfigurationService().getCountryCompliance(_country);
 
         if (getRegistryService().isAccreditedInvestor(_id)) {
@@ -623,7 +623,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         string memory _investor,
         uint256 _value,
         uint256 _issuanceTime
-    ) internal override returns (bool) {
+    ) internal returns (bool) {
         uint256 issuancesCount = issuancesCounters[_investor];
 
         issuancesValues[_investor][issuancesCount] = _value;
@@ -637,7 +637,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         address _from,
         address _to,
         uint256 _value
-    ) public view override returns (uint256 code, string memory reason) {
+    ) public view virtual override returns (uint256 code, string memory reason) {
         return ComplianceServiceLibrary.preTransferCheck(getServices(), _from, _to, _value);
     }
 
@@ -647,7 +647,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         uint256 _value,
         uint256 _balanceFrom,
         bool _pausedToken
-    ) public view override returns (uint256 code, string memory reason) {
+    ) public view virtual override returns (uint256 code, string memory reason) {
         return ComplianceServiceLibrary.newPreTransferCheck(getServices(), _from, _to, _value, _balanceFrom, _pausedToken);
     }
 
@@ -663,7 +663,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         address _who,
         uint64 _time,
         uint64 _lockTime
-    ) public view override returns (uint256) {
+    ) public view returns (uint256) {
         require(_time != 0, "Time must be greater than zero");
         string memory investor = getRegistryService().getInvestor(_who);
 
@@ -695,67 +695,67 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return ComplianceServiceLibrary.preIssuanceCheck(getServices(), _to, _value);
     }
 
-    function getTotalInvestorsCount() public view override returns (uint256) {
+    function getTotalInvestorsCount() public view returns (uint256) {
         return totalInvestors;
     }
 
-    function getUSInvestorsCount() public view override returns (uint256) {
+    function getUSInvestorsCount() public view returns (uint256) {
         return usInvestorsCount;
     }
 
-    function getUSAccreditedInvestorsCount() public view override returns (uint256) {
+    function getUSAccreditedInvestorsCount() public view returns (uint256) {
         return usAccreditedInvestorsCount;
     }
 
-    function getAccreditedInvestorsCount() public view override returns (uint256) {
+    function getAccreditedInvestorsCount() public view returns (uint256) {
         return accreditedInvestorsCount;
     }
 
-    function getEURetailInvestorsCount(string memory _country) public view override returns (uint256) {
+    function getEURetailInvestorsCount(string memory _country) public view returns (uint256) {
         return euRetailInvestorsCount[_country];
     }
 
-    function getJPInvestorsCount() public view override returns (uint256) {
+    function getJPInvestorsCount() public view returns (uint256) {
         return jpInvestorsCount;
     }
 
-    function setTotalInvestorsCount(uint256 _value) public override onlyMasterOrTBEOmnibus returns (bool) {
+    function setTotalInvestorsCount(uint256 _value) public onlyMasterOrTBEOmnibus returns (bool) {
         totalInvestors = _value;
 
         return true;
     }
 
-    function setUSInvestorsCount(uint256 _value) public override onlyMasterOrTBEOmnibus returns (bool) {
+    function setUSInvestorsCount(uint256 _value) public onlyMasterOrTBEOmnibus returns (bool) {
         usInvestorsCount = _value;
 
         return true;
     }
 
-    function setUSAccreditedInvestorsCount(uint256 _value) public override onlyMasterOrTBEOmnibus returns (bool) {
+    function setUSAccreditedInvestorsCount(uint256 _value) public onlyMasterOrTBEOmnibus returns (bool) {
         usAccreditedInvestorsCount = _value;
 
         return true;
     }
 
-    function setAccreditedInvestorsCount(uint256 _value) public override onlyMasterOrTBEOmnibus returns (bool) {
+    function setAccreditedInvestorsCount(uint256 _value) public onlyMasterOrTBEOmnibus returns (bool) {
         accreditedInvestorsCount = _value;
 
         return true;
     }
 
-    function setEURetailInvestorsCount(string memory _country, uint256 _value) public override onlyMasterOrTBEOmnibus returns (bool) {
+    function setEURetailInvestorsCount(string memory _country, uint256 _value) public onlyMasterOrTBEOmnibus returns (bool) {
         euRetailInvestorsCount[_country] = _value;
 
         return true;
     }
 
-    function setJPInvestorsCount(uint256 _value) public override onlyMasterOrTBEOmnibus returns (bool) {
+    function setJPInvestorsCount(uint256 _value) public onlyMasterOrTBEOmnibus returns (bool) {
         jpInvestorsCount = _value;
 
         return true;
     }
 
-    function getServices() internal view override returns (address[] memory services) {
+    function getServices() internal view returns (address[] memory services) {
         services = new address[](7);
         services[0] = getDSService(DS_TOKEN);
         services[1] = getDSService(REGISTRY_SERVICE);

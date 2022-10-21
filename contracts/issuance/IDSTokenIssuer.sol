@@ -4,10 +4,10 @@ import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-contract IDSTokenIssuer is Initializable, VersionedContract {
+abstract contract IDSTokenIssuer is Initializable, VersionedContract {
     constructor() internal {}
 
-    function initialize() public {
+    function initialize() public virtual {
         VERSIONS.push(4);
     }
 
@@ -28,5 +28,5 @@ contract IDSTokenIssuer is Initializable, VersionedContract {
         string memory _country,
         uint256[] memory attributeValues,
         uint256[] memory attributeExpirations /*onlyIssuerOrAbove*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 }

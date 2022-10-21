@@ -12,7 +12,7 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLockManagerBase {
     uint256 constant MAX_LOCKS_PER_INVESTOR_PARTITION = 30;
 
-    function initialize() public initializer forceInitializeFromProxy {
+    function initialize() public override(ServiceConsumer, IDSLockManagerPartitioned) initializer forceInitializeFromProxy {
         ServiceConsumer.initialize();
         IDSLockManagerPartitioned.initialize();
         VERSIONS.push(3);
@@ -20,6 +20,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
 
     function createLockForInvestor(string memory _investorId, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime, bytes32 _partition)
         public
+        override
         validLock(_valueLocked, _releaseTime)
         onlyIssuerOrAboveOrToken
     {
@@ -34,12 +35,12 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         emit HolderLockedPartition(_investorId, _valueLocked, _reasonCode, _reasonString, _releaseTime, _partition);
     }
 
-    function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime, bytes32 _partition) public {
+    function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime, bytes32 _partition) public override {
         require(_to != address(0), "Invalid address");
         createLock(_to, _valueLocked, 0, _reason, _releaseTime, _partition);
     }
 
-    function removeLockRecord(address _to, uint256 _lockIndex, bytes32 _partition) public returns (bool) {
+    function removeLockRecord(address _to, uint256 _lockIndex, bytes32 _partition) public override returns (bool) {
         //Put the last lock instead of the lock to remove (this will work even with 1 lock in the list)
         require(_to != address(0), "Invalid address");
         string memory investorId = getRegistryService().getInvestor(_to);
@@ -54,7 +55,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         return removeLockRecordForInvestor(investorId, _lockIndex, _partition);
     }
 
-    function removeLockRecordForInvestor(string memory _investorId, uint256 _lockIndex, bytes32 _partition) public onlyIssuerOrAbove returns (bool) {
+    function removeLockRecordForInvestor(string memory _investorId, uint256 _lockIndex, bytes32 _partition) public override onlyIssuerOrAbove returns (bool) {
         //Put the last lock instead of the lock to remove (this will work even with 1 lock in the list)
         uint256 lastLockNumber = investorsPartitionsLocksCounts[_investorId][_partition];
 
@@ -75,20 +76,23 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         //delete the last _lock
         delete investorsPartitionsLocks[_investorId][_partition][lastLockNumber];
         investorsPartitionsLocksCounts[_investorId][_partition] = lastLockNumber;
+
+        return true;
     }
 
-    function lockCount(address _who, bytes32 _partition) public view returns (uint256) {
+    function lockCount(address _who, bytes32 _partition) public view override returns (uint256) {
         require(_who != address(0), "Invalid address");
         return lockCountForInvestor(getRegistryService().getInvestor(_who), _partition);
     }
 
-    function lockCountForInvestor(string memory _investorId, bytes32 _partition) public view returns (uint256) {
+    function lockCountForInvestor(string memory _investorId, bytes32 _partition) public view override returns (uint256) {
         return investorsPartitionsLocksCounts[_investorId][_partition];
     }
 
     function lockInfo(address _who, uint256 _lockIndex, bytes32 _partition)
         public
         view
+        override
         returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime)
     {
         require(_who != address(0), "Invalid address");
@@ -98,6 +102,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
     function lockInfoForInvestor(string memory _investorId, uint256 _lockIndex, bytes32 _partition)
         public
         view
+        override
         returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime)
     {
         uint256 lastLockNumber = investorsPartitionsLocksCounts[_investorId][_partition];
@@ -109,11 +114,11 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         autoReleaseTime = investorsPartitionsLocks[_investorId][_partition][_lockIndex].releaseTime;
     }
 
-    function getTransferableTokens(address _who, uint64 _time, bytes32 _partition) public view returns (uint256) {
+    function getTransferableTokens(address _who, uint64 _time, bytes32 _partition) public view override returns (uint256) {
         return getTransferableTokensForInvestor(getRegistryService().getInvestor(_who), _time, _partition);
     }
 
-    function getTransferableTokensForInvestor(string memory _investorId, uint64 _time, bytes32 _partition) public view returns (uint256) {
+    function getTransferableTokensForInvestor(string memory _investorId, uint64 _time, bytes32 _partition) public view override returns (uint256) {
         require(_time > 0, "Time must be greater than zero");
         if (investorsLocked[_investorId]) {
             return 0;
@@ -136,7 +141,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         return SafeMath.sub(balanceOfHolderByPartition, Math.min(totalLockedTokens, balanceOfHolderByPartition));
     }
 
-    function getTransferableTokens(address _who, uint64 _time) public view returns (uint256 transferable) {
+    function getTransferableTokens(address _who, uint64 _time) public view override returns (uint256 transferable) {
         require(_time > 0, "Time must be greater than zero");
         uint256 countOfPartitions = getTokenPartitioned().partitionCountOf(_who);
         for (uint256 index = 0; index < countOfPartitions; ++index) {
@@ -149,20 +154,20 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         uint256, /*_valueLocked*/
         string memory, /*_reason*/
         uint256 /*_releaseTime*/
-    ) public {
+    ) public override {
         revertedFunction();
     }
 
     function removeLockRecord(
         address, /*_to*/
         uint256 /*_index*/
-    ) public returns (bool) {
+    ) public override returns (bool) {
         revertedFunction();
     }
 
     function lockCount(
         address /*_who*/
-    ) public pure returns (uint256) {
+    ) public pure override returns (uint256) {
         revertedFunction();
     }
 
@@ -172,6 +177,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
     )
         public
         view
+        override
         returns (
             uint256, /*reasonCode*/
             string memory, /*reasonString*/
@@ -188,14 +194,14 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         uint256, /*_reasonCode*/
         string memory, /*_reasonString*/
         uint256 /*_releaseTime*/
-    ) public {
+    ) public override {
         revertedFunction();
     }
 
     function removeLockRecordForInvestor(
         string memory, /*_investorId*/
         uint256 /*_lockIndex*/
-    ) public returns (bool) {
+    ) public override returns (bool) {
         revertedFunction();
     }
 
@@ -205,6 +211,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
     )
         public
         view
+        override
         returns (
             uint256, /*reasonCode*/
             string memory, /*reasonString*/
@@ -217,40 +224,41 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
 
     function lockCountForInvestor(
         string memory /*_investorId*/
-    ) public view returns (uint256) {
+    ) public view override returns (uint256) {
         revertedFunction();
     }
 
     function getTransferableTokensForInvestor(
         string memory, /*_investorId*/
         uint64 /*_time*/
-    ) public view returns (uint256) {
+    ) public view override returns (uint256) {
         revertedFunction();
     }
 
     /*************** Legacy functions ***************/
 
-    function createLockForHolder(string memory _holderId, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime, bytes32 _partition) public {
+    function createLockForHolder(string memory _holderId, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime, bytes32 _partition) public override {
         return createLockForInvestor(_holderId, _valueLocked, _reasonCode, _reasonString, _releaseTime, _partition);
     }
 
-    function removeLockRecordForHolder(string memory _holderId, uint256 _lockIndex, bytes32 _partition) public returns (bool) {
+    function removeLockRecordForHolder(string memory _holderId, uint256 _lockIndex, bytes32 _partition) public override returns (bool) {
         return removeLockRecordForInvestor(_holderId, _lockIndex, _partition);
     }
 
-    function lockCountForHolder(string memory _holderId, bytes32 _partition) public view returns (uint256) {
+    function lockCountForHolder(string memory _holderId, bytes32 _partition) public view override returns (uint256) {
         return lockCountForInvestor(_holderId, _partition);
     }
 
     function lockInfoForHolder(string memory _holderId, uint256 _lockIndex, bytes32 _partition)
         public
         view
+        override
         returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime)
     {
         return lockInfoForInvestor(_holderId, _lockIndex, _partition);
     }
 
-    function getTransferableTokensForHolder(string memory _holderId, uint64 _time, bytes32 _partition) public view returns (uint256) {
+    function getTransferableTokensForHolder(string memory _holderId, uint64 _time, bytes32 _partition) public view override returns (uint256) {
         return getTransferableTokensForInvestor(_holderId, _time, _partition);
     }
 

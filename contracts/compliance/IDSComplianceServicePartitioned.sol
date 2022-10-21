@@ -6,7 +6,7 @@ import "./IDSComplianceService.sol";
 abstract contract IDSComplianceServicePartitioned is IDSComplianceService {
     constructor() internal {}
 
-    function initialize() public override {
+    function initialize() public virtual override {
         VERSIONS.push(2);
     }
 

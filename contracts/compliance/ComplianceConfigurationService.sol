@@ -31,7 +31,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         totalInvestorsLimit = _value;
     }
 
-    function getMinUSTokens() public view returns (uint256) {
+    function getMinUSTokens() public view override returns (uint256) {
         return minUSTokens;
     }
 

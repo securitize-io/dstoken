@@ -6,7 +6,7 @@ import "../utils/ProxyTarget.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 contract TokenIssuer is ProxyTarget, Initializable, IDSTokenIssuer, ServiceConsumer {
-    function initialize() public initializer forceInitializeFromProxy {
+    function initialize() public override(IDSTokenIssuer, ServiceConsumer) initializer forceInitializeFromProxy {
         IDSTokenIssuer.initialize();
         ServiceConsumer.initialize();
         VERSIONS.push(5);
@@ -23,7 +23,7 @@ contract TokenIssuer is ProxyTarget, Initializable, IDSTokenIssuer, ServiceConsu
         string memory _country,
         uint256[] memory _attributeValues,
         uint256[] memory _attributeExpirations
-    ) public onlyIssuerOrAbove returns (bool) {
+    ) public override onlyIssuerOrAbove returns (bool) {
         require(_issuanceValues.length == 2, "Wrong length of parameters");
         require(_attributeValues.length == _attributeExpirations.length, "Wrong length of parameters");
         require(_locksValues.length == _lockReleaseTimes.length, "Wrong length of parameters");

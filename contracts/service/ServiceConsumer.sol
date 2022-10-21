@@ -33,19 +33,19 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
         VERSIONS.push(6);
     }
 
-    modifier onlyMaster override {
+    modifier onlyMaster {
         IDSTrustService trustManager = getTrustService();
         require(this.contractOwner() == msg.sender || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
         _;
     }
 
-    modifier onlyIssuerOrAbove override {
+    modifier onlyIssuerOrAbove {
         IDSTrustService trustManager = getTrustService();
         require(trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
         _;
     }
 
-    modifier onlyExchangeOrAbove override {
+    modifier onlyExchangeOrAbove {
         IDSTrustService trustManager = getTrustService();
         require(
             trustManager.getRole(msg.sender) == ROLE_EXCHANGE || trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER,
@@ -54,17 +54,17 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
         _;
     }
 
-    modifier onlyToken override {
+    modifier onlyToken {
         require(msg.sender == getDSService(DS_TOKEN), "This function can only called by the associated token");
         _;
     }
 
-    modifier onlyRegistry override {
+    modifier onlyRegistry {
         require(msg.sender == getDSService(REGISTRY_SERVICE), "This function can only called by the registry service");
         _;
     }
 
-    modifier onlyIssuerOrAboveOrToken override {
+    modifier onlyIssuerOrAboveOrToken {
         if (msg.sender != getDSService(DS_TOKEN)) {
             IDSTrustService trustManager = IDSTrustService(getDSService(TRUST_SERVICE));
             require(trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
@@ -72,24 +72,24 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
         _;
     }
 
-    modifier onlyOmnibusWalletController(address omnibusWallet, IDSOmnibusWalletController omnibusWalletController) override {
+    modifier onlyOmnibusWalletController(address omnibusWallet, IDSOmnibusWalletController omnibusWalletController) {
         require(getRegistryService().getOmnibusWalletController(omnibusWallet) == omnibusWalletController, "Wrong controller address");
         _;
     }
 
-    modifier onlyTBEOmnibus override {
+    modifier onlyTBEOmnibus {
         require(msg.sender == address(getOmnibusTBEController()), "Not authorized");
         _;
     }
 
-    modifier onlyMasterOrTBEOmnibus override {
+    modifier onlyMasterOrTBEOmnibus {
         IDSTrustService trustManager = getTrustService();
         require(msg.sender == address(getOmnibusTBEController()) ||
         this.contractOwner() == msg.sender || trustManager.getRole(msg.sender) == ROLE_MASTER, "Not authorized");
         _;
     }
 
-    modifier onlyOwnerOrIssuerOrAbove override {
+    modifier onlyOwnerOrIssuerOrAbove {
         if(!isOwner()) {
             IDSTrustService trustManager = getTrustService();
             require(trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
