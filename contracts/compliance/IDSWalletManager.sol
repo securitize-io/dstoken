@@ -5,7 +5,6 @@ import "../utils/Initializable.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 abstract contract IDSWalletManager is Initializable, VersionedContract {
-    constructor() internal {}
 
     function initialize() public virtual {
         VERSIONS.push(4);

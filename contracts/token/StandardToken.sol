@@ -5,13 +5,12 @@ import "../data-stores/TokenDataStore.sol";
 import "../omnibus/OmnibusTBEController.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataStore {
+abstract contract StandardToken is IDSToken, ServiceConsumer, TokenDataStore {
     event Pause();
     event Unpause();
 
-    constructor() internal {}
-
-    function initialize() public {
+    function initialize() public virtual override(IDSToken, ServiceConsumer) {
+        IDSToken.initialize();
         ServiceConsumer.initialize();
         VERSIONS.push(5);
     }
@@ -36,7 +35,7 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
         emit Unpause();
     }
 
-    function isPaused() public view returns (bool) {
+    function isPaused() public view override returns (bool) {
         return paused;
     }
 
@@ -58,7 +57,7 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
      * @param _to The address to transfer to.
      * @param _value The amount to be transferred.
      */
-    function transfer(address _to, uint256 _value) public returns (bool) {
+    function transfer(address _to, uint256 _value) public virtual returns (bool) {
         return transferImpl(msg.sender, _to, _value);
     }
 
@@ -66,7 +65,7 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
         address _from,
         address _to,
         uint256 _value
-    ) public returns (bool) {
+    ) public virtual returns (bool) {
         IDSOmnibusTBEController tbeController = getOmnibusTBEController();
         if (!(msg.sender == address(tbeController) && _from == tbeController.getOmnibusWallet())) {
             require(_value <= allowances[_from][msg.sender], "Not enough allowance");

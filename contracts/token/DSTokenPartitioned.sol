@@ -7,7 +7,8 @@ import "./TokenPartitionsLibrary.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
-    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public initializer forceInitializeFromProxy {
+
+    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public override initializer forceInitializeFromProxy {
         DSToken.initialize(_name, _symbol, _decimals);
         VERSIONS.push(3);
     }
@@ -19,7 +20,7 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
         uint256[] memory _valuesLocked,
         string memory _reason,
         uint64[] memory _releaseTimes /*onlyIssuerOrAbove*/
-    ) public returns (bool) {
+    ) public override returns (bool) {
         super.issueTokensWithMultipleLocks(_to, _value, _issuanceTime, new uint256[](0), "", new uint64[](0));
         partitionsManagement.issueTokensCustom(
             getRegistryService(),
@@ -43,7 +44,7 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
         uint256 _valueLocked,
         string memory _reason,
         uint64 _releaseTime /*onlyIssuerOrAbove*/
-    ) public returns (bool) {
+    ) public override returns (bool) {
         uint256[] memory valuesLocked;
         uint64[] memory releaseTimes;
         if (_valueLocked > 0) {
@@ -56,33 +57,33 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
         return true;
     }
 
-    function transfer(address _to, uint256 _value) public returns (bool) {
+    function transfer(address _to, uint256 _value) public override returns (bool) {
         return DSToken.transfer(_to, _value) && partitionsManagement.transferPartitions(getCommonServices(), msg.sender, _to, _value);
     }
 
-    function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value) public override returns (bool) {
         return DSToken.transferFrom(_from, _to, _value) && partitionsManagement.transferPartitions(getCommonServices(), _from, _to, _value);
     }
 
-    function transferByPartitions(address _to, uint256 _value, bytes32[] memory _partitions, uint256[] memory _values) public returns (bool) {
+    function transferByPartitions(address _to, uint256 _value, bytes32[] memory _partitions, uint256[] memory _values) public override returns (bool) {
         return DSToken.transfer(_to, _value) && partitionsManagement.transferPartitions(getCommonServices(), msg.sender, _to, _value, _partitions, _values);
     }
 
-    function transferFromByPartitions(address _from, address _to, uint256 _value, bytes32[] memory _partitions, uint256[] memory _values) public returns (bool) {
+    function transferFromByPartitions(address _from, address _to, uint256 _value, bytes32[] memory _partitions, uint256[] memory _values) public override returns (bool) {
         return DSToken.transferFrom(_from, _to, _value) && partitionsManagement.transferPartitions(getCommonServices(), _from, _to, _value, _partitions, _values);
     }
 
-    function burn(address, uint256, string memory) public {
+    function burn(address, uint256, string memory) public override {
         require(false, "Partitioned Token");
     }
 
-    function burnByPartition(address _who, uint256 _value, string memory _reason, bytes32 _partition) public onlyIssuerOrAbove {
+    function burnByPartition(address _who, uint256 _value, string memory _reason, bytes32 _partition) public override onlyIssuerOrAbove {
         DSToken.burn(_who, _value, _reason);
         emit BurnByPartition(_who, _value, _reason, _partition);
         partitionsManagement.transferPartition(getRegistryService(), _who, address(0), _value, _partition);
     }
 
-    function seize(address, address, uint256, string memory) public {
+    function seize(address, address, uint256, string memory) public override {
         require(false, "Partitioned Token");
     }
 
@@ -92,19 +93,19 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
         partitionsManagement.transferPartition(getRegistryService(), _from, _to, _value, _partition);
     }
 
-    function balanceOfByPartition(address _who, bytes32 _partition) public view returns (uint256) {
+    function balanceOfByPartition(address _who, bytes32 _partition) public view override returns (uint256) {
         return partitionsManagement.balanceOfByPartition(_who, _partition);
     }
 
-    function balanceOfInvestorByPartition(string memory _id, bytes32 _partition) public view returns (uint256) {
+    function balanceOfInvestorByPartition(string memory _id, bytes32 _partition) public view override returns (uint256) {
         return partitionsManagement.balanceOfInvestorByPartition(_id, _partition);
     }
 
-    function partitionCountOf(address _who) public view returns (uint256) {
+    function partitionCountOf(address _who) public view override returns (uint256) {
         return partitionsManagement.partitionCountOf(_who);
     }
 
-    function partitionOf(address _who, uint256 _index) public view returns (bytes32) {
+    function partitionOf(address _who, uint256 _index) public view override returns (bytes32) {
         return partitionsManagement.partitionOf(_who, _index);
     }
 }

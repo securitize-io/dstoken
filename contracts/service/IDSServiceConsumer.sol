@@ -6,7 +6,6 @@ import "../omnibus/IDSOmnibusWalletController.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 abstract contract IDSServiceConsumer is Initializable, VersionedContract {
-    constructor() internal {}
 
     function initialize() public virtual {
         VERSIONS.push(6);

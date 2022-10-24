@@ -4,10 +4,10 @@ import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-contract IDSWalletRegistrar is Initializable, VersionedContract {
+abstract contract IDSWalletRegistrar is Initializable, VersionedContract {
     constructor() internal {}
 
-    function initialize() public {
+    function initialize() public virtual {
         VERSIONS.push(3);
     }
 
@@ -19,5 +19,5 @@ contract IDSWalletRegistrar is Initializable, VersionedContract {
         uint8[] memory _attributeIds,
         uint256[] memory _attributeValues,
         uint256[] memory _attributeExpirations /*onlyOwner*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 }

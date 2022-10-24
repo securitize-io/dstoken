@@ -4,7 +4,6 @@ import "./IDSLockManager.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 abstract contract IDSLockManagerPartitioned is IDSLockManager {
-    constructor() internal {}
 
     function initialize() public virtual override {
         VERSIONS.push(2);

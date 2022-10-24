@@ -7,7 +7,6 @@ import "../omnibus/IDSOmnibusWalletController.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 abstract contract IDSRegistryService is Initializable, VersionedContract {
-    constructor() internal {}
 
     function initialize() public virtual {
         VERSIONS.push(6);
@@ -73,7 +72,7 @@ abstract contract IDSRegistryService is Initializable, VersionedContract {
     function registerInvestor(
         string memory _id,
         string memory _collision_hash /*onlyExchangeOrAbove newInvestor(_id)*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     function updateInvestor(
         string memory _id,
@@ -83,20 +82,20 @@ abstract contract IDSRegistryService is Initializable, VersionedContract {
         uint8[] memory _attributeIds,
         uint256[] memory _attributeValues,
         uint256[] memory _attributeExpirations /*onlyIssuerOrAbove*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     function removeInvestor(
         string memory _id /*onlyExchangeOrAbove investorExists(_id)*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     function setCountry(
         string memory _id,
         string memory _country /*onlyExchangeOrAbove investorExists(_id)*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
-    function getCountry(string memory _id) public view returns (string memory);
+    function getCountry(string memory _id) public view virtual returns (string memory);
 
-    function getCollisionHash(string memory _id) public view returns (string memory);
+    function getCollisionHash(string memory _id) public view virtual returns (string memory);
 
     function setAttribute(
         string memory _id,
@@ -104,59 +103,60 @@ abstract contract IDSRegistryService is Initializable, VersionedContract {
         uint256 _value,
         uint256 _expiry,
         string memory _proofHash /*onlyExchangeOrAbove investorExists(_id)*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
-    function getAttributeValue(string memory _id, uint8 _attributeId) public view returns (uint256);
+    function getAttributeValue(string memory _id, uint8 _attributeId) public view virtual returns (uint256);
 
-    function getAttributeExpiry(string memory _id, uint8 _attributeId) public view returns (uint256);
+    function getAttributeExpiry(string memory _id, uint8 _attributeId) public view virtual returns (uint256);
 
-    function getAttributeProofHash(string memory _id, uint8 _attributeId) public view returns (string memory);
+    function getAttributeProofHash(string memory _id, uint8 _attributeId) public view virtual returns (string memory);
 
     function addWallet(
         address _address,
         string memory _id /*onlyExchangeOrAbove newWallet(_address)*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     function removeWallet(
         address _address,
         string memory _id /*onlyExchangeOrAbove walletExists walletBelongsToInvestor(_address, _id)*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     function addOmnibusWallet(
         string memory _id,
         address _omnibusWallet,
         IDSOmnibusWalletController _omnibusWalletController /*onlyIssuerOrAbove newOmnibusWallet*/
-    ) public;
+    ) public virtual;
 
     function removeOmnibusWallet(
         string memory _id,
         address _omnibusWallet /*onlyIssuerOrAbove omnibusWalletControllerExists*/
-    ) public;
+    ) public virtual;
 
-    function getOmnibusWalletController(address _omnibusWallet) public view returns (IDSOmnibusWalletController);
+    function getOmnibusWalletController(address _omnibusWallet) public view virtual returns (IDSOmnibusWalletController);
 
-    function isOmnibusWallet(address _omnibusWallet) public view returns (bool);
+    function isOmnibusWallet(address _omnibusWallet) public view virtual returns (bool);
 
-    function getInvestor(address _address) public view returns (string memory);
+    function getInvestor(address _address) public view virtual returns (string memory);
 
-    function getInvestorDetails(address _address) public view returns (string memory, string memory);
+    function getInvestorDetails(address _address) public view virtual returns (string memory, string memory);
 
     function getInvestorDetailsFull(string memory _id)
         public
         view
+        virtual
         returns (string memory, uint256[] memory, uint256[] memory, string memory, string memory, string memory, string memory);
 
-    function isInvestor(string memory _id) public view returns (bool);
+    function isInvestor(string memory _id) public view virtual returns (bool);
 
-    function isWallet(address _address) public view returns (bool);
+    function isWallet(address _address) public view virtual returns (bool);
 
-    function isAccreditedInvestor(string calldata _id) external view returns (bool);
+    function isAccreditedInvestor(string calldata _id) external view virtual returns (bool);
 
-    function isQualifiedInvestor(string calldata _id) external view returns (bool);
+    function isQualifiedInvestor(string calldata _id) external view virtual returns (bool);
 
-    function isAccreditedInvestor(address _wallet) external view returns (bool);
+    function isAccreditedInvestor(address _wallet) external view virtual returns (bool);
 
-    function isQualifiedInvestor(address _wallet) external view returns (bool);
+    function isQualifiedInvestor(address _wallet) external view virtual returns (bool);
 
-    function getInvestors(address _from, address _to) external view returns (string memory, string memory);
+    function getInvestors(address _from, address _to) external view virtual returns (string memory, string memory);
 }

@@ -8,13 +8,13 @@ import "../utils/ProxyTarget.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, ServiceConsumer, RegistryServiceDataStore {
-    function initialize() public initializer forceInitializeFromProxy {
+    function initialize() public override(IDSRegistryService, ServiceConsumer) initializer forceInitializeFromProxy {
         IDSRegistryService.initialize();
         ServiceConsumer.initialize();
         VERSIONS.push(6);
     }
 
-    function registerInvestor(string memory _id, string memory _collisionHash) public onlyExchangeOrAbove newInvestor(_id) returns (bool) {
+    function registerInvestor(string memory _id, string memory _collisionHash) public override onlyExchangeOrAbove newInvestor(_id) returns (bool) {
         investors[_id] = Investor(_id, _collisionHash, msg.sender, msg.sender, "", 0);
 
         emit DSRegistryServiceInvestorAdded(_id, msg.sender);
@@ -22,7 +22,7 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
         return true;
     }
 
-    function removeInvestor(string memory _id) public onlyExchangeOrAbove investorExists(_id) returns (bool) {
+    function removeInvestor(string memory _id) public override onlyExchangeOrAbove investorExists(_id) returns (bool) {
         require(getTrustService().getRole(msg.sender) != EXCHANGE || investors[_id].creator == msg.sender, "Insufficient permissions");
         require(investors[_id].walletCount == 0, "Investor has wallets");
 
@@ -45,7 +45,7 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
         uint8[] memory _attributeIds,
         uint256[] memory _attributeValues,
         uint256[] memory _attributeExpirations
-    ) public onlyIssuerOrAbove returns (bool) {
+    ) public override onlyIssuerOrAbove returns (bool) {
         require(_attributeValues.length == _attributeIds.length, "Wrong length of parameters");
         require(_attributeIds.length == _attributeExpirations.length, "Wrong length of parameters");
 
@@ -75,6 +75,7 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
     function getInvestorDetailsFull(string memory _id)
         public
         view
+        override
         returns (string memory, uint256[] memory, uint256[] memory, string memory, string memory, string memory, string memory)
     {
         string memory country = investors[_id].country;
@@ -89,7 +90,7 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
         return (country, attributeValues, attributeExpiries, attributeProofHashes[0], attributeProofHashes[1], attributeProofHashes[2], attributeProofHashes[3]);
     }
 
-    function setCountry(string memory _id, string memory _country) public onlyExchangeOrAbove investorExists(_id) returns (bool) {
+    function setCountry(string memory _id, string memory _country) public override onlyExchangeOrAbove investorExists(_id) returns (bool) {
         string memory prevCountry = getCountry(_id);
 
         getComplianceService().adjustInvestorCountsAfterCountryChange(_id, _country, prevCountry);
@@ -102,16 +103,17 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
         return true;
     }
 
-    function getCountry(string memory _id) public view returns (string memory) {
+    function getCountry(string memory _id) public view override returns (string memory) {
         return investors[_id].country;
     }
 
-    function getCollisionHash(string memory _id) public view returns (string memory) {
+    function getCollisionHash(string memory _id) public view override returns (string memory) {
         return investors[_id].collisionHash;
     }
 
     function setAttribute(string memory _id, uint8 _attributeId, uint256 _value, uint256 _expiry, string memory _proofHash)
         public
+        override
         onlyExchangeOrAbove
         investorExists(_id)
         returns (bool)
@@ -128,19 +130,19 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
         return true;
     }
 
-    function getAttributeValue(string memory _id, uint8 _attributeId) public view returns (uint256) {
+    function getAttributeValue(string memory _id, uint8 _attributeId) public view override returns (uint256) {
         return investors[_id].attributes[_attributeId].value;
     }
 
-    function getAttributeExpiry(string memory _id, uint8 _attributeId) public view returns (uint256) {
+    function getAttributeExpiry(string memory _id, uint8 _attributeId) public view override returns (uint256) {
         return investors[_id].attributes[_attributeId].expiry;
     }
 
-    function getAttributeProofHash(string memory _id, uint8 _attributeId) public view returns (string memory) {
+    function getAttributeProofHash(string memory _id, uint8 _attributeId) public view override returns (string memory) {
         return investors[_id].attributes[_attributeId].proofHash;
     }
 
-    function addWallet(address _address, string memory _id) public onlyExchangeOrAbove investorExists(_id) newWallet(_address) returns (bool) {
+    function addWallet(address _address, string memory _id) public override onlyExchangeOrAbove investorExists(_id) newWallet(_address) returns (bool) {
         require(!getWalletManager().isSpecialWallet(_address), "Wallet has special role");
 
         investorsWallets[_address] = Wallet(_id, msg.sender, msg.sender);
@@ -151,7 +153,7 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
         return true;
     }
 
-    function removeWallet(address _address, string memory _id) public onlyExchangeOrAbove walletExists(_address) walletBelongsToInvestor(_address, _id) returns (bool) {
+    function removeWallet(address _address, string memory _id) public override onlyExchangeOrAbove walletExists(_address) walletBelongsToInvestor(_address, _id) returns (bool) {
         require(getTrustService().getRole(msg.sender) != EXCHANGE || investorsWallets[_address].creator == msg.sender, "Insufficient permissions");
 
         delete investorsWallets[_address];
@@ -164,6 +166,7 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
 
     function addOmnibusWallet(string memory _id, address _omnibusWallet, IDSOmnibusWalletController _omnibusWalletController)
         public
+        override
         onlyIssuerOrAbove
         newOmnibusWallet(_omnibusWallet)
     {
@@ -172,55 +175,55 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
         emit DSRegistryServiceOmnibusWalletAdded(_omnibusWallet, _id, _omnibusWalletController);
     }
 
-    function removeOmnibusWallet(string memory _id, address _omnibusWallet) public onlyIssuerOrAbove omnibusWalletExists(_omnibusWallet) {
+    function removeOmnibusWallet(string memory _id, address _omnibusWallet) public override onlyIssuerOrAbove omnibusWalletExists(_omnibusWallet) {
         removeWallet(_omnibusWallet, _id);
         delete omnibusWalletsControllers[_omnibusWallet];
         emit DSRegistryServiceOmnibusWalletRemoved(_omnibusWallet, _id);
     }
 
-    function getOmnibusWalletController(address _omnibusWallet) public view returns (IDSOmnibusWalletController) {
+    function getOmnibusWalletController(address _omnibusWallet) public view override returns (IDSOmnibusWalletController) {
         return omnibusWalletsControllers[_omnibusWallet];
     }
 
-    function isOmnibusWallet(address _omnibusWallet) public view returns (bool) {
+    function isOmnibusWallet(address _omnibusWallet) public view override returns (bool) {
         return address(omnibusWalletsControllers[_omnibusWallet]) != address(0);
     }
 
-    function getInvestor(address _address) public view returns (string memory) {
+    function getInvestor(address _address) public view override returns (string memory) {
         return investorsWallets[_address].owner;
     }
 
-    function getInvestorDetails(address _address) public view returns (string memory, string memory) {
+    function getInvestorDetails(address _address) public view override returns (string memory, string memory) {
         return (getInvestor(_address), getCountry(getInvestor(_address)));
     }
 
-    function isInvestor(string memory _id) public view returns (bool) {
+    function isInvestor(string memory _id) public view override returns (bool) {
         return !CommonUtils.isEmptyString(investors[_id].id);
     }
 
-    function isAccreditedInvestor(string calldata _id) external view returns (bool) {
+    function isAccreditedInvestor(string calldata _id) external view override returns (bool) {
         return getAttributeValue(_id, ACCREDITED) == APPROVED;
     }
 
-    function isAccreditedInvestor(address _wallet) external view returns (bool) {
+    function isAccreditedInvestor(address _wallet) external view override returns (bool) {
         string memory investor = investorsWallets[_wallet].owner;
         return getAttributeValue(investor, ACCREDITED) == APPROVED;
     }
 
-    function isQualifiedInvestor(address _wallet) external view returns (bool) {
+    function isQualifiedInvestor(address _wallet) external view override returns (bool) {
         string memory investor = investorsWallets[_wallet].owner;
         return getAttributeValue(investor, QUALIFIED) == APPROVED;
     }
 
-    function isQualifiedInvestor(string calldata _id) external view returns (bool) {
+    function isQualifiedInvestor(string calldata _id) external view override returns (bool) {
         return getAttributeValue(_id, QUALIFIED) == APPROVED;
     }
 
-    function getInvestors(address _from, address _to) external view returns (string memory, string memory) {
+    function getInvestors(address _from, address _to) external view override returns (string memory, string memory) {
         return (investorsWallets[_from].owner, investorsWallets[_to].owner);
     }
 
-    function isWallet(address _address) public view returns (bool) {
+    function isWallet(address _address) public view override returns (bool) {
         return isInvestor(getInvestor(_address));
     }
 }

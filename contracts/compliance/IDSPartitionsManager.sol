@@ -5,7 +5,6 @@ import "../utils/Initializable.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 abstract contract IDSPartitionsManager is Initializable, IDSServiceConsumer {
-    constructor() internal {}
 
     event PartitionCreated(uint256 _date, uint256 _region, bytes32 _partition);
 

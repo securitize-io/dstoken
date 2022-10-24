@@ -10,7 +10,6 @@ import "../utils/Initializable.sol";
  */
 //SPDX-License-Identifier: UNLICENSED
 abstract contract IDSTrustService is Initializable, VersionedContract {
-    constructor() internal {}
 
     function initialize() public virtual {
         VERSIONS.push(3);
@@ -32,74 +31,13 @@ abstract contract IDSTrustService is Initializable, VersionedContract {
     uint8 public constant EXCHANGE = 4;
 
     /**
-     * @dev Allow invoking of functions only by the user who has the MASTER role.
-     */
-    modifier onlyMaster() {
-        assert(false);
-        _;
-    }
-
-    /**
-     * @dev Allow invoking of functions only by the users who have the MASTER role or the ISSUER role.
-     */
-    modifier onlyMasterOrIssuer() {
-        assert(false);
-        _;
-    }
-
-    modifier onlyEntityOwnerOrAbove(string memory _name) {
-        assert(false);
-        _;
-    }
-
-    modifier onlyNewEntity(string memory _name) {
-        assert(false);
-        _;
-    }
-
-    modifier onlyExistingEntity(string memory _name) {
-        assert(false);
-        _;
-    }
-
-    modifier onlyNewEntityOwner(address _owner) {
-        assert(false);
-        _;
-    }
-
-    modifier onlyExistingEntityOwner(string memory _name, address _owner) {
-        assert(false);
-        _;
-    }
-
-    modifier onlyNewOperator(address _operator) {
-        assert(false);
-        _;
-    }
-
-    modifier onlyExistingOperator(string memory _name, address _operator) {
-        assert(false);
-        _;
-    }
-
-    modifier onlyNewResource(address _resource) {
-        assert(false);
-        _;
-    }
-
-    modifier onlyExistingResource(string memory _name, address _resource) {
-        assert(false);
-        _;
-    }
-
-    /**
      * @dev Transfers the ownership (MASTER role) of the contract.
      * @param _address The address which the ownership needs to be transferred to.
      * @return A boolean that indicates if the operation was successful.
      */
     function setServiceOwner(
         address _address /*onlyMaster*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     /**
      * @dev Sets a role for a wallet.
@@ -111,7 +49,7 @@ abstract contract IDSTrustService is Initializable, VersionedContract {
     function setRole(
         address _address,
         uint8 _role /*onlyMasterOrIssuer*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     /**
      * @dev Removes the role for a wallet.
@@ -121,53 +59,53 @@ abstract contract IDSTrustService is Initializable, VersionedContract {
      */
     function removeRole(
         address _address /*onlyMasterOrIssuer*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     /**
      * @dev Gets the role for a wallet.
      * @param _address The wallet whose role needs to be fetched.
      * @return A boolean that indicates if the operation was successful.
      */
-    function getRole(address _address) public view returns (uint8);
+    function getRole(address _address) public view virtual returns (uint8);
 
     function addEntity(
         string memory _name,
         address _owner /*onlyMasterOrIssuer onlyNewEntity onlyNewEntityOwner*/
-    ) public;
+    ) public virtual;
 
     function changeEntityOwner(
         string memory _name,
         address _oldOwner,
         address _newOwner /*onlyMasterOrIssuer onlyExistingEntityOwner*/
-    ) public;
+    ) public virtual;
 
     function addOperator(
         string memory _name,
         address _operator /*onlyEntityOwnerOrAbove onlyNewOperator*/
-    ) public;
+    ) public virtual;
 
     function removeOperator(
         string memory _name,
         address _operator /*onlyEntityOwnerOrAbove onlyExistingOperator*/
-    ) public;
+    ) public virtual;
 
     function addResource(
         string memory _name,
         address _resource /*onlyMasterOrIssuer onlyExistingEntity onlyNewResource*/
-    ) public;
+    ) public virtual;
 
     function removeResource(
         string memory _name,
         address _resource /*onlyMasterOrIssuer onlyExistingResource*/
-    ) public;
+    ) public virtual;
 
-    function getEntityByOwner(address _owner) public view returns (string memory);
+    function getEntityByOwner(address _owner) public view virtual returns (string memory);
 
-    function getEntityByOperator(address _operator) public view returns (string memory);
+    function getEntityByOperator(address _operator) public view virtual returns (string memory);
 
-    function getEntityByResource(address _resource) public view returns (string memory);
+    function getEntityByResource(address _resource) public view virtual returns (string memory);
 
-    function isResourceOwner(address _resource, address _owner) public view returns (bool);
+    function isResourceOwner(address _resource, address _owner) public view virtual returns (bool);
 
-    function isResourceOperator(address _resource, address _operator) public view returns (bool);
+    function isResourceOperator(address _resource, address _operator) public view virtual returns (bool);
 }

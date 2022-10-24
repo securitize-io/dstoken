@@ -4,12 +4,7 @@ import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-abstract contract IDSComplianceService is Initializable, VersionedContract {
-    constructor() internal {}
-
-    function initialize() public virtual {
-        VERSIONS.push(7);
-    }
+interface IDSComplianceService is Initializable, VersionedContract {
 
     uint256 internal constant NONE = 0;
     uint256 internal constant US = 1;

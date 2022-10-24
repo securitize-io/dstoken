@@ -17,8 +17,7 @@ import "../trust/IDSTrustService.sol";
 import "../utils/Ownable.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStore {
-    constructor() internal {}
+abstract contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStore {
 
     // Bring role constants to save gas both in deployment (less bytecode) and usage
     uint8 public constant ROLE_NONE = 0;
