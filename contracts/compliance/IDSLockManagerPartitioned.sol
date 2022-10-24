@@ -79,13 +79,13 @@ abstract contract IDSLockManagerPartitioned is IDSLockManager {
 
     function getTransferableTokens(
         address _who,
-        uint64 _time,
+        uint256 _time,
         bytes32 _partition
     ) public view virtual returns (uint256);
 
     function getTransferableTokensForInvestor(
         string memory _investorId,
-        uint64 _time,
+        uint256 _time,
         bytes32 _partition
     ) public view virtual returns (uint256);
 
@@ -124,7 +124,7 @@ abstract contract IDSLockManagerPartitioned is IDSLockManager {
 
     function getTransferableTokensForHolder(
         string memory _holderId,
-        uint64 _time,
+        uint256 _time,
         bytes32 _partition
     ) public view virtual returns (uint256);
 

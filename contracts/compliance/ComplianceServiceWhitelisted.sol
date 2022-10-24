@@ -83,7 +83,7 @@ contract ComplianceServiceWhitelisted is ComplianceService {
             return (15, NOT_ENOUGH_TOKENS);
         }
 
-        if (!getWalletManager().isPlatformWallet(_from) && getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
+        if (!getWalletManager().isPlatformWallet(_from) && getLockManager().getTransferableTokens(_from, block.timestamp) < _value) {
             return (16, TOKENS_LOCKED);
         }
 

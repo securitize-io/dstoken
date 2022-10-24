@@ -9,7 +9,7 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
     // using FeaturesLibrary for SupportedFeatures;
     uint256 internal constant OMNIBUS_NO_ACTION = 0;
 
-    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public virtual override initializer forceInitializeFromProxy {
+    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public virtual initializer forceInitializeFromProxy {
         StandardToken.initialize();
 
         VERSIONS.push(5);
@@ -161,7 +161,7 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
      * @param _to The address that will receive the tokens.
      * @param _value The amount of tokens to be transferred.
      */
-    function transfer(address _to, uint256 _value) public virtual override(IERC20, StandardToken) canTransfer(msg.sender, _to, _value) returns (bool) {
+    function transfer(address _to, uint256 _value) public virtual override(StandardToken) canTransfer(msg.sender, _to, _value) returns (bool) {
         return postTransferImpl(super.transfer(_to, _value), msg.sender, _to, _value);
     }
 
@@ -173,7 +173,7 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
      * @param _to The address that will receive the tokens.
      * @param _value The amount of tokens to be transferred.
      */
-    function transferFrom(address _from, address _to, uint256 _value) public virtual override(IERC20, StandardToken) canTransfer(_from, _to, _value) returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value) public virtual override(StandardToken) canTransfer(_from, _to, _value) returns (bool) {
         return postTransferImpl(super.transferFrom(_from, _to, _value), _from, _to, _value);
     }
 

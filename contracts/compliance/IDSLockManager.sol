@@ -12,7 +12,7 @@ abstract contract IDSLockManager is Initializable, VersionedContract {
 
     modifier validLock(uint256 _valueLocked, uint256 _releaseTime) {
         require(_valueLocked > 0, "Value is zero");
-        require(_releaseTime == 0 || _releaseTime > uint256(now), "Release time is in the past");
+        require(_releaseTime == 0 || _releaseTime > uint256(block.timestamp), "Release time is in the past");
         _;
     }
 
@@ -138,12 +138,12 @@ abstract contract IDSLockManager is Initializable, VersionedContract {
      * @param _who address to get number of transferable tokens for
      * @param _time time to calculate for
      */
-    function getTransferableTokens(address _who, uint64 _time) public view virtual returns (uint256);
+    function getTransferableTokens(address _who, uint256 _time) public view virtual returns (uint256);
 
     /**
      * @dev get total number of transferable tokens for a investor, at a certain time
      * @param _investorId investor id
      * @param _time time to calculate for
      */
-    function getTransferableTokensForInvestor(string memory _investorId, uint64 _time) public view virtual returns (uint256);
+    function getTransferableTokensForInvestor(string memory _investorId, uint256 _time) public view virtual returns (uint256);
 }

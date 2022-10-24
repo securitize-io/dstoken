@@ -106,7 +106,7 @@ library ComplianceServicePartitionedLibrary {
         ComplianceServiceRegulatedPartitioned complianceService = ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]);
         return
         !_isPlatformWalletFrom &&
-        complianceService.getComplianceTransferableTokens(_from, uint64(now), false) < _value;
+        complianceService.getComplianceTransferableTokens(_from, block.timestamp, false) < _value;
     }
 
     function maxInvestorsInCategoryForNonAccredited(address[] memory _services, address _from, address _to, uint256 _value, uint256 _fromInvestorBalance, uint256 _toInvestorBalance)
@@ -195,7 +195,7 @@ library ComplianceServicePartitionedLibrary {
 
         bool isPlatformWalletFrom = IDSWalletManager(_services[WALLET_MANAGER]).isPlatformWallet(_args.from);
         if (
-            !isPlatformWalletFrom && IDSLockManager(_services[LOCK_MANAGER]).getTransferableTokens(_args.from, uint64(now)) < _args.value
+            !isPlatformWalletFrom && IDSLockManager(_services[LOCK_MANAGER]).getTransferableTokens(_args.from, block.timestamp) < _args.value
         ) {
             return (16, TOKENS_LOCKED);
         }
@@ -226,7 +226,7 @@ library ComplianceServicePartitionedLibrary {
                 toRegion == US &&
                 !isPlatformWalletFrom &&
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() != 0 &&
-                ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).getComplianceTransferableTokens(_args.from, now, true) < _args.value
+                ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).getComplianceTransferableTokens(_args.from, block.timestamp, true) < _args.value
             ) {
                 return (25, FLOWBACK);
             }
@@ -421,7 +421,7 @@ contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitione
             return 0;
         }
 
-        return getLockManagerPartitioned().getTransferableTokens(_who, uint64(_time), _partition);
+        return getLockManagerPartitioned().getTransferableTokens(_who, _time, _partition);
     }
 
     function getComplianceTransferableTokens(address _who, uint256 _time, address _to) public view override returns (uint256 transferable) {

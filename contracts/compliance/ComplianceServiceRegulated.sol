@@ -120,7 +120,7 @@ library ComplianceServiceLibrary {
 
         return
         !_isPlatformWalletFrom &&
-        complianceService.getComplianceTransferableTokens(_from, uint64(now), lockPeriod) < _value;
+        complianceService.getComplianceTransferableTokens(_from, block.timestamp, lockPeriod) < _value;
     }
 
     function maxInvestorsInCategoryForNonAccredited(
@@ -226,7 +226,7 @@ library ComplianceServiceLibrary {
         bool isPlatformWalletFrom = IDSWalletManager(_services[WALLET_MANAGER]).isPlatformWallet(_args.from);
         if (
             !isPlatformWalletFrom &&
-        IDSLockManager(_services[LOCK_MANAGER]).getTransferableTokens(_args.from, uint64(now)) < _args.value
+        IDSLockManager(_services[LOCK_MANAGER]).getTransferableTokens(_args.from, block.timestamp) < _args.value
         ) {
             return (16, TOKENS_LOCKED);
         }
@@ -310,7 +310,7 @@ library ComplianceServiceLibrary {
             }
 
             if (
-                toInvestorBalance.add(_args.value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEUTokens()
+                toInvestorBalance + _args.value < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEUTokens()
             ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
@@ -344,7 +344,7 @@ library ComplianceServiceLibrary {
             }
 
             if (
-                toInvestorBalance.add(_args.value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUSTokens()
+                toInvestorBalance + _args.value < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUSTokens()
             ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
@@ -385,7 +385,7 @@ library ComplianceServiceLibrary {
 
         if (
             !_args.isPlatformWalletTo &&
-        toInvestorBalance.add(_args.value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
+        toInvestorBalance + _args.value < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
         ) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
@@ -470,7 +470,7 @@ library ComplianceServiceLibrary {
 
         if (
             !walletManager.isPlatformWallet(_to) &&
-        balanceOfInvestorTo.add(_value) < complianceConfigurationService.getMinimumHoldingsPerInvestor()
+        balanceOfInvestorTo + _value < complianceConfigurationService.getMinimumHoldingsPerInvestor()
         ) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
@@ -486,11 +486,11 @@ library ComplianceServiceLibrary {
     }
 
     function isMaximumHoldingsPerInvestorOk(uint256 _maximumHoldingsPerInvestor, uint256 _balanceOfInvestorTo, uint256 _value) internal pure returns (bool) {
-        return _maximumHoldingsPerInvestor != 0 && _balanceOfInvestorTo.add(_value) > _maximumHoldingsPerInvestor;
+        return _maximumHoldingsPerInvestor != 0 && _balanceOfInvestorTo + _value > _maximumHoldingsPerInvestor;
     }
 
     function isBlockFlowbackEndTimeOk(uint256 _blockFlowBackEndTime) private view returns (bool){
-        return  (_blockFlowBackEndTime == 0 || _blockFlowBackEndTime > now);
+        return  (_blockFlowBackEndTime == 0 || _blockFlowBackEndTime > block.timestamp);
     }
 }
 
@@ -576,7 +576,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     function adjustTotalInvestorsCounts(address _wallet, CommonUtils.IncDec _increase) internal {
         if (!getWalletManager().isSpecialWallet(_wallet)) {
             if (_increase == CommonUtils.IncDec.Increase) {
-                totalInvestors = totalInvestors.add(1);
+                totalInvestors++;
             }
 
             string memory id = getRegistryService().getInvestor(_wallet);
@@ -595,26 +595,26 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
         if (getRegistryService().isAccreditedInvestor(_id)) {
             if(_increase == CommonUtils.IncDec.Increase) {
-                accreditedInvestorsCount = accreditedInvestorsCount.add(1);
+                accreditedInvestorsCount++;
             }
             if (countryCompliance == US) {
                 if(_increase == CommonUtils.IncDec.Increase) {
-                    usAccreditedInvestorsCount = usAccreditedInvestorsCount.add(1);
+                    usAccreditedInvestorsCount++;
                 }
             }
         }
 
         if (countryCompliance == US) {
             if(_increase == CommonUtils.IncDec.Increase) {
-                usInvestorsCount = usInvestorsCount.add(1);
+                usInvestorsCount++;
             }
         } else if (countryCompliance == EU && !getRegistryService().isQualifiedInvestor(_id)) {
             if(_increase == CommonUtils.IncDec.Increase) {
-                euRetailInvestorsCount[_country] = euRetailInvestorsCount[_country].add(1);
+                euRetailInvestorsCount[_country]++;
             }
         } else if (countryCompliance == JP) {
             if(_increase == CommonUtils.IncDec.Increase) {
-                jpInvestorsCount = jpInvestorsCount.add(1);
+                jpInvestorsCount++;
             }
         }
     }
@@ -628,7 +628,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
         issuancesValues[_investor][issuancesCount] = _value;
         issuancesTimestamps[_investor][issuancesCount] = _issuanceTime;
-        issuancesCounters[_investor] = issuancesCount.add(1);
+        issuancesCounters[_investor] = issuancesCount + 1;
 
         return true;
     }
@@ -661,7 +661,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
     function getComplianceTransferableTokens(
         address _who,
-        uint64 _time,
+        uint256 _time,
         uint64 _lockTime
     ) public view returns (uint256) {
         require(_time != 0, "Time must be greater than zero");
@@ -681,7 +681,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
             uint256 issuanceTimestamp = issuancesTimestamps[investor][i];
 
             if (_lockTime > _time || issuanceTimestamp > SafeMath.sub(_time, _lockTime)) {
-                totalLockedTokens = totalLockedTokens.add(issuancesValues[investor][i]);
+                totalLockedTokens = totalLockedTokens + issuancesValues[investor][i];
             }
         }
 

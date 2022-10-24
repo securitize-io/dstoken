@@ -114,11 +114,11 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         autoReleaseTime = investorsPartitionsLocks[_investorId][_partition][_lockIndex].releaseTime;
     }
 
-    function getTransferableTokens(address _who, uint64 _time, bytes32 _partition) public view override returns (uint256) {
+    function getTransferableTokens(address _who, uint256 _time, bytes32 _partition) public view override returns (uint256) {
         return getTransferableTokensForInvestor(getRegistryService().getInvestor(_who), _time, _partition);
     }
 
-    function getTransferableTokensForInvestor(string memory _investorId, uint64 _time, bytes32 _partition) public view override returns (uint256) {
+    function getTransferableTokensForInvestor(string memory _investorId, uint256 _time, bytes32 _partition) public view override returns (uint256) {
         require(_time > 0, "Time must be greater than zero");
         if (investorsLocked[_investorId]) {
             return 0;
@@ -141,7 +141,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         return SafeMath.sub(balanceOfHolderByPartition, Math.min(totalLockedTokens, balanceOfHolderByPartition));
     }
 
-    function getTransferableTokens(address _who, uint64 _time) public view override returns (uint256 transferable) {
+    function getTransferableTokens(address _who, uint256 _time) public view override returns (uint256 transferable) {
         require(_time > 0, "Time must be greater than zero");
         uint256 countOfPartitions = getTokenPartitioned().partitionCountOf(_who);
         for (uint256 index = 0; index < countOfPartitions; ++index) {
@@ -230,7 +230,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
 
     function getTransferableTokensForInvestor(
         string memory, /*_investorId*/
-        uint64 /*_time*/
+        uint256 /*_time*/
     ) public view override returns (uint256) {
         revertedFunction();
     }
@@ -258,7 +258,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         return lockInfoForInvestor(_holderId, _lockIndex, _partition);
     }
 
-    function getTransferableTokensForHolder(string memory _holderId, uint64 _time, bytes32 _partition) public view override returns (uint256) {
+    function getTransferableTokensForHolder(string memory _holderId, uint256 _time, bytes32 _partition) public view override returns (uint256) {
         return getTransferableTokensForInvestor(_holderId, _time, _partition);
     }
 

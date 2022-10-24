@@ -8,19 +8,7 @@ abstract contract IDSOmnibusWalletController is Initializable, VersionedContract
     uint8 public constant BENEFICIARY = 0;
     uint8 public constant HOLDER_OF_RECORD = 1;
 
-    function initialize() public virtual {
-        VERSIONS.push(2);
-    }
-
-    modifier onlyOperatorOrAbove {
-        require(false, "Not implemented");
-        _;
-    }
-
-    modifier enoughBalance(address _who, uint256 _value) {
-        require(false, "Not implemented");
-        _;
-    }
+    function initialize(address _omnibusWallet) public virtual;
 
     function setAssetTrackingMode(uint8 _assetTrackingMode) public virtual;
 

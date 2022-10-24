@@ -33,7 +33,7 @@ contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
         return lockInfoForInvestor(_holderId, _lockIndex);
     }
 
-    function getTransferableTokensForHolder(string memory _holderId, uint64 _time) public view returns (uint256) {
+    function getTransferableTokensForHolder(string memory _holderId, uint256 _time) public view returns (uint256) {
         return getTransferableTokensForInvestor(_holderId, _time);
     }
 
@@ -183,12 +183,12 @@ contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
         autoReleaseTime = investorsLocks[_investorId][_lockIndex].releaseTime;
     }
 
-    function getTransferableTokens(address _who, uint64 _time) public view override returns (uint256) {
+    function getTransferableTokens(address _who, uint256 _time) public view override returns (uint256) {
         string memory investor = getRegistryService().getInvestor(_who);
         return getTransferableTokensForInvestor(investor, _time);
     }
 
-    function getTransferableTokensForInvestor(string memory _investorId, uint64 _time) public view override returns (uint256) {
+    function getTransferableTokensForInvestor(string memory _investorId, uint256 _time) public view override returns (uint256) {
         require(_time > 0, "Time must be greater than zero");
         if (investorsLocked[_investorId]) {
             return 0;
@@ -207,7 +207,7 @@ contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
             uint256 autoReleaseTime = investorsLocks[_investorId][i].releaseTime;
 
             if (autoReleaseTime == 0 || autoReleaseTime > _time) {
-                totalLockedTokens = totalLockedTokens.add(investorsLocks[_investorId][i].value);
+                totalLockedTokens = totalLockedTokens + investorsLocks[_investorId][i].value;
             }
         }
 

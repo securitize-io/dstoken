@@ -101,7 +101,7 @@ abstract contract ComplianceService is ProxyTarget, Initializable, IDSCompliance
             return (15, NOT_ENOUGH_TOKENS);
         }
 
-        if (getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
+        if (getLockManager().getTransferableTokens(_from, block.timestamp) < _value) {
             return (16, TOKENS_LOCKED);
         }
 
@@ -121,7 +121,7 @@ abstract contract ComplianceService is ProxyTarget, Initializable, IDSCompliance
             return (15, NOT_ENOUGH_TOKENS);
         }
 
-        if (getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
+        if (getLockManager().getTransferableTokens(_from, block.timestamp) < _value) {
             return (16, TOKENS_LOCKED);
         }
 

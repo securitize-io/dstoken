@@ -26,7 +26,7 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
         _;
     }
 
-    function initialize(address _omnibusWallet) public initializer forceInitializeFromProxy {
+    function initialize(address _omnibusWallet) public initializer override forceInitializeFromProxy {
         IDSOmnibusWalletController.initialize();
         ServiceConsumer.initialize();
         VERSIONS.push(2);
@@ -34,34 +34,34 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
         omnibusWallet = _omnibusWallet;
     }
 
-    function setAssetTrackingMode(uint8 _assetTrackingMode) public onlyOperatorOrAbove {
+    function setAssetTrackingMode(uint8 _assetTrackingMode) public override onlyOperatorOrAbove {
         require(_assetTrackingMode == BENEFICIARY || _assetTrackingMode == HOLDER_OF_RECORD, "Invalid tracking mode value");
         require(getToken().balanceOf(omnibusWallet) == 0, "Omnibus wallet must be empty");
 
         assetTrackingMode = _assetTrackingMode;
     }
 
-    function getAssetTrackingMode() public view returns (uint8) {
+    function getAssetTrackingMode() public view override returns (uint8) {
         return assetTrackingMode;
     }
 
-    function isHolderOfRecord() public view returns (bool) {
+    function isHolderOfRecord() public view override returns (bool) {
         return assetTrackingMode == HOLDER_OF_RECORD;
     }
 
-    function balanceOf(address _who) public view returns (uint256) {
+    function balanceOf(address _who) public view override returns (uint256) {
         return balances[_who];
     }
 
-    function deposit(address _to, uint256 _value) public onlyToken {
+    function deposit(address _to, uint256 _value) public override onlyToken {
         balances[_to] = balances[_to].add(_value);
     }
 
-    function withdraw(address _from, uint256 _value) public enoughBalance(_from, _value) onlyToken {
+    function withdraw(address _from, uint256 _value) public override enoughBalance(_from, _value) onlyToken {
         balances[_from] = balances[_from].sub(_value);
     }
 
-    function transfer(address _from, address _to, uint256 _value) public onlyOperatorOrAbove enoughBalance(_from, _value) {
+    function transfer(address _from, address _to, uint256 _value) public override onlyOperatorOrAbove enoughBalance(_from, _value) {
         balances[_from] = balances[_from].sub(_value);
         balances[_to] = balances[_to].add(_value);
 
@@ -73,11 +73,11 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
         getToken().emitOmnibusTransferEvent(omnibusWallet, _from, _to, _value);
     }
 
-    function seize(address _from, uint256 _value) public enoughBalance(_from, _value) onlyToken {
+    function seize(address _from, uint256 _value) public override enoughBalance(_from, _value) onlyToken {
         balances[_from] = balances[_from].sub(_value);
     }
 
-    function burn(address _who, uint256 _value) public enoughBalance(_who, _value) onlyToken {
+    function burn(address _who, uint256 _value) public override enoughBalance(_who, _value) onlyToken {
         balances[_who] = balances[_who].sub(_value);
     }
 }

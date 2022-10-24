@@ -6,7 +6,7 @@ import "./IDSTokenReallocator.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 contract TokenReallocator is ProxyTarget, Initializable, ServiceConsumer, IDSTokenReallocator {
-    function initialize() public initializer forceInitializeFromProxy {
+    function initialize() public override(ServiceConsumer, IDSTokenReallocator) initializer forceInitializeFromProxy {
         ServiceConsumer.initialize();
         VERSIONS.push(1);
     }
@@ -21,7 +21,7 @@ contract TokenReallocator is ProxyTarget, Initializable, ServiceConsumer, IDSTok
         uint256[] memory _attributeExpirations,
         uint256 _value,
         bool isAffiliate
-    ) public onlyIssuerOrAbove returns (bool) {
+    ) public override onlyIssuerOrAbove returns (bool) {
         require(_attributeValues.length == _attributeIds.length, "Wrong length of parameters");
         require(_attributeIds.length == _attributeExpirations.length, "Wrong length of parameters");
         IDSRegistryService registryService = getRegistryService();
