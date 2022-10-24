@@ -111,7 +111,7 @@ library TokenPartitionsLibrary {
             bytes32 partition = partitionOf(self, _from, index);
             uint256 transferableInPartition = skipComplianceCheck
                 ? self.walletPartitions[_from].balances[partition]
-                : IDSComplianceServicePartitioned(_services[COMPLIANCE_SERVICE]).getComplianceTransferableTokens(_from, now, _to, partition);
+                : IDSComplianceServicePartitioned(_services[COMPLIANCE_SERVICE]).getComplianceTransferableTokens(_from, block.timestamp, _to, partition);
             uint256 transferable = Math.min(_value, transferableInPartition);
             if (transferable > 0) {
                 if (self.walletPartitions[_from].balances[partition] == transferable) {
@@ -143,7 +143,7 @@ library TokenPartitionsLibrary {
             IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]), _from, _to);
         for (uint256 index = 0; index < _partitions.length; ++index) {
             if (!skipComplianceCheck) {
-                require(_values[index] <= IDSComplianceServicePartitioned(_services[COMPLIANCE_SERVICE]).getComplianceTransferableTokens(_from, now, _to, _partitions[index]));
+                require(_values[index] <= IDSComplianceServicePartitioned(_services[COMPLIANCE_SERVICE]).getComplianceTransferableTokens(_from, block.timestamp, _to, _partitions[index]));
             }
             transferPartition(self, IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to, _values[index], _partitions[index]);
             _value -= _values[index];

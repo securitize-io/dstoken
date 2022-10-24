@@ -69,7 +69,7 @@ abstract contract StandardToken is IDSToken, ServiceConsumer, TokenDataStore {
         IDSOmnibusTBEController tbeController = getOmnibusTBEController();
         if (!(msg.sender == address(tbeController) && _from == tbeController.getOmnibusWallet())) {
             require(_value <= allowances[_from][msg.sender], "Not enough allowance");
-            allowances[_from][msg.sender] = allowances[_from][msg.sender].sub(_value);
+            allowances[_from][msg.sender] = allowances[_from][msg.sender] - _value;
         }
         return transferImpl(_from, _to, _value);
     }
@@ -82,8 +82,8 @@ abstract contract StandardToken is IDSToken, ServiceConsumer, TokenDataStore {
         require(_to != address(0));
         require(_value <= tokenData.walletsBalances[_from]);
 
-        tokenData.walletsBalances[_from] = tokenData.walletsBalances[_from].sub(_value);
-        tokenData.walletsBalances[_to] = tokenData.walletsBalances[_to].add(_value);
+        tokenData.walletsBalances[_from] = tokenData.walletsBalances[_from] - _value;
+        tokenData.walletsBalances[_to] = tokenData.walletsBalances[_to] + _value;
 
         emit Transfer(_from, _to, _value);
 
@@ -101,7 +101,7 @@ abstract contract StandardToken is IDSToken, ServiceConsumer, TokenDataStore {
     }
 
     function increaseApproval(address _spender, uint256 _addedValue) public returns (bool) {
-        allowances[msg.sender][_spender] = allowances[msg.sender][_spender].add(_addedValue);
+        allowances[msg.sender][_spender] = allowances[msg.sender][_spender] + _addedValue;
         emit Approval(msg.sender, _spender, allowances[msg.sender][_spender]);
         return true;
     }
@@ -111,7 +111,7 @@ abstract contract StandardToken is IDSToken, ServiceConsumer, TokenDataStore {
         if (_subtractedValue > oldValue) {
             allowances[msg.sender][_spender] = 0;
         } else {
-            allowances[msg.sender][_spender] = oldValue.sub(_subtractedValue);
+            allowances[msg.sender][_spender] = oldValue - _subtractedValue;
         }
         emit Approval(msg.sender, _spender, allowances[msg.sender][_spender]);
         return true;

@@ -27,7 +27,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         uint256 totalLockCount = investorsPartitionsLocksCounts[_investorId][_partition];
 
         //Only allow MAX_LOCKS_PER_INVESTOR locks per address, to prevent out-of-gas at transfer scenarios
-        require(lockCount < MAX_LOCKS_PER_INVESTOR_PARTITION, "Too many locks for this investor partition");
+        require(totalLockCount < MAX_LOCKS_PER_INVESTOR_PARTITION, "Too many locks for this investor partition");
 
         investorsPartitionsLocks[_investorId][_partition][totalLockCount] = Lock(_valueLocked, _reasonCode, _reasonString, _releaseTime);
         investorsPartitionsLocksCounts[_investorId][_partition] += 1;
@@ -134,7 +134,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         for (uint256 i = 0; i < investorsPartitionsLocksCounts[_investorId][_partition]; i++) {
             uint256 autoReleaseTime = investorsPartitionsLocks[_investorId][_partition][i].releaseTime;
             if (autoReleaseTime == 0 || autoReleaseTime > _time) {
-                totalLockedTokens = totalLockedTokens.add(investorsPartitionsLocks[_investorId][_partition][i].value);
+                totalLockedTokens = totalLockedTokens + investorsPartitionsLocks[_investorId][_partition][i].value;
             }
         }
         //there may be more locked tokens than actual tokens, so the minimum between the two
