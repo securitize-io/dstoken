@@ -19,7 +19,7 @@ contract TestCalls {
         _;
     }
 
-    constructor() public payable setMsgFields() {
+    constructor() payable setMsgFields() {
         // This constructor will be used to test the creation via multisig wallet
     }
 

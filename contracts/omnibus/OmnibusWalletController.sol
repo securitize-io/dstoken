@@ -27,7 +27,6 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
     }
 
     function initialize(address _omnibusWallet) public initializer override forceInitializeFromProxy {
-        IDSOmnibusWalletController.initialize();
         ServiceConsumer.initialize();
         VERSIONS.push(2);
 

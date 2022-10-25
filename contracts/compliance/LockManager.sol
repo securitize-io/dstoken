@@ -46,7 +46,6 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
     /******************************/
 
     function initialize() public override(IDSLockManager, ServiceConsumer) initializer forceInitializeFromProxy {
-        IDSLockManager.initialize();
         ServiceConsumer.initialize();
         VERSIONS.push(3);
     }
@@ -195,6 +194,22 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
     }
 
     function removeLockRecordForInvestor(string memory, uint256) public override onlyIssuerOrAbove returns (bool) {
+        revertInvestorLevelMethod();
+    }
+
+    function lockInvestor(
+        string memory /*_investorId*/
+    ) public override returns (bool) {
+        revertInvestorLevelMethod();
+    }
+    function unlockInvestor(
+        string memory /*_investorId*/
+    ) public override returns (bool) {
+        revertInvestorLevelMethod();
+    }
+    function isInvestorLocked(
+        string memory /*_investorId*/
+    ) public view override returns (bool) {
         revertInvestorLevelMethod();
     }
 

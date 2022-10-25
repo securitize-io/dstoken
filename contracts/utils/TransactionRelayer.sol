@@ -190,6 +190,4 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         }
         require(success, "transaction was not executed");
     }
-
-    fallback() external payable {}
 }

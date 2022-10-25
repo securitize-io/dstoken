@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
+contract InvestorLockManager is InvestorLockManagerBase {
     uint256 constant MAX_LOCKS_PER_INVESTOR = 30;
 
     /*************** Legacy functions ***************/
@@ -39,9 +39,8 @@ contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
 
     /******************************/
 
-    function initialize() public override(IDSLockManager, ServiceConsumer) initializer forceInitializeFromProxy {
-        IDSLockManager.initialize();
-        ServiceConsumer.initialize();
+    function initialize() public override initializer forceInitializeFromProxy {
+        InvestorLockManagerBase.initialize();
 
         VERSIONS.push(3);
     }

@@ -30,7 +30,7 @@ contract Proxy {
         emit ProxyOwnerChanged(_owner);
     }
 
-    fallback() external payable {
+    fallback() external {
         address _impl = target;
         require(_impl != address(0), "Target not set");
 

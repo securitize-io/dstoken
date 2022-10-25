@@ -117,6 +117,4 @@ contract MultiSigWallet is VersionedContract {
         }
         require(success, "transaction was not executed");
     }
-
-    fallback() external payable {}
 }

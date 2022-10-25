@@ -23,7 +23,7 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
    *******************************/
 
     function setFeature(uint8 featureIndex, bool enable) public onlyMaster {
-        supportedFeatures.setFeature(featureIndex, enable);
+        TokenLibrary.setFeature(supportedFeatures, featureIndex, enable);
     }
 
     function setFeatures(uint256 features) public onlyMaster {
@@ -54,7 +54,7 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
         address _to,
         uint256 _value /*onlyIssuerOrAbove*/
     ) public override returns (bool) {
-        issueTokensCustom(_to, _value, now, 0, "", 0);
+        issueTokensCustom(_to, _value, block.timestamp, 0, "", 0);
         return true;
     }
 
@@ -214,7 +214,7 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
         uint256 existingIndex = walletsToIndexes[_address];
         if (existingIndex == 0) {
             //If not - add it
-            uint256 index = walletsCount.add(1);
+            uint256 index = walletsCount + 1;
             walletsList[index] = _address;
             walletsToIndexes[_address] = index;
             walletsCount = index;
@@ -230,7 +230,7 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
             address lastWalletAddress = walletsList[lastIndex];
             walletsList[existingIndex] = lastWalletAddress;
             //Decrease the total count
-            walletsCount = lastIndex.sub(1);
+            walletsCount = lastIndex - 1;
             //Remove from reverse index
             delete walletsToIndexes[_address];
         }
@@ -287,9 +287,9 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
         if (!CommonUtils.isEmptyString(investor)) {
             uint256 balance = balanceOfInvestor(investor);
             if (_increase == CommonUtils.IncDec.Increase) {
-                balance = balance.add(_value);
+                balance += _value;
             } else {
-                balance = balance.sub(_value);
+                balance -= _value;
             }
             tokenData.investorsBalances[investor] = balance;
         }

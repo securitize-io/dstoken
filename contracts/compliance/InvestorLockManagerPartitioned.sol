@@ -1,6 +1,5 @@
 pragma solidity ^0.8.13;
 
-import "./LockManager.sol";
 import "./IDSLockManagerPartitioned.sol";
 import "./InvestorLockManagerBase.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -12,9 +11,9 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLockManagerBase {
     uint256 constant MAX_LOCKS_PER_INVESTOR_PARTITION = 30;
 
-    function initialize() public override(ServiceConsumer, IDSLockManagerPartitioned) initializer forceInitializeFromProxy {
-        ServiceConsumer.initialize();
+    function initialize() public override(IDSLockManagerPartitioned, InvestorLockManagerBase) initializer forceInitializeFromProxy {
         IDSLockManagerPartitioned.initialize();
+        InvestorLockManagerBase.initialize();
         VERSIONS.push(3);
     }
 

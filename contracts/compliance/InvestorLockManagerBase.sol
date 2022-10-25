@@ -6,25 +6,30 @@ import "../service/ServiceConsumer.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-abstract contract InvestorLockManagerBase is ProxyTarget, Initializable, ServiceConsumer, InvestorLockManagerDataStore {
+abstract contract InvestorLockManagerBase is IDSLockManager, ProxyTarget, ServiceConsumer, InvestorLockManagerDataStore {
     event InvestorFullyLocked(string investorId);
     event InvestorFullyUnlocked(string investorId);
 
-    function lockInvestor(string memory _investorId) public onlyIssuerOrAbove returns (bool) {
+    function initialize() public virtual override(IDSLockManager, ServiceConsumer) {
+        ServiceConsumer.initialize();
+        VERSIONS.push(1);
+    }
+
+    function lockInvestor(string memory _investorId) public override onlyIssuerOrAbove returns (bool) {
         require(!investorsLocked[_investorId], "Investor is already locked");
         investorsLocked[_investorId] = true;
         emit InvestorFullyLocked(_investorId);
         return true;
     }
 
-    function unlockInvestor(string memory _investorId) public onlyIssuerOrAbove returns (bool) {
+    function unlockInvestor(string memory _investorId) public override onlyIssuerOrAbove returns (bool) {
         require(investorsLocked[_investorId], "Investor is not locked");
         delete investorsLocked[_investorId];
         emit InvestorFullyUnlocked(_investorId);
         return true;
     }
 
-    function isInvestorLocked(string memory _investorId) public view returns (bool) {
+    function isInvestorLocked(string memory _investorId) public override view returns (bool) {
         return investorsLocked[_investorId];
     }
 }

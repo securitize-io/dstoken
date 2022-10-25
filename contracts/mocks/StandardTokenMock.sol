@@ -9,7 +9,7 @@ import "../token/DSToken.sol";
 //SPDX-License-Identifier: UNLICENSED
 contract StandardTokenMock is ProxyTarget, Initializable, DSToken {
     function initialize(address _initialAccount, uint256 _initialBalance) public initializer forceInitializeFromProxy {
-        DSToken.initialize();
+        DSToken.initialize('mock', 'MOCK', 2);
 
         VERSIONS.push(2);
         tokenData.walletsBalances[_initialAccount] = _initialBalance;
