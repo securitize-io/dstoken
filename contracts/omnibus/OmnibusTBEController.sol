@@ -135,7 +135,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
     }
 
     function emitTBEOperationEvent(uint256 _totalInvestors, uint256 _accreditedInvestors,
-        uint256 _usAccreditedInvestors, uint256 _usTotalInvestors, uint256 _jpTotalInvestors, bool _increase) internal {
+        uint256 _usAccreditedInvestors, uint256 _usTotalInvestors, uint256 _jpTotalInvestors, bool /* _increase */) internal {
         getToken().emitOmnibusTBEEvent(
             omnibusWallet,
             int256(_totalInvestors),

@@ -547,7 +547,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return createIssuanceInformation(getRegistryService().getInvestor(_to), _value, _issuanceTime);
     }
 
-    function recordBurn(address _who, uint256 _value) internal override returns (bool) {
+    function recordBurn(address /*_who*/, uint256 /*_value*/) internal override returns (bool) {
         return true;
     }
 
@@ -562,7 +562,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     function adjustInvestorCountsAfterCountryChange(
         string memory _id,
         string memory _country,
-        string memory _prevCountry
+        string memory /*_prevCountry*/
     ) public override onlyRegistry returns (bool) {
         if (getToken().balanceOfInvestor(_id) == 0) {
             return false;
