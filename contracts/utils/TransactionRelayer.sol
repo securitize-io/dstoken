@@ -57,30 +57,30 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
 
     // Note that address recovered from signatures must be strictly increasing, in order to prevent duplicates
     function execute(
-        uint8 sigV,
-        bytes32 sigR,
-        bytes32 sigS,
-        address destination,
-        uint256 value,
-        bytes memory data,
-        address executor,
-        uint256 gasLimit
-    ) public {
+        uint8 /*sigV*/,
+        bytes32 /*sigR*/,
+        bytes32 /*sigS*/,
+        address /*destination*/,
+        uint256 /*value*/,
+        bytes memory /*data*/,
+        address /*executor*/,
+        uint256 /*gasLimit*/
+    ) public pure {
         require(false, "not implemented");
     }
 
     // Note that address recovered from signatures must be strictly increasing, in order to prevent duplicates
     function executeByInvestor(
-        uint8 sigV,
-        bytes32 sigR,
-        bytes32 sigS,
-        string memory senderInvestor,
-        address destination,
-        uint256 value,
-        bytes memory data,
-        address executor,
-        uint256 gasLimit
-    ) public {
+        uint8 /*sigV*/,
+        bytes32 /*sigR*/,
+        bytes32 /*sigS*/,
+        string memory /*senderInvestor*/,
+        address /*destination*/,
+        uint256 /*value*/,
+        bytes memory /*data*/,
+        address /*executor*/,
+        uint256 /*gasLimit*/
+    ) public pure {
         require(false, "not implemented");
     }
 

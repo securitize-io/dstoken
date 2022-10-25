@@ -8,7 +8,7 @@ contract Proxy {
     event ProxyTargetSet(address target);
     event ProxyOwnerChanged(address owner);
 
-    constructor() public {
+    constructor() {
         owner = msg.sender;
     }
 

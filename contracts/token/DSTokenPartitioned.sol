@@ -75,7 +75,7 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
         return DSToken.transferFrom(_from, _to, _value) && partitionsManagement.transferPartitions(getCommonServices(), _from, _to, _value, _partitions, _values);
     }
 
-    function burn(address, uint256, string memory) public override {
+    function burn(address, uint256, string memory) public pure override {
         require(false, "Partitioned Token");
     }
 
@@ -85,7 +85,7 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
         partitionsManagement.transferPartition(getRegistryService(), _who, address(0), _value, _partition);
     }
 
-    function seize(address, address, uint256, string memory) public override {
+    function seize(address, address, uint256, string memory) public pure override {
         require(false, "Partitioned Token");
     }
 

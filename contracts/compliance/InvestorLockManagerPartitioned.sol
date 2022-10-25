@@ -153,14 +153,14 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         uint256, /*_valueLocked*/
         string memory, /*_reason*/
         uint256 /*_releaseTime*/
-    ) public override {
+    ) public pure override {
         revertedFunction();
     }
 
     function removeLockRecord(
         address, /*_to*/
         uint256 /*_index*/
-    ) public override returns (bool) {
+    ) public pure override returns (bool) {
         revertedFunction();
     }
 
@@ -175,7 +175,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         uint256 /*_index*/
     )
         public
-        view
+        pure
         override
         returns (
             uint256, /*reasonCode*/
@@ -193,14 +193,14 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         uint256, /*_reasonCode*/
         string memory, /*_reasonString*/
         uint256 /*_releaseTime*/
-    ) public override {
+    ) public pure override {
         revertedFunction();
     }
 
     function removeLockRecordForInvestor(
         string memory, /*_investorId*/
         uint256 /*_lockIndex*/
-    ) public override returns (bool) {
+    ) public pure override returns (bool) {
         revertedFunction();
     }
 
@@ -209,7 +209,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         uint256 /*_lockIndex*/
     )
         public
-        view
+        pure
         override
         returns (
             uint256, /*reasonCode*/
@@ -223,14 +223,14 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
 
     function lockCountForInvestor(
         string memory /*_investorId*/
-    ) public view override returns (uint256) {
+    ) public pure override returns (uint256) {
         revertedFunction();
     }
 
     function getTransferableTokensForInvestor(
         string memory, /*_investorId*/
         uint256 /*_time*/
-    ) public view override returns (uint256) {
+    ) public pure override returns (uint256) {
         revertedFunction();
     }
 

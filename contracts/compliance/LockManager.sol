@@ -18,28 +18,29 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
     /*************** Legacy functions ***************/
     function createLockForHolder(string memory _holder, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime)
         public
+        view
         onlyIssuerOrAboveOrToken
     {
         createLockForInvestor(_holder, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
 
-    function removeLockRecordForHolder(string memory _holderId, uint256 _lockIndex) public onlyIssuerOrAbove returns (bool) {
+    function removeLockRecordForHolder(string memory _holderId, uint256 _lockIndex) public view onlyIssuerOrAbove returns (bool) {
         return removeLockRecordForInvestor(_holderId, _lockIndex);
     }
 
-    function lockCountForHolder(string memory _holderId) public view returns (uint256) {
+    function lockCountForHolder(string memory _holderId) public pure returns (uint256) {
         return lockCountForInvestor(_holderId);
     }
 
     function lockInfoForHolder(string memory _holderId, uint256 _lockIndex)
         public
-        view
+        pure
         returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime)
     {
         return lockInfoForInvestor(_holderId, _lockIndex);
     }
 
-    function getTransferableTokensForHolder(string memory _holderId, uint64 _time) public view returns (uint256) {
+    function getTransferableTokensForHolder(string memory _holderId, uint64 _time) public pure returns (uint256) {
         return getTransferableTokensForInvestor(_holderId, _time);
     }
 
@@ -177,39 +178,39 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         return transferable;
     }
 
-    function getTransferableTokensForInvestor(string memory, uint256) public view override returns (uint256) {
+    function getTransferableTokensForInvestor(string memory, uint256) public pure override returns (uint256) {
         return 0;
     }
 
-    function lockInfoForInvestor(string memory, uint256) public view override returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime) {
+    function lockInfoForInvestor(string memory, uint256) public pure override returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime) {
         return (0, "", 0, 0);
     }
 
-    function lockCountForInvestor(string memory) public view override returns (uint256) {
+    function lockCountForInvestor(string memory) public pure override returns (uint256) {
         return 0;
     }
 
-    function createLockForInvestor(string memory, uint256, uint256, string memory, uint256) public override onlyIssuerOrAboveOrToken {
+    function createLockForInvestor(string memory, uint256, uint256, string memory, uint256) public view override onlyIssuerOrAboveOrToken {
         revertInvestorLevelMethod();
     }
 
-    function removeLockRecordForInvestor(string memory, uint256) public override onlyIssuerOrAbove returns (bool) {
+    function removeLockRecordForInvestor(string memory, uint256) public view override onlyIssuerOrAbove returns (bool) {
         revertInvestorLevelMethod();
     }
 
     function lockInvestor(
         string memory /*_investorId*/
-    ) public override returns (bool) {
+    ) public pure override returns (bool) {
         revertInvestorLevelMethod();
     }
     function unlockInvestor(
         string memory /*_investorId*/
-    ) public override returns (bool) {
+    ) public pure override returns (bool) {
         revertInvestorLevelMethod();
     }
     function isInvestorLocked(
         string memory /*_investorId*/
-    ) public view override returns (bool) {
+    ) public pure override returns (bool) {
         revertInvestorLevelMethod();
     }
 

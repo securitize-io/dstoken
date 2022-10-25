@@ -547,7 +547,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return createIssuanceInformation(getRegistryService().getInvestor(_to), _value, _issuanceTime);
     }
 
-    function recordBurn(address /*_who*/, uint256 /*_value*/) internal override returns (bool) {
+    function recordBurn(address /*_who*/, uint256 /*_value*/) internal pure override returns (bool) {
         return true;
     }
 
@@ -555,7 +555,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         address _from,
         address, /*_to*/
         uint256 _value
-    ) internal override returns (bool) {
+    ) internal pure override returns (bool) {
         return recordBurn(_from, _value);
     }
 
