@@ -67,7 +67,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         setLockInfoImpl(_to, totalLockCount, _valueLocked, _reasonCode, _reasonString, _releaseTime);
 
         //Increase the lock counter for the user
-        locksCounts[_to] = locksCounts[_to].add(1);
+        locksCounts[_to]++;
 
         emit Locked(_to, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
@@ -167,7 +167,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
             uint256 autoReleaseTime = locks[_who][i].releaseTime;
 
             if (autoReleaseTime == 0 || autoReleaseTime > _time) {
-                totalLockedTokens = totalLockedTokens.add(locks[_who][i].value);
+                totalLockedTokens = totalLockedTokens + locks[_who][i].value;
             }
         }
 

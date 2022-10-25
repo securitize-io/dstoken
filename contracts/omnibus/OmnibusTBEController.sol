@@ -49,7 +49,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
                 require(currentPartitionBalance > 0, 'Not enough tokens in remaining partitions to burn the required value');
                 uint256 amountToBurn = currentPartitionBalance >= pendingBurn ? pendingBurn : currentPartitionBalance;
                 token.burnByPartition(omnibusWallet, amountToBurn, 'Omnibus burn by partition', partition);
-                pendingBurn = pendingBurn.sub(amountToBurn);
+                pendingBurn = pendingBurn - amountToBurn;
             }
         } else {
             // Burn non partitioned tokens
@@ -110,8 +110,8 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
             ComplianceServiceRegulated cs = ComplianceServiceRegulated(getDSService(COMPLIANCE_SERVICE));
             IDSComplianceConfigurationService ccs = IDSComplianceConfigurationService(getDSService(COMPLIANCE_CONFIGURATION_SERVICE));
 
-            require(ccs.getNonAccreditedInvestorsLimit() == 0 || ((cs.getTotalInvestorsCount().sub(cs.getAccreditedInvestorsCount())).
-            add(_totalInvestors.sub(_accreditedInvestors)) <= ccs.getNonAccreditedInvestorsLimit()), MAX_INVESTORS_IN_CATEGORY);
+            require(ccs.getNonAccreditedInvestorsLimit() == 0 || (cs.getTotalInvestorsCount() - cs.getAccreditedInvestorsCount()
+             + _totalInvestors - _accreditedInvestors <= ccs.getNonAccreditedInvestorsLimit()), MAX_INVESTORS_IN_CATEGORY);
 
             cs.setTotalInvestorsCount(increaseCounter(cs.getTotalInvestorsCount(), ccs.getTotalInvestorsLimit(), _totalInvestors));
             cs.setAccreditedInvestorsCount(increaseCounter(cs.getAccreditedInvestorsCount(), ccs.getTotalInvestorsLimit(), _accreditedInvestors));
@@ -160,7 +160,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
     }
 
     function increaseCounter(uint256 currentValue, uint256 currentLimit, uint256 delta) internal pure returns (uint256) {
-        uint256 result = currentValue.add(delta);
+        uint256 result = currentValue + delta;
         require(currentLimit == 0 || result <= currentLimit, MAX_INVESTORS_IN_CATEGORY);
         return result;
     }

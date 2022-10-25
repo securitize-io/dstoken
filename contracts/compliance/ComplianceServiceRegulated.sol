@@ -134,9 +134,9 @@ library ComplianceServiceLibrary {
         uint256 nonAccreditedInvestorLimit = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit();
         return
         nonAccreditedInvestorLimit != 0 &&
-        ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getTotalInvestorsCount().sub(
+        ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getTotalInvestorsCount() -
             ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getAccreditedInvestorsCount()
-        ) >=
+        >=
         nonAccreditedInvestorLimit &&
         isNewInvestor(_services, _to, toInvestorBalance) &&
         (isAccredited(_services, _from) || fromInvestorBalance > _value);
@@ -238,7 +238,7 @@ library ComplianceServiceLibrary {
 
             if (
                 _args.fromInvestorBalance > _args.value &&
-                _args.fromInvestorBalance.sub(_args.value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUSTokens()
+                _args.fromInvestorBalance - _args.value < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUSTokens()
             ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
@@ -274,7 +274,7 @@ library ComplianceServiceLibrary {
         string memory toCountry = getCountry(_services, _args.to);
 
         if (_args.fromRegion == EU) {
-            if (_args.fromInvestorBalance.sub(_args.value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEUTokens() &&
+            if (_args.fromInvestorBalance - _args.value < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEUTokens() &&
                 _args.fromInvestorBalance > _args.value) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
@@ -377,7 +377,7 @@ library ComplianceServiceLibrary {
 
         if (
             !isPlatformWalletFrom &&
-        _args.fromInvestorBalance.sub(_args.value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor() &&
+        _args.fromInvestorBalance - _args.value < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor() &&
         _args.fromInvestorBalance > _args.value
         ) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
@@ -427,7 +427,7 @@ library ComplianceServiceLibrary {
             if (!isAccredited(_services, _to)) {
                 if (
                     complianceConfigurationService.getNonAccreditedInvestorsLimit() != 0 &&
-                    complianceService.getTotalInvestorsCount().sub(complianceService.getAccreditedInvestorsCount()) >=
+                    complianceService.getTotalInvestorsCount() - complianceService.getAccreditedInvestorsCount() >=
                     complianceConfigurationService.getNonAccreditedInvestorsLimit()
                 ) {
                     return (40, MAX_INVESTORS_IN_CATEGORY);

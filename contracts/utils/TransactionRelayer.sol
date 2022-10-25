@@ -173,7 +173,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         uint256 approverRole = getTrustService().getRole(recovered);
         require(approverRole == ROLE_ISSUER || approverRole == ROLE_MASTER, 'Invalid signature');
 
-        noncePerInvestor[toBytes32(senderInvestor)] = noncePerInvestor[toBytes32(senderInvestor)].add(1);
+        noncePerInvestor[toBytes32(senderInvestor)]++;
         bool success = false;
         uint256 value = params[0];
         uint256 gasLimit = params[1];

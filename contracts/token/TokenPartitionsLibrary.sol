@@ -52,10 +52,12 @@ library TokenPartitionsLibrary {
         transferPartition(self, _registry, address(0), _to, _value, partition);
         uint256 totalLocked = 0;
         for (uint256 i = 0; i < _valuesLocked.length; i++) {
-            totalLocked = totalLocked.add(_valuesLocked[i]);
+            totalLocked += _valuesLocked[i];
             _lockManager.createLockForInvestor(investor, _valuesLocked[i], 0, _reason, _releaseTimes[i], partition);
         }
         require(totalLocked <= _value, "valueLocked must be smaller than value");
+
+        return true;
     }
 
     function setPartitionToAddressImpl(TokenPartitions storage self, address _who, uint256 _index, bytes32 _partition) internal returns (bool) {

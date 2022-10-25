@@ -146,7 +146,7 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
         require(!getWalletManager().isSpecialWallet(_address), "Wallet has special role");
 
         investorsWallets[_address] = Wallet(_id, msg.sender, msg.sender);
-        investors[_id].walletCount = investors[_id].walletCount.add(1);
+        investors[_id].walletCount++;
 
         emit DSRegistryServiceWalletAdded(_address, _id, msg.sender);
 
@@ -157,7 +157,7 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
         require(getTrustService().getRole(msg.sender) != EXCHANGE || investorsWallets[_address].creator == msg.sender, "Insufficient permissions");
 
         delete investorsWallets[_address];
-        investors[_id].walletCount = investors[_id].walletCount.sub(1);
+        investors[_id].walletCount--;
 
         emit DSRegistryServiceWalletRemoved(_address, _id, msg.sender);
 

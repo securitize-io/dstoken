@@ -53,16 +53,16 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
     }
 
     function deposit(address _to, uint256 _value) public override onlyToken {
-        balances[_to] = balances[_to].add(_value);
+        balances[_to] += _value;
     }
 
     function withdraw(address _from, uint256 _value) public override enoughBalance(_from, _value) onlyToken {
-        balances[_from] = balances[_from].sub(_value);
+        balances[_from] -= _value;
     }
 
     function transfer(address _from, address _to, uint256 _value) public override onlyOperatorOrAbove enoughBalance(_from, _value) {
-        balances[_from] = balances[_from].sub(_value);
-        balances[_to] = balances[_to].add(_value);
+        balances[_from] -= _value;
+        balances[_to] += _value;
 
         if (assetTrackingMode == BENEFICIARY) {
             getToken().updateOmnibusInvestorBalance(omnibusWallet, _from, _value, CommonUtils.IncDec.Decrease);
@@ -73,10 +73,10 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
     }
 
     function seize(address _from, uint256 _value) public override enoughBalance(_from, _value) onlyToken {
-        balances[_from] = balances[_from].sub(_value);
+        balances[_from] -= _value;
     }
 
     function burn(address _who, uint256 _value) public override enoughBalance(_who, _value) onlyToken {
-        balances[_who] = balances[_who].sub(_value);
+        balances[_who] -= _value;
     }
 }
