@@ -27,7 +27,7 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
         require(investors[_id].walletCount == 0, "Investor has wallets");
 
         for (uint8 index = 0; index < 16; index++) {
-            delete investors[_id].attributes[index];
+            delete attributes[_id][index];
         }
 
         delete investors[_id];
@@ -120,9 +120,9 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
     {
         require(_attributeId < 16, "Unknown attribute");
 
-        investors[_id].attributes[_attributeId].value = _value;
-        investors[_id].attributes[_attributeId].expiry = _expiry;
-        investors[_id].attributes[_attributeId].proofHash = _proofHash;
+        attributes[_id][_attributeId].value = _value;
+        attributes[_id][_attributeId].expiry = _expiry;
+        attributes[_id][_attributeId].proofHash = _proofHash;
         investors[_id].lastUpdatedBy = msg.sender;
 
         emit DSRegistryServiceInvestorAttributeChanged(_id, _attributeId, _value, _expiry, _proofHash, msg.sender);
@@ -131,15 +131,15 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
     }
 
     function getAttributeValue(string memory _id, uint8 _attributeId) public view override returns (uint256) {
-        return investors[_id].attributes[_attributeId].value;
+        return attributes[_id][_attributeId].value;
     }
 
     function getAttributeExpiry(string memory _id, uint8 _attributeId) public view override returns (uint256) {
-        return investors[_id].attributes[_attributeId].expiry;
+        return attributes[_id][_attributeId].expiry;
     }
 
     function getAttributeProofHash(string memory _id, uint8 _attributeId) public view override returns (string memory) {
-        return investors[_id].attributes[_attributeId].proofHash;
+        return attributes[_id][_attributeId].proofHash;
     }
 
     function addWallet(address _address, string memory _id) public override onlyExchangeOrAbove investorExists(_id) newWallet(_address) returns (bool) {
