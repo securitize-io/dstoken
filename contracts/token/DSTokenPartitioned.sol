@@ -8,6 +8,8 @@ import "./TokenPartitionsLibrary.sol";
 //SPDX-License-Identifier: UNLICENSED
 contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
 
+    using TokenPartitionsLibrary for TokenPartitionsLibrary.TokenPartitions;
+
     function initialize(string memory _name, string memory _symbol, uint8 _decimals) public override initializer forceInitializeFromProxy {
         DSToken.initialize(_name, _symbol, _decimals);
         VERSIONS.push(3);

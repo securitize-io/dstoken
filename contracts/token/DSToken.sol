@@ -7,6 +7,7 @@ import "./StandardToken.sol";
 //SPDX-License-Identifier: UNLICENSED
 contract DSToken is ProxyTarget, Initializable, StandardToken {
     // using FeaturesLibrary for SupportedFeatures;
+    using TokenLibrary for TokenLibrary.SupportedFeatures;
     uint256 internal constant OMNIBUS_NO_ACTION = 0;
 
     function initialize(string memory _name, string memory _symbol, uint8 _decimals) public virtual initializer forceInitializeFromProxy {
@@ -23,7 +24,7 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
    *******************************/
 
     function setFeature(uint8 featureIndex, bool enable) public onlyMaster {
-        TokenLibrary.setFeature(supportedFeatures, featureIndex, enable);
+        supportedFeatures.setFeature(featureIndex, enable);
     }
 
     function setFeatures(uint256 features) public onlyMaster {

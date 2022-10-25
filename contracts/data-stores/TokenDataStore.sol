@@ -6,8 +6,6 @@ import '../token/TokenLibrary.sol';
 
 //SPDX-License-Identifier: UNLICENSED
 contract TokenDataStore is ServiceConsumerDataStore {
-    using TokenPartitionsLibrary for TokenPartitionsLibrary.TokenPartitions;
-    using TokenLibrary for TokenLibrary.SupportedFeatures;
 
     TokenLibrary.TokenData internal tokenData;
     mapping(address => mapping(address => uint256)) internal allowances;
