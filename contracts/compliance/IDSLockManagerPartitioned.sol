@@ -3,11 +3,7 @@ pragma solidity ^0.8.13;
 import "./IDSLockManager.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-abstract contract IDSLockManagerPartitioned is IDSLockManager {
-
-    function initialize() public virtual override {
-        VERSIONS.push(2);
-    }
+abstract contract IDSLockManagerPartitioned is Initializable, VersionedContract {
 
     event LockedPartition(address indexed who, uint256 value, uint256 indexed reason, string reasonString, uint256 releaseTime, bytes32 indexed partition);
     event UnlockedPartition(address indexed who, uint256 value, uint256 indexed reason, string reasonString, uint256 releaseTime, bytes32 indexed partition);

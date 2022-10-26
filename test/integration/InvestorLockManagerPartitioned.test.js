@@ -547,29 +547,17 @@ contract("InvestorLockManagerPartitioned", function([
       const currentTime = await latestTime();
       const partition = await this.token.partitionOf(owner, 0);
       assert.equal(
-        await this.lockManager.getTransferableTokens(
-          owner,
-          currentTime,
-          partition
-        ),
+        await this.lockManager.methods['getTransferableTokens(address,uint256,bytes32)'](owner, currentTime, partition),
         100
       );
       await this.lockManager.lockInvestor(investorId.GENERAL_INVESTOR_ID_1);
       assert.equal(
-        await this.lockManager.getTransferableTokens(
-          owner,
-          currentTime,
-          partition
-        ),
+        await this.lockManager.methods['getTransferableTokens(address,uint256,bytes32)'](owner, currentTime, partition),
         0
       );
       await this.lockManager.unlockInvestor(investorId.GENERAL_INVESTOR_ID_1);
       assert.equal(
-        await this.lockManager.getTransferableTokens(
-          owner,
-          currentTime,
-          partition
-        ),
+        await this.lockManager.methods['getTransferableTokens(address,uint256,bytes32)'](owner, currentTime, partition),
         100
       );
     });

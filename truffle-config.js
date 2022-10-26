@@ -7,7 +7,8 @@ const argv = require('minimist')(process.argv.slice(2), {
   ],
 });
 
-const HDWalletProvider = require('truffle-hdwallet-provider');
+const HDWalletProvider = require('@truffle/hdwallet-provider');
+const Web3 = require('web3');
 
 const timeoutBlocks = 10000000;
 
@@ -19,17 +20,10 @@ const privateKey =
 module.exports = {
   networks: {
     development: {
+      provider: () => new Web3.providers.HttpProvider('http://127.0.0.1:7545'),
       host: 'localhost',
       port: 7545,
       network_id: '*', // eslint-disable-line camelcase
-    },
-    ropsten: {
-      provider: new HDWalletProvider(
-        privateKey,
-        `https://ropsten.infura.io/v3/${process.env.INFURA_API_KEY}`
-      ),
-      network_id: 3, // eslint-disable-line camelcase
-      timeoutBlocks,
     },
     coverage: {
       host: 'localhost',
@@ -38,18 +32,13 @@ module.exports = {
       gas: 0xfffffffffff,
       gasPrice: 0x01,
     },
-    ganache: {
-      host: 'localhost',
-      port: 7545,
-      network_id: '*', // eslint-disable-line camelcase
-    },
-    rinkeby: {
+    goerli: {
       gasPrice: 4000000000,
       provider: new HDWalletProvider(
         privateKey,
-        `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`
+        `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`
       ),
-      network_id: '4',
+      network_id: '5',
       timeoutBlocks,
     },
     quorum: {

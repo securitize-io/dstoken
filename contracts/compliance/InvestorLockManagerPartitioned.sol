@@ -11,8 +11,7 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLockManagerBase {
     uint256 constant MAX_LOCKS_PER_INVESTOR_PARTITION = 30;
 
-    function initialize() public override(IDSLockManagerPartitioned, InvestorLockManagerBase) initializer forceInitializeFromProxy {
-        IDSLockManagerPartitioned.initialize();
+    function initialize() public override initializer forceInitializeFromProxy {
         InvestorLockManagerBase.initialize();
         VERSIONS.push(3);
     }

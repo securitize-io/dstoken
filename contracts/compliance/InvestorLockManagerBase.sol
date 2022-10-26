@@ -6,7 +6,7 @@ import "../service/ServiceConsumer.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-abstract contract InvestorLockManagerBase is IDSLockManager, ProxyTarget, ServiceConsumer, InvestorLockManagerDataStore {
+abstract contract InvestorLockManagerBase is ProxyTarget, IDSLockManager, ServiceConsumer, InvestorLockManagerDataStore {
     event InvestorFullyLocked(string investorId);
     event InvestorFullyUnlocked(string investorId);
 

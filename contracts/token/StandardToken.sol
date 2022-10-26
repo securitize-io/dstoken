@@ -69,7 +69,7 @@ abstract contract StandardToken is IDSToken, ServiceConsumer, TokenDataStore {
         IDSOmnibusTBEController tbeController = getOmnibusTBEController();
         if (!(msg.sender == address(tbeController) && _from == tbeController.getOmnibusWallet())) {
             require(_value <= allowances[_from][msg.sender], "Not enough allowance");
-            allowances[_from][msg.sender] = allowances[_from][msg.sender] - _value;
+            allowances[_from][msg.sender] -= _value;
         }
         return transferImpl(_from, _to, _value);
     }
@@ -82,8 +82,8 @@ abstract contract StandardToken is IDSToken, ServiceConsumer, TokenDataStore {
         require(_to != address(0));
         require(_value <= tokenData.walletsBalances[_from]);
 
-        tokenData.walletsBalances[_from] = tokenData.walletsBalances[_from] - _value;
-        tokenData.walletsBalances[_to] = tokenData.walletsBalances[_to] + _value;
+        tokenData.walletsBalances[_from] -= _value;
+        tokenData.walletsBalances[_to] += _value;
 
         emit Transfer(_from, _to, _value);
 

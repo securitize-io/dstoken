@@ -582,7 +582,7 @@ contract("ComplianceServiceRegulatedPartitioned", function([
       assert.equal(res[1], "Valid");
     });
 
-    it("Pre transfer check from EU to EU through US - should not hold up 1y", async function() {
+    it.only("Pre transfer check from EU to EU through US - should not hold up 1y", async function() {
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_1,
         country.FRANCE
