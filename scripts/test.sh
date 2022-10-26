@@ -54,9 +54,9 @@ start_ganache() {
   )
 
   if [ "$SOLIDITY_COVERAGE" = true ]; then
-    node_modules/.bin/testrpc-sc --gasLimit 0xfffffffffff --port "$ganache_port" "${accounts[@]}" > /dev/null &
+    node_modules/.bin/testrpc-sc --gasLimit 0xfffffffffff --port "$ganache_port" "${accounts[@]}"> /dev/null &
   else
-    node_modules/.bin/ganache --gasLimit 0xfffffffffff --port "$ganache_port" "${accounts[@]}" > /dev/null &
+    node_modules/.bin/ganache --gasLimit 0xfffffffffff --port "$ganache_port" "${accounts[@]}"> /dev/null &
   fi
 
   ganache_pid=$!

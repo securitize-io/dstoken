@@ -98,7 +98,7 @@ library TokenPartitionsLibrary {
             if (self.walletPartitions[_to].balances[_partition] == 0 && _value > 0) {
                 addPartitionToAddress(self, _to, _partition);
             }
-            self.walletPartitions[_to].balances[_partition] = SafeMath.add(self.walletPartitions[_to].balances[_partition], _value);
+            self.walletPartitions[_to].balances[_partition] += _value;
             updateInvestorPartitionBalance(self, _registry, _to, _value, CommonUtils.IncDec.Increase, _partition);
         }
         emit TransferByPartition(_from, _to, _value, _partition);

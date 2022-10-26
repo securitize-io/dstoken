@@ -61,7 +61,6 @@ library TokenLibrary {
         //Check issuance is allowed (and inform the compliance manager, possibly adding locks)
         IDSComplianceService(_services[COMPLIANCE_SERVICE]).validateIssuance(_to, _value, _issuanceTime);
 
-        //Adding and subtracting is done through safemath
         _tokenData.totalSupply += _value;
         _tokenData.totalIssued += _value;
         _tokenData.walletsBalances[_to] += _value;

@@ -23,7 +23,9 @@ module.exports = {
       provider: () => new Web3.providers.HttpProvider('http://127.0.0.1:7545'),
       host: 'localhost',
       port: 7545,
-      network_id: '*', // eslint-disable-line camelcase
+      network_id: '*',
+      deploymentPollingInterval: 4000,
+      networkCheckTimeout: 6000
     },
     coverage: {
       host: 'localhost',
@@ -60,9 +62,6 @@ module.exports = {
   },
   mocha: {
     reporter: 'eth-gas-reporter',
-    useColors: true,
-    bail: false,
-    enableTimeouts: false,
   },
   compilers: {
     solc: {

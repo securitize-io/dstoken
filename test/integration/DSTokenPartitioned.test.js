@@ -1,4 +1,3 @@
-const DSToken = artifacts.require("DSToken");
 const assertRevert = require("../utils/assertRevert");
 const latestTime = require("../utils/latestTime");
 const snapshotsHelper = require("../utils/snapshots");
@@ -458,8 +457,10 @@ contract("DSTokenPartitioned (regulated)", function([
     });
 
     it("Should record the number of total issued token correctly after burn", async function() {
-      await this.token.issueTokens(usInvestorWallet, 100);
-      await this.token.issueTokens(usInvestorWallet, 100);
+      // await this.token.issueTokens(usInvestorWallet, 100);
+      // await this.token.issueTokens(usInvestorWallet, 100);
+      await this.token.issueTokensCustom(usInvestorWallet, 100, 1, 0, "", 0);
+      await this.token.issueTokensCustom(usInvestorWallet, 100, 1, 0, "", 0);
       const partition = await this.token.partitionOf(usInvestorWallet, 0);
       await this.token.burnByPartition(
         usInvestorWallet,

@@ -211,12 +211,8 @@ contract("ComplianceServiceRegulatedPartitioned", function([
       );
       await this.token.issueTokens(wallet, 100);
       const partition = await this.token.partitionOf(wallet, 0);
-      await this.lockManager.addManualLockRecord(
-        wallet,
-        95,
-        "Test",
-        (await latestTime()) + 1000,
-        partition
+      await this.lockManager.methods['addManualLockRecord(address,uint256,string,uint256,bytes32)'](
+        wallet, 95, 'Test', (await latestTime()) + 1000, partition
       );
       const res = await this.complianceService.preTransferCheck(
         wallet,
@@ -582,7 +578,7 @@ contract("ComplianceServiceRegulatedPartitioned", function([
       assert.equal(res[1], "Valid");
     });
 
-    it.only("Pre transfer check from EU to EU through US - should not hold up 1y", async function() {
+    it("Pre transfer check from EU to EU through US - should not hold up 1y", async function() {
       await this.registryService.setCountry(
         investorId.GENERAL_INVESTOR_ID_1,
         country.FRANCE
