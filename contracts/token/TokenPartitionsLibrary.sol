@@ -117,8 +117,10 @@ library TokenPartitionsLibrary {
             uint256 transferable = Math.min(_value, transferableInPartition);
             if (transferable > 0) {
                 if (self.walletPartitions[_from].balances[partition] == transferable) {
-                    --index;
-                    --partitionCount;
+                    unchecked {
+                        --index;
+                        --partitionCount;
+                    }
                 }
                 transferPartition(self, IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to, transferable, partition);
                 _value -= transferable;
