@@ -125,7 +125,9 @@ library TokenPartitionsLibrary {
                 transferPartition(self, IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to, transferable, partition);
                 _value -= transferable;
             }
-            ++index;
+            unchecked {
+                ++index;
+            }
         }
 
         require(_value == 0);
