@@ -20,7 +20,6 @@ const privateKey =
 module.exports = {
   networks: {
     development: {
-      provider: () => new Web3.providers.HttpProvider('http://127.0.0.1:7545'),
       host: 'localhost',
       port: 7545,
       network_id: '*',
@@ -36,10 +35,11 @@ module.exports = {
     },
     goerli: {
       gasPrice: 4000000000,
-      provider: new HDWalletProvider(
-        privateKey,
-        `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`
-      ),
+      provider: new HDWalletProvider({
+        privateKeys: [privateKey],
+        providerOrUrl: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,
+        chainId: 5,
+      }),
       network_id: '5',
       timeoutBlocks,
     },
@@ -50,18 +50,36 @@ module.exports = {
       gasPrice: 0,
       type: 'quorum', // needed for Truffle to support Quorum
     },
+    matic: {
+      gasPrice: 100000000000,
+      provider: () => new HDWalletProvider({
+        privateKeys: [privateKey],
+        providerOrUrl: `wss://polygon-mumbai.g.alchemy.com/v2/${process.env.API_KEY}`,
+        chainId: 80001,
+      }),
+      network_id: 80001,
+      timeoutBlocks: 10000000,
+      skipDryRun: true,
+    },
+    avalanche: {
+      provider: new HDWalletProvider({
+        privateKeys: [privateKey],
+        providerOrUrl: 'https://api.avax-test.network/ext/bc/C/rpc',
+        chainId: 43113,
+      }),
+      network_id: '43113',
+      skipDryRun: true,
+    },
     live: {
       gasPrice: 40000000000,
-      provider: new HDWalletProvider(
-        privateKey,
-        `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`
-      ),
+      provider: new HDWalletProvider({
+        privateKeys: [privateKey],
+        providerOrUrl: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+        chainId: 1,
+      }),
       network_id: '1',
       timeoutBlocks,
     },
-  },
-  mocha: {
-    reporter: 'eth-gas-reporter',
   },
   compilers: {
     solc: {

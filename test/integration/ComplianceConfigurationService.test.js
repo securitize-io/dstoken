@@ -5,7 +5,7 @@ const lockManagerType = require("../../utils/globals").lockManagerType;
 const country = require("../fixtures").Country;
 const compliance = require("../fixtures").Compliance;
 
-contract("ComplianceConfigurationService", function([owner]) {
+contract.only("ComplianceConfigurationService", function([owner]) {
   before(async function() {
     await deployContracts(
       this,

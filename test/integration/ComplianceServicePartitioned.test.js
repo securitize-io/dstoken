@@ -15,7 +15,7 @@ const time = fixtures.Time;
 const ownerExchangeWallet = '0x7d5355f140535DaC6B63101A77d0a7a5D1354f8F';
 const newExchangeWallet = '0xF0478208FCb2559922c70642BF5ea8547CE28441';
 
-contract("ComplianceServiceRegulatedPartitioned", function([
+contract.only("ComplianceServiceRegulatedPartitioned", function([
   owner,
   wallet,
   wallet1,

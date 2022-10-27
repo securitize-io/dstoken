@@ -6,7 +6,7 @@ const lockManagerType = require("../../utils/globals").lockManagerType;
 const deployContracts = require("../utils").deployContracts;
 const investorId = require("../fixtures").InvestorId;
 
-contract("DSToken (not regulated)", function([
+contract.only("DSToken (not regulated)", function([
   _,
   owner,
   recipient,

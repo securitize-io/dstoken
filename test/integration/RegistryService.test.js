@@ -39,7 +39,7 @@ let attributeStatuses = [
 const expiry = "10072018";
 const proofHash = generateRandomInvestorId();
 
-contract("RegistryService", function([
+contract.only("RegistryService", async function([
   owner,
   issuerWallet1,
   issuerWallet2,
