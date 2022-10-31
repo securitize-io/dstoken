@@ -24,8 +24,6 @@ module.exports = {
       host: 'localhost',
       port: 7545,
       network_id: '*',
-      deploymentPollingInterval: 4000,
-      networkCheckTimeout: 1000000
     },
     coverage: {
       host: 'localhost',
