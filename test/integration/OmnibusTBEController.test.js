@@ -4,7 +4,7 @@ const {
   getCountersDelta, toHex, assertCounters, assertCountryCounters, assertEvent,
 } =
   require('../utils/omnibus/utils');
-const assertRevert = require('../utils/assertRevert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const fixtures = require('../fixtures');
 const globals = require('../../utils/globals');
 
@@ -167,7 +167,7 @@ contract('OmnibusTBEController', ([
       await setCounters(txCounters, this);
 
       // THEN
-      await assertRevert(this.omnibusTBEController
+      await expectRevert.unspecified(this.omnibusTBEController
         .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
           txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
           txCounters.jpTotalInvestorsCount, [], []));
@@ -192,7 +192,7 @@ contract('OmnibusTBEController', ([
       // THEN
 
       // WHEN
-      await assertRevert(this.omnibusTBEController
+      await expectRevert.unspecified(this.omnibusTBEController
         .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
           txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
           txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts));
@@ -316,7 +316,7 @@ contract('OmnibusTBEController', ([
       await this.token.approve(this.omnibusTBEController.address, value, { from: omnibusWallet });
 
       // THEN
-      await assertRevert(this.omnibusTBEController
+      await expectRevert.unspecified(this.omnibusTBEController
         .bulkTransfer(investorWallets, tokenValues));
     });
     it('should not bulk transfer tokens if token value array length does not match wallet array length',
@@ -347,7 +347,7 @@ contract('OmnibusTBEController', ([
         await this.token.approve(this.omnibusTBEController.address, value, { from: omnibusWallet });
 
         // THEN
-        await assertRevert(this.omnibusTBEController
+        await expectRevert.unspecified(this.omnibusTBEController
           .bulkTransfer(investorWallets, tokenValues));
       });
     it('should bulk transfer tokens without removing counters (not anymore because of partial transfers)',

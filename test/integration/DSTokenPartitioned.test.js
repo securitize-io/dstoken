@@ -1,4 +1,4 @@
-const assertRevert = require('../utils/assertRevert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const latestTime = require('../utils/latestTime');
 const snapshotsHelper = require('../utils/snapshots');
 const deployContracts = require('../utils').deployContracts;
@@ -192,7 +192,7 @@ contract('DSTokenPartitioned (regulated)', function ([
     });
 
     it('Should not issue tokens to a forbidden wallet', async function () {
-      await assertRevert(this.token.issueTokens(chinaInvestorWallet, 100));
+      await expectRevert.unspecified(this.token.issueTokens(chinaInvestorWallet, 100));
     });
 
     it('Should issue tokens to a none wallet', async function () {
@@ -258,7 +258,7 @@ contract('DSTokenPartitioned (regulated)', function ([
         'TEST',
         (await latestTime()) + 1 * time.WEEKS,
       );
-      await assertRevert(
+      await expectRevert.unspecified(
         this.token.transfer(germanyInvestorWallet, 1, {
           from: israelInvestorWallet,
         }),
@@ -417,7 +417,7 @@ contract('DSTokenPartitioned (regulated)', function ([
   describe('Burn', function () {
     it('Should not allow burn without specifying a partition', async function () {
       await this.token.issueTokens(usInvestorWallet, 100);
-      await assertRevert(this.token.burn(usInvestorWallet, 50, 'test burn'));
+      await expectRevert.unspecified(this.token.burn(usInvestorWallet, 50, 'test burn'));
     });
 
     it('Should burn tokens of a partition correctly', async function () {
@@ -481,7 +481,7 @@ contract('DSTokenPartitioned (regulated)', function ([
     });
 
     it('should not allow seize without specifying a partition', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.token.seize(usInvestorWallet, issuerWallet, 50, 'test seize'),
       );
     });
@@ -527,7 +527,7 @@ contract('DSTokenPartitioned (regulated)', function ([
 
     it('Cannot seize more than balance', async function () {
       const partition = await this.token.partitionOf(usInvestorWallet, 0);
-      await assertRevert(
+      await expectRevert.unspecified(
         this.token.seizeByPartition(
           usInvestorWallet,
           issuerWallet,

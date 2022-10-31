@@ -1,4 +1,4 @@
-const assertRevert = require('../utils/assertRevert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const latestTime = require('../utils/latestTime');
 const snapshotsHelper = require('../utils/snapshots');
 const increaseTime = require('../utils/increaseTime').increaseTime;
@@ -15,7 +15,7 @@ const time = fixtures.Time;
 const ownerExchangeWallet = '0x7d5355f140535DaC6B63101A77d0a7a5D1354f8F';
 const newExchangeWallet = '0xF0478208FCb2559922c70642BF5ea8547CE28441';
 
-contract.only('ComplianceServiceRegulatedPartitioned', function ([
+contract('ComplianceServiceRegulatedPartitioned', function ([
   owner,
   wallet,
   wallet1,
@@ -25,6 +25,8 @@ contract.only('ComplianceServiceRegulatedPartitioned', function ([
   platformWallet,
   omnibusTBEWallet,
 ]) {
+  let snapshot;
+  let snapshotId;
   before(async function () {
     await deployContracts(
       this,
@@ -194,7 +196,7 @@ contract.only('ComplianceServiceRegulatedPartitioned', function ([
       assert.equal(await this.token.balanceOf(noneWallet1), 0);
       await this.token.issueTokens(omnibusTBEWallet, 100);
       assert.equal(await this.token.balanceOf(omnibusTBEWallet), 100);
-      assertRevert(this.omnibusTBEController
+      await expectRevert.unspecified(this.omnibusTBEController
         .bulkTransfer([noneWallet1], ['40']));
       assert.equal(await this.token.balanceOf(noneWallet1), 0);
       assert.equal(await this.token.balanceOf(omnibusTBEWallet), 100);

@@ -1,7 +1,7 @@
 /* eslint-disable comma-spacing,max-len */
 const StandardTokenMock = artifacts.require('StandardTokenMock');
 const Proxy = artifacts.require('Proxy');
-const assertRevert = require('../utils/assertRevert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const increaseTime = require('../utils/increaseTime').increaseTime;
 const latestTime = require('../utils/latestTime');
 const deployContracts = require('../utils').deployContracts;
@@ -411,7 +411,7 @@ contract('Integration', function ([
       assert.equal(tt.toNumber(), 1150);
 
       // Try to move locked tokens - should fail
-      await assertRevert(
+      await expectRevert.unspecified(
         this.token.transfer(germanyInvestor2Wallet, 1500, {
           from: germanyInvestorWallet,
         }),
@@ -420,7 +420,7 @@ contract('Integration', function ([
       await increaseTime(2 * time.WEEKS);
 
       // Should still fail
-      await assertRevert(
+      await expectRevert.unspecified(
         this.token.transfer(germanyInvestor2Wallet, 1500, {
           from: germanyInvestorWallet,
         }),
@@ -472,7 +472,7 @@ contract('Integration', function ([
         investorId.US_INVESTOR_ID_2,
       );
 
-      await assertRevert(
+      await expectRevert.unspecified(
         this.token.transfer(platformWallet, 2, { from: usInvestor2Wallet }),
       ); // Only full transfers
       await this.token.transfer(platformWallet, balance, {
@@ -496,7 +496,7 @@ contract('Integration', function ([
       assert.equal(tx.logs[0].args.reason, 'testing');
 
       // Should fail to send FROM the issuer wallet
-      await assertRevert(
+      await expectRevert.unspecified(
         this.token.transfer(usInvestorWallet, 1, { from: issuerWallet }),
       );
     });
@@ -517,7 +517,7 @@ contract('Integration', function ([
       let tx = await this.token.pause();
       assert.equal(tx.logs[0].event, 'Pause');
       // should revert
-      await assertRevert(
+      await expectRevert.unspecified(
         this.token.transfer(germanyInvestorWallet, 2, {
           from: germanyInvestor2Wallet,
         }),
@@ -531,14 +531,14 @@ contract('Integration', function ([
     });
     it('Should allow pausing and un-pausing the token for an ISSUER role', async function () {
       // Should not allow a non-issuer to pause the token
-      await assertRevert(
+      await expectRevert.unspecified(
         this.token.pause({ from: nonIssuerWallet }),
       );
       await this.trustService.setRole(issuerWalletThatCanPause, roles.ISSUER);
       let tx = await this.token.pause({ from: issuerWalletThatCanPause });
       assert.equal(tx.logs[0].event, 'Pause');
       // should revert
-      await assertRevert(
+      await expectRevert.unspecified(
         this.token.transfer(germanyInvestorWallet, 2, {
           from: germanyInvestor2Wallet,
         }),
@@ -552,7 +552,7 @@ contract('Integration', function ([
     });
     it('Should allow upgrading the compliance manager', async function () {
       // At first usInvestor should not be allowed to send any tokens to another us investor
-      await assertRevert(
+      await expectRevert.unspecified(
         this.token.transfer(usInvestor2Wallet, 2, { from: usInvestorWallet }),
       );
       // Create a new compliance service and set the token to work with it
@@ -600,7 +600,7 @@ contract('Integration', function ([
       // At first usInvestor should not be allowed to send any tokens to a chinese investor
       let before = await this.token.balanceOf(usInvestorWallet);
       assert(before.toNumber(), 998);
-      await assertRevert(
+      await expectRevert.unspecified(
         this.token.transfer(chinaInvestorWallet, 2, { from: usInvestorWallet }),
       ); // Not a registered wallet
 

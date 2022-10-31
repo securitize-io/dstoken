@@ -1,4 +1,4 @@
-const assertRevert = require('../utils/assertRevert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const latestTime = require('../utils/latestTime');
 const snapshotsHelper = require('../utils/snapshots');
 const increaseTime = require('../utils/increaseTime').increaseTime;
@@ -69,7 +69,7 @@ contract('ComplianceServiceRegulated', function ([
   describe('Validate issuance(recordIssuance):', function () {
     it('Should revert due to not token call', async function () {
       await this.token.setCap(1000);
-      await assertRevert(
+      await expectRevert.unspecified(
         this.complianceService.validateIssuance(wallet, 100, await latestTime()),
       );
     });
@@ -138,7 +138,7 @@ contract('ComplianceServiceRegulated', function ([
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await assertRevert(this.token.transfer(issuerWallet, 100, { from: wallet }));
+      await expectRevert.unspecified(this.token.transfer(issuerWallet, 100, { from: wallet }));
     });
 
     it('Should revert due to Wallet Not In Registry Service when destination is special exchange wallet', async function () {
@@ -156,7 +156,7 @@ contract('ComplianceServiceRegulated', function ([
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await assertRevert(this.token.transfer(newExchangeWallet, 100, { from: wallet }));
+      await expectRevert.unspecified(this.token.transfer(newExchangeWallet, 100, { from: wallet }));
     });
 
     it('Should revert due to Wallet Not In Registry Service', async function () {
@@ -171,7 +171,7 @@ contract('ComplianceServiceRegulated', function ([
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await assertRevert(this.token.transfer(noneWallet1, 100, { from: wallet }));
+      await expectRevert.unspecified(this.token.transfer(noneWallet1, 100, { from: wallet }));
     });
 
     it('Should revert due to Wallet has not enough tokens', async function () {
@@ -184,12 +184,12 @@ contract('ComplianceServiceRegulated', function ([
         investorId.GENERAL_INVESTOR_ID_1,
       );
       assert.equal(await this.token.balanceOf(wallet), 0);
-      await assertRevert(this.token.transfer(wallet, 100, { from: wallet }));
+      await expectRevert.unspecified(this.token.transfer(wallet, 100, { from: wallet }));
     });
 
     it('Should revert due to Wallet has not enough tokens even if its Omnibus', async function () {
       assert.equal(await this.token.balanceOf(omnibusTBEWallet), 0);
-      await assertRevert(this.token.transfer(wallet, 100, { from: omnibusTBEWallet }));
+      await expectRevert.unspecified(this.token.transfer(wallet, 100, { from: omnibusTBEWallet }));
     });
 
     it('Pre transfer check with tokens locked', async function () {
@@ -217,7 +217,7 @@ contract('ComplianceServiceRegulated', function ([
         'Test',
         (await latestTime()) + 1000,
       );
-      await assertRevert(this.token.transfer(owner, 100, { from: wallet }));
+      await expectRevert.unspecified(this.token.transfer(owner, 100, { from: wallet }));
     });
 
     it('Should NOT decrease total investors value when transfer tokens', async function () {
@@ -340,7 +340,7 @@ contract('ComplianceServiceRegulated', function ([
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await assertRevert(
+      await expectRevert.unspecified(
         this.token.transfer(owner, 100, { from: wallet, gas: 5e6 }),
       );
     });
@@ -373,7 +373,7 @@ contract('ComplianceServiceRegulated', function ([
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await assertRevert(
+      await expectRevert.unspecified(
         this.token.transfer(owner, 100, { from: wallet, gas: 5e6 }),
       );
     });
@@ -407,7 +407,7 @@ contract('ComplianceServiceRegulated', function ([
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
       await increaseTime(370 * time.DAYS);
-      await assertRevert(
+      await expectRevert.unspecified(
         this.token.transfer(owner, 50, { from: wallet, gas: 5e6 }),
       );
     });
@@ -479,7 +479,7 @@ contract('ComplianceServiceRegulated', function ([
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await assertRevert(
+      await expectRevert.unspecified(
         this.token.transfer(wallet1, 50, { from: wallet, gas: 5e6 }),
       );
     });
@@ -555,7 +555,7 @@ contract('ComplianceServiceRegulated', function ([
       await this.token.setCap(1000);
       await this.token.issueTokens(wallet, 100);
       assert.equal(await this.token.balanceOf(wallet), 100);
-      await assertRevert(this.token.burn(wallet, 100, 'Test', { from: wallet }));
+      await expectRevert.unspecified(this.token.burn(wallet, 100, 'Test', { from: wallet }));
     });
 
     it('Should revert due to burning omnibus wallet tokens', async function () {
@@ -579,7 +579,7 @@ contract('ComplianceServiceRegulated', function ([
       );
       await this.token.issueTokens(wallet, 100);
       await this.token.transfer(omnibusWallet, 50, { from: wallet });
-      await assertRevert(this.token.burn(omnibusWallet, 40, 'Test'));
+      await expectRevert.unspecified(this.token.burn(omnibusWallet, 40, 'Test'));
     });
 
     it('Should not decrease total investors value when burn tokens', async function () {
@@ -656,7 +656,7 @@ contract('ComplianceServiceRegulated', function ([
       assert.equal(await this.token.balanceOf(owner), 100);
       const role = await this.trustService.getRole(issuerWallet);
       assert.equal(role.words[0], roles.ISSUER);
-      await assertRevert(this.token.seize(owner, wallet, 100, 'Test'));
+      await expectRevert.unspecified(this.token.seize(owner, wallet, 100, 'Test'));
     });
 
     it('Should revert due to seizing omnibus wallet tokens', async function () {
@@ -680,7 +680,7 @@ contract('ComplianceServiceRegulated', function ([
       );
       await this.token.issueTokens(wallet, 100);
       await this.token.transfer(omnibusWallet, 50, { from: wallet });
-      await assertRevert(
+      await expectRevert.unspecified(
         this.token.seize(omnibusWallet, issuerWallet, 40, 'Test'),
       );
     });
@@ -899,7 +899,7 @@ contract('ComplianceServiceRegulated', function ([
       assert.equal(await this.token.balanceOf(noneWallet1), 0);
       await this.token.issueTokens(omnibusTBEWallet, 100);
       assert.equal(await this.token.balanceOf(omnibusTBEWallet), 100);
-      assertRevert(this.omnibusTBEController
+      expectRevert.unspecified(this.omnibusTBEController
         .bulkTransfer([noneWallet1], ['40']));
       assert.equal(await this.token.balanceOf(noneWallet1), 0);
       assert.equal(await this.token.balanceOf(omnibusTBEWallet), 100);
@@ -1519,7 +1519,7 @@ contract('ComplianceServiceRegulated', function ([
         investorId.GENERAL_INVESTOR_ID_1,
         country.USA,
       );
-      await assertRevert(this.token.issueTokens(owner, 10));
+      await expectRevert.unspecified(this.token.issueTokens(owner, 10));
     });
 
     it('should not issue tokens above the maximum holdings per investor', async function () {
@@ -1536,7 +1536,7 @@ contract('ComplianceServiceRegulated', function ([
         investorId.GENERAL_INVESTOR_ID_1,
         country.USA,
       );
-      await assertRevert(this.token.issueTokens(owner, 310));
+      await expectRevert.unspecified(this.token.issueTokens(owner, 310));
     });
 
     it('should not issue tokens to a new investor if investor limit is exceeded', async function () {
@@ -1566,7 +1566,7 @@ contract('ComplianceServiceRegulated', function ([
         country.USA,
       );
       await this.token.issueTokens(owner, 100);
-      await assertRevert(this.token.issueTokens(wallet1, 100));
+      await expectRevert.unspecified(this.token.issueTokens(wallet1, 100));
     });
 
     it('should transfer from Omnibus even if investor limit is exceeded', async function () {
@@ -1650,7 +1650,7 @@ contract('ComplianceServiceRegulated', function ([
         country.JAPAN,
       );
       await this.token.issueTokens(owner, 100);
-      await assertRevert(this.token.issueTokens(wallet1, 100));
+      await expectRevert.unspecified(this.token.issueTokens(wallet1, 100));
     });
 
     it('should not issue tokens to a new investor if non accredited limit is exceeded', async function () {
@@ -1680,7 +1680,7 @@ contract('ComplianceServiceRegulated', function ([
         country.FRANCE,
       );
       await this.token.issueTokens(owner, 100);
-      await assertRevert(this.token.issueTokens(wallet, 100));
+      await expectRevert.unspecified(this.token.issueTokens(wallet, 100));
     });
 
     it('should not issue tokens to a new investor if US investors limit is exceeded', async function () {
@@ -1710,7 +1710,7 @@ contract('ComplianceServiceRegulated', function ([
         country.USA,
       );
       await this.token.issueTokens(owner, 100);
-      await assertRevert(this.token.issueTokens(wallet, 100));
+      await expectRevert.unspecified(this.token.issueTokens(wallet, 100));
     });
 
     it('should not issue tokens to a new investor if US Accredited investors limit is exceeded', async function () {
@@ -1754,7 +1754,7 @@ contract('ComplianceServiceRegulated', function ([
         'abcdef',
       );
       await this.token.issueTokens(owner, 100);
-      await assertRevert(this.token.issueTokens(wallet, 100));
+      await expectRevert.unspecified(this.token.issueTokens(wallet, 100));
     });
 
     it('should not issue tokens to a new investor if EU Retail limit is exceeded', async function () {
@@ -1771,17 +1771,17 @@ contract('ComplianceServiceRegulated', function ([
         investorId.GENERAL_INVESTOR_ID_1,
         country.FRANCE,
       );
-      await assertRevert(this.token.issueTokens(owner, 100));
+      await expectRevert.unspecified(this.token.issueTokens(owner, 100));
     });
 
     it('should not issue tokens to special issuer wallet', async function () {
-      await assertRevert(this.token.issueTokens(issuerWallet, 10));
+      await expectRevert.unspecified(this.token.issueTokens(issuerWallet, 10));
     });
 
     it('should not issue tokens to special exchange wallet', async function () {
       await this.trustService.setRole(ownerExchangeWallet, roles.EXCHANGE);
       await this.walletManager.addExchangeWallet(newExchangeWallet, ownerExchangeWallet);
-      await assertRevert(this.token.issueTokens(newExchangeWallet, 10));
+      await expectRevert.unspecified(this.token.issueTokens(newExchangeWallet, 10));
     });
 
     it('should allow issue tokens to special platform wallet', async function () {
@@ -1836,7 +1836,7 @@ contract('ComplianceServiceRegulated', function ([
         investorId.GENERAL_INVESTOR_ID_1,
         country.FRANCE,
       );
-      assertRevert(this.token.issueTokens(wallet, 11));
+      expectRevert.unspecified(this.token.issueTokens(wallet, 11));
     });
     it('should not allow to issue tokens above the max authorized securities using totalSupply', async function () {
       await this.complianceConfiguration.setAuthorizedSecurities(100);
@@ -1854,7 +1854,7 @@ contract('ComplianceServiceRegulated', function ([
       );
       await this.token.issueTokens(wallet, 40);
       await this.token.issueTokens(wallet, 40);
-      assertRevert(this.token.issueTokens(wallet, 21));
+      expectRevert.unspecified(this.token.issueTokens(wallet, 21));
     });
     it('should allow to issue tokens up to the max authorized securities', async function () {
       await this.complianceConfiguration.setAuthorizedSecurities(100);

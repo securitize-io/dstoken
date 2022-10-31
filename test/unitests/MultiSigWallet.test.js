@@ -1,7 +1,7 @@
 const MultiSigWallet = artifacts.require('MultiSigWallet');
 const TestToken = artifacts.require('TestToken');
 const lightwallet = require('eth-lightwallet');
-const assertRevert = require('../utils/assertRevert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const { MultiSigSigner } = require('../utils/specialSigners');
 
 // eslint-disable-next-line max-len
@@ -196,7 +196,7 @@ contract('MultiSigWallet', function (accounts) {
             data,
             executor,
             gasLimit);
-          await assertRevert(
+          await expectRevert.unspecified(
             multisig.execute(sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -225,7 +225,7 @@ contract('MultiSigWallet', function (accounts) {
             data,
             executor,
             gasLimit);
-          await assertRevert(
+          await expectRevert.unspecified(
             multisig.execute(sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -254,7 +254,7 @@ contract('MultiSigWallet', function (accounts) {
             data,
             executor,
             gasLimit);
-          await assertRevert(
+          await expectRevert.unspecified(
             multisig.execute(sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -396,7 +396,7 @@ contract('MultiSigWallet', function (accounts) {
             data,
             ZEROADDR,
             gasLimit);
-          await assertRevert(
+          await expectRevert.unspecified(
             multisig.execute(sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -425,7 +425,7 @@ contract('MultiSigWallet', function (accounts) {
             data,
             ZEROADDR,
             gasLimit);
-          await assertRevert(
+          await expectRevert.unspecified(
             multisig.execute(sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -454,7 +454,7 @@ contract('MultiSigWallet', function (accounts) {
             data,
             ZEROADDR,
             gasLimit);
-          await assertRevert(
+          await expectRevert.unspecified(
             multisig.execute(sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -516,7 +516,7 @@ contract('MultiSigWallet', function (accounts) {
             data,
             notSignerExecutor,
             gasLimit);
-          await assertRevert(
+          await expectRevert.unspecified(
             multisig.execute(sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -560,7 +560,7 @@ contract('MultiSigWallet', function (accounts) {
             ZEROADDR,
             gasLimit);
 
-          await assertRevert(
+          await expectRevert.unspecified(
             multisig.execute(sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -602,7 +602,7 @@ contract('MultiSigWallet', function (accounts) {
             data,
             notSignerExecutor,
             gasLimit);
-          await assertRevert(
+          await expectRevert.unspecified(
             multisig.execute(sigs.sigV,
               sigs.sigR,
               sigs.sigS,

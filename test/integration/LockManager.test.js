@@ -1,4 +1,4 @@
-const assertRevert = require('../utils/assertRevert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const latestTime = require('../utils/latestTime');
 const snapshotsHelper = require('../utils/snapshots');
 const deployContracts = require('../utils').deployContracts;
@@ -39,7 +39,7 @@ contract('LockManager', function ([
 
   describe('Add Manual Lock Record', function () {
     it('Should revert due to valueLocked = 0', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.lockManager.addManualLockRecord(
           wallet,
           0,
@@ -50,7 +50,7 @@ contract('LockManager', function ([
     });
 
     it('Should revert due to release time < now && > 0', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.lockManager.addManualLockRecord(
           wallet,
           0,
@@ -61,7 +61,7 @@ contract('LockManager', function ([
     });
 
     it('Should revert when trying to Add ManualLock Record with NONE permissions', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.lockManager.addManualLockRecord(
           wallet,
           100,
@@ -73,7 +73,7 @@ contract('LockManager', function ([
     });
 
     it('Should revert when trying to Add ManualLock Record with EXCHANGE permissions', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.lockManager.addManualLockRecord(
           wallet,
           100,
@@ -116,7 +116,7 @@ contract('LockManager', function ([
         { from: issuerWallet },
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
-      await assertRevert(this.lockManager.removeLockRecord(wallet, 2));
+      await expectRevert.unspecified(this.lockManager.removeLockRecord(wallet, 2));
     });
 
     it('Should revert when trying to Remove ManualLock Record with NONE permissions', async function () {
@@ -128,7 +128,7 @@ contract('LockManager', function ([
         { from: issuerWallet },
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
-      await assertRevert(
+      await expectRevert.unspecified(
         this.lockManager.removeLockRecord(wallet, LOCK_INDEX, {
           from: noneWallet,
         }),
@@ -144,7 +144,7 @@ contract('LockManager', function ([
         { from: issuerWallet },
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
-      await assertRevert(
+      await expectRevert.unspecified(
         this.lockManager.removeLockRecord(wallet, LOCK_INDEX, {
           from: exchangeWallet,
         }),
@@ -204,7 +204,7 @@ contract('LockManager', function ([
         { from: issuerWallet },
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
-      await assertRevert(this.lockManager.lockInfo(wallet, 1));
+      await expectRevert.unspecified(this.lockManager.lockInfo(wallet, 1));
     });
 
     it('Should pass', async function () {
@@ -228,7 +228,7 @@ contract('LockManager', function ([
 
   describe('Get Transferable Tokens:', function () {
     it('Should revert due to time = 0', async function () {
-      await assertRevert(this.lockManager.getTransferableTokens(wallet, 0));
+      await expectRevert.unspecified(this.lockManager.getTransferableTokens(wallet, 0));
     });
 
     it('Should return 0 because tokens will be locked', async function () {

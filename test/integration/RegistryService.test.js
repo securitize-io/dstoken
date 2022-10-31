@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const deployContracts = require('../utils').deployContracts;
-const assertRevert = require('../utils/assertRevert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const globals = require('../../utils/globals');
 const roles = globals.roles;
 const complianceType = globals.complianceType;
@@ -39,7 +39,7 @@ const attributeStatuses = [
 const expiry = '10072018';
 const proofHash = generateRandomInvestorId();
 
-contract.only('RegistryService', async function ([
+contract('RegistryService', async function ([
   owner,
   issuerWallet1,
   issuerWallet2,
@@ -84,7 +84,7 @@ contract.only('RegistryService', async function ([
 
         describe('Register investor: negative tests ', function () {
           it('Trying to register an investor with empty id - should be an error', async function () {
-            await assertRevert(
+            await expectRevert.unspecified(
               this.registryService.registerInvestor(
                 '',
                 investorCollisionHash,
@@ -92,7 +92,7 @@ contract.only('RegistryService', async function ([
             );
           });
           it('Trying to register the same account twice - should be an error', async function () {
-            await assertRevert(
+            await expectRevert.unspecified(
               this.registryService.registerInvestor(
                 generatedInvestorId,
                 investorCollisionHash,
@@ -105,7 +105,7 @@ contract.only('RegistryService', async function ([
             const role = await this.trustService.getRole(wallet1);
 
             assert.equal(role.words[0], roles.NONE);
-            await assertRevert(
+            await expectRevert.unspecified(
               this.registryService.registerInvestor(
                 newInvestorId,
                 investorCollisionHash,
@@ -146,7 +146,7 @@ contract.only('RegistryService', async function ([
             const role = await this.trustService.getRole(wallet1);
 
             assert.equal(role.words[0], roles.NONE);
-            await assertRevert(
+            await expectRevert.unspecified(
               this.registryService.setCountry(newInvestorId, investorCountry, {
                 from: wallet1,
               }),
@@ -156,7 +156,7 @@ contract.only('RegistryService', async function ([
           it('Trying to set the country for the investor with wrong ID - should be the error', async function () {
             const newInvestorId = generateRandomInvestorId();
 
-            await assertRevert(
+            await expectRevert.unspecified(
               this.registryService.setCountry(newInvestorId, investorCountry),
             );
           });
@@ -247,7 +247,7 @@ contract.only('RegistryService', async function ([
             const role = await this.trustService.getRole(wallet1);
 
             assert.equal(role.words[0], roles.NONE);
-            await assertRevert(
+            await expectRevert.unspecified(
               this.registryService.setAttribute(
                 generatedInvestorId,
                 attributeType.KYC_APPROVED,
@@ -262,7 +262,7 @@ contract.only('RegistryService', async function ([
           it('Trying to set the attribute for the investor with wrong ID - should be the error', async function () {
             const newInvestorId = generateRandomInvestorId();
 
-            await assertRevert(
+            await expectRevert.unspecified(
               this.registryService.setAttribute(
                 newInvestorId,
                 attributeType.KYC_APPROVED,
@@ -374,7 +374,7 @@ contract.only('RegistryService', async function ([
             const role = await this.trustService.getRole(wallet1);
 
             assert.equal(role.words[0], roles.NONE);
-            await assertRevert(
+            await expectRevert.unspecified(
               this.registryService.addWallet(wallet3, generatedInvestorId, {
                 from: wallet1,
               }),
@@ -382,7 +382,7 @@ contract.only('RegistryService', async function ([
           });
 
           it('Trying to add the same wallet - should be the error', async function () {
-            await assertRevert(
+            await expectRevert.unspecified(
               this.registryService.addWallet(wallet2, generatedInvestorId),
             );
           });
@@ -390,19 +390,19 @@ contract.only('RegistryService', async function ([
           it('Trying to remove the wallet from the investor that doesn\'t exist - should be the error', async function () {
             const newInvestorId = generateRandomInvestorId();
 
-            await assertRevert(
+            await expectRevert.unspecified(
               this.registryService.removeWallet(wallet2, newInvestorId),
             );
           });
 
           it('Trying to remove the wallet with the wrong investor - should be the error', async function () {
-            await assertRevert(
+            await expectRevert.unspecified(
               this.registryService.removeWallet(wallet2, issuerWallet2),
             );
           });
 
           it('Trying to remove the wallet that doesn\'t exist - should be the error', async function () {
-            await assertRevert(
+            await expectRevert.unspecified(
               this.registryService.removeWallet(
                 additionalWallet,
                 generatedInvestorId,
@@ -412,7 +412,7 @@ contract.only('RegistryService', async function ([
 
           it('Trying to remove the wallet by an exchange which didn\'t create it - should be the error', async function () {
             this.trustService.setRole(additionalWallet, roles.EXCHANGE);
-            await assertRevert(
+            await expectRevert.unspecified(
               this.registryService.removeWallet(
                 exchangeWallet,
                 generatedInvestorId,
@@ -424,7 +424,7 @@ contract.only('RegistryService', async function ([
           });
 
           it('Trying to remove the wallet by a wallet without permissions - should be the error', async function () {
-            await assertRevert(
+            await expectRevert.unspecified(
               this.registryService.removeWallet(
                 exchangeWallet,
                 generatedInvestorId,
@@ -436,7 +436,7 @@ contract.only('RegistryService', async function ([
           });
 
           it('A wallet trying to remove itself - should be the error', async function () {
-            await assertRevert(
+            await expectRevert.unspecified(
               this.registryService.removeWallet(
                 exchangeWallet,
                 generatedInvestorId,

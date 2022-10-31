@@ -1,5 +1,5 @@
 const DSToken = artifacts.require('DSToken');
-const assertRevert = require('../utils/assertRevert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const latestTime = require('../utils/latestTime');
 const snapshotsHelper = require('../utils/snapshots');
 const deployContracts = require('../utils').deployContracts;
@@ -154,7 +154,7 @@ contract('DSToken (regulated)', function ([
     });
     it('Should not allow instantiating the token without a proxy', async function () {
       const token = await DSToken.new();
-      await assertRevert(token.initialize('DSTokenMock', 'DST', 18));
+      await expectRevert.unspecified(token.initialize('DSTokenMock', 'DST', 18));
     });
   });
 
@@ -229,7 +229,7 @@ contract('DSToken (regulated)', function ([
     });
 
     it('Cannot be set twice', async function () {
-      await assertRevert(this.token.setCap(1000));
+      await expectRevert.unspecified(this.token.setCap(1000));
     });
 
     it('Doesn\'t prevent issuing tokens within limit', async function () {
@@ -239,7 +239,7 @@ contract('DSToken (regulated)', function ([
 
     it('Prevents issuing too many tokens', async function () {
       await this.token.issueTokens(usInvestorWallet, 500);
-      await assertRevert(this.token.issueTokens(usInvestorWallet, 501));
+      await expectRevert.unspecified(this.token.issueTokens(usInvestorWallet, 501));
     });
   });
 
@@ -257,7 +257,7 @@ contract('DSToken (regulated)', function ([
     });
 
     it('Should not issue tokens to a forbidden wallet', async function () {
-      await assertRevert(this.token.issueTokens(chinaInvestorWallet, 100));
+      await expectRevert.unspecified(this.token.issueTokens(chinaInvestorWallet, 100));
     });
 
     it('Should issue tokens to a none wallet', async function () {
@@ -290,7 +290,7 @@ contract('DSToken (regulated)', function ([
         'TEST',
         (await latestTime()) + 1 * time.WEEKS,
       );
-      await assertRevert(
+      await expectRevert.unspecified(
         this.token.transfer(germanyInvestorWallet, 1, {
           from: israelInvestorWallet,
         }),
@@ -371,7 +371,7 @@ contract('DSToken (regulated)', function ([
     });
 
     it('Cannot seize more than balance', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.token.seize(usInvestorWallet, issuerWallet, 150, 'test seize'),
       );
     });
@@ -392,7 +392,7 @@ contract('DSToken (regulated)', function ([
     });
 
     it('Should NOT transfer from one account to another when not enough allowance is there', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.token.transferFrom(israelInvestorWallet, spainInvestorWallet, 50, { from: usInvestor2Wallet }),
       );
     });

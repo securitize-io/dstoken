@@ -1,7 +1,7 @@
 const deployContracts = require('../utils/index').deployContracts;
 const globals = require('../../utils/globals');
 const fixtures = require('../fixtures');
-const assertRevert = require('../utils/assertRevert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const {
   setOmnibusTBEServicesDependencies, resetCounters, setCounters,
   getCountersDelta, toHex, assertCounters, assertCountryCounters, assertEvent,
@@ -273,7 +273,7 @@ contract('OmnibusTBEControllerPartitioned', ([
       assert.equal(numPartitions, 3, 'Not the expected 3 partitions');
 
       // Burn 800 tokens
-      await assertRevert(this.omnibusTBEController
+      await expectRevert.unspecified(this.omnibusTBEController
         .bulkBurn(800, txBurnCounters.totalInvestorsCount, txBurnCounters.accreditedInvestorsCount,
           txBurnCounters.usAccreditedInvestorsCount, txBurnCounters.usTotalInvestorsCount,
           txBurnCounters.jpTotalInvestorsCount, [], []), 'should have failed to burn more tokens than existing');

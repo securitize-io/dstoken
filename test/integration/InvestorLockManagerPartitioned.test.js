@@ -1,4 +1,4 @@
-const assertRevert = require('../utils/assertRevert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const latestTime = require('../utils/latestTime');
 const snapshotsHelper = require('../utils/snapshots');
 const deployContracts = require('../utils').deployContracts;
@@ -61,7 +61,7 @@ contract('InvestorLockManagerPartitioned', function ([
 
   describe('Add Manual Lock Record', function () {
     it('should revert when not specifying partition', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.lockManager.methods[
           'addManualLockRecord(address,uint256,string,uint256)'
         ](owner, 100, REASON_STRING, (await latestTime()) + 1000),
@@ -69,7 +69,7 @@ contract('InvestorLockManagerPartitioned', function ([
     });
 
     it('Should revert due to valueLocked = 0', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.lockManager.methods[
           'addManualLockRecord(address,uint256,string,uint256,bytes32)'
         ](
@@ -83,7 +83,7 @@ contract('InvestorLockManagerPartitioned', function ([
     });
 
     it('Should revert due to release time < now && > 0', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.lockManager.methods[
           'addManualLockRecord(address,uint256,string,uint256,bytes32)'
         ](
@@ -97,7 +97,7 @@ contract('InvestorLockManagerPartitioned', function ([
     });
 
     it('Should revert when trying to addManualLockRecord with NONE permissions', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.lockManager.methods[
           'addManualLockRecord(address,uint256,string,uint256,bytes32)'
         ](
@@ -112,7 +112,7 @@ contract('InvestorLockManagerPartitioned', function ([
     });
 
     it('Should revert when trying to Add ManualLock Record with roles.EXCHANGE permissions', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.lockManager.methods[
           'addManualLockRecord(address,uint256,string,uint256,bytes32)'
         ](
@@ -152,7 +152,7 @@ contract('InvestorLockManagerPartitioned', function ([
 
   describe('RemoveLockRecord', function () {
     it('Should revert when not specifying partition', async function () {
-      await assertRevert(this.lockManager.removeLockRecord(wallet, 2));
+      await expectRevert.unspecified(this.lockManager.removeLockRecord(wallet, 2));
     });
 
     it('Should revert due to lockIndex > lastLockNumber', async function () {
@@ -173,7 +173,7 @@ contract('InvestorLockManagerPartitioned', function ([
         ),
         1,
       );
-      await assertRevert(
+      await expectRevert.unspecified(
         this.lockManager.removeLockRecord(wallet, 2, this.ensuredPartition),
       );
     });
@@ -196,7 +196,7 @@ contract('InvestorLockManagerPartitioned', function ([
         ),
         1,
       );
-      await assertRevert(
+      await expectRevert.unspecified(
         this.lockManager.methods['removeLockRecord(address,uint256,bytes32)'](
           wallet,
           LOCK_INDEX,
@@ -226,7 +226,7 @@ contract('InvestorLockManagerPartitioned', function ([
         ),
         1,
       );
-      await assertRevert(
+      await expectRevert.unspecified(
         this.lockManager.methods['removeLockRecord(address,uint256,bytes32)'](
           wallet,
           LOCK_INDEX,
@@ -284,7 +284,7 @@ contract('InvestorLockManagerPartitioned', function ([
 
   describe('LockCount', function () {
     it('Should revert when no partition is specified', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.lockManager.methods['lockCount(address)'].call(wallet),
       );
     });
@@ -332,7 +332,7 @@ contract('InvestorLockManagerPartitioned', function ([
         this.ensuredPartition,
         { from: issuerWallet },
       );
-      await assertRevert(this.lockManager.lockInfo(wallet, 0));
+      await expectRevert.unspecified(this.lockManager.lockInfo(wallet, 0));
     });
 
     it('Should revert due to lockIndex > lastLockNumber', async function () {
@@ -353,7 +353,7 @@ contract('InvestorLockManagerPartitioned', function ([
         ),
         1,
       );
-      await assertRevert(
+      await expectRevert.unspecified(
         this.lockManager.methods['lockInfo(address,uint256,bytes32)'].call(
           wallet,
           1,
@@ -388,7 +388,7 @@ contract('InvestorLockManagerPartitioned', function ([
 
   describe('GetTransferableTokens', function () {
     it('Should revert due to time = 0', async function () {
-      await assertRevert(this.lockManager.getTransferableTokens(wallet, 0));
+      await expectRevert.unspecified(this.lockManager.getTransferableTokens(wallet, 0));
     });
 
     it('Should return 0 when all tokens are locked', async function () {
@@ -514,7 +514,7 @@ contract('InvestorLockManagerPartitioned', function ([
 
     it('Should not lock an investor if already locked', async function () {
       await this.lockManager.lockInvestor(investorId.GENERAL_INVESTOR_ID_1);
-      await assertRevert(
+      await expectRevert.unspecified(
         this.lockManager.lockInvestor(investorId.GENERAL_INVESTOR_ID_1),
       );
     });
@@ -536,7 +536,7 @@ contract('InvestorLockManagerPartitioned', function ([
     });
 
     it('Should not unlock an investor if already unlocked', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.lockManager.unlockInvestor(investorId.GENERAL_INVESTOR_ID_1),
       );
     });

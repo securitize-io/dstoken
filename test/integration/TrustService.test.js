@@ -1,4 +1,4 @@
-const assertRevert = require('../utils/assertRevert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const roles = require('../../utils/globals').roles;
 const deployContractBehindProxy = require('../utils').deployContractBehindProxy;
 
@@ -30,7 +30,7 @@ contract('TrustService', function ([
 
   describe('Creation flow', function () {
     it('TrustService can`t be initialized twice', async function () {
-      await assertRevert(this.trustService.initialize());
+      await expectRevert.unspecified(this.trustService.initialize());
     });
 
     it(`For the owner\`s account ${ownerWallet} - the role should be MASTER - ${roles.MASTER}`, async function () {
@@ -41,7 +41,7 @@ contract('TrustService', function ([
 
   describe('Set owner flow', function () {
     it('Trying to call not by master', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.trustService.setServiceOwner(issuerWallet, { from: newOwnerWallet }),
       );
     });
@@ -56,7 +56,7 @@ contract('TrustService', function ([
     });
 
     it('Trying to set the owner using the previous owner\'s account - should be the error', async function () {
-      await assertRevert(this.trustService.setServiceOwner(issuerWallet));
+      await expectRevert.unspecified(this.trustService.setServiceOwner(issuerWallet));
     });
 
     it(`The role for the previous owner - ${ownerWallet} should be set as NONE - ${roles.NONE}`, async function () {
@@ -72,7 +72,7 @@ contract('TrustService', function ([
 
   describe('Set Role flow', function () {
     it('Trying to call not by master or issuer', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.trustService.setRole(issuerWallet, roles.ISSUER, {
           from: wallet1,
         }),
@@ -80,7 +80,7 @@ contract('TrustService', function ([
     });
 
     it(`Trying to set MASTER role for this account - ${issuerWallet} - should be the error`, async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.trustService.setRole(issuerWallet, roles.MASTER, {
           from: newOwnerWallet,
         }),
@@ -88,7 +88,7 @@ contract('TrustService', function ([
     });
 
     it(`Trying to remove the role - set NONE role for this account - ${newOwnerWallet} - should be the error`, async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.trustService.setRole(newOwnerWallet, roles.NONE, {
           from: newOwnerWallet,
         }),
@@ -145,13 +145,13 @@ contract('TrustService', function ([
     });
 
     it(`Trying to remove the role using EXCHANGE account - ${exchangeWallet} - should be the error`, async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.trustService.removeRole(exchangeWallet, { from: exchangeWallet }),
       );
     });
 
     it(`Trying to remove the role using NONE account - ${ownerWallet} - should be the error`, async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.trustService.removeRole(exchangeWallet, { from: ownerWallet }),
       );
     });
@@ -213,20 +213,20 @@ contract('TrustService', function ([
     });
 
     it('Should fail if trying to add the same entity again', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.trustService.addEntity(testEntity1, entityOwner1),
       );
     });
 
     it('Should fail to add an entity when sender is unauthorized', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.trustService.addEntity(testEntity1, entityOwner1),
         { from: wallet1 },
       );
     });
 
     it('Should fail trying to add a new entity with an existing entity owner', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.trustService.addEntity(testEntity2, entityOwner1),
       );
     });
@@ -252,7 +252,7 @@ contract('TrustService', function ([
     });
 
     it('Should fail to change the entity owner when sender is unauthorized', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.trustService.changeEntityOwner(
           testEntity1,
           entityOwner1,
@@ -265,7 +265,7 @@ contract('TrustService', function ([
     it('Should fail to change the entity owner when sender is a different entity owner', async function () {
       await this.trustService.addEntity(testEntity2, entityOwner2);
 
-      await assertRevert(
+      await expectRevert.unspecified(
         this.trustService.changeEntityOwner(
           testEntity1,
           entityOwner1,
@@ -302,7 +302,7 @@ contract('TrustService', function ([
     });
 
     it('Should fail to add an operator when sender is unauthorized', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.trustService.addOperator(testEntity1, operator1, {
           from: wallet1,
         }),
@@ -311,7 +311,7 @@ contract('TrustService', function ([
 
     it('Should fail to add an already existing operator', async function () {
       await this.trustService.addOperator(testEntity1, operator1);
-      await assertRevert(this.trustService.addOperator(testEntity1, operator1));
+      await expectRevert.unspecified(this.trustService.addOperator(testEntity1, operator1));
     });
 
     it('Should remove an operator when sender is master', async function () {
@@ -331,7 +331,7 @@ contract('TrustService', function ([
 
     it('Should fail to remove an operator when sender is unauthorized', async function () {
       await this.trustService.addOperator(testEntity1, operator1);
-      await assertRevert(
+      await expectRevert.unspecified(
         this.trustService.removeOperator(testEntity1, operator1, {
           from: wallet1,
         }),
@@ -339,7 +339,7 @@ contract('TrustService', function ([
     });
 
     it('Should fail to remove a non existing operator', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.trustService.removeOperator(testEntity1, wallet1),
       );
     });
@@ -358,16 +358,16 @@ contract('TrustService', function ([
     });
 
     it('Should fail to add a resource when entity does not exist', async function () {
-      await assertRevert(this.trustService.addResource(testEntity3, resource));
+      await expectRevert.unspecified(this.trustService.addResource(testEntity3, resource));
     });
 
     it('Should fail to add a resource that already exist', async function () {
       await this.trustService.addResource(testEntity1, resource);
-      await assertRevert(this.trustService.addResource(testEntity1, resource));
+      await expectRevert.unspecified(this.trustService.addResource(testEntity1, resource));
     });
 
     it('Should fail to add a resource when sender is unauthorized', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.trustService.addResource(testEntity1, resource, { from: wallet1 }),
       );
     });
@@ -379,14 +379,14 @@ contract('TrustService', function ([
     });
 
     it('Should fail to remove a resource that does not exist', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.trustService.removeResource(testEntity1, resource),
       );
     });
 
     it('Should fail to remove a resource when sender is unauthorized', async function () {
       await this.trustService.addResource(testEntity1, resource);
-      await assertRevert(
+      await expectRevert.unspecified(
         this.trustService.removeResource(testEntity1, resource, { from: wallet1 }),
       );
     });

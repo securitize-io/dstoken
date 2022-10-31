@@ -1,4 +1,4 @@
-const assertRevert = require('../utils/assertRevert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const deployContracts = require('../utils').deployContracts;
 const snapshotsHelper = require('../utils/snapshots');
 const roles = require('../../utils/globals').roles;
@@ -72,7 +72,7 @@ contract('WalletManager', function ([
         const role = await this.trustService.getRole(noneWallet);
         assert.equal(role.words[0], roles.NONE);
 
-        await assertRevert(
+        await expectRevert.unspecified(
           this.walletManager.addIssuerWallet(issuerWallet2, {
             from: noneWallet,
           }),
@@ -90,7 +90,7 @@ contract('WalletManager', function ([
         const role = await this.trustService.getRole(exchangeWallet1);
         assert.equal(role.words[0], roles.EXCHANGE);
 
-        await assertRevert(
+        await expectRevert.unspecified(
           this.walletManager.addIssuerWallet(exchangeWallet2, {
             from: exchangeWallet1,
           }),
@@ -108,7 +108,7 @@ contract('WalletManager', function ([
         assert.equal(logs[0].args.wallet, issuerWallet2);
         assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletAdded');
 
-        await assertRevert(this.walletManager.addIssuerWallet(issuerWallet2));
+        await expectRevert.unspecified(this.walletManager.addIssuerWallet(issuerWallet2));
       });
     });
   });
@@ -143,7 +143,7 @@ contract('WalletManager', function ([
         const role = await this.trustService.getRole(noneWallet);
         assert.equal(role.words[0], roles.NONE);
 
-        await assertRevert(
+        await expectRevert.unspecified(
           this.walletManager.addPlatformWallet(issuerWallet2, {
             from: noneWallet,
           }),
@@ -154,7 +154,7 @@ contract('WalletManager', function ([
         const role = await this.trustService.getRole(exchangeWallet1);
         assert.equal(role.words[0], roles.EXCHANGE);
 
-        await assertRevert(
+        await expectRevert.unspecified(
           this.walletManager.addPlatformWallet(exchangeWallet2, {
             from: exchangeWallet1,
           }),
@@ -170,7 +170,7 @@ contract('WalletManager', function ([
         assert.equal(logs[0].args.wallet, issuerWallet2);
         assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletAdded');
 
-        await assertRevert(this.walletManager.addPlatformWallet(issuerWallet2));
+        await expectRevert.unspecified(this.walletManager.addPlatformWallet(issuerWallet2));
       });
     });
   });
@@ -208,7 +208,7 @@ contract('WalletManager', function ([
         const role = await this.trustService.getRole(noneWallet);
         assert.equal(role.words[0], roles.NONE);
 
-        await assertRevert(
+        await expectRevert.unspecified(
           this.walletManager.addExchangeWallet(issuerWallet2, noneWallet, {
             from: noneWallet,
           }),
@@ -219,7 +219,7 @@ contract('WalletManager', function ([
         const role = await this.trustService.getRole(exchangeWallet1);
         assert.equal(role.words[0], roles.EXCHANGE);
 
-        await assertRevert(
+        await expectRevert.unspecified(
           this.walletManager.addExchangeWallet(
             exchangeWallet2,
             exchangeWallet1,
@@ -229,7 +229,7 @@ contract('WalletManager', function ([
       });
 
       it('Trying to add the same exchange wallet - should be the error', async function () {
-        await assertRevert(
+        await expectRevert.unspecified(
           this.walletManager.addExchangeWallet(
             exchangeWallet2,
             exchangeWallet1,
@@ -274,7 +274,7 @@ contract('WalletManager', function ([
         const role = await this.trustService.getRole(noneWallet);
         assert.equal(role.words[0], roles.NONE);
 
-        await assertRevert(
+        await expectRevert.unspecified(
           this.walletManager.removeSpecialWallet(noneWallet, {
             from: noneWallet,
           }),
@@ -285,7 +285,7 @@ contract('WalletManager', function ([
         const role = await this.trustService.getRole(exchangeWallet1);
         assert.equal(role.words[0], roles.EXCHANGE);
 
-        await assertRevert(
+        await expectRevert.unspecified(
           this.walletManager.removeSpecialWallet(exchangeWallet1, {
             from: exchangeWallet1,
           }),
@@ -353,7 +353,7 @@ contract('WalletManager', function ([
         const role = await this.trustService.getRole(noneWallet);
         assert.equal(role.words[0], roles.NONE);
 
-        await assertRevert(
+        await expectRevert.unspecified(
           this.walletManager.setReservedSlots(
             noneWallet,
             country.USA,
@@ -368,7 +368,7 @@ contract('WalletManager', function ([
         const role = await this.trustService.getRole(exchangeWallet1);
         assert.equal(role.words[0], roles.EXCHANGE);
 
-        await assertRevert(
+        await expectRevert.unspecified(
           this.walletManager.setReservedSlots(
             exchangeWallet1,
             country.USA,

@@ -1,4 +1,4 @@
-const assertRevert = require('../utils/assertRevert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const latestTime = require('../utils/latestTime');
 const snapshotsHelper = require('../utils/snapshots');
 const deployContracts = require('../utils').deployContracts;
@@ -79,7 +79,7 @@ contract('TokenIssuer', function ([
     });
 
     it('Should revert when passing atributes with size != 3', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.issuer.issueTokens(
           'NewInvestorAssert',
           noneWallet,
@@ -177,7 +177,7 @@ contract('TokenIssuer', function ([
     });
 
     it('Should revert when trying to issueToken with attributes size != 3', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.issuer.issueTokens(
           'NewInvestorNormalTokenForFAIL',
           noneWallet,

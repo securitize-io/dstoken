@@ -1,12 +1,12 @@
 const DSToken = artifacts.require('DSToken');
-const assertRevert = require('../utils/assertRevert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const snapshotsHelper = require('../utils/snapshots');
 const complianceType = require('../../utils/globals').complianceType;
 const lockManagerType = require('../../utils/globals').lockManagerType;
 const deployContracts = require('../utils').deployContracts;
 const investorId = require('../fixtures').InvestorId;
 
-contract.only('DSToken (not regulated)', function ([
+contract('DSToken (not regulated)', function ([
   _,
   owner,
   recipient,
@@ -14,6 +14,21 @@ contract.only('DSToken (not regulated)', function ([
   wallet2,
   wallet3,
 ]) {
+  let snapshot;
+  let snapshotId;
+  before(async function () {
+
+  });
+
+  beforeEach(async function () {
+    snapshot = await snapshotsHelper.takeSnapshot();
+    snapshotId = snapshot.result;
+  });
+
+  afterEach(async function () {
+    await snapshotsHelper.revertToSnapshot(snapshotId);
+  });
+
   describe('Compliance not regulated', function () {
     before(async function () {
       await deployContracts(
@@ -24,14 +39,14 @@ contract.only('DSToken (not regulated)', function ([
       );
     });
 
-    beforeEach(async function () {
-      snapshot = await snapshotsHelper.takeSnapshot();
-      snapshotId = snapshot.result;
-    });
-
-    afterEach(async function () {
-      await snapshotsHelper.revertToSnapshot(snapshotId);
-    });
+    // beforeEach(async function () {
+    //   snapshot = await snapshotsHelper.takeSnapshot();
+    //   snapshotId = snapshot.result;
+    // });
+    //
+    // afterEach(async function () {
+    //   await snapshotsHelper.revertToSnapshot(snapshotId);
+    // });
 
     describe('Creation', function () {
       it('Should get the basic details of the token correctly', async function () {
@@ -48,7 +63,7 @@ contract.only('DSToken (not regulated)', function ([
 
       it('should not allow instantiating the token without a proxy', async function () {
         const token = await DSToken.new();
-        await assertRevert(token.initialize('DSTokenMock', 'DST', 18));
+        await expectRevert.unspecified(token.initialize('DSTokenMock', 'DST', 18));
       });
     });
 
@@ -58,7 +73,7 @@ contract.only('DSToken (not regulated)', function ([
       });
 
       it('Cannot be set twice', async function () {
-        await assertRevert(this.token.setCap(1000));
+        await expectRevert.unspecified(this.token.setCap(1000));
       });
 
       it('Doesn\'t prevent issuing tokens within limit', async function () {
@@ -68,7 +83,7 @@ contract.only('DSToken (not regulated)', function ([
 
       it('Prevents issuing too many tokens', async function () {
         await this.token.issueTokens(owner, 500);
-        await assertRevert(this.token.issueTokens(owner, 501));
+        await expectRevert.unspecified(this.token.issueTokens(owner, 501));
       });
     });
 
@@ -137,7 +152,7 @@ contract.only('DSToken (not regulated)', function ([
       });
 
       it('Cannot seize more than balance', async function () {
-        await assertRevert(
+        await expectRevert.unspecified(
           this.token.seize(owner, recipient, 150, 'test seize'),
         );
       });
@@ -154,14 +169,14 @@ contract.only('DSToken (not regulated)', function ([
       );
     });
 
-    beforeEach(async function () {
-      snapshotWhiteListed = await snapshotsHelper.takeSnapshot();
-      snapshotWhiteListedId = snapshot.result;
-    });
-
-    afterEach(async function () {
-      await snapshotsHelper.revertToSnapshot(snapshotWhiteListedId);
-    });
+    // beforeEach(async function () {
+    //   snapshotWhiteListed = await snapshotsHelper.takeSnapshot();
+    //   snapshotWhiteListedId = snapshot.result;
+    // });
+    //
+    // afterEach(async function () {
+    //   await snapshotsHelper.revertToSnapshot(snapshotWhiteListedId);
+    // });
 
     describe('Investors', function () {
       it('Create several investors into the Registry service and assign them wallets', async function () {
@@ -209,7 +224,7 @@ contract.only('DSToken (not regulated)', function ([
 
       it('Issue Tokens to investor not in the Registry (should fail) and add new investor and try issuing again (should now work)', async function () {
         await this.token.setCap(1000);
-        await assertRevert(this.token.issueTokens(wallet1, 100));
+        await expectRevert.unspecified(this.token.issueTokens(wallet1, 100));
         await this.registryService.registerInvestor(
           investorId.US_INVESTOR_ID,
           'anotherAccount',
@@ -234,7 +249,7 @@ contract.only('DSToken (not regulated)', function ([
         await this.token.setCap(1000);
         await this.token.issueTokens(wallet2, 100);
         assert.equal(await this.token.balanceOf(wallet2), 100);
-        await assertRevert(this.token.transfer(wallet3, 100, { from: wallet2 }));
+        await expectRevert.unspecified(this.token.transfer(wallet3, 100, { from: wallet2 }));
       });
 
       it('Test function getInvestor(InvestorID) before/after adding an investor', async function () {

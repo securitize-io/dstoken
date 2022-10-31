@@ -1,4 +1,4 @@
-const assertRevert = require('../utils/assertRevert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const latestTime = require('../utils/latestTime');
 const snapshotsHelper = require('../utils/snapshots');
 const deployContracts = require('../utils').deployContracts;
@@ -59,7 +59,7 @@ contract('TokenReallocator', function ([
       // Fund the Omnibus TBE wallet
       await this.omnibusTBEController.bulkIssuance(500, 1, 0, 0, 0, 0, 0,
         [], []);
-      assertRevert(this.reallocator.reallocateTokens(investorId.GENERAL_INVESTOR_ID_1,
+      await expectRevert.unspecified(this.reallocator.reallocateTokens(investorId.GENERAL_INVESTOR_ID_1,
         wallet, investorId.GENERAL_INVESTOR_ID_1,
         'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, false, { from: exchangeWallet }));
     });
@@ -81,7 +81,7 @@ contract('TokenReallocator', function ([
         await this.reallocator.reallocateTokens(investorId.GENERAL_INVESTOR_ID_2,
           wallet, investorId.GENERAL_INVESTOR_ID_2,
           'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, false);
-        assertRevert(this.reallocator.reallocateTokens(investorId.GENERAL_INVESTOR_ID_1,
+        await expectRevert.unspecified(this.reallocator.reallocateTokens(investorId.GENERAL_INVESTOR_ID_1,
           wallet, investorId.GENERAL_INVESTOR_ID_1,
           'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 250, false, { from: issuerWallet }));
       });

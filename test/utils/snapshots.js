@@ -1,4 +1,4 @@
-takeSnapshot = () => {
+const takeSnapshot = () => {
   return new Promise((resolve, reject) => {
     web3.currentProvider.send({
       jsonrpc: '2.0',
@@ -11,7 +11,7 @@ takeSnapshot = () => {
   });
 };
 
-revertToSnapshot = (id) => {
+const revertToSnapshot = (id) => {
   return new Promise((resolve, reject) => {
     web3.currentProvider.send({
       jsonrpc: '2.0',

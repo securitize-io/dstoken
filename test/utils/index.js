@@ -73,7 +73,7 @@ async function deployContracts (
     'walletManager',
   );
 
-  tokenClass = partitionsSupport ? 'DSTokenPartitioned' : 'DSToken';
+  const tokenClass = partitionsSupport ? 'DSTokenPartitioned' : 'DSToken';
 
   await deployContractBehindProxy(
     artifacts.require('Proxy'),
@@ -302,8 +302,8 @@ async function deployContracts (
     ],
   );
   if (omnibusTBEAddress) {
-    testObject.trustService.setRole(testObject.omnibusTBEController.address, 2);
-    testObject.walletManager.addPlatformWallet(omnibusTBEAddress);
+    await testObject.trustService.setRole(testObject.omnibusTBEController.address, 2);
+    await testObject.walletManager.addPlatformWallet(omnibusTBEAddress);
   }
 
   await setServicesDependencies(

@@ -1,6 +1,6 @@
 const TestToken = artifacts.require('TestToken');
 const lightwallet = require('eth-lightwallet');
-const assertRevert = require('../utils/assertRevert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const deployContractBehindProxy = require('../utils').deployContractBehindProxy;
 const roles = require('../../utils/globals').roles;
 const deployContracts = require('../utils/index').deployContracts;
@@ -243,7 +243,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
               ZEROADDR,
               gasLimit,
               HOLDER_ID);
-            await assertRevert(
+            await expectRevert.unspecified(
               this.transactionRelayer.executeByInvestorWithBlockLimit(
                 sigs.sigV,
                 sigs.sigR,
@@ -268,7 +268,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
               HOLDER_ID,
               1000000);
             params = [0, gasLimit, 100000000, 1000000];
-            await assertRevert(
+            await expectRevert.unspecified(
               this.transactionRelayer.executeByInvestorWithBlockLimit(
                 sigs.sigV,
                 sigs.sigR,
@@ -298,7 +298,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
 
             const params = [0, gasLimit, blockLimit];
 
-            await assertRevert(
+            await expectRevert.unspecified(
               this.transactionRelayer.executeByInvestorWithBlockLimit(
                 sigs.sigV,
                 sigs.sigR,
@@ -338,7 +338,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
 
           const params = [0, gasLimit, currentBlockNumber + 5];
 
-          await assertRevert(
+          await expectRevert.unspecified(
             this.transactionRelayer.executeByInvestorWithBlockLimit(
               sigs.sigV,
               sigs.sigR,
@@ -378,7 +378,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
 
           const params = [0, gasLimit, currentBlockNumber + 5];
 
-          await assertRevert(
+          await expectRevert.unspecified(
             this.transactionRelayer.executeByInvestorWithBlockLimit(
               sigs.sigV,
               sigs.sigR,
@@ -419,7 +419,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
 
           const params = [0, gasLimit, currentBlockNumber + 5];
 
-          await assertRevert(
+          await expectRevert.unspecified(
             this.transactionRelayer.executeByInvestorWithBlockLimit(
               sigs.sigV,
               sigs.sigR,
@@ -460,7 +460,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
 
           const params = [0, gasLimit, currentBlockNumber + 5];
 
-          await assertRevert(
+          await expectRevert.unspecified(
             this.transactionRelayer.executeByInvestorWithBlockLimit(
               sigs.sigV,
               sigs.sigR,
@@ -552,7 +552,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             newNonce: NEW_NONCE_UPDATED_BY_MASTER,
           });
 
-          await assertRevert(
+          await expectRevert.unspecified(
             this.transactionRelayer.executeByInvestorWithBlockLimit(
               sigs.sigV,
               sigs.sigR,
@@ -585,7 +585,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
             HOLDER_ID,
             blockLimit);
 
-          await assertRevert(
+          await expectRevert.unspecified(
             this.transactionRelayer.executeByInvestorWithBlockLimit(
               sigs.sigV,
               sigs.sigR,
@@ -756,7 +756,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
           assert.ok(currentBlockNumber);
           const params = [0, gasLimit, currentBlockNumber + 10];
 
-          await assertRevert(
+          await expectRevert.unspecified(
             this.transactionRelayer.executeByInvestorWithBlockLimit(
               sigs.sigV,
               sigs.sigR,
@@ -827,7 +827,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
           assert.ok(currentBlockNumber);
           const params = [0, gasLimit, currentBlockNumber + 10];
 
-          await assertRevert(
+          await expectRevert.unspecified(
             this.transactionRelayer.executeByInvestorWithBlockLimit(
               sigs.sigV,
               sigs.sigR,
@@ -873,7 +873,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
               ZEROADDR,
               gasLimit);
 
-            await assertRevert(
+            await expectRevert.unspecified(
               this.transactionRelayer.execute(
                 sigs.sigV,
                 sigs.sigR,
@@ -923,7 +923,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
               ZEROADDR,
               gasLimit);
 
-            await assertRevert(
+            await expectRevert.unspecified(
               this.transactionRelayer.executeByInvestor(
                 sigs.sigV,
                 sigs.sigR,
@@ -962,7 +962,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
     });
     describe('WHEN a NO master calls update domain separator', () => {
       it('SHOULD revert', async () => {
-        await assertRevert(this.transactionRelayer.updateDomainSeparator(4, { from: investorWallet1 }));
+        await expectRevert.unspecified(this.transactionRelayer.updateDomainSeparator(4, { from: investorWallet1 }));
       });
     });
   });
@@ -994,7 +994,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
     });
     describe('WHEN a NO master wallet calls update set investor nonce', () => {
       it('SHOULD revert', async () => {
-        await assertRevert(this.transactionRelayer.setInvestorNonce(HOLDER_ID, NEW_NONCE,
+        await expectRevert.unspecified(this.transactionRelayer.setInvestorNonce(HOLDER_ID, NEW_NONCE,
           { from: investorWallet1 },
         ));
       });
