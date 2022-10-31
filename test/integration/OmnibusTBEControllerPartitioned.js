@@ -2,8 +2,9 @@ const deployContracts = require('../utils/index').deployContracts;
 const globals = require('../../utils/globals');
 const fixtures = require('../fixtures');
 const assertRevert = require('../utils/assertRevert');
-const { setOmnibusTBEServicesDependencies, resetCounters, setCounters,
-  getCountersDelta, toHex, assertCounters, assertCountryCounters, assertEvent
+const {
+  setOmnibusTBEServicesDependencies, resetCounters, setCounters,
+  getCountersDelta, toHex, assertCounters, assertCountryCounters, assertEvent,
 } =
     require('../utils/omnibus/utils');
 
@@ -29,25 +30,25 @@ contract('OmnibusTBEControllerPartitioned', ([
       lockManagerType.PARTITIONED,
       undefined,
       true,
-      omnibusWallet
+      omnibusWallet,
     );
     await setOmnibusTBEServicesDependencies(this);
 
     await this.registryService.registerInvestor(
       investorId.GENERAL_INVESTOR_ID_1,
-      investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+      investorId.GENERAL_INVESTOR_COLLISION_HASH_2,
     );
     await this.registryService.addWallet(
       investorWallet1,
-      investorId.GENERAL_INVESTOR_ID_1
+      investorId.GENERAL_INVESTOR_ID_1,
     );
     await this.registryService.registerInvestor(
       investorId.GENERAL_INVESTOR_ID_2,
-      investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+      investorId.GENERAL_INVESTOR_COLLISION_HASH_2,
     );
     await this.registryService.addWallet(
       investorWallet2,
-      investorId.GENERAL_INVESTOR_ID_2
+      investorId.GENERAL_INVESTOR_ID_2,
     );
   });
 
@@ -91,7 +92,7 @@ contract('OmnibusTBEControllerPartitioned', ([
       const currentBalance = await this.token.balanceOf(omnibusWallet);
       await assert.equal(
         currentBalance,
-        1000
+        1000,
       );
 
       await euRetailCountries.forEach((country, index) => {
@@ -143,7 +144,7 @@ contract('OmnibusTBEControllerPartitioned', ([
       const currentBalance = await this.token.balanceOf(omnibusWallet);
       await assert.equal(
         currentBalance,
-        500
+        500,
       );
     });
 
@@ -183,7 +184,7 @@ contract('OmnibusTBEControllerPartitioned', ([
       // Check resulting balance
       await assert.equal(
         currentBalance,
-        600
+        600,
       );
 
       // Check that we have 3 partitions
@@ -195,13 +196,13 @@ contract('OmnibusTBEControllerPartitioned', ([
       const part3 = await this.token.partitionOf(omnibusWallet, 2);
 
       // We have 100 in the first one
-      let part1balance = await this.token.balanceOfByPartition(omnibusWallet, part1);
+      const part1balance = await this.token.balanceOfByPartition(omnibusWallet, part1);
       assert.equal(part1balance, 100);
       // 200 in the second
-      let part2balance = await this.token.balanceOfByPartition(omnibusWallet, part2);
+      const part2balance = await this.token.balanceOfByPartition(omnibusWallet, part2);
       assert.equal(part2balance, 200);
       // 300 in the third
-      let part3balance = await this.token.balanceOfByPartition(omnibusWallet, part3);
+      const part3balance = await this.token.balanceOfByPartition(omnibusWallet, part3);
       assert.equal(part3balance, 300);
 
       // Burn 150 tokens
@@ -224,7 +225,7 @@ contract('OmnibusTBEControllerPartitioned', ([
       // Check resulting balance
       await assert.equal(
         currentBalance,
-        0
+        0,
       );
     });
 
@@ -264,7 +265,7 @@ contract('OmnibusTBEControllerPartitioned', ([
       // Check resulting balance
       await assert.equal(
         currentBalance,
-        600
+        600,
       );
 
       // Check that we have 3 partitions
@@ -286,7 +287,7 @@ contract('OmnibusTBEControllerPartitioned', ([
       // Check resulting balance
       await assert.equal(
         currentBalance,
-        600
+        600,
       );
 
       // Cleanup: burn remaining tokens
@@ -332,7 +333,7 @@ contract('OmnibusTBEControllerPartitioned', ([
       // Check resulting balance
       await assert.equal(
         currentBalance,
-        600
+        600,
       );
 
       // Check that we have 3 partitions
@@ -354,7 +355,7 @@ contract('OmnibusTBEControllerPartitioned', ([
       // Check resulting balance
       await assert.equal(
         currentBalance,
-        550
+        550,
       );
 
       // Cleanup: burn remaining tokens
@@ -401,7 +402,7 @@ contract('OmnibusTBEControllerPartitioned', ([
       // Check resulting balance
       await assert.equal(
         currentBalance,
-        600
+        600,
       );
 
       // Check that we have 3 partitions
@@ -423,7 +424,7 @@ contract('OmnibusTBEControllerPartitioned', ([
       // Check resulting balance
       await assert.equal(
         currentBalance,
-        500
+        500,
       );
 
       // Cleanup: burn remaining tokens
@@ -469,11 +470,11 @@ contract('OmnibusTBEControllerPartitioned', ([
       // Check resulting balance
       await assert.equal(
         currentBalance,
-        600
+        600,
       );
 
       // Check that we have 3 partitions
-      let numPartitions = await this.token.partitionCountOf(omnibusWallet);
+      const numPartitions = await this.token.partitionCountOf(omnibusWallet);
       assert.equal(numPartitions, 3, 'Not the expected 3 partitions');
 
       // Burn 100 tokens
@@ -487,10 +488,10 @@ contract('OmnibusTBEControllerPartitioned', ([
       // Check resulting balance
       await assert.equal(
         currentBalance,
-        100
+        100,
       );
 
-      await assertEvent(this.token, "OmnibusTBEOperation", {
+      await assertEvent(this.token, 'OmnibusTBEOperation', {
         omnibusWallet,
         totalDelta: 0,
         accreditedDelta: 0,
@@ -542,17 +543,17 @@ contract('OmnibusTBEControllerPartitioned', ([
       const omnibusCurrentBalance = await this.token.balanceOf(omnibusWallet);
       assert.equal(
         omnibusCurrentBalance.toNumber(),
-        0
+        0,
       );
       const investorWallet1CurrentBalance = await this.token.balanceOf(investorWallet1);
       assert.equal(
         investorWallet1CurrentBalance.toNumber(),
-        500
+        500,
       );
       const investorWallet2CurrentBalance = await this.token.balanceOf(investorWallet2);
       assert.equal(
         investorWallet2CurrentBalance.toNumber(),
-        500
+        500,
       );
 
       // Reset balance

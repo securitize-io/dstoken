@@ -2,7 +2,7 @@ const globals = require('../../../utils/globals');
 const fixtures = require('../../fixtures');
 const services = globals.services;
 
-let counters = fixtures.Counters;
+const counters = fixtures.Counters;
 
 async function setOmnibusTBEServicesDependencies (testObject) {
   await testObject.token.setDSService(services.OMNIBUS_TBE_CONTROLLER, testObject.omnibusTBEController.address);
@@ -52,27 +52,27 @@ async function assertCounters (testObject) {
   const currentCounters = await getCounters(testObject);
   assert.equal(
     currentCounters.totalInvestorsCount,
-    counters.totalInvestorsCount
+    counters.totalInvestorsCount,
   );
   assert.equal(
     currentCounters.usTotalInvestorsCount,
     counters.usTotalInvestorsCount);
   assert.equal(
     currentCounters.accreditedInvestorsCount,
-    counters.accreditedInvestorsCount
+    counters.accreditedInvestorsCount,
   );
   assert.equal(
     currentCounters.usAccreditedInvestorsCount,
-    counters.usAccreditedInvestorsCount
+    counters.usAccreditedInvestorsCount,
   );
   assert.equal(
     currentCounters.jpTotalInvestorsCount,
-    counters.jpTotalInvestorsCount
+    counters.jpTotalInvestorsCount,
   );
 }
 async function assertCountryCounters (testObject, countryName, expectedCounter) {
   const euRetailCountryCounter = await testObject.complianceService.getEURetailInvestorsCount.call(
-    countryName
+    countryName,
   );
 
   assert.equal(
@@ -96,8 +96,8 @@ async function getCounters (testObject) {
   };
 }
 
-async function assertEvent(contract, expectedEvent, expectedParams) {
-  const events = await contract.getPastEvents("allEvents");
+async function assertEvent (contract, expectedEvent, expectedParams) {
+  const events = await contract.getPastEvents('allEvents');
 
   const event = events.find(event => event.event == expectedEvent);
 
@@ -117,5 +117,5 @@ module.exports = {
   toHex,
   assertCounters,
   assertCountryCounters,
-  assertEvent
+  assertEvent,
 };

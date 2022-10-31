@@ -1,11 +1,11 @@
-module.exports = async function assertRevert(promise) {
+module.exports = async function assertRevert (promise) {
   try {
     await promise;
   } catch (error) {
-    const revertFound = error.message.search("revert") >= 0;
+    const revertFound = error.message.search('revert') >= 0;
     assert(revertFound, `Expected "revert", got ${error} instead`);
     return;
   }
 
-  assert.fail("Expected revert not received");
+  assert.fail('Expected revert not received');
 };

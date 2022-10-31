@@ -23,7 +23,7 @@ contract('TokenReallocator', function ([
         lockManagerType.INVESTOR,
         undefined,
         true,
-        exchangeWallet
+        exchangeWallet,
       );
       await this.trustService.setRole(this.reallocator.address, roles.ISSUER);
       await this.trustService.setRole(issuerWallet, roles.ISSUER);

@@ -52,14 +52,14 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
   before(async () => {
     await lightwallet.keystore.createVault({
       hdPathString: 'm/44\'/60\'/0\'/0',
-      seedPhrase: seedPhrase,
-      password: password,
+      seedPhrase,
+      password,
     }, function (err, keystore) {
       lightWalletKeyStore = keystore;
       lightWalletKeyStore.keyFromPassword(password, function (e, privateKey) {
         keyFromPw = privateKey;
         lightWalletKeyStore.generateNewAddress(keyFromPw, 10);
-        let acctWithout0x = lightWalletKeyStore.getAddresses();
+        const acctWithout0x = lightWalletKeyStore.getAddresses();
         acct = acctWithout0x.map((a) => { return a; });
         acct.sort();
 
@@ -84,7 +84,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
       lockManagerType.INVESTOR,
       undefined,
       false,
-      omnibusWallet
+      omnibusWallet,
     );
 
     // Registrar Deployments!
@@ -93,7 +93,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
       artifacts.require('Proxy'),
       artifacts.require('WalletRegistrar'),
       this,
-      'walletRegistrar'
+      'walletRegistrar',
     );
 
     await deployContractBehindProxy(
@@ -101,7 +101,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
       artifacts.require('TransactionRelayer'),
       this,
       'transactionRelayer',
-      [CHAINID]
+      [CHAINID],
     );
 
     // Set Services!
@@ -115,12 +115,12 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
 
     await this.walletRegistrar.setDSService(
       TRUST_SERVICE,
-      this.trustService.address
+      this.trustService.address,
     );
 
     await this.registryService.setDSService(
       TRUST_SERVICE,
-      this.trustService.address
+      this.trustService.address,
     );
 
     await this.trustService.setRole(this.walletRegistrar.address, roles.ISSUER, {
@@ -131,7 +131,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
     const WALLET_MANAGER = 32;
     await this.registryService.setDSService(
       WALLET_MANAGER,
-      this.walletManager.address
+      this.walletManager.address,
     );
 
     console.log('Omnibus Settings');
@@ -140,19 +140,19 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
 
     await this.registryService.registerInvestor(
       investorId.GENERAL_INVESTOR_ID_1,
-      investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+      investorId.GENERAL_INVESTOR_COLLISION_HASH_2,
     );
     await this.registryService.addWallet(
       investorWallet1,
-      investorId.GENERAL_INVESTOR_ID_1
+      investorId.GENERAL_INVESTOR_ID_1,
     );
     await this.registryService.registerInvestor(
       investorId.GENERAL_INVESTOR_ID_2,
-      investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+      investorId.GENERAL_INVESTOR_COLLISION_HASH_2,
     );
     await this.registryService.addWallet(
       investorWallet2,
-      investorId.GENERAL_INVESTOR_ID_2
+      investorId.GENERAL_INVESTOR_ID_2,
     );
 
     await resetCounters(this);
@@ -223,12 +223,12 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
 
             assert.equal(
               0,
-              await tokenInstance.balanceOf(this.transactionRelayer.address)
+              await tokenInstance.balanceOf(this.transactionRelayer.address),
             );
 
             assert.equal(
               ISSUED_TOKENS,
-              await tokenInstance.balanceOf(destinationAddress)
+              await tokenInstance.balanceOf(destinationAddress),
             );
           });
           it('SHOULD revert when passing wrong params array length', async () => {
@@ -253,7 +253,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
                 ZEROADDR,
                 data,
                 params,
-                { from: executor, gasLimit })
+                { from: executor, gasLimit }),
             );
 
             sigs = hsmSigner.preApproval(
@@ -278,7 +278,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
                 ZEROADDR,
                 data,
                 params,
-                { from: executor, gasLimit })
+                { from: executor, gasLimit }),
             );
           });
           it('SHOULD revert when blockLimit is less than current block number', async () => {
@@ -308,7 +308,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
                 ZEROADDR,
                 data,
                 params,
-                { from: executor, gasLimit })
+                { from: executor, gasLimit }),
             );
           });
         });
@@ -316,14 +316,14 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
 
       describe('WHEN signing with wrong TXTYPE_HASH ', () => {
         it('SHOULD revert', async () => {
-          let issuer = acct[0];
+          const issuer = acct[0];
           const data = tokenInstance.contract.methods.issueTokens(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
           const currentBlockNumber = await web3.eth.getBlockNumber();
 
-          let sigs = hsmSigner.preApproval(
+          const sigs = hsmSigner.preApproval(
             issuer,
             this.transactionRelayer.address,
             initialNonce.toNumber(),
@@ -348,7 +348,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
               ZEROADDR,
               data,
               params,
-              { from: executor, gasLimit })
+              { from: executor, gasLimit }),
           );
         });
       });
@@ -388,21 +388,21 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
               ZEROADDR,
               data,
               params,
-              { from: executor, gasLimit })
+              { from: executor, gasLimit }),
           );
         });
       });
 
       describe('WHEN signing with wrong VERSION_HASH ', () => {
         it('SHOULD revert', async () => {
-          let issuer = acct[0];
+          const issuer = acct[0];
           const data = tokenInstance.contract.methods.issueTokens(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
           const currentBlockNumber = await web3.eth.getBlockNumber();
 
-          let sigs = hsmSigner.preApproval(
+          const sigs = hsmSigner.preApproval(
             issuer,
             this.transactionRelayer.address,
             initialNonce.toNumber(),
@@ -429,20 +429,20 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
               ZEROADDR,
               data,
               params,
-              { from: executor, gasLimit })
+              { from: executor, gasLimit }),
           );
         });
       });
       describe('WHEN signing with wrong EIP712DOMAINTYPE_HASH ', () => {
         it('SHOULD revert', async () => {
-          let issuer = acct[0];
+          const issuer = acct[0];
           const data = tokenInstance.contract.methods.issueTokens(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
           const currentBlockNumber = await web3.eth.getBlockNumber();
 
-          let sigs = hsmSigner.preApproval(
+          const sigs = hsmSigner.preApproval(
             issuer,
             this.transactionRelayer.address,
             initialNonce.toNumber(),
@@ -470,7 +470,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
               ZEROADDR,
               data,
               params,
-              { from: executor, gasLimit })
+              { from: executor, gasLimit }),
           );
         });
       });
@@ -500,7 +500,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
           HOLDER_COUNTRY_CODE,
           ['1', '2'],
           ['1', '1'],
-          ['0', '0']
+          ['0', '0'],
         ).encodeABI();
         assert.ok(data);
 
@@ -538,14 +538,14 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
           const investor = await this.registryService.getInvestor(HOLDER_ADDRESS);
           assert(investor, HOLDER_ID);
 
-          let newNonce = await this.transactionRelayer.nonceByInvestor(HOLDER_ID);
+          const newNonce = await this.transactionRelayer.nonceByInvestor(HOLDER_ID);
           assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
         });
         it('SHOULD revert when trying to sign an pre-approved transaction after investor nonce update', async () => {
           const NEW_NONCE_UPDATED_BY_MASTER = initialNonce.toNumber() + 10;
           await this.transactionRelayer.setInvestorNonce(
             HOLDER_ID,
-            NEW_NONCE_UPDATED_BY_MASTER, { from: owner }
+            NEW_NONCE_UPDATED_BY_MASTER, { from: owner },
           );
           await assertEvent(this.transactionRelayer, 'InvestorNonceUpdated', {
             investorId: HOLDER_ID,
@@ -562,7 +562,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
               ZEROADDR,
               data,
               params,
-              { from: executor, gasLimit })
+              { from: executor, gasLimit }),
           );
         });
       });
@@ -595,7 +595,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
               ZEROADDR,
               data,
               params,
-              { from: executor, gasLimit })
+              { from: executor, gasLimit }),
           );
 
           const newNonce = await this.transactionRelayer.nonceByInvestor(HOLDER_ID);
@@ -688,20 +688,20 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
           const omnibusCurrentBalance = await this.token.balanceOf(omnibusWallet);
           assert.equal(
             omnibusCurrentBalance.toNumber(),
-            0
+            0,
           );
           const investorWallet1CurrentBalance = await this.token.balanceOf(investorWallet1);
           assert.equal(
             investorWallet1CurrentBalance.toNumber(),
-            500
+            500,
           );
           const investorWallet2CurrentBalance = await this.token.balanceOf(investorWallet2);
           assert.equal(
             investorWallet2CurrentBalance.toNumber(),
-            500
+            500,
           );
 
-          let newNonce = await this.transactionRelayer.nonceByInvestor(HOLDER_ID);
+          const newNonce = await this.transactionRelayer.nonceByInvestor(HOLDER_ID);
           assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
 
           // Reset balance
@@ -766,7 +766,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
               ZEROADDR,
               data,
               params,
-              { from: executor, gasLimit })
+              { from: executor, gasLimit }),
           );
         });
         it('should revert on bulk transfer when a master wallet updates nonce of investor', async () => {
@@ -817,7 +817,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
           const NEW_NONCE_UPDATED_BY_MASTER = initialNonce.toNumber() + 10;
           await this.transactionRelayer.setInvestorNonce(
             HOLDER_ID,
-            NEW_NONCE_UPDATED_BY_MASTER, { from: owner }
+            NEW_NONCE_UPDATED_BY_MASTER, { from: owner },
           );
           await assertEvent(this.transactionRelayer, 'InvestorNonceUpdated', {
             investorId: HOLDER_ID,
@@ -837,7 +837,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
               ZEROADDR,
               data,
               params,
-              { from: executor, gasLimit })
+              { from: executor, gasLimit }),
           );
         });
       });
@@ -883,7 +883,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
                 data,
                 ZEROADDR,
                 gasLimit,
-                { from: executor, gasLimit })
+                { from: executor, gasLimit }),
             );
           });
         });
@@ -904,7 +904,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
         });
         describe('AND one issuer sign a TestToken.issueTokens() transaction', () => {
           it('SHOULD transfer tokens from Relayer to destinationAddress', async () => {
-            let issuer = acct[0];
+            const issuer = acct[0];
 
             const role = await this.trustService.getRole(issuer);
             assert.equal(role.words[0], roles.ISSUER);
@@ -913,7 +913,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
               destinationAddress,
               ISSUED_TOKENS).encodeABI();
 
-            let sigs = hsmSigner.preApproval(
+            const sigs = hsmSigner.preApproval(
               issuer,
               this.transactionRelayer.address,
               initialNonce.toNumber(),
@@ -934,7 +934,7 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
                 data,
                 ZEROADDR,
                 gasLimit,
-                { from: executor, gasLimit })
+                { from: executor, gasLimit }),
             );
           });
         });
@@ -988,14 +988,14 @@ contract('TransactionRelayer', function ([owner, destinationAddress, omnibusWall
         const nonceAfterSetNonce = await this.transactionRelayer.nonceByInvestor(HOLDER_ID);
         await assert.equal(
           nonceAfterSetNonce,
-          NONCE_TO_UPDATE
+          NONCE_TO_UPDATE,
         );
       });
     });
     describe('WHEN a NO master wallet calls update set investor nonce', () => {
       it('SHOULD revert', async () => {
         await assertRevert(this.transactionRelayer.setInvestorNonce(HOLDER_ID, NEW_NONCE,
-          { from: investorWallet1 }
+          { from: investorWallet1 },
         ));
       });
     });

@@ -1,6 +1,8 @@
 const deployContracts = require('../utils/index').deployContracts;
-const { setOmnibusTBEServicesDependencies, resetCounters, setCounters,
-  getCountersDelta, toHex, assertCounters, assertCountryCounters, assertEvent } =
+const {
+  setOmnibusTBEServicesDependencies, resetCounters, setCounters,
+  getCountersDelta, toHex, assertCounters, assertCountryCounters, assertEvent,
+} =
   require('../utils/omnibus/utils');
 const assertRevert = require('../utils/assertRevert');
 const fixtures = require('../fixtures');
@@ -29,25 +31,25 @@ contract('OmnibusTBEController', ([
       lockManagerType.INVESTOR,
       undefined,
       false,
-      omnibusWallet
+      omnibusWallet,
     );
     await setOmnibusTBEServicesDependencies(this);
 
     await this.registryService.registerInvestor(
       investorId.GENERAL_INVESTOR_ID_1,
-      investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+      investorId.GENERAL_INVESTOR_COLLISION_HASH_2,
     );
     await this.registryService.addWallet(
       investorWallet1,
-      investorId.GENERAL_INVESTOR_ID_1
+      investorId.GENERAL_INVESTOR_ID_1,
     );
     await this.registryService.registerInvestor(
       investorId.GENERAL_INVESTOR_ID_2,
-      investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+      investorId.GENERAL_INVESTOR_COLLISION_HASH_2,
     );
     await this.registryService.addWallet(
       investorWallet2,
-      investorId.GENERAL_INVESTOR_ID_2
+      investorId.GENERAL_INVESTOR_ID_2,
     );
 
     await resetCounters(this);
@@ -99,10 +101,10 @@ contract('OmnibusTBEController', ([
       const currentBalance = await this.token.balanceOf(omnibusWallet);
       await assert.equal(
         currentBalance,
-        1000
+        1000,
       );
 
-      await assertEvent(this.token, "OmnibusTBEOperation", {
+      await assertEvent(this.token, 'OmnibusTBEOperation', {
         omnibusWallet,
         totalDelta: 1,
         accreditedDelta: 1,
@@ -138,9 +140,9 @@ contract('OmnibusTBEController', ([
       const currentBalance = await this.token.balanceOf(omnibusWallet);
       await assert.equal(
         currentBalance,
-        1000
+        1000,
       );
-      await assertEvent(this.token, "OmnibusTBEOperation", {
+      await assertEvent(this.token, 'OmnibusTBEOperation', {
         omnibusWallet,
         totalDelta: 1,
         accreditedDelta: 1,
@@ -236,9 +238,9 @@ contract('OmnibusTBEController', ([
       const currentBalance = await this.token.balanceOf(omnibusWallet);
       await assert.equal(
         currentBalance,
-        500
+        500,
       );
-      await assertEvent(this.token, "OmnibusTBEOperation", {
+      await assertEvent(this.token, 'OmnibusTBEOperation', {
         omnibusWallet,
         totalDelta: 1,
         accreditedDelta: 1,
@@ -283,17 +285,17 @@ contract('OmnibusTBEController', ([
       const omnibusCurrentBalance = await this.token.balanceOf(omnibusWallet);
       assert.equal(
         omnibusCurrentBalance.toNumber(),
-        0
+        0,
       );
       const investorWallet1CurrentBalance = await this.token.balanceOf(investorWallet1);
       assert.equal(
         investorWallet1CurrentBalance.toNumber(),
-        500
+        500,
       );
       const investorWallet2CurrentBalance = await this.token.balanceOf(investorWallet2);
       assert.equal(
         investorWallet2CurrentBalance.toNumber(),
-        500
+        500,
       );
 
       // Reset balance
@@ -308,7 +310,7 @@ contract('OmnibusTBEController', ([
       const currentOmnibusBalance = await this.token.balanceOf(omnibusWallet);
       assert.equal(
         currentOmnibusBalance.toNumber(),
-        0
+        0,
       );
       // WHEN
       await this.token.approve(this.omnibusTBEController.address, value, { from: omnibusWallet });
@@ -395,12 +397,12 @@ contract('OmnibusTBEController', ([
         const omnibusCurrentBalance = await this.token.balanceOf(omnibusWallet);
         assert.equal(
           omnibusCurrentBalance.toNumber(),
-          500
+          500,
         );
         const investorWallet1CurrentBalance = await this.token.balanceOf(investorWallet1);
         assert.equal(
           investorWallet1CurrentBalance.toNumber(),
-          700
+          700,
         );
 
         // Reset Balance
@@ -458,7 +460,7 @@ contract('OmnibusTBEController', ([
         .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
           txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
           txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
-      await assertEvent(this.token, "OmnibusTBEOperation", {
+      await assertEvent(this.token, 'OmnibusTBEOperation', {
         omnibusWallet,
         totalDelta: 2,
         accreditedDelta: 2,
@@ -473,7 +475,7 @@ contract('OmnibusTBEController', ([
           negativeCounters.usAccreditedInvestorsCount, negativeCounters.usTotalInvestorsCount,
           negativeCounters.jpTotalInvestorsCount, [], []);
 
-      await assertEvent(this.token, "OmnibusTBETransfer", {
+      await assertEvent(this.token, 'OmnibusTBETransfer', {
         omnibusWallet,
         externalId: 'this_is_externalID',
       });

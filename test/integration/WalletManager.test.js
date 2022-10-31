@@ -75,7 +75,7 @@ contract('WalletManager', function ([
         await assertRevert(
           this.walletManager.addIssuerWallet(issuerWallet2, {
             from: noneWallet,
-          })
+          }),
         );
 
         const isIssuer = await this.walletManager.isIssuerSpecialWallet(issuerWallet2);
@@ -93,7 +93,7 @@ contract('WalletManager', function ([
         await assertRevert(
           this.walletManager.addIssuerWallet(exchangeWallet2, {
             from: exchangeWallet1,
-          })
+          }),
         );
 
         const isSpecialWallet = await this.walletManager.isSpecialWallet(exchangeWallet2);
@@ -146,7 +146,7 @@ contract('WalletManager', function ([
         await assertRevert(
           this.walletManager.addPlatformWallet(issuerWallet2, {
             from: noneWallet,
-          })
+          }),
         );
       });
 
@@ -157,14 +157,14 @@ contract('WalletManager', function ([
         await assertRevert(
           this.walletManager.addPlatformWallet(exchangeWallet2, {
             from: exchangeWallet1,
-          })
+          }),
         );
       });
 
       it('Trying to add the same platform wallet - should be the error', async function () {
         const { logs } = await this.walletManager.addPlatformWallet(
           issuerWallet2,
-          { from: issuerWallet1 }
+          { from: issuerWallet1 },
         );
 
         assert.equal(logs[0].args.wallet, issuerWallet2);
@@ -182,7 +182,7 @@ contract('WalletManager', function ([
 
       const { logs } = await this.walletManager.addExchangeWallet(
         issuerWallet2,
-        exchangeWallet1
+        exchangeWallet1,
       );
 
       assert.equal(logs[0].args.wallet, issuerWallet2);
@@ -196,7 +196,7 @@ contract('WalletManager', function ([
       const { logs } = await this.walletManager.addExchangeWallet(
         exchangeWallet2,
         exchangeWallet1,
-        { from: issuerWallet1 }
+        { from: issuerWallet1 },
       );
 
       assert.equal(logs[0].args.wallet, exchangeWallet2);
@@ -211,7 +211,7 @@ contract('WalletManager', function ([
         await assertRevert(
           this.walletManager.addExchangeWallet(issuerWallet2, noneWallet, {
             from: noneWallet,
-          })
+          }),
         );
       });
 
@@ -223,8 +223,8 @@ contract('WalletManager', function ([
           this.walletManager.addExchangeWallet(
             exchangeWallet2,
             exchangeWallet1,
-            { from: exchangeWallet1 }
-          )
+            { from: exchangeWallet1 },
+          ),
         );
       });
 
@@ -233,8 +233,8 @@ contract('WalletManager', function ([
           this.walletManager.addExchangeWallet(
             exchangeWallet2,
             exchangeWallet1,
-            { from: exchangeWallet1 }
-          )
+            { from: exchangeWallet1 },
+          ),
         );
       });
     });
@@ -262,7 +262,7 @@ contract('WalletManager', function ([
 
       const { logs } = await this.walletManager.removeSpecialWallet(
         issuerWallet2,
-        { from: issuerWallet1 }
+        { from: issuerWallet1 },
       );
 
       assert.equal(logs[0].args.wallet, issuerWallet2);
@@ -277,7 +277,7 @@ contract('WalletManager', function ([
         await assertRevert(
           this.walletManager.removeSpecialWallet(noneWallet, {
             from: noneWallet,
-          })
+          }),
         );
       });
 
@@ -288,7 +288,7 @@ contract('WalletManager', function ([
         await assertRevert(
           this.walletManager.removeSpecialWallet(exchangeWallet1, {
             from: exchangeWallet1,
-          })
+          }),
         );
       });
 
@@ -307,7 +307,7 @@ contract('WalletManager', function ([
         wallet,
         country.USA,
         ACCREDITATION_STATUS,
-        SLOTS
+        SLOTS,
       );
 
       assert.equal(logs[0].args.wallet, wallet);
@@ -317,9 +317,9 @@ contract('WalletManager', function ([
         await this.walletManager.getReservedSlots(
           wallet,
           country.USA,
-          ACCREDITATION_STATUS
+          ACCREDITATION_STATUS,
         ),
-        SLOTS
+        SLOTS,
       );
     });
 
@@ -332,7 +332,7 @@ contract('WalletManager', function ([
         country.USA,
         ACCREDITATION_STATUS,
         SLOTS,
-        { from: issuerWallet1 }
+        { from: issuerWallet1 },
       );
 
       assert.equal(logs[0].args.wallet, wallet);
@@ -342,9 +342,9 @@ contract('WalletManager', function ([
         await this.walletManager.getReservedSlots(
           wallet,
           country.USA,
-          ACCREDITATION_STATUS
+          ACCREDITATION_STATUS,
         ),
-        SLOTS
+        SLOTS,
       );
     });
 
@@ -359,8 +359,8 @@ contract('WalletManager', function ([
             country.USA,
             ACCREDITATION_STATUS,
             SLOTS,
-            { from: noneWallet }
-          )
+            { from: noneWallet },
+          ),
         );
       });
 
@@ -374,8 +374,8 @@ contract('WalletManager', function ([
             country.USA,
             ACCREDITATION_STATUS,
             SLOTS,
-            { from: exchangeWallet1 }
-          )
+            { from: exchangeWallet1 },
+          ),
         );
       });
     });
@@ -387,15 +387,15 @@ contract('WalletManager', function ([
         wallet,
         country.USA,
         ACCREDITATION_STATUS,
-        SLOTS
+        SLOTS,
       );
       assert.equal(
         await this.walletManager.getReservedSlots(
           wallet,
           country.USA,
-          ACCREDITATION_STATUS
+          ACCREDITATION_STATUS,
         ),
-        SLOTS
+        SLOTS,
       );
     });
   });

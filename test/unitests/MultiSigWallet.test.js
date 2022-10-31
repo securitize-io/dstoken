@@ -40,8 +40,8 @@ contract('MultiSigWallet', function (accounts) {
   before((done) => {
     lightwallet.keystore.createVault({
       hdPathString: 'm/44\'/60\'/0\'/0',
-      seedPhrase: seedPhrase,
-      password: password,
+      seedPhrase,
+      password,
     }, function (err, keystore) {
       lightWalletKeyStore = keystore;
       lightWalletKeyStore.keyFromPassword(password, function (e, privateKey) {
@@ -89,12 +89,12 @@ contract('MultiSigWallet', function (accounts) {
 
         assert.equal(
           ISSUED_TOKENS,
-          await tokenInstance.balanceOf(multisig.address)
+          await tokenInstance.balanceOf(multisig.address),
         );
 
         assert.equal(
           0,
-          await tokenInstance.balanceOf(destinationAddress)
+          await tokenInstance.balanceOf(destinationAddress),
         );
       });
       describe('AND two owners sign a TestToken.transfer() transaction', () => {
@@ -130,12 +130,12 @@ contract('MultiSigWallet', function (accounts) {
 
           assert.equal(
             0,
-            await tokenInstance.balanceOf(multisig.address)
+            await tokenInstance.balanceOf(multisig.address),
           );
 
           assert.equal(
             ISSUED_TOKENS,
-            await tokenInstance.balanceOf(destinationAddress)
+            await tokenInstance.balanceOf(destinationAddress),
           );
         });
       });
@@ -171,12 +171,12 @@ contract('MultiSigWallet', function (accounts) {
 
           assert.equal(
             0,
-            await tokenInstance.balanceOf(multisig.address)
+            await tokenInstance.balanceOf(multisig.address),
           );
 
           assert.equal(
             ISSUED_TOKENS,
-            await tokenInstance.balanceOf(destinationAddress)
+            await tokenInstance.balanceOf(destinationAddress),
           );
         });
       });
@@ -205,7 +205,7 @@ contract('MultiSigWallet', function (accounts) {
               data,
               executor,
               gasLimit,
-              { from: executor, gasLimit })
+              { from: executor, gasLimit }),
           );
         });
       });
@@ -234,7 +234,7 @@ contract('MultiSigWallet', function (accounts) {
               data,
               executor,
               gasLimit,
-              { from: executor, gasLimit })
+              { from: executor, gasLimit }),
           );
         });
       });
@@ -263,7 +263,7 @@ contract('MultiSigWallet', function (accounts) {
               data,
               executor,
               gasLimit,
-              { from: executor, gasLimit })
+              { from: executor, gasLimit }),
           );
         });
       });
@@ -289,12 +289,12 @@ contract('MultiSigWallet', function (accounts) {
 
         assert.equal(
           ISSUED_TOKENS,
-          await tokenInstance.balanceOf(multisig.address)
+          await tokenInstance.balanceOf(multisig.address),
         );
 
         assert.equal(
           0,
-          await tokenInstance.balanceOf(destinationAddress)
+          await tokenInstance.balanceOf(destinationAddress),
         );
       });
       describe('AND two owners sign a TestToken.transfer() transaction', () => {
@@ -330,12 +330,12 @@ contract('MultiSigWallet', function (accounts) {
 
           assert.equal(
             0,
-            await tokenInstance.balanceOf(multisig.address)
+            await tokenInstance.balanceOf(multisig.address),
           );
 
           assert.equal(
             ISSUED_TOKENS,
-            await tokenInstance.balanceOf(destinationAddress)
+            await tokenInstance.balanceOf(destinationAddress),
           );
         });
       });
@@ -366,17 +366,17 @@ contract('MultiSigWallet', function (accounts) {
             gasLimit,
             { from: executor, gasLimit });
 
-          let newNonce = await multisig.nonce.call();
+          const newNonce = await multisig.nonce.call();
           assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
 
           assert.equal(
             0,
-            await tokenInstance.balanceOf(multisig.address)
+            await tokenInstance.balanceOf(multisig.address),
           );
 
           assert.equal(
             ISSUED_TOKENS,
-            await tokenInstance.balanceOf(destinationAddress)
+            await tokenInstance.balanceOf(destinationAddress),
           );
         });
       });
@@ -405,7 +405,7 @@ contract('MultiSigWallet', function (accounts) {
               data,
               ZEROADDR,
               gasLimit,
-              { from: executor, gasLimit })
+              { from: executor, gasLimit }),
           );
         });
       });
@@ -434,7 +434,7 @@ contract('MultiSigWallet', function (accounts) {
               data,
               ZEROADDR,
               gasLimit,
-              { from: executor, gasLimit })
+              { from: executor, gasLimit }),
           );
         });
       });
@@ -463,7 +463,7 @@ contract('MultiSigWallet', function (accounts) {
               data,
               ZEROADDR,
               gasLimit,
-              { from: executor, gasLimit })
+              { from: executor, gasLimit }),
           );
         });
       });
@@ -491,12 +491,12 @@ contract('MultiSigWallet', function (accounts) {
 
         assert.equal(
           ISSUED_TOKENS,
-          await tokenInstance.balanceOf(multisig.address)
+          await tokenInstance.balanceOf(multisig.address),
         );
 
         assert.equal(
           0,
-          await tokenInstance.balanceOf(destinationAddress)
+          await tokenInstance.balanceOf(destinationAddress),
         );
       });
       describe('AND two owners sign a TestToken.transfer() transaction', () => {
@@ -525,20 +525,20 @@ contract('MultiSigWallet', function (accounts) {
               data,
               notSignerExecutor,
               gasLimit,
-              { from: notSignerExecutor, gasLimit })
+              { from: notSignerExecutor, gasLimit }),
           );
 
-          let newNonce = await multisig.nonce.call();
+          const newNonce = await multisig.nonce.call();
           assert.equal(initialNonce.toNumber(), newNonce.toNumber());
 
           assert.equal(
             ISSUED_TOKENS,
-            await tokenInstance.balanceOf(multisig.address)
+            await tokenInstance.balanceOf(multisig.address),
           );
 
           assert.equal(
             0,
-            await tokenInstance.balanceOf(destinationAddress)
+            await tokenInstance.balanceOf(destinationAddress),
           );
         });
       });
@@ -569,20 +569,20 @@ contract('MultiSigWallet', function (accounts) {
               data,
               ZEROADDR,
               gasLimit,
-              { from: notSignerExecutor, gasLimit }
+              { from: notSignerExecutor, gasLimit },
             ));
 
-          let newNonce = await multisig.nonce.call();
+          const newNonce = await multisig.nonce.call();
           assert.equal(initialNonce.toNumber(), newNonce.toNumber());
 
           assert.equal(
             ISSUED_TOKENS,
-            await tokenInstance.balanceOf(multisig.address)
+            await tokenInstance.balanceOf(multisig.address),
           );
 
           assert.equal(
             0,
-            await tokenInstance.balanceOf(destinationAddress)
+            await tokenInstance.balanceOf(destinationAddress),
           );
         });
       });
@@ -611,7 +611,7 @@ contract('MultiSigWallet', function (accounts) {
               data,
               notSignerExecutor,
               gasLimit,
-              { from: notSignerExecutor, gasLimit })
+              { from: notSignerExecutor, gasLimit }),
           );
 
           const newNonce = await multisig.nonce.call();
@@ -619,12 +619,12 @@ contract('MultiSigWallet', function (accounts) {
 
           assert.equal(
             ISSUED_TOKENS,
-            await tokenInstance.balanceOf(multisig.address)
+            await tokenInstance.balanceOf(multisig.address),
           );
 
           assert.equal(
             0,
-            await tokenInstance.balanceOf(destinationAddress)
+            await tokenInstance.balanceOf(destinationAddress),
           );
         });
       });
