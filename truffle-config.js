@@ -25,30 +25,30 @@ module.exports = {
       port: 7545,
       network_id: '*',
     },
-    // coverage: {
-    //   host: 'localhost',
-    //   network_id: '*', // eslint-disable-line camelcase
-    //   port: 8555,
-    //   gas: 0xfffffffffff,
-    //   gasPrice: 0x01,
-    // },
-    // goerli: {
-    //   gasPrice: 4000000000,
-    //   provider: new HDWalletProvider({
-    //     privateKeys: [privateKey],
-    //     providerOrUrl: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    //     chainId: 5,
-    //   }),
-    //   network_id: '5',
-    //   timeoutBlocks,
-    // },
-    // quorum: {
-    //   host: '127.0.0.1',
-    //   port: 22000, // was 8545
-    //   network_id: '*', // Match any network id
-    //   gasPrice: 0,
-    //   type: 'quorum', // needed for Truffle to support Quorum
-    // },
+    coverage: {
+      host: 'localhost',
+      network_id: '*', // eslint-disable-line camelcase
+      port: 8555,
+      gas: 0xfffffffffff,
+      gasPrice: 0x01,
+    },
+    goerli: {
+      gasPrice: 4000000000,
+      provider: new HDWalletProvider({
+        privateKeys: [privateKey],
+        providerOrUrl: `wss://goerli.infura.io/ws/v3/${process.env.INFURA_API_KEY}`,
+        chainId: 5,
+      }),
+      network_id: '5',
+      timeoutBlocks,
+    },
+    quorum: {
+      host: '127.0.0.1',
+      port: 22000, // was 8545
+      network_id: '*', // Match any network id
+      gasPrice: 0,
+      type: 'quorum', // needed for Truffle to support Quorum
+    },
     matic: {
       gasPrice: 100000000000,
       provider: () => new HDWalletProvider({
@@ -69,16 +69,16 @@ module.exports = {
       network_id: '43113',
       skipDryRun: true,
     },
-    // live: {
-    //   gasPrice: 40000000000,
-    //   provider: new HDWalletProvider({
-    //     privateKeys: [privateKey],
-    //     providerOrUrl: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    //     chainId: 1,
-    //   }),
-    //   network_id: '1',
-    //   timeoutBlocks,
-    // },
+    live: {
+      gasPrice: 40000000000,
+      provider: new HDWalletProvider({
+        privateKeys: [privateKey],
+        providerOrUrl: `wss://mainnet.infura.io/ws/v3/${process.env.INFURA_API_KEY}`,
+        chainId: 1,
+      }),
+      network_id: '1',
+      timeoutBlocks,
+    },
   },
   compilers: {
     solc: {
