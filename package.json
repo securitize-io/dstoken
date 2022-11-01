@@ -60,6 +60,7 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.7.3",
+    "eth-block-tracker": "^6.0.0",
     "eth-lightwallet": "^4.0.0",
     "web3": "^1.8.0"
   }
