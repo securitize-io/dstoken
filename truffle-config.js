@@ -69,16 +69,16 @@ module.exports = {
     //   network_id: '43113',
     //   skipDryRun: true,
     // },
-    // live: {
-    //   gasPrice: 40000000000,
-    //   provider: new HDWalletProvider({
-    //     privateKeys: [privateKey],
-    //     providerOrUrl: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    //     chainId: 1,
-    //   }),
-    //   network_id: '1',
-    //   timeoutBlocks,
-    // },
+    live: {
+      gasPrice: 40000000000,
+      provider: new HDWalletProvider({
+        privateKeys: [privateKey],
+        providerOrUrl: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+        chainId: 1,
+      }),
+      network_id: '1',
+      timeoutBlocks,
+    },
   },
   compilers: {
     solc: {
