@@ -40,6 +40,15 @@ abstract contract IDSTrustService is Initializable, VersionedContract {
     ) public virtual returns (bool);
 
     /**
+     * @dev Sets a role for an array of wallets.
+     * @dev Should not be used for setting MASTER (use setServiceOwner) or role removal (use removeRole).
+     * @param _addresses The array of wallet whose role needs to be set.
+     * @param _roles The array of role to be set. The lenght and order must match with _addresses
+     * @return A boolean that indicates if the operation was successful.
+     */
+    function setRoleBulk(address[] memory _addresses, uint8[] memory _roles) public virtual returns (bool);
+
+    /**
      * @dev Sets a role for a wallet.
      * @dev Should not be used for setting MASTER (use setServiceOwner) or role removal (use removeRole).
      * @param _address The wallet whose role needs to be set.

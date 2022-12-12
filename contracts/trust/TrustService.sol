@@ -132,6 +132,22 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
     }
 
     /**
+   * @dev Sets roles to an array of wallets
+   * @dev Should not be used for setting MASTER (use setServiceOwner) or role removal (use removeRole).
+   * @param _addresses The array of wallet whose role needs to be set.
+   * @param _roles The array of role to be set. Length and order must match wit _addresss
+   * @return A boolean that indicates if the operation was successful.
+   */
+    function setRoleBulk(address[] memory _addresses, uint8[] memory _roles) public override onlyMasterOrIssuer returns (bool) {
+        require(_addresses.length < 50, "Exceeded the maximum number of addresses");
+        require(_addresses.length == _roles.length, "Wrong length of parameters");
+        for (uint i = 0; i < _addresses.length; i++) {
+            setRole(_addresses[i], _roles[i]);
+        }
+        return true;
+    }
+
+    /**
    * @dev Sets a role for a wallet.
    * @dev Should not be used for setting MASTER (use setServiceOwner) or role removal (use removeRole).
    * @param _address The wallet whose role needs to be set.
