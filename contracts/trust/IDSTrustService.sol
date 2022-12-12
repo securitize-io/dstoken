@@ -46,7 +46,7 @@ abstract contract IDSTrustService is Initializable, VersionedContract {
      * @param _roles The array of role to be set. The lenght and order must match with _addresses
      * @return A boolean that indicates if the operation was successful.
      */
-    function setRoleBulk(address[] memory _addresses, uint8[] memory _roles) public virtual returns (bool);
+    function setRoles(address[] memory _addresses, uint8[] memory _roles) public virtual returns (bool);
 
     /**
      * @dev Sets a role for a wallet.
