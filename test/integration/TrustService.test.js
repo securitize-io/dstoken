@@ -6,7 +6,7 @@ const testEntity1 = 'TestEntity1';
 const testEntity2 = 'TestEntity2';
 const testEntity3 = 'TestEntity3';
 
-contract.only('TrustService', function ([
+contract('TrustService', function ([
   ownerWallet,
   newOwnerWallet,
   issuerWallet,
@@ -158,6 +158,37 @@ contract.only('TrustService', function ([
     it(`Trying set NONE role in bulk mode for this account - ${newOwnerWallet} - should be the error`, async function () {
       await expectRevert.unspecified(
         this.trustService.setRoles([newOwnerWallet], [roles.NONE], {
+          from: newOwnerWallet,
+        }),
+      );
+    });
+
+    it(`Trying set Issuer role in bulk mode for this account ${issuerWallet2} and different roles length- should be the error`, async function () {
+      await expectRevert.unspecified(
+        this.trustService.setRoles([issuerWallet2], [roles.ISSUER, roles.ISSUER], {
+          from: newOwnerWallet,
+        }),
+      );
+    });
+
+    it(`Trying set Issuer role in bulk mode for accounts ${issuerWallet2} and ${issuerWallet3} different roles length- should be the error`, async function () {
+      await expectRevert.unspecified(
+        this.trustService.setRoles([issuerWallet2, issuerWallet3], [roles.ISSUER], {
+          from: newOwnerWallet,
+        }),
+      );
+    });
+
+    it(`Trying set Issuer role in bulk mode for accounts 50 accounts - should be the error`, async function () {
+      let wallets = [];
+      let rolesArg = [];
+      const MAX_ALLOWED_WALLETS = 30;
+      for (let i = 0; i < (MAX_ALLOWED_WALLETS + 1); i++) {
+        wallets.push(issuerWallet2);
+        rolesArg.push(roles.ISSUER);
+      }
+      await expectRevert.unspecified(
+        this.trustService.setRoles(wallets, rolesArg, {
           from: newOwnerWallet,
         }),
       );
