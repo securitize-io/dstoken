@@ -71,6 +71,13 @@ abstract contract IDSWalletManager is Initializable, VersionedContract {
     ) public virtual returns (bool);
 
     /**
+     * @dev Sets an array of wallets to be issuer wallets.
+     * @param _wallets The address of the wallets.
+     * @return A boolean that indicates if the operation was successful.
+     */
+    function addIssuerWallets(address[] memory _wallets) public virtual returns (bool);
+
+    /**
      * @dev Sets a wallet to be a platform wallet.
      * @param _wallet The address of the wallet.
      * @return A boolean that indicates if the operation was successful.
@@ -78,6 +85,13 @@ abstract contract IDSWalletManager is Initializable, VersionedContract {
     function addPlatformWallet(
         address _wallet /*onlyIssuerOrAbove*/
     ) public virtual returns (bool);
+
+    /**
+     * @dev Sets an array of wallets to be platforms wallet.
+     * @param _wallets The address of the wallets.
+     * @return A boolean that indicates if the operation was successful.
+     */
+    function addPlatformWallets(address[] memory _wallets) public virtual returns (bool);
 
     /**
      * @dev Sets a wallet to be an exchange wallet.
