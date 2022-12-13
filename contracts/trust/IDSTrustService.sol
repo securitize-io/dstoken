@@ -12,7 +12,7 @@ import "../utils/Initializable.sol";
 abstract contract IDSTrustService is Initializable, VersionedContract {
 
     function initialize() public virtual {
-        VERSIONS.push(3);
+        VERSIONS.push(4);
     }
 
     /**

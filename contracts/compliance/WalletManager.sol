@@ -15,7 +15,7 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
     function initialize() public override(IDSWalletManager, ServiceConsumer) initializer forceInitializeFromProxy {
         IDSWalletManager.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(4);
+        VERSIONS.push(5);
     }
 
     /**

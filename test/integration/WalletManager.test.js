@@ -8,7 +8,7 @@ const ACCREDITATION_STATUS = 1;
 const SLOTS = 3;
 const MAX_WALLETS = 30;
 
-contract.only('WalletManager', function ([
+contract('WalletManager', function ([
   owner,
   wallet,
   issuerWallet1,

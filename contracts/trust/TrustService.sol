@@ -14,7 +14,7 @@ import "../data-stores/TrustServiceDataStore.sol";
 contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServiceDataStore {
     function initialize() public override initializer forceInitializeFromProxy {
         IDSTrustService.initialize();
-        VERSIONS.push(3);
+        VERSIONS.push(4);
         owner = msg.sender;
         roles[msg.sender] = MASTER;
     }

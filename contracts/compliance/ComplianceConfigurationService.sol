@@ -10,7 +10,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     function initialize() public override(IDSComplianceConfigurationService, ServiceConsumer) initializer forceInitializeFromProxy {
         IDSComplianceConfigurationService.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(7);
+        VERSIONS.push(8);
     }
 
     function setCountriesCompliance(string[] memory _countries, uint256[] memory _values) public override onlyIssuerOrAbove {

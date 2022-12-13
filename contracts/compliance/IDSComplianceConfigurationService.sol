@@ -7,7 +7,7 @@ import "../utils/Initializable.sol";
 abstract contract IDSComplianceConfigurationService is Initializable, VersionedContract {
 
     function initialize() public virtual {
-        VERSIONS.push(6);
+        VERSIONS.push(7);
     }
 
     event DSComplianceUIntRuleSet(string ruleName, uint256 prevValue, uint256 newValue);

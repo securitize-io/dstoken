@@ -7,7 +7,7 @@ import "../utils/Initializable.sol";
 abstract contract IDSWalletManager is Initializable, VersionedContract {
 
     function initialize() public virtual {
-        VERSIONS.push(4);
+        VERSIONS.push(5);
     }
 
     // Special wallets constants
