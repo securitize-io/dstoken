@@ -1,5 +1,7 @@
 const deployContracts = require('../utils').deployContracts;
 const snapshotsHelper = require('../utils/snapshots');
+const { expectRevert } = require('@openzeppelin/test-helpers');
+const { roles } = require('../../utils/globals');
 const complianceType = require('../../utils/globals').complianceType;
 const lockManagerType = require('../../utils/globals').lockManagerType;
 const country = require('../fixtures').Country;
@@ -156,6 +158,69 @@ contract('ComplianceConfigurationService', function ([owner]) {
       assert.equal(tx.logs[0].args.keyValue, country.USA);
       assert.equal(tx.logs[0].args.prevValue.toNumber(), compliance.NONE);
       assert.equal(tx.logs[0].args.newValue.toNumber(), compliance.US);
+    });
+  });
+  describe('setCountriesCompliance', function () {
+    it('Should set countries compliance in bulk mode correctly', async function () {
+      const tx = await this.complianceConfiguration.setCountriesCompliance(
+        [country.SPAIN, country.GERMANY, country.CHINA, country.JAPAN],
+        [compliance.EU, compliance.EU, compliance.FORBIDDEN, compliance.JP],
+      );
+
+      assert.equal(tx.logs[0].event, 'DSComplianceStringToUIntMapRuleSet');
+      assert.equal(tx.logs[0].args.ruleName, 'countryCompliance');
+      assert.equal(tx.logs[0].args.keyValue, country.SPAIN);
+      assert.equal(tx.logs[0].args.prevValue.toNumber(), compliance.NONE);
+      assert.equal(tx.logs[0].args.newValue.toNumber(), compliance.EU);
+
+      assert.equal(tx.logs[1].event, 'DSComplianceStringToUIntMapRuleSet');
+      assert.equal(tx.logs[1].args.ruleName, 'countryCompliance');
+      assert.equal(tx.logs[1].args.keyValue, country.GERMANY);
+      assert.equal(tx.logs[1].args.prevValue.toNumber(), compliance.NONE);
+      assert.equal(tx.logs[1].args.newValue.toNumber(), compliance.EU);
+
+      assert.equal(tx.logs[2].event, 'DSComplianceStringToUIntMapRuleSet');
+      assert.equal(tx.logs[2].args.ruleName, 'countryCompliance');
+      assert.equal(tx.logs[2].args.keyValue, country.CHINA);
+      assert.equal(tx.logs[2].args.prevValue.toNumber(), compliance.NONE);
+      assert.equal(tx.logs[2].args.newValue.toNumber(), compliance.FORBIDDEN);
+
+      assert.equal(tx.logs[3].event, 'DSComplianceStringToUIntMapRuleSet');
+      assert.equal(tx.logs[3].args.ruleName, 'countryCompliance');
+      assert.equal(tx.logs[3].args.keyValue, country.JAPAN);
+      assert.equal(tx.logs[3].args.prevValue.toNumber(), compliance.NONE);
+      assert.equal(tx.logs[3].args.newValue.toNumber(), compliance.JP);
+    });
+    it(`Should fail with different length of countries and values`, async function () {
+      await expectRevert.unspecified(
+        this.complianceConfiguration.setCountriesCompliance(
+          [country.SPAIN, country.GERMANY, country.CHINA, country.JAPAN],
+          [compliance.EU, compliance.EU],
+        ),
+      );
+    });
+    it(`Should fail with different length of values and countries`, async function () {
+      await expectRevert.unspecified(
+        this.complianceConfiguration.setCountriesCompliance(
+          [country.SPAIN],
+          [compliance.EU, compliance.EU],
+        ),
+      );
+    });
+    it(`Should fail when calling bulk set countries with more than 35 countries`, async function () {
+      const MAX_COUNTRIES = 35;
+      let countries = [];
+      let values = [];
+      for (let i = 0; i < (MAX_COUNTRIES + 1); i++) {
+        countries.push(country.SPAIN);
+        values.push(compliance.EU);
+      }
+      await expectRevert.unspecified(
+        this.complianceConfiguration.setCountriesCompliance(
+          countries,
+          values,
+        ),
+      );
     });
   });
 });
