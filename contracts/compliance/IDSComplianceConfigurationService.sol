@@ -16,6 +16,8 @@ abstract contract IDSComplianceConfigurationService is Initializable, VersionedC
 
     function getCountryCompliance(string memory _country) public view virtual returns (uint256);
 
+    function setCountriesCompliance(string[] memory _countries, uint256[] memory _values) public virtual;
+
     function setCountryCompliance(
         string memory _country,
         uint256 _value /*onlyIssuerOrAbove*/

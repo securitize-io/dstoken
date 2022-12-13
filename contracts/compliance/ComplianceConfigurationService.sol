@@ -13,6 +13,14 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         VERSIONS.push(7);
     }
 
+    function setCountriesCompliance(string[] memory _countries, uint256[] memory _values) public override onlyIssuerOrAbove {
+        require(_countries.length <= 35, "Exceeded the maximum number of countries");
+        require(_countries.length == _values.length, "Wrong length of parameters");
+        for (uint i = 0; i < _countries.length; i++) {
+            setCountryCompliance(_countries[i], _values[i]);
+        }
+    }
+
     function setCountryCompliance(string memory _country, uint256 _value) public override onlyIssuerOrAbove {
         emit DSComplianceStringToUIntMapRuleSet("countryCompliance", _country, countriesCompliances[_country], _value);
         countriesCompliances[_country] = _value;

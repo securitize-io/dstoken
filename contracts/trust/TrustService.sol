@@ -139,7 +139,7 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
    * @return A boolean that indicates if the operation was successful.
    */
     function setRoles(address[] memory _addresses, uint8[] memory _roles) public override onlyMasterOrIssuer returns (bool) {
-        require(_addresses.length < 30, "Exceeded the maximum number of addresses");
+        require(_addresses.length <= 30, "Exceeded the maximum number of addresses");
         require(_addresses.length == _roles.length, "Wrong length of parameters");
         for (uint i = 0; i < _addresses.length; i++) {
             setRole(_addresses[i], _roles[i]);
