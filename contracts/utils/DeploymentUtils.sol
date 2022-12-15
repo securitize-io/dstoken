@@ -9,6 +9,7 @@ import "../compliance/IDSWalletManager.sol";
 import "../compliance/IDSWalletManager.sol";
 import "../compliance/IDSLockManager.sol";
 import "../service/IDSServiceConsumer.sol";
+import "../token/DSToken.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 contract DeploymentUtils {
@@ -104,6 +105,14 @@ contract DeploymentUtils {
         _deployLockManagerService(INVESTOR_LOCK_MANAGER_PARTITIONED);
     }
 
+    function deployDsToken(string memory name, string memory symbol, uint8 decimals) public {
+        _deployToken(DS_TOKEN, name, symbol, decimals);
+    }
+
+    function deployDsTokenPartitioned(string memory name, string memory symbol, uint8 decimals) public {
+        _deployToken(DS_TOKEN_PARTITIONED, name, symbol, decimals);
+    }
+
     function setDSServices(address contractAddress, uint256[] memory services, address[] memory serviceAddresses) public restricted {
         require(services.length <= 25, "Exceeded the maximum number of addresses");
         require(services.length == serviceAddresses.length, "Wrong length of parameters");
@@ -128,6 +137,12 @@ contract DeploymentUtils {
     function _deployLockManagerService(uint8 service) internal {
         address proxyAddress = _deployProxy(implementationAddresses[service]);
         IDSComplianceService(proxyAddress).initialize();
+        emit ProxyContractDeployed(proxyAddress);
+    }
+
+    function _deployToken(uint8 service, string memory name, string memory symbol, uint8 decimals) internal {
+        address proxyAddress = _deployProxy(implementationAddresses[service]);
+        DSToken(proxyAddress).initialize(name, symbol, decimals);
         emit ProxyContractDeployed(proxyAddress);
     }
 }
