@@ -4,6 +4,7 @@ import "./Proxy.sol";
 import "../trust/IDSTrustService.sol";
 import "../registry/IDSRegistryService.sol";
 import "../compliance/IDSComplianceService.sol";
+import "../compliance/IDSComplianceConfigurationService.sol";
 import "../service/IDSServiceConsumer.sol";
 
 //SPDX-License-Identifier: UNLICENSED
@@ -78,6 +79,12 @@ contract DeploymentUtils {
 
     function deployComplianceServiceWhitelisted() public {
         _deployComplianceService(COMPLIANCE_SERVICE_WHITELISTED);
+    }
+
+    function deployConfigurationService() public {
+        address proxyAddress = _deployProxy(implementationAddresses[COMPLIANCE_CONFIGURATION]);
+        IDSComplianceConfigurationService(proxyAddress).initialize();
+        emit ProxyContractDeployed(proxyAddress);
     }
 
     function setDSServices(address contractAddress, uint256[] memory services, address[] memory serviceAddresses) public restricted {
