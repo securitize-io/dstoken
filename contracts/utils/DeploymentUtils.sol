@@ -5,6 +5,7 @@ import "../trust/IDSTrustService.sol";
 import "../registry/IDSRegistryService.sol";
 import "../compliance/IDSComplianceService.sol";
 import "../compliance/IDSComplianceConfigurationService.sol";
+import "../compliance/IDSWalletManager.sol";
 import "../service/IDSServiceConsumer.sol";
 
 //SPDX-License-Identifier: UNLICENSED
@@ -84,6 +85,12 @@ contract DeploymentUtils {
     function deployConfigurationService() public {
         address proxyAddress = _deployProxy(implementationAddresses[COMPLIANCE_CONFIGURATION]);
         IDSComplianceConfigurationService(proxyAddress).initialize();
+        emit ProxyContractDeployed(proxyAddress);
+    }
+
+    function deployWalletManager() public {
+        address proxyAddress = _deployProxy(implementationAddresses[WALLET_MANAGER]);
+        IDSWalletManager(proxyAddress).initialize();
         emit ProxyContractDeployed(proxyAddress);
     }
 
