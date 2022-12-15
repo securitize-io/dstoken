@@ -7,7 +7,6 @@ import "../compliance/IDSComplianceService.sol";
 import "../compliance/IDSComplianceConfigurationService.sol";
 import "../compliance/IDSWalletManager.sol";
 import "../compliance/IDSWalletManager.sol";
-import "../compliance/IDSLockManagerPartitioned.sol";
 import "../compliance/IDSLockManager.sol";
 import "../service/IDSServiceConsumer.sol";
 
