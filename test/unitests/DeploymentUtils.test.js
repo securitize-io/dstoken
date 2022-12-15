@@ -10,6 +10,9 @@ const ComplianceServiceRegulatedPartitioned = artifacts.require('ComplianceServi
 const ComplianceConfigurationService = artifacts.require('ComplianceConfigurationService');
 const DSToken = artifacts.require('DSToken');
 const DSTokenPartitioned = artifacts.require('DSTokenPartitioned');
+const WalletRegistrar = artifacts.require('WalletRegistrar');
+const TokenIssuer = artifacts.require('TokenIssuer');
+
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 const TRUST_SERVICE = 0;
@@ -23,6 +26,8 @@ const INVESTOR_LOCK_MANAGER = 7;
 const INVESTOR_LOCK_MANAGER_PARTITIONED = 8;
 const DS_TOKEN = 9;
 const DS_TOKEN_PARTITIONED = 10;
+const TOKEN_ISSUER = 11;
+const WALLET_REGISTRAR = 12;
 
 const globals = require('../../utils/globals');
 const services = globals.services;
@@ -43,6 +48,8 @@ contract.only('DeploymentUtils', function (accounts) {
   let investorLockManagerPartitionedImplementation;
   let dsTokenImplementation;
   let dsTokenPartitionedImplementation;
+  let tokenIssuerImplementation;
+  let walletRegistrarImplementation;
 
   before(async () => {
     const services = [];
@@ -93,6 +100,14 @@ contract.only('DeploymentUtils', function (accounts) {
     services.push(DS_TOKEN_PARTITIONED);
     addresses.push(dsTokenPartitionedImplementation.address);
 
+    tokenIssuerImplementation = await TokenIssuer.new();
+    services.push(TOKEN_ISSUER);
+    addresses.push(tokenIssuerImplementation.address);
+
+    walletRegistrarImplementation = await WalletRegistrar.new();
+    services.push(WALLET_REGISTRAR);
+    addresses.push(walletRegistrarImplementation.address);
+
     await deploymentUtils.setImplementationAddresses(services, addresses);
     const trustImpl = await deploymentUtils.getImplementationAddress(TRUST_SERVICE);
     const registryImpl = await deploymentUtils.getImplementationAddress(REGISTRY_SERVICE);
@@ -105,6 +120,8 @@ contract.only('DeploymentUtils', function (accounts) {
     const investorLockManagerPartitionedImpl = await deploymentUtils.getImplementationAddress(INVESTOR_LOCK_MANAGER_PARTITIONED);
     const dsTokenImpl = await deploymentUtils.getImplementationAddress(DS_TOKEN);
     const dsTokenPartitionedImpl = await deploymentUtils.getImplementationAddress(DS_TOKEN_PARTITIONED);
+    const tokenIssuerImpl = await deploymentUtils.getImplementationAddress(TOKEN_ISSUER);
+    const walletRegistrarImpl = await deploymentUtils.getImplementationAddress(WALLET_REGISTRAR);
 
     assert.equal(trustImpl, trustServiceImplementation.address);
     assert.equal(registryImpl, registryServiceImplementation.address);
@@ -117,6 +134,8 @@ contract.only('DeploymentUtils', function (accounts) {
     assert.equal(investorLockManagerPartitionedImpl, investorLockManagerPartitionedImplementation.address);
     assert.equal(dsTokenImpl, dsTokenImplementation.address);
     assert.equal(dsTokenPartitionedImpl, dsTokenPartitionedImplementation.address);
+    assert.equal(tokenIssuerImpl, tokenIssuerImplementation.address);
+    assert.equal(walletRegistrarImpl, walletRegistrarImplementation.address);
   });
 
   describe('Deploying new TrustService', () => {
@@ -214,6 +233,20 @@ contract.only('DeploymentUtils', function (accounts) {
       assert.equal(name, 'testingP');
       assert.equal(symbol, 'tstP');
       assert.equal(decimals, 8);
+    });
+  });
+
+  describe('Deploying new TokenIssuer', () => {
+    it('Should deploy a new Proxy TokenIssuer and initialize it', async () => {
+      const { logs } = await deploymentUtils.deployTokenIssuer();
+      checkProxyContractDeployedEvent(logs);
+    });
+  });
+
+  describe('Deploying new WalletRegistrar', () => {
+    it('Should deploy a new Proxy WalletRegistrar and initialize it', async () => {
+      const { logs } = await deploymentUtils.deployWalletRegistrar();
+      checkProxyContractDeployedEvent(logs);
     });
   });
 

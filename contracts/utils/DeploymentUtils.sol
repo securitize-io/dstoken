@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 import "./Proxy.sol";
 import "../trust/IDSTrustService.sol";
 import "../registry/IDSRegistryService.sol";
+import "../registry/IDSWalletRegistrar.sol";
 import "../compliance/IDSComplianceService.sol";
 import "../compliance/IDSComplianceConfigurationService.sol";
 import "../compliance/IDSWalletManager.sol";
@@ -10,6 +11,7 @@ import "../compliance/IDSWalletManager.sol";
 import "../compliance/IDSLockManager.sol";
 import "../service/IDSServiceConsumer.sol";
 import "../token/DSToken.sol";
+import "../issuance/IDSTokenIssuer.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 contract DeploymentUtils {
@@ -26,6 +28,7 @@ contract DeploymentUtils {
     uint8 public constant DS_TOKEN_PARTITIONED = 10;
     uint8 public constant TOKEN_ISSUER = 11;
     uint8 public constant WALLET_REGISTRAR = 12;
+
     uint8 public constant PARTITIONS_MANAGER = 13;
     uint8 public constant OMNIBUS_TBE_CONTROLLER = 14;
     uint8 public constant OMNIBUS_TBE_CONTROLLER_WHITELISTED = 15;
@@ -111,6 +114,18 @@ contract DeploymentUtils {
 
     function deployDsTokenPartitioned(string memory name, string memory symbol, uint8 decimals) public {
         _deployToken(DS_TOKEN_PARTITIONED, name, symbol, decimals);
+    }
+
+    function deployTokenIssuer() public {
+        address proxyAddress = _deployProxy(implementationAddresses[TOKEN_ISSUER]);
+        IDSTokenIssuer(proxyAddress).initialize();
+        emit ProxyContractDeployed(proxyAddress);
+    }
+
+    function deployWalletRegistrar() public {
+        address proxyAddress = _deployProxy(implementationAddresses[WALLET_REGISTRAR]);
+        IDSWalletRegistrar(proxyAddress).initialize();
+        emit ProxyContractDeployed(proxyAddress);
     }
 
     function setDSServices(address contractAddress, uint256[] memory services, address[] memory serviceAddresses) public restricted {
