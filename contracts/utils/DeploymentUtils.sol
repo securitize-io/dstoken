@@ -6,6 +6,9 @@ import "../registry/IDSRegistryService.sol";
 import "../compliance/IDSComplianceService.sol";
 import "../compliance/IDSComplianceConfigurationService.sol";
 import "../compliance/IDSWalletManager.sol";
+import "../compliance/IDSWalletManager.sol";
+import "../compliance/IDSLockManagerPartitioned.sol";
+import "../compliance/IDSLockManager.sol";
 import "../service/IDSServiceConsumer.sol";
 
 //SPDX-License-Identifier: UNLICENSED
@@ -94,6 +97,14 @@ contract DeploymentUtils {
         emit ProxyContractDeployed(proxyAddress);
     }
 
+    function deployInvestorLockManager() public {
+        _deployLockManagerService(INVESTOR_LOCK_MANAGER);
+    }
+
+    function deployInvestorLockManagerPartitioned() public {
+        _deployLockManagerService(INVESTOR_LOCK_MANAGER_PARTITIONED);
+    }
+
     function setDSServices(address contractAddress, uint256[] memory services, address[] memory serviceAddresses) public restricted {
         require(services.length <= 25, "Exceeded the maximum number of addresses");
         require(services.length == serviceAddresses.length, "Wrong length of parameters");
@@ -110,6 +121,12 @@ contract DeploymentUtils {
     }
 
     function _deployComplianceService(uint8 service) internal {
+        address proxyAddress = _deployProxy(implementationAddresses[service]);
+        IDSComplianceService(proxyAddress).initialize();
+        emit ProxyContractDeployed(proxyAddress);
+    }
+
+    function _deployLockManagerService(uint8 service) internal {
         address proxyAddress = _deployProxy(implementationAddresses[service]);
         IDSComplianceService(proxyAddress).initialize();
         emit ProxyContractDeployed(proxyAddress);

@@ -1,5 +1,7 @@
 const DeploymentUtils = artifacts.require('DeploymentUtils');
 const TrustService = artifacts.require('TrustService');
+const InvestorLockManager = artifacts.require('InvestorLockManager');
+const InvestorLockManagerPartitioned = artifacts.require('InvestorLockManagerPartitioned');
 const RegistryService = artifacts.require('RegistryService');
 const WalletManager = artifacts.require('WalletManager');
 const ComplianceServiceRegulated = artifacts.require('ComplianceServiceRegulated');
@@ -14,6 +16,8 @@ const COMPLIANCE_SERVICE_PARTITIONED = 3;
 const COMPLIANCE_SERVICE_WHITELISTED = 4;
 const COMPLIANCE_CONFIGURATION = 5;
 const WALLET_MANAGER = 6;
+const INVESTOR_LOCK_MANAGER = 7;
+const INVESTOR_LOCK_MANAGER_PARTITIONED = 8;
 
 const globals = require('../../utils/globals');
 const services = globals.services;
@@ -30,6 +34,8 @@ contract.only('DeploymentUtils', function (accounts) {
   let proxyComplianceServiceRegulated;
   let complianceConfigurationServiceImplementation;
   let walletManagerImplementation;
+  let investorLockManagerImplementation;
+  let investorLockManagerPartitionedImplementation;
 
   before(async () => {
     const services = [];
@@ -64,6 +70,14 @@ contract.only('DeploymentUtils', function (accounts) {
     services.push(WALLET_MANAGER);
     addresses.push(walletManagerImplementation.address);
 
+    investorLockManagerImplementation = await InvestorLockManager.new();
+    services.push(INVESTOR_LOCK_MANAGER);
+    addresses.push(investorLockManagerImplementation.address);
+
+    investorLockManagerPartitionedImplementation = await InvestorLockManagerPartitioned.new();
+    services.push(INVESTOR_LOCK_MANAGER_PARTITIONED);
+    addresses.push(investorLockManagerPartitionedImplementation.address);
+
     await deploymentUtils.setImplementationAddresses(services, addresses);
     const trustImpl = await deploymentUtils.getImplementationAddress(TRUST_SERVICE);
     const registryImpl = await deploymentUtils.getImplementationAddress(REGISTRY_SERVICE);
@@ -72,6 +86,8 @@ contract.only('DeploymentUtils', function (accounts) {
     const compServiceWhitelistedImpl = await deploymentUtils.getImplementationAddress(COMPLIANCE_SERVICE_WHITELISTED);
     const compConfigurationServiceImpl = await deploymentUtils.getImplementationAddress(COMPLIANCE_CONFIGURATION);
     const walletManagerImpl = await deploymentUtils.getImplementationAddress(WALLET_MANAGER);
+    const investorLockManagerImpl = await deploymentUtils.getImplementationAddress(INVESTOR_LOCK_MANAGER);
+    const investorLockManagerPartitionedImpl = await deploymentUtils.getImplementationAddress(INVESTOR_LOCK_MANAGER_PARTITIONED);
 
     assert.equal(trustImpl, trustServiceImplementation.address);
     assert.equal(registryImpl, registryServiceImplementation.address);
@@ -80,6 +96,8 @@ contract.only('DeploymentUtils', function (accounts) {
     assert.equal(compServiceWhitelistedImpl, complianceServiceWhitelistedImplementation.address);
     assert.equal(compConfigurationServiceImpl, complianceConfigurationServiceImplementation.address);
     assert.equal(walletManagerImpl, walletManagerImplementation.address);
+    assert.equal(investorLockManagerImpl, investorLockManagerImplementation.address);
+    assert.equal(investorLockManagerPartitionedImpl, investorLockManagerPartitionedImplementation.address);
   });
 
   describe('Deploying new TrustService', () => {
@@ -133,6 +151,21 @@ contract.only('DeploymentUtils', function (accounts) {
       checkProxyContractDeployedEvent(logs);
     });
   });
+
+  describe('Deploying new InvestorLockManager', () => {
+    it('Should deploy a new Proxy InvestorLockManager and initialize it', async () => {
+      const { logs } = await deploymentUtils.deployInvestorLockManager();
+      checkProxyContractDeployedEvent(logs);
+    });
+  });
+
+  describe('Deploying new InvestorLockManagerPartitioned', () => {
+    it('Should deploy a new Proxy InvestorLockManagerPartitioned and initialize it', async () => {
+      const { logs } = await deploymentUtils.deployInvestorLockManagerPartitioned();
+      checkProxyContractDeployedEvent(logs);
+    });
+  });
+
 
   describe('Set DSServices', () => {
     it('Should set DSServices', async () => {
