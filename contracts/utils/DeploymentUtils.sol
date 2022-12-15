@@ -69,21 +69,15 @@ contract DeploymentUtils {
     }
 
     function deployComplianceServiceRegulated() public {
-        address proxyAddress = _deployProxy(implementationAddresses[COMPLIANCE_SERVICE_REGULATED]);
-        IDSComplianceService(proxyAddress).initialize();
-        emit ProxyContractDeployed(proxyAddress);
+        _deployComplianceService(COMPLIANCE_SERVICE_REGULATED);
     }
 
     function deployComplianceServicePartitioned() public {
-        address proxyAddress = _deployProxy(implementationAddresses[COMPLIANCE_SERVICE_PARTITIONED]);
-        IDSComplianceService(proxyAddress).initialize();
-        emit ProxyContractDeployed(proxyAddress);
+        _deployComplianceService(COMPLIANCE_SERVICE_PARTITIONED);
     }
 
     function deployComplianceServiceWhitelisted() public {
-        address proxyAddress = _deployProxy(implementationAddresses[COMPLIANCE_SERVICE_WHITELISTED]);
-        IDSComplianceService(proxyAddress).initialize();
-        emit ProxyContractDeployed(proxyAddress);
+        _deployComplianceService(COMPLIANCE_SERVICE_WHITELISTED);
     }
 
     function setDSServices(address contractAddress, uint256[] memory services, address[] memory serviceAddresses) public restricted {
@@ -99,5 +93,11 @@ contract DeploymentUtils {
         Proxy proxy = new Proxy();
         proxy.setTarget(implementationAddress);
         return address(proxy);
+    }
+
+    function _deployComplianceService(uint8 service) internal {
+        address proxyAddress = _deployProxy(implementationAddresses[service]);
+        IDSComplianceService(proxyAddress).initialize();
+        emit ProxyContractDeployed(proxyAddress);
     }
 }
