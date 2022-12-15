@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 import "./Proxy.sol";
 import "../trust/IDSTrustService.sol";
 import "../registry/IDSRegistryService.sol";
+import "../compliance/IDSComplianceService.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 contract DeploymentUtils {
@@ -63,6 +64,24 @@ contract DeploymentUtils {
     function deployRegistryService() public {
         address proxyAddress = _deployProxy(implementationAddresses[REGISTRY_SERVICE]);
         IDSRegistryService(proxyAddress).initialize();
+        emit ProxyContractDeployed(proxyAddress);
+    }
+
+    function deployComplianceServiceRegulated() public {
+        address proxyAddress = _deployProxy(implementationAddresses[COMPLIANCE_SERVICE_REGULATED]);
+        IDSComplianceService(proxyAddress).initialize();
+        emit ProxyContractDeployed(proxyAddress);
+    }
+
+    function deployComplianceServicePartitioned() public {
+        address proxyAddress = _deployProxy(implementationAddresses[COMPLIANCE_SERVICE_PARTITIONED]);
+        IDSComplianceService(proxyAddress).initialize();
+        emit ProxyContractDeployed(proxyAddress);
+    }
+
+    function deployComplianceServiceWhitelisted() public {
+        address proxyAddress = _deployProxy(implementationAddresses[COMPLIANCE_SERVICE_WHITELISTED]);
+        IDSComplianceService(proxyAddress).initialize();
         emit ProxyContractDeployed(proxyAddress);
     }
 
