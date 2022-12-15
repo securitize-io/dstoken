@@ -7,11 +7,17 @@ const TRUST_SERVICE = 0;
 const REGISTRY_SERVICE = 1;
 const COMPLIANCE_SERVICE_REGULATED = 2;
 
+const globals = require('../../utils/globals');
+const services = globals.services;
+
 contract.only('DeploymentUtils', function (accounts) {
   let deploymentUtils;
   let trustServiceImplementation;
+  let proxyTrustService;
   let registryServiceImplementation;
+  let proxyRegistryService;
   let complianceServiceRegulatedImplementation;
+  let proxyComplianceServiceRegulated;
 
   before(async () => {
     const services = [];
@@ -45,6 +51,7 @@ contract.only('DeploymentUtils', function (accounts) {
       assert.equal(logs.length, 1);
       assert.equal(logs[0].event, 'ProxyContractDeployed');
       assert.notEqual(logs[0].args.proxyAddress, ZERO_ADDRESS);
+      proxyTrustService = logs[0].args.proxyAddress;
     });
   });
 
@@ -54,6 +61,7 @@ contract.only('DeploymentUtils', function (accounts) {
       assert.equal(logs.length, 1);
       assert.equal(logs[0].event, 'ProxyContractDeployed');
       assert.notEqual(logs[0].args.proxyAddress, ZERO_ADDRESS);
+      proxyRegistryService = logs[0].args.proxyAddress;
     });
   });
 
@@ -63,6 +71,16 @@ contract.only('DeploymentUtils', function (accounts) {
       assert.equal(logs.length, 1);
       assert.equal(logs[0].event, 'ProxyContractDeployed');
       assert.notEqual(logs[0].args.proxyAddress, ZERO_ADDRESS);
+      proxyComplianceServiceRegulated = logs[0].args.proxyAddress;
+    });
+  });
+
+  describe('Set DSServices', () => {
+    it('Should set DSServices', async () => {
+      await deploymentUtils.setDSServices(proxyComplianceServiceRegulated, [services.TRUST_SERVICE], [proxyTrustService]);
+      const proxyCompliance = await ComplianceServiceRegulated.at(proxyComplianceServiceRegulated);
+      const dsService = await proxyCompliance.getDSService(services.TRUST_SERVICE);
+      assert.equal(dsService, proxyTrustService);
     });
   });
 });

@@ -4,6 +4,7 @@ import "./Proxy.sol";
 import "../trust/IDSTrustService.sol";
 import "../registry/IDSRegistryService.sol";
 import "../compliance/IDSComplianceService.sol";
+import "../service/IDSServiceConsumer.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 contract DeploymentUtils {
@@ -83,6 +84,14 @@ contract DeploymentUtils {
         address proxyAddress = _deployProxy(implementationAddresses[COMPLIANCE_SERVICE_WHITELISTED]);
         IDSComplianceService(proxyAddress).initialize();
         emit ProxyContractDeployed(proxyAddress);
+    }
+
+    function setDSServices(address contractAddress, uint256[] memory services, address[] memory serviceAddresses) public restricted {
+        require(services.length <= 25, "Exceeded the maximum number of addresses");
+        require(services.length == serviceAddresses.length, "Wrong length of parameters");
+        for (uint i = 0; i < services.length; i++) {
+            IDSServiceConsumer(contractAddress).setDSService(services[i], serviceAddresses[i]);
+        }
     }
 
     function _deployProxy(address implementationAddress) internal returns (address) {
