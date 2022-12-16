@@ -6,12 +6,16 @@ import "../registry/IDSRegistryService.sol";
 import "../registry/IDSWalletRegistrar.sol";
 import "../compliance/IDSComplianceService.sol";
 import "../compliance/IDSComplianceConfigurationService.sol";
+import "../compliance/IDSPartitionsManager.sol";
 import "../compliance/IDSWalletManager.sol";
 import "../compliance/IDSWalletManager.sol";
 import "../compliance/IDSLockManager.sol";
 import "../service/IDSServiceConsumer.sol";
 import "../token/DSToken.sol";
 import "../issuance/IDSTokenIssuer.sol";
+import "../omnibus/IDSOmnibusTBEController.sol";
+import "../omnibus/IDSTokenReallocator.sol";
+import "../utils/TransactionRelayer.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 contract DeploymentUtils {
@@ -28,7 +32,6 @@ contract DeploymentUtils {
     uint8 public constant DS_TOKEN_PARTITIONED = 10;
     uint8 public constant TOKEN_ISSUER = 11;
     uint8 public constant WALLET_REGISTRAR = 12;
-
     uint8 public constant PARTITIONS_MANAGER = 13;
     uint8 public constant OMNIBUS_TBE_CONTROLLER = 14;
     uint8 public constant OMNIBUS_TBE_CONTROLLER_WHITELISTED = 15;
@@ -88,9 +91,35 @@ contract DeploymentUtils {
         _deployComplianceService(COMPLIANCE_SERVICE_WHITELISTED);
     }
 
+    function deployPartitionsManager() public {
+        address proxyAddress = _deployProxy(implementationAddresses[PARTITIONS_MANAGER]);
+        IDSPartitionsManager(proxyAddress).initialize();
+        emit ProxyContractDeployed(proxyAddress);
+    }
+
+    function deployOmnibusTbeController(address omnibusWallet, bool isPartitionedToken) public {
+        _deployOmnibusTbeController(OMNIBUS_TBE_CONTROLLER, omnibusWallet, isPartitionedToken);
+    }
+
+    function deployOmnibusTbeControllerWhitelisted(address omnibusWallet, bool isPartitionedToken) public {
+        _deployOmnibusTbeController(OMNIBUS_TBE_CONTROLLER_WHITELISTED, omnibusWallet, isPartitionedToken);
+    }
+
+    function deployTransactionRelayer(uint256 chainId) public {
+        address proxyAddress = _deployProxy(implementationAddresses[TRANSACTION_RELAYER]);
+        TransactionRelayer(proxyAddress).initialize(chainId);
+        emit ProxyContractDeployed(proxyAddress);
+    }
+
     function deployConfigurationService() public {
         address proxyAddress = _deployProxy(implementationAddresses[COMPLIANCE_CONFIGURATION]);
         IDSComplianceConfigurationService(proxyAddress).initialize();
+        emit ProxyContractDeployed(proxyAddress);
+    }
+
+    function deployTokenReallocator() public {
+        address proxyAddress = _deployProxy(implementationAddresses[TOKEN_REALLOCATOR]);
+        IDSTokenReallocator(proxyAddress).initialize();
         emit ProxyContractDeployed(proxyAddress);
     }
 
@@ -158,6 +187,12 @@ contract DeploymentUtils {
     function _deployToken(uint8 service, string memory name, string memory symbol, uint8 decimals) internal {
         address proxyAddress = _deployProxy(implementationAddresses[service]);
         DSToken(proxyAddress).initialize(name, symbol, decimals);
+        emit ProxyContractDeployed(proxyAddress);
+    }
+
+    function _deployOmnibusTbeController(uint8 service, address omnibusWallet, bool isPartitionedToken) internal {
+        address proxyAddress = _deployProxy(implementationAddresses[service]);
+        IDSOmnibusTBEController(proxyAddress).initialize(omnibusWallet, isPartitionedToken);
         emit ProxyContractDeployed(proxyAddress);
     }
 }
