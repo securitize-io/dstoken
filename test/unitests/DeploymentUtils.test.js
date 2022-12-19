@@ -378,7 +378,7 @@ contract.only('DeploymentUtils', function (accounts) {
   });
 
   describe('Transfer Ownership to master', () => {
-    it('Should set DSServices', async () => {
+    it('Should transfer ownership to new master', async () => {
       await deploymentUtils.transferOwnershipToMaster(
         newMasterAddress,
         deployedProxies
@@ -391,6 +391,12 @@ contract.only('DeploymentUtils', function (accounts) {
         assert.equal(newOwner, newMasterAddress);
         assert.equal(newProxyOwner, newMasterAddress);
       }
+    });
+    it('Should transfer ownership of trustService to a new master account', async () => {
+      await deploymentUtils.transferTrustServiceOwnershipToMaster(newMasterAddress, proxyTrustService);
+      const proxy = await Proxy.at(proxyTrustService);
+      const newProxyOwner = await proxy.owner.call();
+      assert.equal(newProxyOwner, newMasterAddress);
     });
   });
   //
