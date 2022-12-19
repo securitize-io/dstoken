@@ -1,4 +1,5 @@
 const DeploymentUtils = artifacts.require('DeploymentUtils');
+const PartitionsManager = artifacts.require('PartitionsManager');
 const TrustService = artifacts.require('TrustService');
 const InvestorLockManager = artifacts.require('InvestorLockManager');
 const InvestorLockManagerPartitioned = artifacts.require('InvestorLockManagerPartitioned');
@@ -12,7 +13,10 @@ const DSToken = artifacts.require('DSToken');
 const DSTokenPartitioned = artifacts.require('DSTokenPartitioned');
 const WalletRegistrar = artifacts.require('WalletRegistrar');
 const TokenIssuer = artifacts.require('TokenIssuer');
-
+const OmnibusTBEController = artifacts.require('OmnibusTBEController');
+const OmnibusTBEControllerWhitelisted = artifacts.require('OmnibusTBEControllerWhitelisted');
+const TransactionRelayer = artifacts.require('TransactionRelayer');
+const TokenReallocator = artifacts.require('TokenReallocator');
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 const TRUST_SERVICE = 0;
@@ -28,6 +32,11 @@ const DS_TOKEN = 9;
 const DS_TOKEN_PARTITIONED = 10;
 const TOKEN_ISSUER = 11;
 const WALLET_REGISTRAR = 12;
+const PARTITIONS_MANAGER = 13;
+const OMNIBUS_TBE_CONTROLLER = 14;
+const OMNIBUS_TBE_CONTROLLER_WHITELISTED = 15;
+const TRANSACTION_RELAYER = 16;
+const TOKEN_REALLOCATOR = 17;
 
 const globals = require('../../utils/globals');
 const services = globals.services;
@@ -50,6 +59,11 @@ contract.only('DeploymentUtils', function (accounts) {
   let dsTokenPartitionedImplementation;
   let tokenIssuerImplementation;
   let walletRegistrarImplementation;
+  let partitionsManagerImplementation;
+  let omnibusTbeControllerImplementation;
+  let omnibusTbeControllerWhitelistedImplementation;
+  let transactionRelayerImplementation;
+  let tokenReallocatorImplementation;
 
   before(async () => {
     const services = [];
@@ -108,6 +122,26 @@ contract.only('DeploymentUtils', function (accounts) {
     services.push(WALLET_REGISTRAR);
     addresses.push(walletRegistrarImplementation.address);
 
+    partitionsManagerImplementation = await PartitionsManager.new();
+    services.push(PARTITIONS_MANAGER);
+    addresses.push(partitionsManagerImplementation.address);
+
+    omnibusTbeControllerImplementation = await OmnibusTBEController.new();
+    services.push(OMNIBUS_TBE_CONTROLLER);
+    addresses.push(omnibusTbeControllerImplementation.address);
+
+    omnibusTbeControllerWhitelistedImplementation = await OmnibusTBEControllerWhitelisted.new();
+    services.push(OMNIBUS_TBE_CONTROLLER_WHITELISTED);
+    addresses.push(omnibusTbeControllerWhitelistedImplementation.address);
+
+    transactionRelayerImplementation = await TransactionRelayer.new();
+    services.push(TRANSACTION_RELAYER);
+    addresses.push(transactionRelayerImplementation.address);
+
+    tokenReallocatorImplementation = await TokenReallocator.new();
+    services.push(TOKEN_REALLOCATOR);
+    addresses.push(tokenReallocatorImplementation.address);
+
     await deploymentUtils.setImplementationAddresses(services, addresses);
     const trustImpl = await deploymentUtils.getImplementationAddress(TRUST_SERVICE);
     const registryImpl = await deploymentUtils.getImplementationAddress(REGISTRY_SERVICE);
@@ -122,6 +156,11 @@ contract.only('DeploymentUtils', function (accounts) {
     const dsTokenPartitionedImpl = await deploymentUtils.getImplementationAddress(DS_TOKEN_PARTITIONED);
     const tokenIssuerImpl = await deploymentUtils.getImplementationAddress(TOKEN_ISSUER);
     const walletRegistrarImpl = await deploymentUtils.getImplementationAddress(WALLET_REGISTRAR);
+    const partitionsManagerImpl = await deploymentUtils.getImplementationAddress(PARTITIONS_MANAGER);
+    const omnibusTbeControllerImpl = await deploymentUtils.getImplementationAddress(OMNIBUS_TBE_CONTROLLER);
+    const omnibusTbeControllerWhitelistedImpl = await deploymentUtils.getImplementationAddress(OMNIBUS_TBE_CONTROLLER_WHITELISTED);
+    const transactionRelayerImpl = await deploymentUtils.getImplementationAddress(TRANSACTION_RELAYER);
+    const tokenReallocatorImpl = await deploymentUtils.getImplementationAddress(TOKEN_REALLOCATOR);
 
     assert.equal(trustImpl, trustServiceImplementation.address);
     assert.equal(registryImpl, registryServiceImplementation.address);
@@ -136,6 +175,11 @@ contract.only('DeploymentUtils', function (accounts) {
     assert.equal(dsTokenPartitionedImpl, dsTokenPartitionedImplementation.address);
     assert.equal(tokenIssuerImpl, tokenIssuerImplementation.address);
     assert.equal(walletRegistrarImpl, walletRegistrarImplementation.address);
+    assert.equal(partitionsManagerImpl, partitionsManagerImplementation.address);
+    assert.equal(omnibusTbeControllerImpl, omnibusTbeControllerImplementation.address);
+    assert.equal(omnibusTbeControllerWhitelistedImpl, omnibusTbeControllerWhitelistedImplementation.address);
+    assert.equal(transactionRelayerImpl, transactionRelayerImplementation.address);
+    assert.equal(tokenReallocatorImpl, tokenReallocatorImplementation.address);
   });
 
   describe('Deploying new TrustService', () => {
@@ -204,6 +248,13 @@ contract.only('DeploymentUtils', function (accounts) {
     });
   });
 
+  describe('Deploying new PartitionsManager', () => {
+    it('Should deploy a new Proxy Partitions Manager and initialize it', async () => {
+      const { logs } = await deploymentUtils.deployPartitionsManager();
+      checkProxyContractDeployedEvent(logs);
+    });
+  });
+
   describe('Deploying new DSToken', () => {
     it('Should deploy a new Proxy DSToken and initialize it', async () => {
       const { logs } = await deploymentUtils.deployDsToken('testing', 'tst', 2);
@@ -217,6 +268,28 @@ contract.only('DeploymentUtils', function (accounts) {
       assert.equal(name, 'testing');
       assert.equal(symbol, 'tst');
       assert.equal(decimals, 2);
+    });
+  });
+
+  describe('Deploying new OmnibusTBE Controller', () => {
+    it('Should deploy a new Proxy OmnibusTbeController and initialize it', async () => {
+      const isPartitioned = false;
+      const { logs } = await deploymentUtils.deployOmnibusTbeController(accounts[1], isPartitioned);
+      checkProxyContractDeployedEvent(logs);
+    });
+
+    it('Should deploy a new Proxy OmnibusTbeController Partitioned and initialize it', async () => {
+      const isPartitioned = true;
+      const { logs } = await deploymentUtils.deployOmnibusTbeController(accounts[1], isPartitioned);
+      checkProxyContractDeployedEvent(logs);
+    });
+  });
+
+  describe('Deploying new OmnibusTBE Controller Whitelisted', () => {
+    it('Should deploy a new Proxy OmnibusTbeControllerWhitelisted and initialize it', async () => {
+      const isPartitioned = false;
+      const { logs } = await deploymentUtils.deployOmnibusTbeControllerWhitelisted(accounts[1], isPartitioned);
+      checkProxyContractDeployedEvent(logs);
     });
   });
 
@@ -246,6 +319,21 @@ contract.only('DeploymentUtils', function (accounts) {
   describe('Deploying new WalletRegistrar', () => {
     it('Should deploy a new Proxy WalletRegistrar and initialize it', async () => {
       const { logs } = await deploymentUtils.deployWalletRegistrar();
+      checkProxyContractDeployedEvent(logs);
+    });
+  });
+
+  describe('Deploying new TransactionRealyer', () => {
+    it('Should deploy a new Proxy TransactionRealyer and initialize it', async () => {
+      const chainId = await web3.eth.getChainId();
+      const { logs } = await deploymentUtils.deployTransactionRelayer(chainId);
+      checkProxyContractDeployedEvent(logs);
+    });
+  });
+
+  describe('Deploying new TokenReallocator', () => {
+    it('Should deploy a new Proxy TokenReallocator and initialize it', async () => {
+      const { logs } = await deploymentUtils.deployTokenReallocator();
       checkProxyContractDeployedEvent(logs);
     });
   });

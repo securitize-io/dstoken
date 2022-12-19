@@ -1,6 +1,7 @@
 pragma solidity ^0.8.13;
 
 import "./Proxy.sol";
+import "./Ownable.sol";
 import "../trust/IDSTrustService.sol";
 import "../registry/IDSRegistryService.sol";
 import "../registry/IDSWalletRegistrar.sol";
@@ -155,6 +156,19 @@ contract DeploymentUtils {
         address proxyAddress = _deployProxy(implementationAddresses[WALLET_REGISTRAR]);
         IDSWalletRegistrar(proxyAddress).initialize();
         emit ProxyContractDeployed(proxyAddress);
+    }
+
+    function transferOwnershipToMaster(address master, address[] memory proxies) public restricted {
+        require(proxies.length <= 20, "Exceeded the maximum number of addresses");
+        for (uint i = 0; i < proxies.length; i++) {
+            Ownable(proxies[i]).transferOwnership(master);
+            Proxy(proxies[i]).setOwner(master);
+        }
+    }
+
+    function transferTrustServiceOwnershipToMaster(address master, address proxyTrustService) public restricted {
+        IDSTrustService(proxyTrustService).setServiceOwner(master);
+        Proxy(proxyTrustService).setOwner(master);
     }
 
     function setDSServices(address contractAddress, uint256[] memory services, address[] memory serviceAddresses) public restricted {
