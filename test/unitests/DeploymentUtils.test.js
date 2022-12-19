@@ -17,6 +17,7 @@ const OmnibusTBEController = artifacts.require('OmnibusTBEController');
 const OmnibusTBEControllerWhitelisted = artifacts.require('OmnibusTBEControllerWhitelisted');
 const TransactionRelayer = artifacts.require('TransactionRelayer');
 const TokenReallocator = artifacts.require('TokenReallocator');
+const Initializable = artifacts.require('Initializable');
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 const TRUST_SERVICE = 0;
@@ -185,7 +186,7 @@ contract.only('DeploymentUtils', function (accounts) {
   describe('Deploying new TrustService', () => {
     it('Should deploy a new Proxy Trust Service and initialize it', async () => {
       const { logs } = await deploymentUtils.deployTrustService();
-      checkProxyContractDeployedEvent(logs);
+      await checkProxyContractDeployedEvent(logs);
       proxyTrustService = logs[0].args.proxyAddress;
     });
   });
@@ -193,7 +194,7 @@ contract.only('DeploymentUtils', function (accounts) {
   describe('Deploying new RegistryService', () => {
     it('Should deploy a new Proxy RegistryService and initialize it', async () => {
       const { logs } = await deploymentUtils.deployRegistryService();
-      checkProxyContractDeployedEvent(logs);
+      await checkProxyContractDeployedEvent(logs);
       proxyRegistryService = logs[0].args.proxyAddress;
     });
   });
@@ -201,7 +202,7 @@ contract.only('DeploymentUtils', function (accounts) {
   describe('Deploying new ComplianceServiceRegulated', () => {
     it('Should deploy a new Proxy ComplianceServiceRegulated and initialize it', async () => {
       const { logs } = await deploymentUtils.deployComplianceServiceRegulated();
-      checkProxyContractDeployedEvent(logs);
+      await checkProxyContractDeployedEvent(logs);
       proxyComplianceServiceRegulated = logs[0].args.proxyAddress;
     });
   });
@@ -209,56 +210,56 @@ contract.only('DeploymentUtils', function (accounts) {
   describe('Deploying new ComplianceServicePartitioned', () => {
     it('Should deploy a new Proxy ComplianceServicePartitioned and initialize it', async () => {
       const { logs } = await deploymentUtils.deployComplianceServicePartitioned();
-      checkProxyContractDeployedEvent(logs);
+      await checkProxyContractDeployedEvent(logs);
     });
   });
 
   describe('Deploying new ComplianceServiceWhitelisted', () => {
     it('Should deploy a new Proxy ComplianceServiceWhitelisted and initialize it', async () => {
       const { logs } = await deploymentUtils.deployComplianceServiceWhitelisted();
-      checkProxyContractDeployedEvent(logs);
+      await checkProxyContractDeployedEvent(logs);
     });
   });
 
   describe('Deploying new ComplianceConfigurationService', () => {
     it('Should deploy a new Proxy ComplianceConfigurationService and initialize it', async () => {
       const { logs } = await deploymentUtils.deployConfigurationService();
-      checkProxyContractDeployedEvent(logs);
+      await checkProxyContractDeployedEvent(logs);
     });
   });
 
   describe('Deploying new WalletManager', () => {
     it('Should deploy a new Proxy WalletManager and initialize it', async () => {
       const { logs } = await deploymentUtils.deployWalletManager();
-      checkProxyContractDeployedEvent(logs);
+      await checkProxyContractDeployedEvent(logs);
     });
   });
 
   describe('Deploying new InvestorLockManager', () => {
     it('Should deploy a new Proxy InvestorLockManager and initialize it', async () => {
       const { logs } = await deploymentUtils.deployInvestorLockManager();
-      checkProxyContractDeployedEvent(logs);
+      await checkProxyContractDeployedEvent(logs);
     });
   });
 
   describe('Deploying new InvestorLockManagerPartitioned', () => {
     it('Should deploy a new Proxy InvestorLockManagerPartitioned and initialize it', async () => {
       const { logs } = await deploymentUtils.deployInvestorLockManagerPartitioned();
-      checkProxyContractDeployedEvent(logs);
+      await checkProxyContractDeployedEvent(logs);
     });
   });
 
   describe('Deploying new PartitionsManager', () => {
     it('Should deploy a new Proxy Partitions Manager and initialize it', async () => {
       const { logs } = await deploymentUtils.deployPartitionsManager();
-      checkProxyContractDeployedEvent(logs);
+      await checkProxyContractDeployedEvent(logs);
     });
   });
 
   describe('Deploying new DSToken', () => {
     it('Should deploy a new Proxy DSToken and initialize it', async () => {
       const { logs } = await deploymentUtils.deployDsToken('testing', 'tst', 2);
-      checkProxyContractDeployedEvent(logs);
+      await checkProxyContractDeployedEvent(logs);
       const token = await DSToken.at(logs[0].args.proxyAddress);
 
       const name = await token.name.call();
@@ -275,13 +276,13 @@ contract.only('DeploymentUtils', function (accounts) {
     it('Should deploy a new Proxy OmnibusTbeController and initialize it', async () => {
       const isPartitioned = false;
       const { logs } = await deploymentUtils.deployOmnibusTbeController(accounts[1], isPartitioned);
-      checkProxyContractDeployedEvent(logs);
+      await checkProxyContractDeployedEvent(logs);
     });
 
     it('Should deploy a new Proxy OmnibusTbeController Partitioned and initialize it', async () => {
       const isPartitioned = true;
       const { logs } = await deploymentUtils.deployOmnibusTbeController(accounts[1], isPartitioned);
-      checkProxyContractDeployedEvent(logs);
+      await checkProxyContractDeployedEvent(logs);
     });
   });
 
@@ -289,14 +290,14 @@ contract.only('DeploymentUtils', function (accounts) {
     it('Should deploy a new Proxy OmnibusTbeControllerWhitelisted and initialize it', async () => {
       const isPartitioned = false;
       const { logs } = await deploymentUtils.deployOmnibusTbeControllerWhitelisted(accounts[1], isPartitioned);
-      checkProxyContractDeployedEvent(logs);
+      await checkProxyContractDeployedEvent(logs);
     });
   });
 
   describe('Deploying new DSTokenPartitioned', () => {
     it('Should deploy a new Proxy DSTokenPartitioned and initialize it', async () => {
       const { logs } = await deploymentUtils.deployDsTokenPartitioned('testingP', 'tstP', 8);
-      checkProxyContractDeployedEvent(logs);
+      await checkProxyContractDeployedEvent(logs);
       const token = await DSTokenPartitioned.at(logs[0].args.proxyAddress);
 
       const name = await token.name.call();
@@ -312,14 +313,14 @@ contract.only('DeploymentUtils', function (accounts) {
   describe('Deploying new TokenIssuer', () => {
     it('Should deploy a new Proxy TokenIssuer and initialize it', async () => {
       const { logs } = await deploymentUtils.deployTokenIssuer();
-      checkProxyContractDeployedEvent(logs);
+      await checkProxyContractDeployedEvent(logs);
     });
   });
 
   describe('Deploying new WalletRegistrar', () => {
     it('Should deploy a new Proxy WalletRegistrar and initialize it', async () => {
       const { logs } = await deploymentUtils.deployWalletRegistrar();
-      checkProxyContractDeployedEvent(logs);
+      await checkProxyContractDeployedEvent(logs);
     });
   });
 
@@ -327,14 +328,14 @@ contract.only('DeploymentUtils', function (accounts) {
     it('Should deploy a new Proxy TransactionRealyer and initialize it', async () => {
       const chainId = await web3.eth.getChainId();
       const { logs } = await deploymentUtils.deployTransactionRelayer(chainId);
-      checkProxyContractDeployedEvent(logs);
+      await checkProxyContractDeployedEvent(logs);
     });
   });
 
   describe('Deploying new TokenReallocator', () => {
     it('Should deploy a new Proxy TokenReallocator and initialize it', async () => {
       const { logs } = await deploymentUtils.deployTokenReallocator();
-      checkProxyContractDeployedEvent(logs);
+      await checkProxyContractDeployedEvent(logs);
     });
   });
 
@@ -354,8 +355,15 @@ contract.only('DeploymentUtils', function (accounts) {
   });
 });
 
-function checkProxyContractDeployedEvent(logs) {
+async function checkProxyContractDeployedEvent(logs) {
   assert.equal(logs.length, 1);
   assert.equal(logs[0].event, 'ProxyContractDeployed');
   assert.notEqual(logs[0].args.proxyAddress, ZERO_ADDRESS);
+  await checkInitializedContract(logs[0].args.proxyAddress);
+}
+
+async function checkInitializedContract(proxyAddress) {
+  const initializable = await Initializable.at(proxyAddress);
+  const initialized = await initializable.initialized.call();
+  assert.equal(initialized, true);
 }
