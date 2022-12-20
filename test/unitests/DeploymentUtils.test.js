@@ -42,6 +42,8 @@ const TRANSACTION_RELAYER = 16;
 const TOKEN_REALLOCATOR = 17;
 
 const globals = require('../../utils/globals');
+const { roles } = require('../../utils/globals');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const services = globals.services;
 
 const deployedProxies = [];
@@ -378,6 +380,19 @@ contract.only('DeploymentUtils', function (accounts) {
   });
 
   describe('Transfer Ownership to master', () => {
+    it('Should fail when trying to transfer ownership of max allowed addresses', async function () {
+      let proxiesArray = [];
+      const MAX_PROXIES = 20;
+      for (let i = 0; i < (MAX_PROXIES + 1); i++) {
+        proxiesArray.push(proxyRegistryService);
+      }
+      await expectRevert.unspecified(
+        deploymentUtils.transferOwnershipToMaster(
+          newMasterAddress,
+          proxiesArray
+        )
+      );
+    });
     it('Should transfer ownership to new master', async () => {
       await deploymentUtils.transferOwnershipToMaster(
         newMasterAddress,
@@ -399,7 +414,6 @@ contract.only('DeploymentUtils', function (accounts) {
       assert.equal(newProxyOwner, newMasterAddress);
     });
   });
-  //
 });
 
 async function checkProxyContractDeployedEvent(logs) {
