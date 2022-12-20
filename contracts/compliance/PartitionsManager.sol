@@ -1,4 +1,4 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 
 import "../service/ServiceConsumer.sol";
@@ -6,16 +6,17 @@ import "./IDSPartitionsManager.sol";
 import "../data-stores/PartitionsManagerDataStore.sol";
 import "../utils/ProxyTarget.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 contract PartitionsManager is ProxyTarget, Initializable,  IDSPartitionsManager, ServiceConsumer, PartitionsManagerDataStore {
 
-  function initialize() public initializer forceInitializeFromProxy {
+  function initialize() public override(IDSPartitionsManager, ServiceConsumer) initializer forceInitializeFromProxy {
     IDSPartitionsManager.initialize();
     ServiceConsumer.initialize();
     VERSIONS.push(2);
   }
 
 
-  function ensurePartition(uint256 _issuanceDate, uint256 _region) public onlyIssuerOrAboveOrToken returns (bytes32 partition) {
+  function ensurePartition(uint256 _issuanceDate, uint256 _region) public override onlyIssuerOrAboveOrToken returns (bytes32 partition) {
     partition = keccak256(abi.encodePacked(_issuanceDate, _region));
 
     if (getPartitionIssuanceDate(partition) == 0) {
@@ -25,21 +26,21 @@ contract PartitionsManager is ProxyTarget, Initializable,  IDSPartitionsManager,
   }
 
 
-  function getPartition(bytes32 _partition) public view returns (uint256 issuancedate, uint256 region) {
+  function getPartition(bytes32 _partition) public view override returns (uint256 issuancedate, uint256 region) {
 
     return (partitions[_partition].issuanceDate, partitions[_partition].region);
 
   }
 
 
-  function getPartitionIssuanceDate(bytes32 _partition) public view returns (uint256) {
+  function getPartitionIssuanceDate(bytes32 _partition) public view override returns (uint256) {
 
     return partitions[_partition].issuanceDate;
 
   }
 
 
-  function getPartitionRegion(bytes32 _partition) public view returns (uint256) {
+  function getPartitionRegion(bytes32 _partition) public view override returns (uint256) {
 
     return partitions[_partition].region;
 

@@ -1,4 +1,4 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../service/ServiceConsumer.sol";
 import "./IDSWalletManager.sol";
@@ -10,11 +10,12 @@ import "../data-stores/WalletManagerDataStore.sol";
  * @dev A wallet manager which allows marking special wallets in the system.
  * @dev Implements DSTrustServiceInterface and ESServiceConsumer.
  */
+//SPDX-License-Identifier: UNLICENSED
 contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceConsumer, WalletManagerDataStore {
-    function initialize() public initializer forceInitializeFromProxy {
+    function initialize() public override(IDSWalletManager, ServiceConsumer) initializer forceInitializeFromProxy {
         IDSWalletManager.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(3);
+        VERSIONS.push(4);
     }
 
     /**
@@ -23,7 +24,7 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
    * @param _type The type of the wallet.
    * @return A boolean that indicates if the operation was successful.
    */
-    function setSpecialWallet(address _wallet, uint8 _type) internal returns (bool) {
+    function setSpecialWallet(address _wallet, uint8 _type) internal override returns (bool) {
         require(CommonUtils.isEmptyString(getRegistryService().getInvestor(_wallet)), "Wallet belongs to investor");
 
         uint8 oldType = getWalletType(_wallet);
@@ -45,7 +46,7 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
    * @param _wallet The address of the wallet.
    * @return A boolean that indicates if the operation was successful.
    */
-    function addIssuerWallet(address _wallet) public onlyIssuerOrAbove returns (bool) {
+    function addIssuerWallet(address _wallet) public override onlyIssuerOrAbove returns (bool) {
         return setSpecialWallet(_wallet, ISSUER);
     }
 
@@ -54,7 +55,7 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
    * @param _wallet The address of the wallet.
    * @return A boolean that indicates if the operation was successful.
    */
-    function addPlatformWallet(address _wallet) public onlyIssuerOrAbove returns (bool) {
+    function addPlatformWallet(address _wallet) public override onlyIssuerOrAbove returns (bool) {
         return setSpecialWallet(_wallet, PLATFORM);
     }
 
@@ -64,13 +65,24 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
    * @param _owner The address of the owner.
    * @return A boolean that indicates if the operation was successful.
    */
-    function addExchangeWallet(address _wallet, address _owner) public onlyIssuerOrAbove returns (bool) {
-        IDSTrustService trustManager = getTrustService();
-        require(trustManager.getRole(_owner) == trustManager.EXCHANGE(), "Owner is not an exchange");
+    function addExchangeWallet(address _wallet, address _owner) public override onlyIssuerOrAbove returns (bool) {
+        require(getTrustService().getRole(_owner) == EXCHANGE, "Owner is not an exchange");
         return setSpecialWallet(_wallet, EXCHANGE);
     }
 
-    function getWalletType(address _wallet) public view returns (uint8) {
+    function isSpecialWallet(address _wallet) external override view returns (bool) {
+        return walletsTypes[_wallet] != NONE;
+    }
+
+    function isIssuerSpecialWallet(address _wallet) external override view returns (bool) {
+        return walletsTypes[_wallet] == ISSUER;
+    }
+
+    function isPlatformWallet(address _wallet) external override view returns (bool) {
+        return walletsTypes[_wallet] == PLATFORM;
+    }
+
+    function getWalletType(address _wallet) public view override returns (uint8) {
         return walletsTypes[_wallet];
     }
 
@@ -79,7 +91,7 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
    * @param _wallet The address of the wallet.
    * @return A boolean that indicates if the operation was successful.
    */
-    function removeSpecialWallet(address _wallet) public onlyIssuerOrAbove returns (bool) {
+    function removeSpecialWallet(address _wallet) public override onlyIssuerOrAbove returns (bool) {
         // TODO: check that wallet is empty
         return setSpecialWallet(_wallet, NONE);
     }
@@ -92,7 +104,7 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
    * @param _slots number of reserved slots.
    * @return A boolean that indicates if the operation was successful.
    */
-    function setReservedSlots(address _wallet, string memory _country, uint8 _accreditationStatus, uint256 _slots) public onlyIssuerOrAbove returns (bool) {
+    function setReservedSlots(address _wallet, string memory _country, uint8 _accreditationStatus, uint256 _slots) public override onlyIssuerOrAbove returns (bool) {
         // TODO: validate added slots
         walletsSlots[_wallet][_country][_accreditationStatus] = _slots;
 
@@ -108,7 +120,7 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
    * @param _accreditationStatus the investors' accrediation status.
    * @return The number of reserved slots.
    */
-    function getReservedSlots(address _wallet, string memory _country, uint8 _accreditationStatus) public view returns (uint256) {
+    function getReservedSlots(address _wallet, string memory _country, uint8 _accreditationStatus) public override view returns (uint256) {
         return walletsSlots[_wallet][_country][_accreditationStatus];
     }
 }

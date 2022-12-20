@@ -1,10 +1,11 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./IDSOmnibusWalletController.sol";
 import "../data-stores/OmnibusControllerDataStore.sol";
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWalletController, ServiceConsumer, OmnibusControllerDataStore {
     using SafeMath for uint256;
 
@@ -12,9 +13,9 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
         IDSTrustService trustService = getTrustService();
         require(
             trustService.getRole(msg.sender) == trustService.ISSUER() ||
-                trustService.getRole(msg.sender) == trustService.MASTER() ||
-                trustService.isResourceOwner(omnibusWallet, msg.sender) ||
-                trustService.isResourceOperator(omnibusWallet, msg.sender),
+            trustService.getRole(msg.sender) == trustService.MASTER() ||
+            trustService.isResourceOwner(omnibusWallet, msg.sender) ||
+            trustService.isResourceOperator(omnibusWallet, msg.sender),
             "Insufficient trust level"
         );
         _;
@@ -25,44 +26,43 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
         _;
     }
 
-    function initialize(address _omnibusWallet) public initializer forceInitializeFromProxy {
-        IDSOmnibusWalletController.initialize();
+    function initialize(address _omnibusWallet) public initializer override forceInitializeFromProxy {
         ServiceConsumer.initialize();
         VERSIONS.push(2);
 
         omnibusWallet = _omnibusWallet;
     }
 
-    function setAssetTrackingMode(uint8 _assetTrackingMode) public onlyOperatorOrAbove {
+    function setAssetTrackingMode(uint8 _assetTrackingMode) public override onlyOperatorOrAbove {
         require(_assetTrackingMode == BENEFICIARY || _assetTrackingMode == HOLDER_OF_RECORD, "Invalid tracking mode value");
         require(getToken().balanceOf(omnibusWallet) == 0, "Omnibus wallet must be empty");
 
         assetTrackingMode = _assetTrackingMode;
     }
 
-    function getAssetTrackingMode() public view returns (uint8) {
+    function getAssetTrackingMode() public view override returns (uint8) {
         return assetTrackingMode;
     }
 
-    function isHolderOfRecord() public view returns (bool) {
+    function isHolderOfRecord() public view override returns (bool) {
         return assetTrackingMode == HOLDER_OF_RECORD;
     }
 
-    function balanceOf(address _who) public view returns (uint256) {
+    function balanceOf(address _who) public view override returns (uint256) {
         return balances[_who];
     }
 
-    function deposit(address _to, uint256 _value) public onlyToken {
-        balances[_to] = balances[_to].add(_value);
+    function deposit(address _to, uint256 _value) public override onlyToken {
+        balances[_to] += _value;
     }
 
-    function withdraw(address _from, uint256 _value) public enoughBalance(_from, _value) onlyToken {
-        balances[_from] = balances[_from].sub(_value);
+    function withdraw(address _from, uint256 _value) public override enoughBalance(_from, _value) onlyToken {
+        balances[_from] -= _value;
     }
 
-    function transfer(address _from, address _to, uint256 _value) public onlyOperatorOrAbove enoughBalance(_from, _value) {
-        balances[_from] = balances[_from].sub(_value);
-        balances[_to] = balances[_to].add(_value);
+    function transfer(address _from, address _to, uint256 _value) public override onlyOperatorOrAbove enoughBalance(_from, _value) {
+        balances[_from] -= _value;
+        balances[_to] += _value;
 
         if (assetTrackingMode == BENEFICIARY) {
             getToken().updateOmnibusInvestorBalance(omnibusWallet, _from, _value, CommonUtils.IncDec.Decrease);
@@ -72,11 +72,11 @@ contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWallet
         getToken().emitOmnibusTransferEvent(omnibusWallet, _from, _to, _value);
     }
 
-    function seize(address _from, uint256 _value) public enoughBalance(_from, _value) onlyToken {
-        balances[_from] = balances[_from].sub(_value);
+    function seize(address _from, uint256 _value) public override enoughBalance(_from, _value) onlyToken {
+        balances[_from] -= _value;
     }
 
-    function burn(address _who, uint256 _value) public enoughBalance(_who, _value) onlyToken {
-        balances[_who] = balances[_who].sub(_value);
+    function burn(address _who, uint256 _value) public override enoughBalance(_who, _value) onlyToken {
+        balances[_who] -= _value;
     }
 }

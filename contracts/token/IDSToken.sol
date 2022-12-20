@@ -1,12 +1,13 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../utils/CommonUtils.sol";
-import "../zeppelin/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 import "../omnibus/IDSOmnibusWalletController.sol";
 
-contract IDSToken is IERC20, Initializable, VersionedContract {
+//SPDX-License-Identifier: UNLICENSED
+abstract contract IDSToken is IERC20, Initializable, VersionedContract {
     event Issue(address indexed to, uint256 value, uint256 valueLocked);
     event Burn(address indexed burner, uint256 value, string reason);
     event Seize(address indexed from, address indexed to, uint256 value, string reason);
@@ -22,9 +23,7 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
     event WalletAdded(address wallet);
     event WalletRemoved(address wallet);
 
-    constructor() internal {}
-
-    function initialize() public {
+    function initialize() public virtual {
         VERSIONS.push(3);
     }
 
@@ -41,7 +40,7 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
      */
     function setCap(
         uint256 _cap /*onlyMaster*/
-    ) public;
+    ) public virtual;
 
     /******************************
        TOKEN ISSUANCE (MINTING)
@@ -56,7 +55,7 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
     function issueTokens(
         address _to,
         uint256 _value /*onlyIssuerOrAbove*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     /**
      * @dev Issuing tokens from the fund
@@ -74,7 +73,7 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
         uint256 _valueLocked,
         string memory _reason,
         uint64 _releaseTime /*onlyIssuerOrAbove*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     function issueTokensWithMultipleLocks(
         address _to,
@@ -83,7 +82,7 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
         uint256[] memory _valuesLocked,
         string memory _reason,
         uint64[] memory _releaseTimes /*onlyIssuerOrAbove*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     //*********************
     // TOKEN BURNING
@@ -93,14 +92,14 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
         address _who,
         uint256 _value,
         string memory _reason /*onlyIssuerOrAbove*/
-    ) public;
+    ) public virtual;
 
     function omnibusBurn(
         address _omnibusWallet,
         address _who,
         uint256 _value,
         string memory _reason /*onlyIssuerOrAbove*/
-    ) public;
+    ) public virtual;
 
     //*********************
     // TOKEN SIEZING
@@ -111,7 +110,7 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
         address _to,
         uint256 _value,
         string memory _reason /*onlyIssuerOrAbove*/
-    ) public;
+    ) public virtual;
 
     function omnibusSeize(
         address _omnibusWallet,
@@ -120,44 +119,44 @@ contract IDSToken is IERC20, Initializable, VersionedContract {
         uint256 _value,
         string memory _reason
         /*onlyIssuerOrAbove*/
-    ) public;
+    ) public virtual;
 
     //*********************
     // WALLET ENUMERATION
     //*********************
 
-    function getWalletAt(uint256 _index) public view returns (address);
+    function getWalletAt(uint256 _index) public view virtual returns (address);
 
-    function walletCount() public view returns (uint256);
+    function walletCount() public view virtual returns (uint256);
 
     //**************************************
     // MISCELLANEOUS FUNCTIONS
     //**************************************
-    function isPaused() public view returns (bool);
+    function isPaused() public view virtual returns (bool);
 
-    function balanceOfInvestor(string memory _id) public view returns (uint256);
+    function balanceOfInvestor(string memory _id) public view virtual returns (uint256);
 
     function updateOmnibusInvestorBalance(
         address _omnibusWallet,
         address _wallet,
         uint256 _value,
         CommonUtils.IncDec _increase /*onlyOmnibusWalletController*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     function emitOmnibusTransferEvent(
         address _omnibusWallet,
         address _from,
         address _to,
         uint256 _value /*onlyOmnibusWalletController*/
-    ) public;
+    ) public virtual;
 
     function emitOmnibusTBEEvent(address omnibusWallet, int256 totalDelta, int256 accreditedDelta,
         int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta /*onlyTBEOmnibus*/
-    ) public;
+    ) public virtual;
 
-    function emitOmnibusTBETransferEvent(address omnibusWallet, string memory externalId) public;
+    function emitOmnibusTBETransferEvent(address omnibusWallet, string memory externalId) public virtual;
 
-    function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal returns (bool);
+    function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal virtual returns (bool);
 
-    function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason);
+    function preTransferCheck(address _from, address _to, uint256 _value) public view virtual returns (uint256 code, string memory reason);
 }

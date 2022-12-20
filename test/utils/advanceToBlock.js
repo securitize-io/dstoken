@@ -1,4 +1,4 @@
-function advanceBlock() {
+function advanceBlock () {
   return new Promise((resolve, reject) => {
     web3.currentProvider.send(
       {
@@ -8,18 +8,18 @@ function advanceBlock() {
       },
       (err, res) => {
         return err ? reject(err) : resolve(res);
-      }
+      },
     );
   });
 }
 
 // Advances the block number so that the last mined block is `number`.
-async function advanceToBlock(number) {
+async function advanceToBlock (number) {
   if (web3.eth.blockNumber > number) {
     throw Error(
       `block number ${number} is in the past (current is ${
         web3.eth.blockNumber
-      })`
+      })`,
     );
   }
 

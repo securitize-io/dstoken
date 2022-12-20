@@ -1,4 +1,4 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../utils/ProxyTarget.sol";
 import "./IDSComplianceService.sol";
@@ -15,18 +15,19 @@ import "../data-stores/ComplianceServiceDataStore.sol";
  *   and implement the five functions - recordIssuance,checkTransfer,recordTransfer,recordBurn and recordSeize.
  *   The rest of the functions should only be overridden in rare circumstances.
  */
-contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, ServiceConsumer, ComplianceServiceDataStore {
-    function initialize() public forceInitializeFromProxy {
+//SPDX-License-Identifier: UNLICENSED
+abstract contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, ServiceConsumer, ComplianceServiceDataStore {
+    function initialize() public virtual override(IDSComplianceService, ServiceConsumer) forceInitializeFromProxy {
         IDSComplianceService.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(5);
+        VERSIONS.push(7);
     }
 
     function validateTransfer(
         address _from,
         address _to,
         uint256 _value
-    ) public onlyToken returns (bool) {
+    ) public override onlyToken returns (bool) {
         uint256 code;
         string memory reason;
 
@@ -36,13 +37,34 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         return recordTransfer(_from, _to, _value);
     }
 
+    function validateTransfer(
+        address _from,
+        address _to,
+        uint256 _value,
+        bool _paused,
+        uint256 _balanceFrom
+    ) public virtual override onlyToken returns (bool) {
+        uint256 code;
+        string memory reason;
+
+        (code, reason) = newPreTransferCheck(_from, _to, _value, _balanceFrom, _paused);
+        require(code == 0, reason);
+
+        return recordTransfer(_from, _to, _value);
+    }
+
     function validateIssuance(
         address _to,
         uint256 _value,
         uint256 _issuanceTime
-    ) public onlyToken returns (bool) {
+    ) public virtual override onlyToken returns (bool) {
         uint256 code;
         string memory reason;
+
+        uint256 authorizedSecurities = getComplianceConfigurationService().getAuthorizedSecurities();
+
+        require(authorizedSecurities == 0 || getToken().totalSupply() + _value <= authorizedSecurities,
+            MAX_AUTHORIZED_SECURITIES_EXCEEDED);
 
         (code, reason) = preIssuanceCheck(_to, _value);
         require(code == 0, reason);
@@ -50,7 +72,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         return recordIssuance(_to, _value, _issuanceTime);
     }
 
-    function validateBurn(address _who, uint256 _value) public onlyToken returns (bool) {
+    function validateBurn(address _who, uint256 _value) public virtual override onlyToken returns (bool) {
         return recordBurn(_who, _value);
     }
 
@@ -58,18 +80,39 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         address _from,
         address _to,
         uint256 _value
-    ) public onlyToken returns (bool) {
-        IDSWalletManager walletManager = getWalletManager();
-        require(walletManager.getWalletType(_to) == walletManager.ISSUER(), "Target wallet type error");
+    ) public virtual override onlyToken returns (bool) {
+        require(getWalletManager().isIssuerSpecialWallet(_to), "Target wallet type error");
 
         return recordSeize(_from, _to, _value);
+    }
+
+    function newPreTransferCheck(
+        address _from,
+        address _to,
+        uint256 _value,
+        uint256 _balanceFrom,
+        bool _pausedToken
+    ) public view virtual returns (uint256 code, string memory reason) {
+        if (_pausedToken) {
+            return (10, TOKEN_PAUSED);
+        }
+
+        if (_balanceFrom < _value) {
+            return (15, NOT_ENOUGH_TOKENS);
+        }
+
+        if (getLockManager().getTransferableTokens(_from, block.timestamp) < _value) {
+            return (16, TOKENS_LOCKED);
+        }
+
+        return checkTransfer(_from, _to, _value);
     }
 
     function preTransferCheck(
         address _from,
         address _to,
         uint256 _value
-    ) public view returns (uint256 code, string memory reason) {
+    ) public view virtual override returns (uint256 code, string memory reason) {
         if (getToken().isPaused()) {
             return (10, TOKEN_PAUSED);
         }
@@ -78,7 +121,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
             return (15, NOT_ENOUGH_TOKENS);
         }
 
-        if (getLockManager().getTransferableTokens(_from, uint64(now)) < _value) {
+        if (getLockManager().getTransferableTokens(_from, block.timestamp) < _value) {
             return (16, TOKENS_LOCKED);
         }
 
@@ -89,7 +132,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         address _from,
         address _to,
         uint256 _value
-    ) public view returns (uint256 code, string memory reason) {
+    ) public view virtual override returns (uint256 code, string memory reason) {
         if (getToken().isPaused()) {
             return (10, TOKEN_PAUSED);
         }
@@ -100,7 +143,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
     function preIssuanceCheck(
         address, /*_to*/
         uint256 /*_value*/
-    ) public view returns (uint256 code, string memory reason) {
+    ) public view virtual override returns (uint256 code, string memory reason) {
         return (0, VALID);
     }
 
@@ -108,7 +151,7 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         string memory, /*_id*/
         string memory, /*_country*/
         string memory /*_prevCountry*/
-    ) public returns (bool) {
+    ) public virtual override returns (bool) {
         return true;
     }
 
@@ -117,25 +160,25 @@ contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, 
         address _to,
         uint256 _value,
         uint256 _issuanceTime
-    ) internal returns (bool);
+    ) internal virtual returns (bool);
 
     function recordTransfer(
         address _from,
         address _to,
         uint256 _value
-    ) internal returns (bool);
+    ) internal virtual returns (bool);
 
-    function recordBurn(address _who, uint256 _value) internal returns (bool);
+    function recordBurn(address _who, uint256 _value) internal virtual returns (bool);
 
     function recordSeize(
         address _from,
         address _to,
         uint256 _value
-    ) internal returns (bool);
+    ) internal virtual returns (bool);
 
     function checkTransfer(
         address _from,
         address _to,
         uint256 _value
-    ) internal view returns (uint256, string memory);
+    ) internal view virtual returns (uint256, string memory);
 }

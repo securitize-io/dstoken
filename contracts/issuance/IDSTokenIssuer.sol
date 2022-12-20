@@ -1,14 +1,20 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
-contract IDSTokenIssuer is Initializable, VersionedContract {
-    constructor() internal {}
+//SPDX-License-Identifier: UNLICENSED
+abstract contract IDSTokenIssuer is Initializable, VersionedContract {
 
-    function initialize() public {
-        VERSIONS.push(3);
+    function initialize() public virtual {
+        VERSIONS.push(4);
     }
+
+    //Same values as IDSRegistryService
+    uint8 public constant KYC_APPROVED = 1;
+    uint8 public constant ACCREDITED = 2;
+    uint8 public constant QUALIFIED = 4;
+
 
     function issueTokens(
         string memory _id,
@@ -21,5 +27,5 @@ contract IDSTokenIssuer is Initializable, VersionedContract {
         string memory _country,
         uint256[] memory attributeValues,
         uint256[] memory attributeExpirations /*onlyIssuerOrAbove*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 }

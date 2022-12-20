@@ -1,7 +1,8 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../service/ServiceConsumer.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 library TokenLibrary {
     event OmnibusDeposit(address indexed omnibusWallet, address to, uint256 value, uint8 assetTrackingMode);
     event OmnibusWithdraw(address indexed omnibusWallet, address from, uint256 value, uint8 assetTrackingMode);
@@ -55,20 +56,19 @@ library TokenLibrary {
         require(_valuesLocked.length == _releaseTimes.length, "Wrong length of parameters");
 
         //Make sure we are not hitting the cap
-        require(_cap == 0 || _tokenData.totalIssued.add(_value) <= _cap, "Token Cap Hit");
+        require(_cap == 0 || _tokenData.totalIssued + _value <= _cap, "Token Cap Hit");
 
         //Check issuance is allowed (and inform the compliance manager, possibly adding locks)
         IDSComplianceService(_services[COMPLIANCE_SERVICE]).validateIssuance(_to, _value, _issuanceTime);
 
-        //Adding and subtracting is done through safemath
-        _tokenData.totalSupply = _tokenData.totalSupply.add(_value);
-        _tokenData.totalIssued = _tokenData.totalIssued.add(_value);
-        _tokenData.walletsBalances[_to] = _tokenData.walletsBalances[_to].add(_value);
+        _tokenData.totalSupply += _value;
+        _tokenData.totalIssued += _value;
+        _tokenData.walletsBalances[_to] += _value;
         updateInvestorBalance(_tokenData, IDSRegistryService(_services[REGISTRY_SERVICE]), _to, _value, CommonUtils.IncDec.Increase);
 
         uint256 totalLocked = 0;
         for (uint256 i = 0; i < _valuesLocked.length; i++) {
-            totalLocked = totalLocked.add(_valuesLocked[i]);
+            totalLocked += _valuesLocked[i];
             _lockManager.addManualLockRecord(_to, _valuesLocked[i], _reason, _releaseTimes[i]);
         }
         require(totalLocked <= _value, "valueLocked must be smaller than value");
@@ -91,19 +91,19 @@ library TokenLibrary {
 
         IDSComplianceService(_services[COMPLIANCE_SERVICE]).validateBurn(_who, _value);
 
-        _tokenData.walletsBalances[_who] = _tokenData.walletsBalances[_who].sub(_value);
+        _tokenData.walletsBalances[_who] -= _value;
         updateInvestorBalance(_tokenData, IDSRegistryService(_services[REGISTRY_SERVICE]), _who, _value, CommonUtils.IncDec.Decrease);
-        _tokenData.totalSupply = _tokenData.totalSupply.sub(_value);
+        _tokenData.totalSupply -= _value;
     }
 
     function seize(TokenData storage _tokenData, address[] memory _services, address _from, address _to, uint256 _value)
-        public
-        validSeizeParameters(_tokenData, _from, _to, _value)
+    public
+    validSeizeParameters(_tokenData, _from, _to, _value)
     {
         IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
         IDSComplianceService(_services[COMPLIANCE_SERVICE]).validateSeize(_from, _to, _value);
-        _tokenData.walletsBalances[_from] = _tokenData.walletsBalances[_from].sub(_value);
-        _tokenData.walletsBalances[_to] = _tokenData.walletsBalances[_to].add(_value);
+        _tokenData.walletsBalances[_from] -= _value;
+        _tokenData.walletsBalances[_to] += _value;
         updateInvestorBalance(_tokenData, registryService, _from, _value, CommonUtils.IncDec.Decrease);
         updateInvestorBalance(_tokenData, registryService, _to, _value, CommonUtils.IncDec.Increase);
     }
@@ -111,21 +111,21 @@ library TokenLibrary {
     function omnibusBurn(TokenData storage _tokenData, address[] memory _services, address _omnibusWallet, address _who, uint256 _value) public {
         IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
         IDSOmnibusWalletController omnibusController = IDSRegistryService(_services[REGISTRY_SERVICE]).getOmnibusWalletController(_omnibusWallet);
-        _tokenData.walletsBalances[_omnibusWallet] = _tokenData.walletsBalances[_omnibusWallet].sub(_value);
+        _tokenData.walletsBalances[_omnibusWallet] -= _value;
         omnibusController.burn(_who, _value);
         decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_tokenData, registryService, omnibusController, _omnibusWallet, _who, _value);
-        _tokenData.totalSupply = _tokenData.totalSupply.sub(_value);
+        _tokenData.totalSupply -= _value;
     }
 
     function omnibusSeize(TokenData storage _tokenData, address[] memory _services, address _omnibusWallet, address _from, address _to, uint256 _value)
-        public
-        validSeizeParameters(_tokenData, _omnibusWallet, _to, _value)
+    public
+    validSeizeParameters(_tokenData, _omnibusWallet, _to, _value)
     {
         IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
         IDSOmnibusWalletController omnibusController = registryService.getOmnibusWalletController(_omnibusWallet);
 
-        _tokenData.walletsBalances[_omnibusWallet] = _tokenData.walletsBalances[_omnibusWallet].sub(_value);
-        _tokenData.walletsBalances[_to] = _tokenData.walletsBalances[_to].add(_value);
+        _tokenData.walletsBalances[_omnibusWallet] -= _value;
+        _tokenData.walletsBalances[_to] += _value;
         omnibusController.seize(_from, _value);
         decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_tokenData, registryService, omnibusController, _omnibusWallet, _from, _value);
         updateInvestorBalance(_tokenData, registryService, _to, _value, CommonUtils.IncDec.Increase);
@@ -147,8 +147,8 @@ library TokenLibrary {
     }
 
     function applyOmnibusBalanceUpdatesOnTransfer(TokenData storage _tokenData, IDSRegistryService _registryService, address _from, address _to, uint256 _value)
-        public
-        returns (uint256)
+    public
+    returns (uint256)
     {
         if (_registryService.isOmnibusWallet(_to)) {
             IDSOmnibusWalletController omnibusWalletController = _registryService.getOmnibusWalletController(_to);
@@ -179,9 +179,9 @@ library TokenLibrary {
         if (!CommonUtils.isEmptyString(investor)) {
             uint256 balance = _tokenData.investorsBalances[investor];
             if (_increase == CommonUtils.IncDec.Increase) {
-                balance = balance.add(_value);
+                balance += _value;
             } else {
-                balance = balance.sub(_value);
+                balance -= _value;
             }
             _tokenData.investorsBalances[investor] = balance;
         }

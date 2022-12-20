@@ -9,6 +9,13 @@ const complianceTypeToString = {
   [compliance.WHITELIST]: 'ComplianceServiceWhitelisted',
 };
 
+const omnibusTbeControllerByComplianceTypeToString = {
+  [compliance.NORMAL]: 'OmnibusTBEController',
+  [compliance.PARTITIONED]: 'OmnibusTBEController',
+  [compliance.NOT_REGULATED]: 'OmnibusTBEControllerWhitelisted',
+  [compliance.WHITELIST]: 'OmnibusTBEControllerWhitelisted',
+};
+
 const lockManagerTypeToString = {
   [lockManager.INVESTOR]: 'InvestorLockManager',
   [lockManager.WALLET]: 'LockManager',
@@ -22,65 +29,72 @@ async function deployContracts (
   lockManagerType = lockManager.INVESTOR,
   omnibusWalletAddresses = undefined,
   partitionsSupport = false,
-  omnibusTBEAddress = undefined
+  omnibusTBEAddress = undefined,
 ) {
   await deployContractBehindProxy(
     artifacts.require('Proxy'),
     artifacts.require('TrustService'),
     testObject,
-    'trustService'
+    'trustService',
   );
 
   await deployContractBehindProxy(
     artifacts.require('Proxy'),
     artifacts.require('RegistryService'),
     testObject,
-    'registryService'
+    'registryService',
   );
 
   await deployContractBehindProxy(
     artifacts.require('Proxy'),
     artifacts.require(complianceTypeToString[complianceType]),
     testObject,
-    'complianceService'
+    'complianceService',
   );
 
   await deployContractBehindProxy(
     artifacts.require('Proxy'),
     artifacts.require(lockManagerTypeToString[lockManagerType]),
     testObject,
-    'lockManager'
+    'lockManager',
   );
 
   await deployContractBehindProxy(
     artifacts.require('Proxy'),
     artifacts.require('ComplianceConfigurationService'),
     testObject,
-    'complianceConfiguration'
+    'complianceConfiguration',
   );
 
   await deployContractBehindProxy(
     artifacts.require('Proxy'),
     artifacts.require('WalletManager'),
     testObject,
-    'walletManager'
+    'walletManager',
   );
 
-  tokenClass = partitionsSupport ? 'DSTokenPartitioned' : 'DSToken';
+  const tokenClass = partitionsSupport ? 'DSTokenPartitioned' : 'DSToken';
 
   await deployContractBehindProxy(
     artifacts.require('Proxy'),
     artifacts.require(tokenClass),
     testObject,
     'token',
-    ['DSTokenMock', 'DST', 18]
+    ['DSTokenMock', 'DST', 18],
   );
 
   await deployContractBehindProxy(
     artifacts.require('Proxy'),
     artifacts.require('TokenIssuer'),
     testObject,
-    'issuer'
+    'issuer',
+  );
+
+  await deployContractBehindProxy(
+    artifacts.require('Proxy'),
+    artifacts.require('TokenReallocator'),
+    testObject,
+    'reallocator',
   );
 
   if (partitionsSupport) {
@@ -88,23 +102,23 @@ async function deployContracts (
       artifacts.require('Proxy'),
       artifacts.require('PartitionsManager'),
       testObject,
-      'partitionsManager'
+      'partitionsManager',
     );
 
     await setServicesDependencies(
       testObject.partitionsManager,
       [services.DS_TOKEN, services.TRUST_SERVICE],
-      [testObject.token.address, testObject.trustService.address]
+      [testObject.token.address, testObject.trustService.address],
     );
   }
 
   if (omnibusTBEAddress) {
     await deployContractBehindProxy(
       artifacts.require('Proxy'),
-      artifacts.require('OmnibusTBEController'),
+      artifacts.require(omnibusTbeControllerByComplianceTypeToString[complianceType]),
       testObject,
       'omnibusTBEController',
-      [omnibusTBEAddress, partitionsSupport]
+      [omnibusTBEAddress, partitionsSupport],
     );
   }
 
@@ -115,7 +129,7 @@ async function deployContracts (
         artifacts.require('OmnibusWalletController'),
         testObject,
         `omnibusController${i}`,
-        [omnibusWalletAddresses[i - 1]]
+        [omnibusWalletAddresses[i - 1]],
       );
 
       await setServicesDependencies(
@@ -129,7 +143,7 @@ async function deployContracts (
           testObject.complianceService.address,
           testObject.token.address,
           testObject.trustService.address,
-        ]
+        ],
       );
     }
   }
@@ -154,7 +168,7 @@ async function deployContracts (
       testObject.walletManager.address,
       testObject.token.address,
       testObject.complianceService.address,
-    ]
+    ],
   );
   await setServicesDependencies(
     testObject.complianceService,
@@ -175,19 +189,19 @@ async function deployContracts (
       testObject.registryService.address,
       testObject.token.address,
       ...partitionsServiceAddress,
-    ]
+    ],
   );
 
   if (omnibusTBEAddress) {
     await setServicesDependencies(testObject.complianceService,
       [services.OMNIBUS_TBE_CONTROLLER],
-        [testObject.omnibusTBEController.address]);
+      [testObject.omnibusTBEController.address]);
   }
 
   await setServicesDependencies(
     testObject.complianceConfiguration,
     [services.TRUST_SERVICE],
-    [testObject.trustService.address]
+    [testObject.trustService.address],
   );
 
   await setServicesDependencies(
@@ -200,6 +214,7 @@ async function deployContracts (
       services.LOCK_MANAGER,
       services.REGISTRY_SERVICE,
       services.TOKEN_ISSUER,
+      services.TOKEN_REALLOCATOR,
       ...partitionsService,
     ],
     [
@@ -210,8 +225,9 @@ async function deployContracts (
       testObject.lockManager.address,
       testObject.registryService.address,
       testObject.issuer.address,
+      testObject.reallocator.address,
       ...partitionsServiceAddress,
-    ]
+    ],
   );
 
   if (omnibusTBEAddress) {
@@ -234,14 +250,24 @@ async function deployContracts (
         testObject.complianceConfiguration.address,
         testObject.token.address,
         ...partitionsServiceAddress,
-      ]
+      ],
+    );
+
+    await setServicesDependencies(
+      testObject.reallocator,
+      [
+        services.OMNIBUS_TBE_CONTROLLER,
+      ],
+      [
+        testObject.omnibusTBEController.address,
+      ],
     );
   }
 
   await setServicesDependencies(
     testObject.walletManager,
     [services.TRUST_SERVICE, services.REGISTRY_SERVICE],
-    [testObject.trustService.address, testObject.registryService.address]
+    [testObject.trustService.address, testObject.registryService.address],
   );
 
   await setServicesDependencies(
@@ -257,7 +283,7 @@ async function deployContracts (
       testObject.complianceService.address,
       testObject.token.address,
       testObject.trustService.address,
-    ]
+    ],
   );
 
   await setServicesDependencies(
@@ -273,11 +299,26 @@ async function deployContracts (
       testObject.lockManager.address,
       testObject.token.address,
       testObject.trustService.address,
-    ]
+    ],
   );
-  if(omnibusTBEAddress) {
-    testObject.walletManager.addPlatformWallet(omnibusTBEAddress);
+  if (omnibusTBEAddress) {
+    await testObject.trustService.setRole(testObject.omnibusTBEController.address, 2);
+    await testObject.walletManager.addPlatformWallet(omnibusTBEAddress);
   }
+
+  await setServicesDependencies(
+    testObject.reallocator,
+    [
+      services.REGISTRY_SERVICE,
+      services.TRUST_SERVICE,
+      services.LOCK_MANAGER,
+    ],
+    [
+      testObject.registryService.address,
+      testObject.trustService.address,
+      testObject.lockManager.address,
+    ],
+  );
 }
 
 async function deployContractBehindProxy (
@@ -285,7 +326,7 @@ async function deployContractBehindProxy (
   abstractContract,
   testObject,
   contractPropertyToSet,
-  initializeParams = []
+  initializeParams = [],
 ) {
   const deployedContract = await abstractContract.new();
   const deployedProxy = await abstractProxy.new();
@@ -307,7 +348,7 @@ async function getParamFromTxEvent (
   transaction,
   paramName,
   contractFactory,
-  eventName
+  eventName,
 ) {
   assert.isObject(transaction);
   let logs = transaction.logs;
@@ -315,9 +356,9 @@ async function getParamFromTxEvent (
     logs = logs.filter(l => l.event === eventName);
   }
   assert.equal(logs.length, 1, 'too many logs found!');
-  let param = logs[0].args[paramName];
+  const param = logs[0].args[paramName];
   if (contractFactory != null) {
-    let contract = await contractFactory.at(param);
+    const contract = await contractFactory.at(param);
     assert.isObject(contract, `getting ${paramName} failed for ${param}`);
     return contract;
   } else {
@@ -328,8 +369,8 @@ async function getParamFromTxEvent (
 function balanceOf (web3, account) {
   return new Promise((resolve, reject) =>
     web3.eth.getBalance(account, (e, balance) =>
-      e ? reject(e) : resolve(balance)
-    )
+      e ? reject(e) : resolve(balance),
+    ),
   );
 }
 

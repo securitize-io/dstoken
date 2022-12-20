@@ -1,12 +1,11 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./ServiceConsumerDataStore.sol";
 import '../token/TokenPartitionsLibrary.sol';
 import '../token/TokenLibrary.sol';
 
+//SPDX-License-Identifier: UNLICENSED
 contract TokenDataStore is ServiceConsumerDataStore {
-    using TokenPartitionsLibrary for TokenPartitionsLibrary.TokenPartitions;
-    using TokenLibrary for TokenLibrary.SupportedFeatures;
 
     TokenLibrary.TokenData internal tokenData;
     mapping(address => mapping(address => uint256)) internal allowances;

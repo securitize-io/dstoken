@@ -1,4 +1,4 @@
-const argv = require('minimist')(process.argv.slice(2), { string: ['omnibus_wallet'] });
+const argv = require('minimist')(process.argv.slice(2), { string: ['omnibus_wallet', 'redemption_wallet'] });
 
 const MAINNET_CHAIN_ID = 1;
 
@@ -19,7 +19,7 @@ class ConfigurationManager {
       !argv.owners ||
       (!argv.no_registry &&
         !argv.no_omnibus_wallet &&
-        (/*!argv.omnibus_wallet_investor_id ||*/ !argv.omnibus_wallet))
+        (/*! argv.omnibus_wallet_investor_id || */ !argv.omnibus_wallet))
     ) {
       console.log('Token Deployer');
       console.log(
@@ -53,6 +53,9 @@ class ConfigurationManager {
       console.log(
         '   --partitioned - add partitions support'
       );
+      console.log(
+        '   --redemption_wallet - the address of the redemption wallet'
+      );
       console.log('   --help - outputs this help');
       console.log('\n');
       process.exit();
@@ -82,6 +85,8 @@ class ConfigurationManager {
       this.omnibusWallet = argv.omnibus_wallet;
     }
 
+    this.redemptionWallet = argv.redemption_wallet;
+
     return true;
   }
 
@@ -99,7 +104,35 @@ class ConfigurationManager {
       break;
     }
   }
+  getOmnibusTbeControllerContractName () {
+    switch (this.complianceManagerType) {
+    case 'NOT_REGULATED':
+      return 'OmnibusTBEControllerWhitelisted';
+    case 'WHITELIST':
+      return 'OmnibusTBEControllerWhitelisted';
+    case 'NORMAL':
+      return 'OmnibusTBEController';
+    case 'PARTITIONED':
+      return 'OmnibusTBEController';
+    default:
+      break;
+    }
+  }
 
+  getAbstractOmnibusTbeControllerContract (artifacts) {
+    switch (this.complianceManagerType) {
+    case 'NOT_REGULATED':
+      return artifacts.require('OmnibusTBEControllerWhitelisted');
+    case 'WHITELIST':
+      return artifacts.require('OmnibusTBEControllerWhitelisted');
+    case 'NORMAL':
+      return artifacts.require('OmnibusTBEController');
+    case 'PARTITIONED':
+      return artifacts.require('OmnibusTBEController');
+    default:
+      break;
+    }
+  }
   getAbstractLockManagerContract (artifacts) {
     switch (this.lockManagerType) {
     case 'WALLET':
