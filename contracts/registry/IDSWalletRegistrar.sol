@@ -1,12 +1,12 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
-contract IDSWalletRegistrar is Initializable, VersionedContract {
-    constructor() internal {}
+//SPDX-License-Identifier: UNLICENSED
+abstract contract IDSWalletRegistrar is Initializable, VersionedContract {
 
-    function initialize() public {
+    function initialize() public virtual {
         VERSIONS.push(3);
     }
 
@@ -18,5 +18,5 @@ contract IDSWalletRegistrar is Initializable, VersionedContract {
         uint8[] memory _attributeIds,
         uint256[] memory _attributeValues,
         uint256[] memory _attributeExpirations /*onlyOwner*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 }

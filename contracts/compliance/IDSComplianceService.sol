@@ -1,12 +1,12 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
-contract IDSComplianceService is Initializable, VersionedContract {
-    constructor() internal {}
+//SPDX-License-Identifier: UNLICENSED
+abstract contract IDSComplianceService is Initializable, VersionedContract {
 
-    function initialize() public {
+    function initialize() public virtual {
         VERSIONS.push(7);
     }
 
@@ -37,7 +37,7 @@ contract IDSComplianceService is Initializable, VersionedContract {
         string memory _id,
         string memory _country,
         string memory _prevCountry
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     //*****************************************
     // TOKEN ACTION VALIDATIONS
@@ -47,7 +47,7 @@ contract IDSComplianceService is Initializable, VersionedContract {
         address _from,
         address _to,
         uint256 _value /*onlyToken*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     function validateTransfer(
         address _from,
@@ -55,36 +55,36 @@ contract IDSComplianceService is Initializable, VersionedContract {
         uint256 _value, /*onlyToken*/
         bool _pausedToken,
         uint256 _balanceFrom
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     function validateIssuance(
         address _to,
         uint256 _value,
         uint256 _issuanceTime /*onlyToken*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     function validateBurn(
         address _who,
         uint256 _value /*onlyToken*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     function validateSeize(
         address _from,
         address _to,
         uint256 _value /*onlyToken*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
-    function preIssuanceCheck(address _to, uint256 _value) public view returns (uint256 code, string memory reason);
+    function preIssuanceCheck(address _to, uint256 _value) public view virtual returns (uint256 code, string memory reason);
 
     function preTransferCheck(
         address _from,
         address _to,
         uint256 _value
-    ) public view returns (uint256 code, string memory reason);
+    ) public view virtual returns (uint256 code, string memory reason);
 
     function preInternalTransferCheck(
         address _from,
         address _to,
         uint256 _value
-    ) public view returns (uint256 code, string memory reason);
+    ) public view virtual returns (uint256 code, string memory reason);
 }

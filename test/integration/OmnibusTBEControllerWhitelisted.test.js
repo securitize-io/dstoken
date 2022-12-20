@@ -1,8 +1,10 @@
 const deployContracts = require('../utils/index').deployContracts;
-const { setOmnibusTBEServicesDependencies,
-  getCountersDelta, toHex, assertEvent } =
+const {
+  setOmnibusTBEServicesDependencies,
+  getCountersDelta, toHex, assertEvent,
+} =
   require('../utils/omnibus/utils');
-const assertRevert = require('../utils/assertRevert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const fixtures = require('../fixtures');
 const globals = require('../../utils/globals');
 
@@ -29,25 +31,25 @@ contract('OmnibusTBEControllerWhitelisted', ([
       lockManagerType.INVESTOR,
       undefined,
       false,
-      omnibusWallet
+      omnibusWallet,
     );
     await setOmnibusTBEServicesDependencies(this);
 
     await this.registryService.registerInvestor(
       investorId.GENERAL_INVESTOR_ID_1,
-      investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+      investorId.GENERAL_INVESTOR_COLLISION_HASH_2,
     );
     await this.registryService.addWallet(
       investorWallet1,
-      investorId.GENERAL_INVESTOR_ID_1
+      investorId.GENERAL_INVESTOR_ID_1,
     );
     await this.registryService.registerInvestor(
       investorId.GENERAL_INVESTOR_ID_2,
-      investorId.GENERAL_INVESTOR_COLLISION_HASH_2
+      investorId.GENERAL_INVESTOR_COLLISION_HASH_2,
     );
     await this.registryService.addWallet(
       investorWallet2,
-      investorId.GENERAL_INVESTOR_ID_2
+      investorId.GENERAL_INVESTOR_ID_2,
     );
   });
 
@@ -86,10 +88,10 @@ contract('OmnibusTBEControllerWhitelisted', ([
       const currentBalance = await this.token.balanceOf(omnibusWallet);
       await assert.equal(
         currentBalance,
-        1000
+        1000,
       );
 
-      await assertEvent(this.token, "OmnibusTBEOperation", {
+      await assertEvent(this.token, 'OmnibusTBEOperation', {
         omnibusWallet,
         totalDelta: 1,
         accreditedDelta: 1,
@@ -120,9 +122,9 @@ contract('OmnibusTBEControllerWhitelisted', ([
       const currentBalance = await this.token.balanceOf(omnibusWallet);
       await assert.equal(
         currentBalance,
-        1000
+        1000,
       );
-      await assertEvent(this.token, "OmnibusTBEOperation", {
+      await assertEvent(this.token, 'OmnibusTBEOperation', {
         omnibusWallet,
         totalDelta: 1,
         accreditedDelta: 1,
@@ -148,7 +150,7 @@ contract('OmnibusTBEControllerWhitelisted', ([
       euRetailCountries.push('EU');
 
       // THEN
-      await assertRevert(this.omnibusTBEController
+      await expectRevert.unspecified(this.omnibusTBEController
         .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
           txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
           txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts));
@@ -192,9 +194,9 @@ contract('OmnibusTBEControllerWhitelisted', ([
       const currentBalance = await this.token.balanceOf(omnibusWallet);
       await assert.equal(
         currentBalance,
-        500
+        500,
       );
-      await assertEvent(this.token, "OmnibusTBEOperation", {
+      await assertEvent(this.token, 'OmnibusTBEOperation', {
         omnibusWallet,
         totalDelta: 1,
         accreditedDelta: 1,
@@ -214,12 +216,12 @@ contract('OmnibusTBEControllerWhitelisted', ([
         jpTotalInvestorsCount: 0,
       };
 
-      //THEN
-      await assertRevert(
+      // THEN
+      await expectRevert.unspecified(
         this.omnibusTBEController
           .bulkBurn(burnValue, txBurnCounters.totalInvestorsCount, txBurnCounters.accreditedInvestorsCount,
             txBurnCounters.usAccreditedInvestorsCount, txBurnCounters.usTotalInvestorsCount,
-            txBurnCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), [])
+            txBurnCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), []),
       );
     });
   });
@@ -254,17 +256,17 @@ contract('OmnibusTBEControllerWhitelisted', ([
       const omnibusCurrentBalance = await this.token.balanceOf(omnibusWallet);
       assert.equal(
         omnibusCurrentBalance.toNumber(),
-        0
+        0,
       );
       const investorWallet1CurrentBalance = await this.token.balanceOf(investorWallet1);
       assert.equal(
         investorWallet1CurrentBalance.toNumber(),
-        500
+        500,
       );
       const investorWallet2CurrentBalance = await this.token.balanceOf(investorWallet2);
       assert.equal(
         investorWallet2CurrentBalance.toNumber(),
-        500
+        500,
       );
 
       // Reset balance
@@ -279,13 +281,13 @@ contract('OmnibusTBEControllerWhitelisted', ([
       const currentOmnibusBalance = await this.token.balanceOf(omnibusWallet);
       assert.equal(
         currentOmnibusBalance.toNumber(),
-        0
+        0,
       );
       // WHEN
       await this.token.approve(this.omnibusTBEController.address, value, { from: omnibusWallet });
 
       // THEN
-      await assertRevert(this.omnibusTBEController
+      await expectRevert.unspecified(this.omnibusTBEController
         .bulkTransfer(investorWallets, tokenValues));
     });
     it('should not bulk transfer tokens if token value array length does not match wallet array length',
@@ -314,7 +316,7 @@ contract('OmnibusTBEControllerWhitelisted', ([
         await this.token.approve(this.omnibusTBEController.address, value, { from: omnibusWallet });
 
         // THEN
-        await assertRevert(this.omnibusTBEController
+        await expectRevert.unspecified(this.omnibusTBEController
           .bulkTransfer(investorWallets, tokenValues));
       });
     it('should bulk transfer tokens without removing counters (not anymore because of partial transfers)',
@@ -360,12 +362,12 @@ contract('OmnibusTBEControllerWhitelisted', ([
         const omnibusCurrentBalance = await this.token.balanceOf(omnibusWallet);
         assert.equal(
           omnibusCurrentBalance.toNumber(),
-          500
+          500,
         );
         const investorWallet1CurrentBalance = await this.token.balanceOf(investorWallet1);
         assert.equal(
           investorWallet1CurrentBalance.toNumber(),
-          2500
+          2500,
         );
 
         // Reset Balance
@@ -389,7 +391,6 @@ contract('OmnibusTBEControllerWhitelisted', ([
         .adjustCounters(txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
           txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
           txCounters.jpTotalInvestorsCount, [], []);
-
     });
     it('should adjust counters with negative value correctly', async function () {
       // GIVEN
@@ -415,7 +416,7 @@ contract('OmnibusTBEControllerWhitelisted', ([
         .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
           txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
           txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
-      await assertEvent(this.token, "OmnibusTBEOperation", {
+      await assertEvent(this.token, 'OmnibusTBEOperation', {
         omnibusWallet,
         totalDelta: 6,
         accreditedDelta: 5,
@@ -440,7 +441,7 @@ contract('OmnibusTBEControllerWhitelisted', ([
         jpTotalInvestorsCount: 0,
       };
       euRetailCountries.push('ES');
-      await assertRevert(this.omnibusTBEController
+      await expectRevert.unspecified(this.omnibusTBEController
         .adjustCounters(negativeCounters.totalInvestorsCount, negativeCounters.accreditedInvestorsCount,
           negativeCounters.usAccreditedInvestorsCount, negativeCounters.usTotalInvestorsCount,
           negativeCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), []));
@@ -471,7 +472,7 @@ contract('OmnibusTBEControllerWhitelisted', ([
         .bulkIssuance(value, issuanceTime, txCounters.totalInvestorsCount, txCounters.accreditedInvestorsCount,
           txCounters.usAccreditedInvestorsCount, txCounters.usTotalInvestorsCount,
           txCounters.jpTotalInvestorsCount, await toHex(euRetailCountries), euRetailCountryCounts);
-      await assertEvent(this.token, "OmnibusTBEOperation", {
+      await assertEvent(this.token, 'OmnibusTBEOperation', {
         omnibusWallet,
         totalDelta: 2,
         accreditedDelta: 2,
@@ -486,7 +487,7 @@ contract('OmnibusTBEControllerWhitelisted', ([
           negativeCounters.usAccreditedInvestorsCount, negativeCounters.usTotalInvestorsCount,
           negativeCounters.jpTotalInvestorsCount, [], []);
 
-      await assertEvent(this.token, "OmnibusTBETransfer", {
+      await assertEvent(this.token, 'OmnibusTBETransfer', {
         omnibusWallet,
         externalId: 'this_is_externalID',
       });

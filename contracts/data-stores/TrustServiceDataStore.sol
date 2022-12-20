@@ -1,5 +1,6 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
+//SPDX-License-Identifier: UNLICENSED
 contract TrustServiceDataStore {
     address internal owner;
     mapping(address => uint8) internal roles;

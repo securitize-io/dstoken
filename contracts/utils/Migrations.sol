@@ -1,9 +1,10 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./VersionedContract.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 contract Migrations is VersionedContract {
-    constructor() public {
+    constructor() {
         owner = msg.sender;
         VERSIONS.push(3);
     }

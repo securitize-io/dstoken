@@ -1,15 +1,16 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../utils/CommonUtils.sol";
-import "../zeppelin/math/SafeMath.sol";
-import "../zeppelin/math/Math.sol";
 import "../compliance/IDSComplianceServicePartitioned.sol";
 import "../compliance/IDSLockManagerPartitioned.sol";
 import "../registry/IDSRegistryService.sol";
 import "../compliance/IDSComplianceConfigurationService.sol";
 import "../compliance/IDSPartitionsManager.sol";
 import "../omnibus/IDSOmnibusTBEController.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 library TokenPartitionsLibrary {
     using SafeMath for uint256;
 
@@ -51,10 +52,12 @@ library TokenPartitionsLibrary {
         transferPartition(self, _registry, address(0), _to, _value, partition);
         uint256 totalLocked = 0;
         for (uint256 i = 0; i < _valuesLocked.length; i++) {
-            totalLocked = totalLocked.add(_valuesLocked[i]);
+            totalLocked += _valuesLocked[i];
             _lockManager.createLockForInvestor(investor, _valuesLocked[i], 0, _reason, _releaseTimes[i], partition);
         }
         require(totalLocked <= _value, "valueLocked must be smaller than value");
+
+        return true;
     }
 
     function setPartitionToAddressImpl(TokenPartitions storage self, address _who, uint256 _index, bytes32 _partition) internal returns (bool) {
@@ -95,7 +98,7 @@ library TokenPartitionsLibrary {
             if (self.walletPartitions[_to].balances[_partition] == 0 && _value > 0) {
                 addPartitionToAddress(self, _to, _partition);
             }
-            self.walletPartitions[_to].balances[_partition] = SafeMath.add(self.walletPartitions[_to].balances[_partition], _value);
+            self.walletPartitions[_to].balances[_partition] += _value;
             updateInvestorPartitionBalance(self, _registry, _to, _value, CommonUtils.IncDec.Increase, _partition);
         }
         emit TransferByPartition(_from, _to, _value, _partition);
@@ -110,17 +113,21 @@ library TokenPartitionsLibrary {
             bytes32 partition = partitionOf(self, _from, index);
             uint256 transferableInPartition = skipComplianceCheck
                 ? self.walletPartitions[_from].balances[partition]
-                : IDSComplianceServicePartitioned(_services[COMPLIANCE_SERVICE]).getComplianceTransferableTokens(_from, now, _to, partition);
+                : IDSComplianceServicePartitioned(_services[COMPLIANCE_SERVICE]).getComplianceTransferableTokens(_from, block.timestamp, _to, partition);
             uint256 transferable = Math.min(_value, transferableInPartition);
             if (transferable > 0) {
                 if (self.walletPartitions[_from].balances[partition] == transferable) {
-                    --index;
-                    --partitionCount;
+                    unchecked {
+                        --index;
+                        --partitionCount;
+                    }
                 }
                 transferPartition(self, IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to, transferable, partition);
                 _value -= transferable;
             }
-            ++index;
+            unchecked {
+                ++index;
+            }
         }
 
         require(_value == 0);
@@ -142,7 +149,7 @@ library TokenPartitionsLibrary {
             IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]), _from, _to);
         for (uint256 index = 0; index < _partitions.length; ++index) {
             if (!skipComplianceCheck) {
-                require(_values[index] <= IDSComplianceServicePartitioned(_services[COMPLIANCE_SERVICE]).getComplianceTransferableTokens(_from, now, _to, _partitions[index]));
+                require(_values[index] <= IDSComplianceServicePartitioned(_services[COMPLIANCE_SERVICE]).getComplianceTransferableTokens(_from, block.timestamp, _to, _partitions[index]));
             }
             transferPartition(self, IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to, _values[index], _partitions[index]);
             _value -= _values[index];

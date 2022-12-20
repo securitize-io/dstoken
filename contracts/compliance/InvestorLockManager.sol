@@ -1,13 +1,15 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./IDSLockManager.sol";
 import "./InvestorLockManagerBase.sol";
 import "../data-stores/InvestorLockManagerDataStore.sol";
 import "../utils/ProxyTarget.sol";
 import "../service/ServiceConsumer.sol";
-import "../zeppelin/math/Math.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
-contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
+//SPDX-License-Identifier: UNLICENSED
+contract InvestorLockManager is InvestorLockManagerBase {
     uint256 constant MAX_LOCKS_PER_INVESTOR = 30;
 
     /*************** Legacy functions ***************/
@@ -31,15 +33,14 @@ contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
         return lockInfoForInvestor(_holderId, _lockIndex);
     }
 
-    function getTransferableTokensForHolder(string memory _holderId, uint64 _time) public view returns (uint256) {
+    function getTransferableTokensForHolder(string memory _holderId, uint256 _time) public view returns (uint256) {
         return getTransferableTokensForInvestor(_holderId, _time);
     }
 
     /******************************/
 
-    function initialize() public initializer forceInitializeFromProxy {
-        IDSLockManager.initialize();
-        ServiceConsumer.initialize();
+    function initialize() public override initializer forceInitializeFromProxy {
+        InvestorLockManagerBase.initialize();
 
         VERSIONS.push(3);
     }
@@ -50,16 +51,17 @@ contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
 
     function createLockForInvestor(string memory _investor, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime)
         public
+        override
         validLock(_valueLocked, _releaseTime)
         onlyIssuerOrAboveOrToken
     {
         //Get total count
-        uint256 lockCount = investorsLocksCounts[_investor];
+        uint256 totalLockCount = investorsLocksCounts[_investor];
         //Only allow MAX_LOCKS_PER_INVESTOR locks per address, to prevent out-of-gas at transfer scenarios
-        require(lockCount < MAX_LOCKS_PER_INVESTOR, "Too many locks for this investor");
-        setLockInfoImpl(_investor, lockCount, _valueLocked, _reasonCode, _reasonString, _releaseTime);
-        lockCount += 1;
-        investorsLocksCounts[_investor] = lockCount;
+        require(totalLockCount < MAX_LOCKS_PER_INVESTOR, "Too many locks for this investor");
+        setLockInfoImpl(_investor, totalLockCount, _valueLocked, _reasonCode, _reasonString, _releaseTime);
+        totalLockCount += 1;
+        investorsLocksCounts[_investor] = totalLockCount;
         emit HolderLocked(_investor, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
 
@@ -68,12 +70,12 @@ contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
         emit Locked(_to, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
 
-    function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime) public onlyIssuerOrAboveOrToken {
+    function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime) public override onlyIssuerOrAboveOrToken {
         require(_to != address(0), "Invalid address");
         createLock(_to, _valueLocked, 0, _reason, _releaseTime);
     }
 
-    function removeLockRecordForInvestor(string memory _investorId, uint256 _lockIndex) public onlyIssuerOrAbove returns (bool) {
+    function removeLockRecordForInvestor(string memory _investorId, uint256 _lockIndex) public override onlyIssuerOrAbove returns (bool) {
         emit HolderUnlocked(
             _investorId,
             investorsLocks[_investorId][_lockIndex].value,
@@ -116,7 +118,7 @@ contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
      * note - this may change the order of the locks on an address, so if iterating the iteration should be restarted.
      * @return true on success
      */
-    function removeLockRecord(address _to, uint256 _lockIndex) public onlyIssuerOrAbove returns (bool) {
+    function removeLockRecord(address _to, uint256 _lockIndex) public override onlyIssuerOrAbove returns (bool) {
         require(_to != address(0), "Invalid address");
         string memory investor = getRegistryService().getInvestor(_to);
         //Emit must be done on start ,because we're going to overwrite this value
@@ -128,6 +130,8 @@ contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
             investorsLocks[investor][_lockIndex].releaseTime
         );
         removeLockRecordForInvestor(investor, _lockIndex);
+
+        return true;
     }
 
     /**
@@ -138,30 +142,27 @@ contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
      *
      * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
      */
-    function lockCount(address _who) public view returns (uint256) {
+    function lockCount(address _who) public view override returns (uint256) {
         require(_who != address(0), "Invalid address");
         string memory investor = getRegistryService().getInvestor(_who);
         return investorsLocksCounts[investor];
     }
 
-    function lockCountForInvestor(string memory _investorId) public view returns (uint256) {
+    function lockCountForInvestor(string memory _investorId) public view override returns (uint256) {
         return investorsLocksCounts[_investorId];
     }
 
     /**
      * @dev Get details of a specific lock associated with an address
      * can be used to iterate through the locks of a user
-     * @param _who address to get token lock for
-     * @param _lockIndex the 0 based index of the lock.
-     * @return id the unique lock id
-     * @return type the lock type (manual or other)
-     * @return reason the reason for the lock
+     * @return reasonCode the reason code for the lock
+     * @return reasonString the reason for the lock
      * @return value the value of tokens locked
      * @return autoReleaseTime the timestamp in which the lock will be inactive (or 0 if it's always active until removed)
      *
      * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
      */
-    function lockInfo(address _who, uint256 _lockIndex) public view returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime) {
+    function lockInfo(address _who, uint256 _lockIndex) public view override returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime) {
         require(_who != address(0), "Invalid address");
         string memory investor = getRegistryService().getInvestor(_who);
         return lockInfoForInvestor(investor, _lockIndex);
@@ -170,6 +171,7 @@ contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
     function lockInfoForInvestor(string memory _investorId, uint256 _lockIndex)
         public
         view
+        override
         returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime)
     {
         uint256 lastLockNumber = investorsLocksCounts[_investorId];
@@ -180,12 +182,12 @@ contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
         autoReleaseTime = investorsLocks[_investorId][_lockIndex].releaseTime;
     }
 
-    function getTransferableTokens(address _who, uint64 _time) public view returns (uint256) {
+    function getTransferableTokens(address _who, uint256 _time) public view override returns (uint256) {
         string memory investor = getRegistryService().getInvestor(_who);
         return getTransferableTokensForInvestor(investor, _time);
     }
 
-    function getTransferableTokensForInvestor(string memory _investorId, uint64 _time) public view returns (uint256) {
+    function getTransferableTokensForInvestor(string memory _investorId, uint256 _time) public view override returns (uint256) {
         require(_time > 0, "Time must be greater than zero");
         if (investorsLocked[_investorId]) {
             return 0;
@@ -204,7 +206,7 @@ contract InvestorLockManager is IDSLockManager, InvestorLockManagerBase {
             uint256 autoReleaseTime = investorsLocks[_investorId][i].releaseTime;
 
             if (autoReleaseTime == 0 || autoReleaseTime > _time) {
-                totalLockedTokens = totalLockedTokens.add(investorsLocks[_investorId][i].value);
+                totalLockedTokens = totalLockedTokens + investorsLocks[_investorId][i].value;
             }
         }
 

@@ -1,11 +1,12 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./IDSWalletRegistrar.sol";
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 contract WalletRegistrar is ProxyTarget, Initializable, IDSWalletRegistrar, ServiceConsumer {
-    function initialize() public initializer forceInitializeFromProxy {
+    function initialize() public override(IDSWalletRegistrar, ServiceConsumer) initializer forceInitializeFromProxy {
         IDSWalletRegistrar.initialize();
         ServiceConsumer.initialize();
         VERSIONS.push(4);
@@ -19,7 +20,7 @@ contract WalletRegistrar is ProxyTarget, Initializable, IDSWalletRegistrar, Serv
         uint8[] memory _attributeIds,
         uint256[] memory _attributeValues,
         uint256[] memory _attributeExpirations
-    ) public onlyOwnerOrIssuerOrAbove returns (bool) {
+    ) public override onlyOwnerOrIssuerOrAbove returns (bool) {
         require(_attributeValues.length == _attributeIds.length, "Wrong length of parameters");
         require(_attributeIds.length == _attributeExpirations.length, "Wrong length of parameters");
 

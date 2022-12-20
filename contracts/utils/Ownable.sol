@@ -1,16 +1,14 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./Initializable.sol";
 
-
-contract Ownable is Initializable {
+//SPDX-License-Identifier: UNLICENSED
+abstract contract Ownable is Initializable {
     address private _owner;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
-    constructor() internal {}
-
-    function initialize() public {
+    function initialize() public virtual {
         _owner = msg.sender;
         emit OwnershipTransferred(address(0), _owner);
     }

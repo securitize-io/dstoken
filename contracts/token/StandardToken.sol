@@ -1,16 +1,16 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../service/ServiceConsumer.sol";
 import "../data-stores/TokenDataStore.sol";
 import "../omnibus/OmnibusTBEController.sol";
 
-contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataStore {
+//SPDX-License-Identifier: UNLICENSED
+abstract contract StandardToken is IDSToken, ServiceConsumer, TokenDataStore {
     event Pause();
     event Unpause();
 
-    constructor() internal {}
-
-    function initialize() public {
+    function initialize() public virtual override(IDSToken, ServiceConsumer) {
+        IDSToken.initialize();
         ServiceConsumer.initialize();
         VERSIONS.push(5);
     }
@@ -35,7 +35,7 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
         emit Unpause();
     }
 
-    function isPaused() public view returns (bool) {
+    function isPaused() public view override returns (bool) {
         return paused;
     }
 
@@ -57,7 +57,7 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
      * @param _to The address to transfer to.
      * @param _value The amount to be transferred.
      */
-    function transfer(address _to, uint256 _value) public returns (bool) {
+    function transfer(address _to, uint256 _value) public virtual returns (bool) {
         return transferImpl(msg.sender, _to, _value);
     }
 
@@ -65,11 +65,11 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
         address _from,
         address _to,
         uint256 _value
-    ) public returns (bool) {
+    ) public virtual returns (bool) {
         IDSOmnibusTBEController tbeController = getOmnibusTBEController();
         if (!(msg.sender == address(tbeController) && _from == tbeController.getOmnibusWallet())) {
             require(_value <= allowances[_from][msg.sender], "Not enough allowance");
-            allowances[_from][msg.sender] = allowances[_from][msg.sender].sub(_value);
+            allowances[_from][msg.sender] -= _value;
         }
         return transferImpl(_from, _to, _value);
     }
@@ -82,8 +82,8 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
         require(_to != address(0));
         require(_value <= tokenData.walletsBalances[_from]);
 
-        tokenData.walletsBalances[_from] = tokenData.walletsBalances[_from].sub(_value);
-        tokenData.walletsBalances[_to] = tokenData.walletsBalances[_to].add(_value);
+        tokenData.walletsBalances[_from] -= _value;
+        tokenData.walletsBalances[_to] += _value;
 
         emit Transfer(_from, _to, _value);
 
@@ -101,7 +101,7 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
     }
 
     function increaseApproval(address _spender, uint256 _addedValue) public returns (bool) {
-        allowances[msg.sender][_spender] = allowances[msg.sender][_spender].add(_addedValue);
+        allowances[msg.sender][_spender] = allowances[msg.sender][_spender] + _addedValue;
         emit Approval(msg.sender, _spender, allowances[msg.sender][_spender]);
         return true;
     }
@@ -111,7 +111,7 @@ contract StandardToken is IERC20, VersionedContract, ServiceConsumer, TokenDataS
         if (_subtractedValue > oldValue) {
             allowances[msg.sender][_spender] = 0;
         } else {
-            allowances[msg.sender][_spender] = oldValue.sub(_subtractedValue);
+            allowances[msg.sender][_spender] = oldValue - _subtractedValue;
         }
         emit Approval(msg.sender, _spender, allowances[msg.sender][_spender]);
         return true;

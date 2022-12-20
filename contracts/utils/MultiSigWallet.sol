@@ -1,4 +1,4 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./VersionedContract.sol";
 
@@ -7,6 +7,7 @@ import "./VersionedContract.sol";
  @notice An off-chain multisig wallet implementation
  @dev Based on SimpleWallet (https://github.com/christianlundkvist/simple-multisig) and uses EIP-712 standard validate a signature
 */
+//SPDX-License-Identifier: UNLICENSED
 contract MultiSigWallet is VersionedContract {
     // EIP712 Precomputed hashes:
     // keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract,bytes32 salt)")
@@ -32,9 +33,7 @@ contract MultiSigWallet is VersionedContract {
     bytes32 DOMAIN_SEPARATOR; // hash for EIP712, computed from contract address
 
     // Note that owners_ must be strictly increasing, in order to prevent duplicates
-    constructor(address[] memory owners_, uint256 threshold_, uint256 chainId)
-    public
-    {
+    constructor(address[] memory owners_, uint256 threshold_, uint256 chainId) {
         require(
             owners_.length <= 10 &&
             threshold_ <= owners_.length &&
@@ -116,6 +115,4 @@ contract MultiSigWallet is VersionedContract {
         }
         require(success, "transaction was not executed");
     }
-
-    function() external payable {}
 }

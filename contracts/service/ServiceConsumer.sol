@@ -1,4 +1,4 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./IDSServiceConsumer.sol";
 import "../data-stores/ServiceConsumerDataStore.sol";
@@ -16,8 +16,8 @@ import "../omnibus/IDSOmnibusTBEController.sol";
 import "../trust/IDSTrustService.sol";
 import "../utils/Ownable.sol";
 
-contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStore {
-    constructor() internal {}
+//SPDX-License-Identifier: UNLICENSED
+abstract contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStore {
 
     // Bring role constants to save gas both in deployment (less bytecode) and usage
     uint8 public constant ROLE_NONE = 0;
@@ -25,7 +25,7 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
     uint8 public constant ROLE_ISSUER = 2;
     uint8 public constant ROLE_EXCHANGE = 4;
 
-    function initialize() public {
+    function initialize() public virtual override(IDSServiceConsumer, Ownable) {
         IDSServiceConsumer.initialize();
         Ownable.initialize();
 
@@ -96,11 +96,11 @@ contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStor
         _;
     }
 
-    function getDSService(uint256 _serviceId) public view returns (address) {
+    function getDSService(uint256 _serviceId) public view override returns (address) {
         return services[_serviceId];
     }
 
-    function setDSService(uint256 _serviceId, address _address) public onlyMaster returns (bool) {
+    function setDSService(uint256 _serviceId, address _address) public override onlyMaster returns (bool) {
         services[_serviceId] = _address;
         emit DSServiceSet(_serviceId, _address);
         return true;

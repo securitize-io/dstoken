@@ -1,18 +1,16 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
-contract IDSLockManager is Initializable, VersionedContract {
-    constructor() internal {}
+//SPDX-License-Identifier: UNLICENSED
+abstract contract IDSLockManager is Initializable, VersionedContract {
 
-    function initialize() public {
-        VERSIONS.push(3);
-    }
+    function initialize() public virtual;
 
     modifier validLock(uint256 _valueLocked, uint256 _releaseTime) {
         require(_valueLocked > 0, "Value is zero");
-        require(_releaseTime == 0 || _releaseTime > uint256(now), "Release time is in the past");
+        require(_releaseTime == 0 || _releaseTime > uint256(block.timestamp), "Release time is in the past");
         _;
     }
 
@@ -27,7 +25,6 @@ contract IDSLockManager is Initializable, VersionedContract {
      * @param _valueLocked value of tokens to lock
      * @param _reason reason for lock
      * @param _releaseTime timestamp to release the lock (or 0 for locks which can only released by an unlockTokens call)
-     * @return A unique id for the newly created lock.
      * Note: The user MAY have at a certain time more locked tokens than actual tokens
      */
 
@@ -36,7 +33,7 @@ contract IDSLockManager is Initializable, VersionedContract {
         uint256 _valueLocked,
         string memory _reason,
         uint256 _releaseTime /*issuerOrAboveOrToken*/
-    ) public;
+    ) public virtual;
 
     /**
      * @dev creates a lock record for investor Id
@@ -45,7 +42,6 @@ contract IDSLockManager is Initializable, VersionedContract {
      * @param _reasonCode reason code for lock
      * @param _reasonString reason for lock
      * @param _releaseTime timestamp to release the lock (or 0 for locks which can only released by an unlockTokens call)
-     * @return A unique id for the newly created lock.
      * Note: The user MAY have at a certain time more locked tokens than actual tokens
      */
 
@@ -55,7 +51,7 @@ contract IDSLockManager is Initializable, VersionedContract {
         uint256 _reasonCode,
         string memory _reasonString,
         uint256 _releaseTime /*onlyIssuerOrAboveOrToken*/
-    ) public;
+    ) public virtual;
 
     /**
      * @dev Releases a specific lock record for a wallet
@@ -68,7 +64,7 @@ contract IDSLockManager is Initializable, VersionedContract {
     function removeLockRecord(
         address _to,
         uint256 _lockIndex /*issuerOrAbove*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     /**
      * @dev Releases a specific lock record for a investor
@@ -81,7 +77,7 @@ contract IDSLockManager is Initializable, VersionedContract {
     function removeLockRecordForInvestor(
         string memory _investorId,
         uint256 _lockIndex /*onlyIssuerOrAbove*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     /**
      * @dev Get number of locks currently associated with an address
@@ -91,7 +87,7 @@ contract IDSLockManager is Initializable, VersionedContract {
      *
      * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
      */
-    function lockCount(address _who) public view returns (uint256);
+    function lockCount(address _who) public view virtual returns (uint256);
 
     /**
      * @dev Get number of locks currently associated with a investor
@@ -102,55 +98,52 @@ contract IDSLockManager is Initializable, VersionedContract {
      * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
      */
 
-    function lockCountForInvestor(string memory _investorId) public view returns (uint256);
+    function lockCountForInvestor(string memory _investorId) public view virtual returns (uint256);
 
     /**
      * @dev Get details of a specific lock associated with an address
      * can be used to iterate through the locks of a user
      * @param _who address to get token lock for
      * @param _lockIndex the 0 based index of the lock.
-     * @return id the unique lock id
-     * @return type the lock type (manual or other)
-     * @return reason the reason for the lock
+     * @return reasonCode the reason code
+     * @return reasonString the reason for the lock
      * @return value the value of tokens locked
      * @return autoReleaseTime the timestamp in which the lock will be inactive (or 0 if it's always active until removed)
      *
      * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
      */
-    function lockInfo(address _who, uint256 _lockIndex) public view returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime);
+    function lockInfo(address _who, uint256 _lockIndex) public view virtual returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime);
 
     /**
      * @dev Get details of a specific lock associated with a investor
      * can be used to iterate through the locks of a user
      * @param _investorId investorId to get token lock for
      * @param _lockIndex the 0 based index of the lock.
-     * @return id the unique lock id
-     * @return type the lock type (manual or other)
-     * @return reason the reason for the lock
+     * @return reasonCode the reason code
+     * @return reasonString the reason for the lock
      * @return value the value of tokens locked
      * @return autoReleaseTime the timestamp in which the lock will be inactive (or 0 if it's always active until removed)
      *
      * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
      */
-
-    function lockInfoForInvestor(string memory _investorId, uint256 _lockIndex)
-        public
-        view
-        returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime);
+    function lockInfoForInvestor(
+        string memory _investorId,
+        uint256 _lockIndex
+    ) public view virtual  returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime);
 
     /**
      * @dev get total number of transferable tokens for a wallet, at a certain time
      * @param _who address to get number of transferable tokens for
      * @param _time time to calculate for
      */
-    function getTransferableTokens(address _who, uint64 _time) public view returns (uint256);
+    function getTransferableTokens(address _who, uint256 _time) public view virtual returns (uint256);
 
     /**
      * @dev get total number of transferable tokens for a investor, at a certain time
      * @param _investorId investor id
      * @param _time time to calculate for
      */
-    function getTransferableTokensForInvestor(string memory _investorId, uint64 _time) public view returns (uint256);
+    function getTransferableTokensForInvestor(string memory _investorId, uint256 _time) public view virtual returns (uint256);
 
     /**
      * @dev pause investor
@@ -158,7 +151,7 @@ contract IDSLockManager is Initializable, VersionedContract {
      */
     function lockInvestor(
         string memory _investorId /*issuerOrAbove*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     /**
      * @dev unpauses investor
@@ -166,11 +159,11 @@ contract IDSLockManager is Initializable, VersionedContract {
      */
     function unlockInvestor(
         string memory _investorId /*issuerOrAbove*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 
     /**
      * @dev Returns true if paused, otherwise false
      * @param _investorId investor id
      */
-    function isInvestorLocked(string memory _investorId) public view returns (bool);
+    function isInvestorLocked(string memory _investorId) public view virtual returns (bool);
 }

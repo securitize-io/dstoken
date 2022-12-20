@@ -1,7 +1,7 @@
-var latestTime = require('./latestTime');
+const latestTime = require('./latestTime');
 
 // Increases ganache time by the passed duration in seconds
-function increaseTime(duration) {
+function increaseTime (duration) {
   const id = Date.now();
 
   return new Promise((resolve, reject) => {
@@ -10,7 +10,7 @@ function increaseTime(duration) {
         jsonrpc: '2.0',
         method: 'evm_increaseTime',
         params: [duration],
-        id: id,
+        id,
       },
       err1 => {
         if (err1) return reject(err1);
@@ -23,20 +23,21 @@ function increaseTime(duration) {
           },
           (err2, res) => {
             return err2 ? reject(err2) : resolve(res);
-          }
+          },
         );
-      }
+      },
     );
   });
 }
 
-async function increaseTimeTo(target) {
-  let now = await latestTime();
-  if (target < now)
+async function increaseTimeTo (target) {
+  const now = await latestTime();
+  if (target < now) {
     throw Error(
-      `Cannot increase current time(${now}) to a moment in the past(${target})`
+      `Cannot increase current time(${now}) to a moment in the past(${target})`,
     );
-  let diff = target - now;
+  }
+  const diff = target - now;
   return increaseTime(diff);
 }
 

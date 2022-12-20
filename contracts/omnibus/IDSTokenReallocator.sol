@@ -1,12 +1,12 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
-contract IDSTokenReallocator is Initializable, VersionedContract {
-    constructor() internal {}
+//SPDX-License-Identifier: UNLICENSED
+abstract contract IDSTokenReallocator is Initializable, VersionedContract {
 
-    function initialize() public {
+    function initialize() public virtual {
         VERSIONS.push(3);
     }
 
@@ -20,5 +20,5 @@ contract IDSTokenReallocator is Initializable, VersionedContract {
         uint256[] memory _attributeExpirations,
         uint256 _value, /*onlyOwner*/
         bool isAffiliate
-    ) public returns (bool);
+    ) public virtual returns (bool);
 }

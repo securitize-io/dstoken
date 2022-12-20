@@ -13,5 +13,5 @@ const inTransaction = async (tx, eventName) => {
 
 module.exports = {
   inLogs,
-  inTransaction
+  inTransaction,
 };

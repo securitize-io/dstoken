@@ -1,7 +1,8 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./ComplianceServiceWhitelisted.sol";
-import "../zeppelin/math/Math.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 library ComplianceServiceLibrary {
     uint256 internal constant DS_TOKEN = 0;
@@ -119,7 +120,7 @@ library ComplianceServiceLibrary {
 
         return
         !_isPlatformWalletFrom &&
-        complianceService.getComplianceTransferableTokens(_from, uint64(now), lockPeriod) < _value;
+        complianceService.getComplianceTransferableTokens(_from, block.timestamp, lockPeriod) < _value;
     }
 
     function maxInvestorsInCategoryForNonAccredited(
@@ -133,9 +134,9 @@ library ComplianceServiceLibrary {
         uint256 nonAccreditedInvestorLimit = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit();
         return
         nonAccreditedInvestorLimit != 0 &&
-        ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getTotalInvestorsCount().sub(
+        ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getTotalInvestorsCount() -
             ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getAccreditedInvestorsCount()
-        ) >=
+        >=
         nonAccreditedInvestorLimit &&
         isNewInvestor(_services, _to, toInvestorBalance) &&
         (isAccredited(_services, _from) || fromInvestorBalance > _value);
@@ -225,7 +226,7 @@ library ComplianceServiceLibrary {
         bool isPlatformWalletFrom = IDSWalletManager(_services[WALLET_MANAGER]).isPlatformWallet(_args.from);
         if (
             !isPlatformWalletFrom &&
-        IDSLockManager(_services[LOCK_MANAGER]).getTransferableTokens(_args.from, uint64(now)) < _args.value
+        IDSLockManager(_services[LOCK_MANAGER]).getTransferableTokens(_args.from, block.timestamp) < _args.value
         ) {
             return (16, TOKENS_LOCKED);
         }
@@ -237,7 +238,7 @@ library ComplianceServiceLibrary {
 
             if (
                 _args.fromInvestorBalance > _args.value &&
-                _args.fromInvestorBalance.sub(_args.value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUSTokens()
+                _args.fromInvestorBalance - _args.value < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUSTokens()
             ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
@@ -273,7 +274,7 @@ library ComplianceServiceLibrary {
         string memory toCountry = getCountry(_services, _args.to);
 
         if (_args.fromRegion == EU) {
-            if (_args.fromInvestorBalance.sub(_args.value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEUTokens() &&
+            if (_args.fromInvestorBalance - _args.value < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEUTokens() &&
                 _args.fromInvestorBalance > _args.value) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
@@ -309,7 +310,7 @@ library ComplianceServiceLibrary {
             }
 
             if (
-                toInvestorBalance.add(_args.value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEUTokens()
+                toInvestorBalance + _args.value < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEUTokens()
             ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
@@ -343,7 +344,7 @@ library ComplianceServiceLibrary {
             }
 
             if (
-                toInvestorBalance.add(_args.value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUSTokens()
+                toInvestorBalance + _args.value < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUSTokens()
             ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
@@ -376,7 +377,7 @@ library ComplianceServiceLibrary {
 
         if (
             !isPlatformWalletFrom &&
-        _args.fromInvestorBalance.sub(_args.value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor() &&
+        _args.fromInvestorBalance - _args.value < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor() &&
         _args.fromInvestorBalance > _args.value
         ) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
@@ -384,7 +385,7 @@ library ComplianceServiceLibrary {
 
         if (
             !_args.isPlatformWalletTo &&
-        toInvestorBalance.add(_args.value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
+        toInvestorBalance + _args.value < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
         ) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
@@ -426,7 +427,7 @@ library ComplianceServiceLibrary {
             if (!isAccredited(_services, _to)) {
                 if (
                     complianceConfigurationService.getNonAccreditedInvestorsLimit() != 0 &&
-                    complianceService.getTotalInvestorsCount().sub(complianceService.getAccreditedInvestorsCount()) >=
+                    complianceService.getTotalInvestorsCount() - complianceService.getAccreditedInvestorsCount() >=
                     complianceConfigurationService.getNonAccreditedInvestorsLimit()
                 ) {
                     return (40, MAX_INVESTORS_IN_CATEGORY);
@@ -469,7 +470,7 @@ library ComplianceServiceLibrary {
 
         if (
             !walletManager.isPlatformWallet(_to) &&
-        balanceOfInvestorTo.add(_value) < complianceConfigurationService.getMinimumHoldingsPerInvestor()
+        balanceOfInvestorTo + _value < complianceConfigurationService.getMinimumHoldingsPerInvestor()
         ) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
@@ -485,11 +486,11 @@ library ComplianceServiceLibrary {
     }
 
     function isMaximumHoldingsPerInvestorOk(uint256 _maximumHoldingsPerInvestor, uint256 _balanceOfInvestorTo, uint256 _value) internal pure returns (bool) {
-        return _maximumHoldingsPerInvestor != 0 && _balanceOfInvestorTo.add(_value) > _maximumHoldingsPerInvestor;
+        return _maximumHoldingsPerInvestor != 0 && _balanceOfInvestorTo + _value > _maximumHoldingsPerInvestor;
     }
 
     function isBlockFlowbackEndTimeOk(uint256 _blockFlowBackEndTime) private view returns (bool){
-        return  (_blockFlowBackEndTime == 0 || _blockFlowBackEndTime > now);
+        return  (_blockFlowBackEndTime == 0 || _blockFlowBackEndTime > block.timestamp);
     }
 }
 
@@ -497,9 +498,9 @@ library ComplianceServiceLibrary {
  *   @title Concrete compliance service for tokens with regulation
  *
  */
-
+//SPDX-License-Identifier: UNLICENSED
 contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
-    function initialize() public initializer forceInitializeFromProxy {
+    function initialize() public virtual override initializer forceInitializeFromProxy {
         super.initialize();
         VERSIONS.push(13);
     }
@@ -516,7 +517,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         address _from,
         address _to,
         uint256 _value
-    ) internal returns (bool) {
+    ) internal override returns (bool) {
         if (!(ComplianceServiceLibrary.isOmnibusTBE(getOmnibusTBEController(), _from) ||
         ComplianceServiceLibrary.isOmnibusTBE(getOmnibusTBEController(), _to))) {
             if (compareInvestorBalance(_to, _value, 0)) {
@@ -538,7 +539,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         address _to,
         uint256 _value,
         uint256 _issuanceTime
-    ) internal returns (bool) {
+    ) internal override returns (bool) {
         if (compareInvestorBalance(_to, _value, 0)) {
             adjustTotalInvestorsCounts(_to, CommonUtils.IncDec.Increase);
         }
@@ -546,7 +547,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return createIssuanceInformation(getRegistryService().getInvestor(_to), _value, _issuanceTime);
     }
 
-    function recordBurn(address _who, uint256 _value) internal returns (bool) {
+    function recordBurn(address /*_who*/, uint256 /*_value*/) internal pure override returns (bool) {
         return true;
     }
 
@@ -554,15 +555,15 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         address _from,
         address, /*_to*/
         uint256 _value
-    ) internal returns (bool) {
+    ) internal pure override returns (bool) {
         return recordBurn(_from, _value);
     }
 
     function adjustInvestorCountsAfterCountryChange(
         string memory _id,
         string memory _country,
-        string memory _prevCountry
-    ) public onlyRegistry returns (bool) {
+        string memory /*_prevCountry*/
+    ) public override onlyRegistry returns (bool) {
         if (getToken().balanceOfInvestor(_id) == 0) {
             return false;
         }
@@ -575,7 +576,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     function adjustTotalInvestorsCounts(address _wallet, CommonUtils.IncDec _increase) internal {
         if (!getWalletManager().isSpecialWallet(_wallet)) {
             if (_increase == CommonUtils.IncDec.Increase) {
-                totalInvestors = totalInvestors.add(1);
+                totalInvestors++;
             }
 
             string memory id = getRegistryService().getInvestor(_wallet);
@@ -594,26 +595,26 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
         if (getRegistryService().isAccreditedInvestor(_id)) {
             if(_increase == CommonUtils.IncDec.Increase) {
-                accreditedInvestorsCount = accreditedInvestorsCount.add(1);
+                accreditedInvestorsCount++;
             }
             if (countryCompliance == US) {
                 if(_increase == CommonUtils.IncDec.Increase) {
-                    usAccreditedInvestorsCount = usAccreditedInvestorsCount.add(1);
+                    usAccreditedInvestorsCount++;
                 }
             }
         }
 
         if (countryCompliance == US) {
             if(_increase == CommonUtils.IncDec.Increase) {
-                usInvestorsCount = usInvestorsCount.add(1);
+                usInvestorsCount++;
             }
         } else if (countryCompliance == EU && !getRegistryService().isQualifiedInvestor(_id)) {
             if(_increase == CommonUtils.IncDec.Increase) {
-                euRetailInvestorsCount[_country] = euRetailInvestorsCount[_country].add(1);
+                euRetailInvestorsCount[_country]++;
             }
         } else if (countryCompliance == JP) {
             if(_increase == CommonUtils.IncDec.Increase) {
-                jpInvestorsCount = jpInvestorsCount.add(1);
+                jpInvestorsCount++;
             }
         }
     }
@@ -627,7 +628,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
         issuancesValues[_investor][issuancesCount] = _value;
         issuancesTimestamps[_investor][issuancesCount] = _issuanceTime;
-        issuancesCounters[_investor] = issuancesCount.add(1);
+        issuancesCounters[_investor] = issuancesCount + 1;
 
         return true;
     }
@@ -636,7 +637,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         address _from,
         address _to,
         uint256 _value
-    ) public view returns (uint256 code, string memory reason) {
+    ) public view virtual override returns (uint256 code, string memory reason) {
         return ComplianceServiceLibrary.preTransferCheck(getServices(), _from, _to, _value);
     }
 
@@ -646,7 +647,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         uint256 _value,
         uint256 _balanceFrom,
         bool _pausedToken
-    ) public view returns (uint256 code, string memory reason) {
+    ) public view virtual override returns (uint256 code, string memory reason) {
         return ComplianceServiceLibrary.newPreTransferCheck(getServices(), _from, _to, _value, _balanceFrom, _pausedToken);
     }
 
@@ -654,13 +655,13 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         address _from,
         address _to,
         uint256 _value)
-    public view returns (uint256 code, string memory reason) {
+    public view override returns (uint256 code, string memory reason) {
         return ComplianceServiceLibrary.preTransferCheck(getServices(), _from, _to, _value);
     }
 
     function getComplianceTransferableTokens(
         address _who,
-        uint64 _time,
+        uint256 _time,
         uint64 _lockTime
     ) public view returns (uint256) {
         require(_time != 0, "Time must be greater than zero");
@@ -680,7 +681,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
             uint256 issuanceTimestamp = issuancesTimestamps[investor][i];
 
             if (_lockTime > _time || issuanceTimestamp > SafeMath.sub(_time, _lockTime)) {
-                totalLockedTokens = totalLockedTokens.add(issuancesValues[investor][i]);
+                totalLockedTokens = totalLockedTokens + issuancesValues[investor][i];
             }
         }
 
@@ -690,7 +691,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return transferable;
     }
 
-    function preIssuanceCheck(address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
+    function preIssuanceCheck(address _to, uint256 _value) public view override returns (uint256 code, string memory reason) {
         return ComplianceServiceLibrary.preIssuanceCheck(getServices(), _to, _value);
     }
 

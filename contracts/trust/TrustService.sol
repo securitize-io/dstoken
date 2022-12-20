@@ -1,4 +1,4 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../utils/CommonUtils.sol";
 import "../utils/ProxyTarget.sol";
@@ -10,8 +10,9 @@ import "../data-stores/TrustServiceDataStore.sol";
  * @dev A trust service which allows role-based access control for other contracts.
  * @dev Implements IDSTrustService.
  */
+//SPDX-License-Identifier: UNLICENSED
 contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServiceDataStore {
-    function initialize() public initializer forceInitializeFromProxy {
+    function initialize() public override initializer forceInitializeFromProxy {
         IDSTrustService.initialize();
         VERSIONS.push(3);
         owner = msg.sender;
@@ -102,7 +103,6 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
    * @dev Sets or removes a role for a wallet. (internal)
    * @param _address The wallet whose role needs to be set or removed.
    * @param _role The role to be set. NONE (0) indicates role removal.
-   * @return A boolean that indicates if the operation was successful.
    */
     function setRoleImpl(address _address, uint8 _role) internal {
         uint8 old_role = roles[_address];
@@ -123,7 +123,7 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
    * @param _address The address which the ownership needs to be transferred to.
    * @return A boolean that indicates if the operation was successful.
    */
-    function setServiceOwner(address _address) public onlyMaster returns (bool) {
+    function setServiceOwner(address _address) public override onlyMaster returns (bool) {
         setRoleImpl(owner, NONE);
         owner = _address;
         setRoleImpl(_address, MASTER);
@@ -138,7 +138,7 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
    * @param _role The role to be set.
    * @return A boolean that indicates if the operation was successful.
    */
-    function setRole(address _address, uint8 _role) public onlyMasterOrIssuer returns (bool) {
+    function setRole(address _address, uint8 _role) public override onlyMasterOrIssuer returns (bool) {
         require(_role == ISSUER || _role == EXCHANGE, "Invalid target role");
 
         setRoleImpl(_address, _role);
@@ -152,7 +152,7 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
    * @param _address The wallet whose role needs to be removed.
    * @return A boolean that indicates if the operation was successful.
    */
-    function removeRole(address _address) public onlyMasterOrIssuer returns (bool) {
+    function removeRole(address _address) public override onlyMasterOrIssuer returns (bool) {
         uint8 role = roles[_address];
 
         require(role != MASTER, "Cannot remove master");
@@ -167,55 +167,55 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
    * @param _address The wallet whose role needs to be fetched.
    * @return A boolean that indicates if the operation was successful.
    */
-    function getRole(address _address) public view returns (uint8) {
+    function getRole(address _address) public view override returns (uint8) {
         return roles[_address];
     }
 
-    function addEntity(string memory _name, address _owner) public onlyMasterOrIssuer onlyNewEntity(_name) onlyNewEntityOwner(_owner) {
+    function addEntity(string memory _name, address _owner) public override onlyMasterOrIssuer onlyNewEntity(_name) onlyNewEntityOwner(_owner) {
         entitiesOwners[_name] = _owner;
         ownersEntities[_owner] = _name;
     }
 
-    function changeEntityOwner(string memory _name, address _oldOwner, address _newOwner) public onlyMasterOrIssuer onlyExistingEntityOwner(_name, _oldOwner) {
+    function changeEntityOwner(string memory _name, address _oldOwner, address _newOwner) public override onlyMasterOrIssuer onlyExistingEntityOwner(_name, _oldOwner) {
         delete ownersEntities[_oldOwner];
         ownersEntities[_newOwner] = _name;
     }
 
-    function addOperator(string memory _name, address _operator) public onlyEntityOwnerOrAbove(_name) onlyNewOperator(_operator) {
+    function addOperator(string memory _name, address _operator) public override onlyEntityOwnerOrAbove(_name) onlyNewOperator(_operator) {
         operatorsEntities[_operator] = _name;
     }
 
-    function removeOperator(string memory _name, address _operator) public onlyEntityOwnerOrAbove(_name) onlyExistingOperator(_name, _operator) {
+    function removeOperator(string memory _name, address _operator) public override onlyEntityOwnerOrAbove(_name) onlyExistingOperator(_name, _operator) {
         delete operatorsEntities[_operator];
     }
 
-    function addResource(string memory _name, address _resource) public onlyMasterOrIssuer onlyExistingEntity(_name) onlyNewResource(_resource) {
+    function addResource(string memory _name, address _resource) public override onlyMasterOrIssuer onlyExistingEntity(_name) onlyNewResource(_resource) {
         resourcesEntities[_resource] = _name;
     }
 
-    function removeResource(string memory _name, address _resource) public onlyMasterOrIssuer onlyExistingResource(_name, _resource) {
+    function removeResource(string memory _name, address _resource) public override onlyMasterOrIssuer onlyExistingResource(_name, _resource) {
         delete resourcesEntities[_resource];
     }
 
-    function getEntityByOwner(address _owner) public view returns (string memory) {
+    function getEntityByOwner(address _owner) public view override returns (string memory) {
         return ownersEntities[_owner];
     }
 
-    function getEntityByOperator(address _operator) public view returns (string memory) {
+    function getEntityByOperator(address _operator) public view override returns (string memory) {
         return operatorsEntities[_operator];
     }
 
-    function getEntityByResource(address _resource) public view returns (string memory) {
+    function getEntityByResource(address _resource) public view override returns (string memory) {
         return resourcesEntities[_resource];
     }
 
-    function isResourceOwner(address _resource, address _owner) public view returns (bool) {
+    function isResourceOwner(address _resource, address _owner) public view override returns (bool) {
         return
             !CommonUtils.isEmptyString(resourcesEntities[_resource]) &&
             CommonUtils.isEqualString(resourcesEntities[_resource], ownersEntities[_owner]);
     }
 
-    function isResourceOperator(address _resource, address _operator) public view returns (bool) {
+    function isResourceOperator(address _resource, address _operator) public view override returns (bool) {
         return
             !CommonUtils.isEmptyString(resourcesEntities[_resource]) &&
             CommonUtils.isEqualString(resourcesEntities[_resource], operatorsEntities[_operator]);

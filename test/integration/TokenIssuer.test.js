@@ -1,4 +1,4 @@
-const assertRevert = require('../utils/assertRevert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const latestTime = require('../utils/latestTime');
 const snapshotsHelper = require('../utils/snapshots');
 const deployContracts = require('../utils').deployContracts;
@@ -26,7 +26,7 @@ contract('TokenIssuer', function ([
         complianceType.PARTITIONED,
         lockManagerType.PARTITIONED,
         undefined,
-        true
+        true,
       );
       await this.trustService.setRole(this.issuer.address, roles.ISSUER);
     });
@@ -51,7 +51,7 @@ contract('TokenIssuer', function ([
         investorId.GENERAL_INVESTOR_ID_1,
         'US',
         [0, 0, 0],
-        [0, 0, 0]
+        [0, 0, 0],
       );
       assert.equal(await this.token.balanceOf.call(owner), 100);
       const partition = await this.token.partitionOf(owner, 0);
@@ -70,7 +70,7 @@ contract('TokenIssuer', function ([
         'NewInvestorCollisionHash',
         'US',
         [],
-        []
+        [],
       );
       assert.equal(await this.token.balanceOf.call(wallet), 100);
       const partition = await this.token.partitionOf(wallet, 0);
@@ -79,7 +79,7 @@ contract('TokenIssuer', function ([
     });
 
     it('Should revert when passing atributes with size != 3', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.issuer.issueTokens(
           'NewInvestorAssert',
           noneWallet,
@@ -90,7 +90,7 @@ contract('TokenIssuer', function ([
           'NewInvestorCollisionAssertHash',
           'US',
           [0, 0],
-          [0, 0]
+          [0, 0],
         ));
     });
 
@@ -106,12 +106,12 @@ contract('TokenIssuer', function ([
         investorId.GENERAL_INVESTOR_ID_1,
         'US',
         [0, 0, 0],
-        [0, 0, 0]
+        [0, 0, 0],
       );
       assert.equal(await this.token.balanceOf.call(owner), 100);
       const transferable = await this.lockManager.getTransferableTokens(
         owner,
-        await latestTime()
+        await latestTime(),
       );
       assert.equal(transferable.toNumber(), 50);
       const partition = await this.token.partitionOf(owner, 0);
@@ -151,7 +151,7 @@ contract('TokenIssuer', function ([
         investorId.GENERAL_INVESTOR_ID_1,
         'US',
         [0, 0, 0],
-        [0, 0, 0]
+        [0, 0, 0],
       );
       assert.equal(await this.token.balanceOf.call(owner), 100);
       const numOfLocks = await this.lockManager.lockCount(owner);
@@ -169,7 +169,7 @@ contract('TokenIssuer', function ([
         'NewInvestorNormalTokenHash',
         'US',
         [],
-        []
+        [],
       );
       assert.equal(await this.token.balanceOf.call(wallet), 100);
       const numOfLocks = await this.lockManager.lockCount(wallet);
@@ -177,7 +177,7 @@ contract('TokenIssuer', function ([
     });
 
     it('Should revert when trying to issueToken with attributes size != 3', async function () {
-      await assertRevert(
+      await expectRevert.unspecified(
         this.issuer.issueTokens(
           'NewInvestorNormalTokenForFAIL',
           noneWallet,
@@ -188,8 +188,8 @@ contract('TokenIssuer', function ([
           'NewInvestorNormalTokenHashForFail',
           'US',
           [0, 0, 0, 0],
-          [0, 0, 0, 0]
-        )
+          [0, 0, 0, 0],
+        ),
       );
     });
 
@@ -205,12 +205,12 @@ contract('TokenIssuer', function ([
         investorId.GENERAL_INVESTOR_ID_1,
         'US',
         [0, 0, 0],
-        [0, 0, 0]
+        [0, 0, 0],
       );
       assert.equal(await this.token.balanceOf.call(owner), 100);
       const transferable = await this.lockManager.getTransferableTokens(
         owner,
-        await latestTime()
+        await latestTime(),
       );
       assert.equal(transferable.toNumber(), 50);
       const numOfLocks = await this.lockManager.lockCount(owner);

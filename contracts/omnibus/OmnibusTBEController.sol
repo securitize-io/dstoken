@@ -1,4 +1,4 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
@@ -6,12 +6,13 @@ import "../data-stores/OmnibusTBEControllerDataStore.sol";
 import "../compliance/ComplianceServiceRegulated.sol";
 import "../compliance/ComplianceConfigurationService.sol";
 
+//SPDX-License-Identifier: UNLICENSED
 contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEController, ServiceConsumer, OmnibusTBEControllerDataStore {
 
     using SafeMath for uint256;
     string internal constant MAX_INVESTORS_IN_CATEGORY = "Max investors in category";
 
-    function initialize(address _omnibusWallet, bool _isPartitionedToken) public initializer forceInitializeFromProxy {
+    function initialize(address _omnibusWallet, bool _isPartitionedToken) public override initializer forceInitializeFromProxy {
         VERSIONS.push(4);
         ServiceConsumer.initialize();
 
@@ -21,7 +22,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
 
     function bulkIssuance(uint256 value, uint256 issuanceTime, uint256 totalInvestors, uint256 accreditedInvestors,
         uint256 usAccreditedInvestors, uint256 usTotalInvestors, uint256 jpTotalInvestors, bytes32[] memory euRetailCountries,
-        uint256[] memory euRetailCountryCounts) public onlyIssuerOrAbove {
+        uint256[] memory euRetailCountryCounts) public override onlyIssuerOrAbove {
         require(euRetailCountries.length == euRetailCountryCounts.length, 'EU Retail countries arrays do not match');
         // Issue tokens
         getToken().issueTokensCustom(omnibusWallet, value, issuanceTime, 0, '', 0);
@@ -32,7 +33,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
 
     function bulkBurn(uint256 value, uint256 totalInvestors, uint256 accreditedInvestors,
         uint256 usAccreditedInvestors, uint256 usTotalInvestors, uint256 jpTotalInvestors, bytes32[] memory euRetailCountries,
-        uint256[] memory euRetailCountryCounts) public onlyIssuerOrAbove {
+        uint256[] memory euRetailCountryCounts) public override onlyIssuerOrAbove {
         require(euRetailCountries.length == euRetailCountryCounts.length, 'EU Retail countries arrays do not match');
         addToCounters(totalInvestors, accreditedInvestors,
             usAccreditedInvestors, usTotalInvestors, jpTotalInvestors, euRetailCountries, euRetailCountryCounts, false);
@@ -48,7 +49,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
                 require(currentPartitionBalance > 0, 'Not enough tokens in remaining partitions to burn the required value');
                 uint256 amountToBurn = currentPartitionBalance >= pendingBurn ? pendingBurn : currentPartitionBalance;
                 token.burnByPartition(omnibusWallet, amountToBurn, 'Omnibus burn by partition', partition);
-                pendingBurn = pendingBurn.sub(amountToBurn);
+                pendingBurn = pendingBurn - amountToBurn;
             }
         } else {
             // Burn non partitioned tokens
@@ -58,7 +59,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
         emitTBEOperationEvent(totalInvestors, accreditedInvestors, usAccreditedInvestors, usTotalInvestors, jpTotalInvestors, false);
     }
 
-    function bulkTransfer(address[] memory wallets, uint256[] memory values) public onlyIssuerOrAbove {
+    function bulkTransfer(address[] memory wallets, uint256[] memory values) public override onlyIssuerOrAbove {
         require(wallets.length == values.length, 'Wallets and values lengths do not match');
         for (uint i = 0; i < wallets.length; i++) {
             getToken().transferFrom(omnibusWallet, wallets[i], values[i]);
@@ -75,7 +76,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
 
     function adjustCounters(int256 totalDelta, int256 accreditedDelta,
         int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta, bytes32[] memory euRetailCountries,
-        int256[] memory euRetailCountryDeltas) public onlyIssuerOrAbove {
+        int256[] memory euRetailCountryDeltas) public override onlyIssuerOrAbove {
         require(euRetailCountries.length == euRetailCountryDeltas.length, 'Array lengths do not match');
 
         addToCounters(
@@ -98,7 +99,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
             jpTotalDelta);
     }
 
-    function getOmnibusWallet() public view returns (address) {
+    function getOmnibusWallet() public view override returns (address) {
         return omnibusWallet;
     }
 
@@ -109,8 +110,8 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
             ComplianceServiceRegulated cs = ComplianceServiceRegulated(getDSService(COMPLIANCE_SERVICE));
             IDSComplianceConfigurationService ccs = IDSComplianceConfigurationService(getDSService(COMPLIANCE_CONFIGURATION_SERVICE));
 
-            require(ccs.getNonAccreditedInvestorsLimit() == 0 || ((cs.getTotalInvestorsCount().sub(cs.getAccreditedInvestorsCount())).
-            add(_totalInvestors.sub(_accreditedInvestors)) <= ccs.getNonAccreditedInvestorsLimit()), MAX_INVESTORS_IN_CATEGORY);
+            require(ccs.getNonAccreditedInvestorsLimit() == 0 || (cs.getTotalInvestorsCount() - cs.getAccreditedInvestorsCount()
+             + _totalInvestors - _accreditedInvestors <= ccs.getNonAccreditedInvestorsLimit()), MAX_INVESTORS_IN_CATEGORY);
 
             cs.setTotalInvestorsCount(increaseCounter(cs.getTotalInvestorsCount(), ccs.getTotalInvestorsLimit(), _totalInvestors));
             cs.setAccreditedInvestorsCount(increaseCounter(cs.getAccreditedInvestorsCount(), ccs.getTotalInvestorsLimit(), _accreditedInvestors));
@@ -134,7 +135,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
     }
 
     function emitTBEOperationEvent(uint256 _totalInvestors, uint256 _accreditedInvestors,
-        uint256 _usAccreditedInvestors, uint256 _usTotalInvestors, uint256 _jpTotalInvestors, bool _increase) internal {
+        uint256 _usAccreditedInvestors, uint256 _usTotalInvestors, uint256 _jpTotalInvestors, bool /* _increase */) internal {
         getToken().emitOmnibusTBEEvent(
             omnibusWallet,
             int256(_totalInvestors),
@@ -159,7 +160,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
     }
 
     function increaseCounter(uint256 currentValue, uint256 currentLimit, uint256 delta) internal pure returns (uint256) {
-        uint256 result = currentValue.add(delta);
+        uint256 result = currentValue + delta;
         require(currentLimit == 0 || result <= currentLimit, MAX_INVESTORS_IN_CATEGORY);
         return result;
     }

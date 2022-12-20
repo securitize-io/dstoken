@@ -1,12 +1,12 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../utils/VersionedContract.sol";
 import "../utils/Initializable.sol";
 
-contract IDSTokenIssuer is Initializable, VersionedContract {
-    constructor() internal {}
+//SPDX-License-Identifier: UNLICENSED
+abstract contract IDSTokenIssuer is Initializable, VersionedContract {
 
-    function initialize() public {
+    function initialize() public virtual {
         VERSIONS.push(4);
     }
 
@@ -27,5 +27,5 @@ contract IDSTokenIssuer is Initializable, VersionedContract {
         string memory _country,
         uint256[] memory attributeValues,
         uint256[] memory attributeExpirations /*onlyIssuerOrAbove*/
-    ) public returns (bool);
+    ) public virtual returns (bool);
 }

@@ -1,7 +1,7 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./ComplianceServiceRegulated.sol";
-import "../zeppelin/math/Math.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 
 library ComplianceServicePartitionedLibrary {
@@ -106,7 +106,7 @@ library ComplianceServicePartitionedLibrary {
         ComplianceServiceRegulatedPartitioned complianceService = ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]);
         return
         !_isPlatformWalletFrom &&
-        complianceService.getComplianceTransferableTokens(_from, uint64(now), false) < _value;
+        complianceService.getComplianceTransferableTokens(_from, block.timestamp, false) < _value;
     }
 
     function maxInvestorsInCategoryForNonAccredited(address[] memory _services, address _from, address _to, uint256 _value, uint256 _fromInvestorBalance, uint256 _toInvestorBalance)
@@ -116,9 +116,9 @@ library ComplianceServicePartitionedLibrary {
     {
         return
         IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit() != 0 &&
-        ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).getTotalInvestorsCount().sub(
+        ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).getTotalInvestorsCount() -
             ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).getAccreditedInvestorsCount()
-        ) >=
+         >=
         IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit() &&
         isNewInvestor(_services, _to, _toInvestorBalance) &&
         (isAccredited(_services, _from) || _fromInvestorBalance > _value);
@@ -195,7 +195,7 @@ library ComplianceServicePartitionedLibrary {
 
         bool isPlatformWalletFrom = IDSWalletManager(_services[WALLET_MANAGER]).isPlatformWallet(_args.from);
         if (
-            !isPlatformWalletFrom && IDSLockManager(_services[LOCK_MANAGER]).getTransferableTokens(_args.from, uint64(now)) < _args.value
+            !isPlatformWalletFrom && IDSLockManager(_services[LOCK_MANAGER]).getTransferableTokens(_args.from, block.timestamp) < _args.value
         ) {
             return (16, TOKENS_LOCKED);
         }
@@ -209,7 +209,7 @@ library ComplianceServicePartitionedLibrary {
 
             if (
                 (_args.fromInvestorBalance > _args.value &&
-            _args.fromInvestorBalance.sub(_args.value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUSTokens())
+            _args.fromInvestorBalance - _args.value < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUSTokens())
             ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
@@ -226,7 +226,7 @@ library ComplianceServicePartitionedLibrary {
                 toRegion == US &&
                 !isPlatformWalletFrom &&
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getBlockFlowbackEndTime() != 0 &&
-                ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).getComplianceTransferableTokens(_args.from, now, true) < _args.value
+                ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).getComplianceTransferableTokens(_args.from, block.timestamp, true) < _args.value
             ) {
                 return (25, FLOWBACK);
             }
@@ -240,7 +240,7 @@ library ComplianceServicePartitionedLibrary {
         string memory toCountry = getCountry(_services, _args.to);
 
         if (_args.fromRegion == EU && isNotBeneficiaryOrHolderOfRecord) {
-            if (_args.fromInvestorBalance.sub(_args.value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEUTokens() &&
+            if (_args.fromInvestorBalance - _args.value < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEUTokens() &&
                 _args.fromInvestorBalance > _args.value) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
@@ -274,7 +274,7 @@ library ComplianceServicePartitionedLibrary {
 
             if (
                 isNotBeneficiaryOrHolderOfRecord &&
-                toInvestorBalance.add(_args.value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEUTokens()
+                toInvestorBalance + _args.value < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinEUTokens()
             ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
@@ -306,7 +306,7 @@ library ComplianceServicePartitionedLibrary {
             }
 
             if (
-                isNotBeneficiaryOrHolderOfRecord && toInvestorBalance.add(_args.value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUSTokens()
+                isNotBeneficiaryOrHolderOfRecord && toInvestorBalance + _args.value < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinUSTokens()
             ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
@@ -341,7 +341,7 @@ library ComplianceServicePartitionedLibrary {
         if (
             isNotBeneficiaryOrHolderOfRecord &&
             !isPlatformWalletFrom &&
-            _args.fromInvestorBalance.sub(_args.value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor() &&
+            _args.fromInvestorBalance - _args.value < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor() &&
             _args.fromInvestorBalance > _args.value
         ) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
@@ -350,7 +350,7 @@ library ComplianceServicePartitionedLibrary {
         if (
             isNotBeneficiaryOrHolderOfRecord &&
             !_args.isPlatformWalletTo &&
-            toInvestorBalance.add(_args.value) < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
+            toInvestorBalance + _args.value < IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumHoldingsPerInvestor()
         ) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
@@ -358,7 +358,7 @@ library ComplianceServicePartitionedLibrary {
         if (
             isNotBeneficiaryOrHolderOfRecord &&
             IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor() != 0 &&
-            toInvestorBalance.add(_args.value) > IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor()
+            toInvestorBalance + _args.value > IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMaximumHoldingsPerInvestor()
         ) {
             return (52, AMOUNT_OF_TOKENS_ABOVE_MAX);
         }
@@ -384,21 +384,21 @@ library ComplianceServicePartitionedLibrary {
  *   @title Concrete compliance service for tokens with regulation
  *
  */
-
+//SPDX-License-Identifier: UNLICENSED
 contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitioned, ComplianceServiceRegulated {
     using SafeMath for uint256;
 
-    function initialize() public initializer forceInitializeFromProxy {
+    function initialize() public override(ComplianceServiceRegulated, IDSComplianceServicePartitioned) initializer forceInitializeFromProxy {
         ComplianceServiceRegulated.initialize();
         IDSComplianceServicePartitioned.initialize();
         VERSIONS.push(7);
     }
 
-    function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
+    function preTransferCheck(address _from, address _to, uint256 _value) public view override(IDSComplianceService, ComplianceServiceRegulated) returns (uint256 code, string memory reason) {
         return ComplianceServicePartitionedLibrary.preTransferCheck(getServices(), _from, _to, _value);
     }
 
-    function newPreTransferCheck(address _from, address _to, uint256 _value, uint256 _balanceFrom, bool _paused) public view returns (uint256 code, string memory reason) {
+    function newPreTransferCheck(address _from, address _to, uint256 _value, uint256 _balanceFrom, bool _paused) public view override returns (uint256 code, string memory reason) {
         return ComplianceServicePartitionedLibrary.newPreTransferCheck(getServices(), _from, _to, _value, _balanceFrom, _paused);
     }
 
@@ -408,27 +408,27 @@ contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitione
         return ComplianceServicePartitionedLibrary.getLockTime(complianceConfiguration, partitionRegion, _checkFlowback);
     }
 
-    function getComplianceTransferableTokens(address _who, uint256 _time, bool _checkFlowback) public view returns (uint256 transferable) {
+    function getComplianceTransferableTokens(address _who, uint256 _time, bool _checkFlowback) public view override returns (uint256 transferable) {
         for (uint256 index = 0; index < getTokenPartitioned().partitionCountOf(_who); ++index) {
             bytes32 partition = getTokenPartitioned().partitionOf(_who, index);
             transferable = SafeMath.add(transferable, getComplianceTransferableTokens(_who, _time, _checkFlowback, partition));
         }
     }
 
-    function getComplianceTransferableTokens(address _who, uint256 _time, bool _checkFlowback, bytes32 _partition) public view returns (uint256) {
+    function getComplianceTransferableTokens(address _who, uint256 _time, bool _checkFlowback, bytes32 _partition) public view override returns (uint256) {
         require(_time != 0, "non zero time required");
-        if (getPartitionsManager().getPartitionIssuanceDate(_partition).add(getLockTime(_checkFlowback, _partition)) > _time) {
+        if (getPartitionsManager().getPartitionIssuanceDate(_partition) + getLockTime(_checkFlowback, _partition) > _time) {
             return 0;
         }
 
-        return getLockManagerPartitioned().getTransferableTokens(_who, uint64(_time), _partition);
+        return getLockManagerPartitioned().getTransferableTokens(_who, _time, _partition);
     }
 
-    function getComplianceTransferableTokens(address _who, uint256 _time, address _to) public view returns (uint256 transferable) {
+    function getComplianceTransferableTokens(address _who, uint256 _time, address _to) public view override returns (uint256 transferable) {
         return getComplianceTransferableTokens(_who, _time, getRegion(_to) == US);
     }
 
-    function getComplianceTransferableTokens(address _who, uint256 _time, address _to, bytes32 _partition) public view returns (uint256) {
+    function getComplianceTransferableTokens(address _who, uint256 _time, address _to, bytes32 _partition) public view override returns (uint256) {
         return getComplianceTransferableTokens(_who, _time, getRegion(_to) == US, _partition);
     }
 

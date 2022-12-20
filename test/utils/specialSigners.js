@@ -62,7 +62,7 @@ class BaseSigner {
       sigS.push('0x' + sig.s.toString('hex'));
     }
 
-    return { sigV: sigV, sigR: sigR, sigS: sigS };
+    return { sigV, sigR, sigS };
   }
 }
 

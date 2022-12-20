@@ -1,6 +1,7 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 /// @title Contract for testing low-level calls issued from the multisig wallet
+//SPDX-License-Identifier: UNLICENSED
 contract TestCalls {
     // msg.data.length of the latest call to "receive" methods
     uint256 public lastMsgDataLength;
@@ -18,7 +19,7 @@ contract TestCalls {
         _;
     }
 
-    constructor() public payable setMsgFields() {
+    constructor() payable setMsgFields() {
         // This constructor will be used to test the creation via multisig wallet
     }
 

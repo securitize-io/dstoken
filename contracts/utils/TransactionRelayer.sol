@@ -1,13 +1,14 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./VersionedContract.sol";
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
-import "../zeppelin/math/Math.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 /**
  @dev Based on SimpleWallet (https://github.com/christianlundkvist/simple-multisig) and uses EIP-712 standard validate a signature
 */
+//SPDX-License-Identifier: UNLICENSED
 contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
     // EIP712 Precomputed hashes:
     // keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract,bytes32 salt)")
@@ -56,30 +57,30 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
 
     // Note that address recovered from signatures must be strictly increasing, in order to prevent duplicates
     function execute(
-        uint8 sigV,
-        bytes32 sigR,
-        bytes32 sigS,
-        address destination,
-        uint256 value,
-        bytes memory data,
-        address executor,
-        uint256 gasLimit
-    ) public {
+        uint8 /*sigV*/,
+        bytes32 /*sigR*/,
+        bytes32 /*sigS*/,
+        address /*destination*/,
+        uint256 /*value*/,
+        bytes memory /*data*/,
+        address /*executor*/,
+        uint256 /*gasLimit*/
+    ) public pure {
         require(false, "not implemented");
     }
 
     // Note that address recovered from signatures must be strictly increasing, in order to prevent duplicates
     function executeByInvestor(
-        uint8 sigV,
-        bytes32 sigR,
-        bytes32 sigS,
-        string memory senderInvestor,
-        address destination,
-        uint256 value,
-        bytes memory data,
-        address executor,
-        uint256 gasLimit
-    ) public {
+        uint8 /*sigV*/,
+        bytes32 /*sigR*/,
+        bytes32 /*sigS*/,
+        string memory /*senderInvestor*/,
+        address /*destination*/,
+        uint256 /*value*/,
+        bytes memory /*data*/,
+        address /*executor*/,
+        uint256 /*gasLimit*/
+    ) public pure {
         require(false, "not implemented");
     }
 
@@ -172,7 +173,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         uint256 approverRole = getTrustService().getRole(recovered);
         require(approverRole == ROLE_ISSUER || approverRole == ROLE_MASTER, 'Invalid signature');
 
-        noncePerInvestor[toBytes32(senderInvestor)] = noncePerInvestor[toBytes32(senderInvestor)].add(1);
+        noncePerInvestor[toBytes32(senderInvestor)]++;
         bool success = false;
         uint256 value = params[0];
         uint256 gasLimit = params[1];
@@ -189,6 +190,4 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         }
         require(success, "transaction was not executed");
     }
-
-    function() external payable {}
 }

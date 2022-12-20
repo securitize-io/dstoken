@@ -1,4 +1,4 @@
-module.exports = async function assertJump(promise) {
+module.exports = async function assertJump (promise) {
   try {
     await promise;
     assert.fail('Expected invalid opcode not received');
@@ -6,7 +6,7 @@ module.exports = async function assertJump(promise) {
     const invalidOpcodeReceived = error.message.search('invalid opcode') >= 0;
     assert(
       invalidOpcodeReceived,
-      `Expected "invalid opcode", got ${error} instead`
+      `Expected "invalid opcode", got ${error} instead`,
     );
   }
 };

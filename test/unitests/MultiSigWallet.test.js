@@ -1,13 +1,8 @@
 const MultiSigWallet = artifacts.require('MultiSigWallet');
 const TestToken = artifacts.require('TestToken');
 const lightwallet = require('eth-lightwallet');
-const Promise = require('bluebird');
-const assertRevert = require('../utils/assertRevert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const { MultiSigSigner } = require('../utils/specialSigners');
-
-const web3SendTransaction = Promise.promisify(web3.eth.sendTransaction);
-
-let DOMAIN_SEPARATOR;
 
 // eslint-disable-next-line max-len
 // keccak256("MultiSigTransaction(address destination,uint256 value,bytes data,uint256 nonce,address executor,uint256 gasLimit)")
@@ -45,14 +40,14 @@ contract('MultiSigWallet', function (accounts) {
   before((done) => {
     lightwallet.keystore.createVault({
       hdPathString: 'm/44\'/60\'/0\'/0',
-      seedPhrase: seedPhrase,
-      password: password,
+      seedPhrase,
+      password,
     }, function (err, keystore) {
       lightWalletKeyStore = keystore;
       lightWalletKeyStore.keyFromPassword(password, function (e, privateKey) {
         keyFromPw = privateKey;
         lightWalletKeyStore.generateNewAddress(keyFromPw, 10);
-        let acctWithout0x = lightWalletKeyStore.getAddresses();
+        const acctWithout0x = lightWalletKeyStore.getAddresses();
         acct = acctWithout0x.map((a) => { return a; });
         acct.sort();
 
@@ -81,11 +76,6 @@ contract('MultiSigWallet', function (accounts) {
         assert.ok(tokenInstance);
 
         multisig = await MultiSigWallet.new(owners, threshold, CHAINID, { from: accounts[0] });
-        await web3SendTransaction({
-          from: accounts[0],
-          to: multisig.address,
-          value: web3.utils.toWei(web3.utils.toBN(5), 'ether'),
-        });
 
         initialNonce = await multisig.nonce.call();
         assert.equal(initialNonce.toNumber(), 0);
@@ -99,23 +89,23 @@ contract('MultiSigWallet', function (accounts) {
 
         assert.equal(
           ISSUED_TOKENS,
-          await tokenInstance.balanceOf(multisig.address)
+          await tokenInstance.balanceOf(multisig.address),
         );
 
         assert.equal(
           0,
-          await tokenInstance.balanceOf(destinationAddress)
+          await tokenInstance.balanceOf(destinationAddress),
         );
       });
       describe('AND two owners sign a TestToken.transfer() transaction', () => {
         it('SHOULD transfer tokens from MultiSigWallet to destinationAddress', async () => {
-          let signers = [acct[0], acct[1]];
+          const signers = [acct[0], acct[1]];
 
           const data = tokenInstance.contract.methods.transfer(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = multiSigSigner.doSign(
+          const sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -135,28 +125,28 @@ contract('MultiSigWallet', function (accounts) {
             gasLimit,
             { from: executor, gasLimit });
 
-          let newNonce = await multisig.nonce.call();
+          const newNonce = await multisig.nonce.call();
           assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
 
           assert.equal(
             0,
-            await tokenInstance.balanceOf(multisig.address)
+            await tokenInstance.balanceOf(multisig.address),
           );
 
           assert.equal(
             ISSUED_TOKENS,
-            await tokenInstance.balanceOf(destinationAddress)
+            await tokenInstance.balanceOf(destinationAddress),
           );
         });
       });
       describe('AND three owners sign a TestToken.transfer() transaction', () => {
         it('SHOULD transfer tokens from MultiSigWallet to destinationAddress', async () => {
-          let signers = [acct[0], acct[1], acct[2]];
+          const signers = [acct[0], acct[1], acct[2]];
           const data = tokenInstance.contract.methods.transfer(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = multiSigSigner.doSign(
+          const sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -176,28 +166,28 @@ contract('MultiSigWallet', function (accounts) {
             gasLimit,
             { from: executor, gasLimit });
 
-          let newNonce = await multisig.nonce.call();
+          const newNonce = await multisig.nonce.call();
           assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
 
           assert.equal(
             0,
-            await tokenInstance.balanceOf(multisig.address)
+            await tokenInstance.balanceOf(multisig.address),
           );
 
           assert.equal(
             ISSUED_TOKENS,
-            await tokenInstance.balanceOf(destinationAddress)
+            await tokenInstance.balanceOf(destinationAddress),
           );
         });
       });
       describe('AND only one owner sign a TestToken.transfer() transaction', () => {
         it('SHOULD revert', async () => {
-          let signers = [acct[0]];
+          const signers = [acct[0]];
           const data = tokenInstance.contract.methods.transfer(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = multiSigSigner.doSign(
+          const sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -206,7 +196,7 @@ contract('MultiSigWallet', function (accounts) {
             data,
             executor,
             gasLimit);
-          await assertRevert(
+          await expectRevert.unspecified(
             multisig.execute(sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -215,18 +205,18 @@ contract('MultiSigWallet', function (accounts) {
               data,
               executor,
               gasLimit,
-              { from: executor, gasLimit })
+              { from: executor, gasLimit }),
           );
         });
       });
       describe('AND one owner and one no owner sign a TestToken.transfer() transaction', () => {
         it('SHOULD revert', async () => {
-          let signers = [acct[0], acct[9]];
+          const signers = [acct[0], acct[9]];
           const data = tokenInstance.contract.methods.transfer(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = multiSigSigner.doSign(
+          const sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -235,7 +225,7 @@ contract('MultiSigWallet', function (accounts) {
             data,
             executor,
             gasLimit);
-          await assertRevert(
+          await expectRevert.unspecified(
             multisig.execute(sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -244,18 +234,18 @@ contract('MultiSigWallet', function (accounts) {
               data,
               executor,
               gasLimit,
-              { from: executor, gasLimit })
+              { from: executor, gasLimit }),
           );
         });
       });
       describe('AND two no owners sign a TestToken.transfer() transaction', () => {
         it('SHOULD revert', async () => {
-          let noOwnerSigners = [acct[8], acct[9]];
+          const noOwnerSigners = [acct[8], acct[9]];
           const data = tokenInstance.contract.methods.transfer(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = multiSigSigner.doSign(
+          const sigs = multiSigSigner.doSign(
             noOwnerSigners.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -264,7 +254,7 @@ contract('MultiSigWallet', function (accounts) {
             data,
             executor,
             gasLimit);
-          await assertRevert(
+          await expectRevert.unspecified(
             multisig.execute(sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -273,7 +263,7 @@ contract('MultiSigWallet', function (accounts) {
               data,
               executor,
               gasLimit,
-              { from: executor, gasLimit })
+              { from: executor, gasLimit }),
           );
         });
       });
@@ -286,11 +276,6 @@ contract('MultiSigWallet', function (accounts) {
         assert.ok(tokenInstance);
 
         multisig = await MultiSigWallet.new(owners, threshold, CHAINID, { from: accounts[0] });
-        await web3SendTransaction({
-          from: accounts[0],
-          to: multisig.address,
-          value: web3.utils.toWei(web3.utils.toBN(5), 'ether'),
-        });
 
         initialNonce = await multisig.nonce.call();
         assert.equal(initialNonce.toNumber(), 0);
@@ -304,23 +289,23 @@ contract('MultiSigWallet', function (accounts) {
 
         assert.equal(
           ISSUED_TOKENS,
-          await tokenInstance.balanceOf(multisig.address)
+          await tokenInstance.balanceOf(multisig.address),
         );
 
         assert.equal(
           0,
-          await tokenInstance.balanceOf(destinationAddress)
+          await tokenInstance.balanceOf(destinationAddress),
         );
       });
       describe('AND two owners sign a TestToken.transfer() transaction', () => {
         it('SHOULD transfer tokens from MultiSigWallet to destinationAddress', async () => {
-          let signers = [acct[0], acct[1]];
+          const signers = [acct[0], acct[1]];
 
           const data = tokenInstance.contract.methods.transfer(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = multiSigSigner.doSign(
+          const sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -340,28 +325,28 @@ contract('MultiSigWallet', function (accounts) {
             gasLimit,
             { from: executor, gasLimit });
 
-          let newNonce = await multisig.nonce.call();
+          const newNonce = await multisig.nonce.call();
           assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
 
           assert.equal(
             0,
-            await tokenInstance.balanceOf(multisig.address)
+            await tokenInstance.balanceOf(multisig.address),
           );
 
           assert.equal(
             ISSUED_TOKENS,
-            await tokenInstance.balanceOf(destinationAddress)
+            await tokenInstance.balanceOf(destinationAddress),
           );
         });
       });
       describe('AND three owners sign a TestToken.transfer() transaction', () => {
         it('SHOULD transfer tokens from MultiSigWallet to destinationAddress', async () => {
-          let signers = [acct[0], acct[1], acct[2]];
+          const signers = [acct[0], acct[1], acct[2]];
           const data = tokenInstance.contract.methods.transfer(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = multiSigSigner.doSign(
+          const sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -381,28 +366,28 @@ contract('MultiSigWallet', function (accounts) {
             gasLimit,
             { from: executor, gasLimit });
 
-          let newNonce = await multisig.nonce.call();
+          const newNonce = await multisig.nonce.call();
           assert.equal(initialNonce.toNumber() + 1, newNonce.toNumber());
 
           assert.equal(
             0,
-            await tokenInstance.balanceOf(multisig.address)
+            await tokenInstance.balanceOf(multisig.address),
           );
 
           assert.equal(
             ISSUED_TOKENS,
-            await tokenInstance.balanceOf(destinationAddress)
+            await tokenInstance.balanceOf(destinationAddress),
           );
         });
       });
       describe('AND only one owner sign a TestToken.transfer() transaction', () => {
         it('SHOULD revert', async () => {
-          let signers = [acct[0]];
+          const signers = [acct[0]];
           const data = tokenInstance.contract.methods.transfer(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = multiSigSigner.doSign(
+          const sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -411,7 +396,7 @@ contract('MultiSigWallet', function (accounts) {
             data,
             ZEROADDR,
             gasLimit);
-          await assertRevert(
+          await expectRevert.unspecified(
             multisig.execute(sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -420,18 +405,18 @@ contract('MultiSigWallet', function (accounts) {
               data,
               ZEROADDR,
               gasLimit,
-              { from: executor, gasLimit })
+              { from: executor, gasLimit }),
           );
         });
       });
       describe('AND one owner and one no owner sign a TestToken.transfer() transaction', () => {
         it('SHOULD revert', async () => {
-          let signers = [acct[0], acct[9]];
+          const signers = [acct[0], acct[9]];
           const data = tokenInstance.contract.methods.transfer(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = multiSigSigner.doSign(
+          const sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -440,7 +425,7 @@ contract('MultiSigWallet', function (accounts) {
             data,
             ZEROADDR,
             gasLimit);
-          await assertRevert(
+          await expectRevert.unspecified(
             multisig.execute(sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -449,18 +434,18 @@ contract('MultiSigWallet', function (accounts) {
               data,
               ZEROADDR,
               gasLimit,
-              { from: executor, gasLimit })
+              { from: executor, gasLimit }),
           );
         });
       });
       describe('AND two no owners sign a TestToken.transfer() transaction', () => {
         it('SHOULD revert', async () => {
-          let noOwnerSigners = [acct[8], acct[9]];
+          const noOwnerSigners = [acct[8], acct[9]];
           const data = tokenInstance.contract.methods.transfer(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = multiSigSigner.doSign(
+          const sigs = multiSigSigner.doSign(
             noOwnerSigners.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -469,7 +454,7 @@ contract('MultiSigWallet', function (accounts) {
             data,
             ZEROADDR,
             gasLimit);
-          await assertRevert(
+          await expectRevert.unspecified(
             multisig.execute(sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -478,7 +463,7 @@ contract('MultiSigWallet', function (accounts) {
               data,
               ZEROADDR,
               gasLimit,
-              { from: executor, gasLimit })
+              { from: executor, gasLimit }),
           );
         });
       });
@@ -493,11 +478,6 @@ contract('MultiSigWallet', function (accounts) {
         assert.ok(tokenInstance);
 
         multisig = await MultiSigWallet.new(owners, threshold, CHAINID, { from: accounts[0] });
-        await web3SendTransaction({
-          from: accounts[0],
-          to: multisig.address,
-          value: web3.utils.toWei(web3.utils.toBN(5), 'ether'),
-        });
 
         initialNonce = await multisig.nonce.call();
         assert.equal(initialNonce.toNumber(), 0);
@@ -511,23 +491,23 @@ contract('MultiSigWallet', function (accounts) {
 
         assert.equal(
           ISSUED_TOKENS,
-          await tokenInstance.balanceOf(multisig.address)
+          await tokenInstance.balanceOf(multisig.address),
         );
 
         assert.equal(
           0,
-          await tokenInstance.balanceOf(destinationAddress)
+          await tokenInstance.balanceOf(destinationAddress),
         );
       });
       describe('AND two owners sign a TestToken.transfer() transaction', () => {
         it('SHOULD revert because msg.sender is not a signer-owner', async () => {
-          let signers = [acct[0], acct[1]];
+          const signers = [acct[0], acct[1]];
 
           const data = tokenInstance.contract.methods.transfer(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = multiSigSigner.doSign(
+          const sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -536,7 +516,7 @@ contract('MultiSigWallet', function (accounts) {
             data,
             notSignerExecutor,
             gasLimit);
-          await assertRevert(
+          await expectRevert.unspecified(
             multisig.execute(sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -545,32 +525,32 @@ contract('MultiSigWallet', function (accounts) {
               data,
               notSignerExecutor,
               gasLimit,
-              { from: notSignerExecutor, gasLimit })
+              { from: notSignerExecutor, gasLimit }),
           );
 
-          let newNonce = await multisig.nonce.call();
+          const newNonce = await multisig.nonce.call();
           assert.equal(initialNonce.toNumber(), newNonce.toNumber());
 
           assert.equal(
             ISSUED_TOKENS,
-            await tokenInstance.balanceOf(multisig.address)
+            await tokenInstance.balanceOf(multisig.address),
           );
 
           assert.equal(
             0,
-            await tokenInstance.balanceOf(destinationAddress)
+            await tokenInstance.balanceOf(destinationAddress),
           );
         });
       });
       describe('AND two owners sign a TestToken.transfer() transaction using ZERO address as executor', () => {
         it('SHOULD revert because msg.sender is not an owner-singer', async () => {
-          let signers = [acct[0], acct[1]];
+          const signers = [acct[0], acct[1]];
 
           const data = tokenInstance.contract.methods.transfer(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = multiSigSigner.doSign(
+          const sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -580,7 +560,7 @@ contract('MultiSigWallet', function (accounts) {
             ZEROADDR,
             gasLimit);
 
-          await assertRevert(
+          await expectRevert.unspecified(
             multisig.execute(sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -589,31 +569,31 @@ contract('MultiSigWallet', function (accounts) {
               data,
               ZEROADDR,
               gasLimit,
-              { from: notSignerExecutor, gasLimit }
+              { from: notSignerExecutor, gasLimit },
             ));
 
-          let newNonce = await multisig.nonce.call();
+          const newNonce = await multisig.nonce.call();
           assert.equal(initialNonce.toNumber(), newNonce.toNumber());
 
           assert.equal(
             ISSUED_TOKENS,
-            await tokenInstance.balanceOf(multisig.address)
+            await tokenInstance.balanceOf(multisig.address),
           );
 
           assert.equal(
             0,
-            await tokenInstance.balanceOf(destinationAddress)
+            await tokenInstance.balanceOf(destinationAddress),
           );
         });
       });
       describe('AND three owners sign a TestToken.transfer() transaction', () => {
         it('SHOULD revert because msg.sender is not an owner-singer', async () => {
-          let signers = [acct[0], acct[1], acct[2]];
+          const signers = [acct[0], acct[1], acct[2]];
           const data = tokenInstance.contract.methods.transfer(
             destinationAddress,
             ISSUED_TOKENS).encodeABI();
 
-          let sigs = multiSigSigner.doSign(
+          const sigs = multiSigSigner.doSign(
             signers.sort(),
             multisig.address,
             initialNonce.toNumber(),
@@ -622,7 +602,7 @@ contract('MultiSigWallet', function (accounts) {
             data,
             notSignerExecutor,
             gasLimit);
-          await assertRevert(
+          await expectRevert.unspecified(
             multisig.execute(sigs.sigV,
               sigs.sigR,
               sigs.sigS,
@@ -631,20 +611,20 @@ contract('MultiSigWallet', function (accounts) {
               data,
               notSignerExecutor,
               gasLimit,
-              { from: notSignerExecutor, gasLimit })
+              { from: notSignerExecutor, gasLimit }),
           );
 
-          let newNonce = await multisig.nonce.call();
+          const newNonce = await multisig.nonce.call();
           assert.equal(initialNonce.toNumber(), newNonce.toNumber());
 
           assert.equal(
             ISSUED_TOKENS,
-            await tokenInstance.balanceOf(multisig.address)
+            await tokenInstance.balanceOf(multisig.address),
           );
 
           assert.equal(
             0,
-            await tokenInstance.balanceOf(destinationAddress)
+            await tokenInstance.balanceOf(destinationAddress),
           );
         });
       });

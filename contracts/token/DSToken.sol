@@ -1,15 +1,16 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./IDSToken.sol";
 import "../utils/ProxyTarget.sol";
 import "./StandardToken.sol";
 
-contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
+//SPDX-License-Identifier: UNLICENSED
+contract DSToken is ProxyTarget, Initializable, StandardToken {
     // using FeaturesLibrary for SupportedFeatures;
+    using TokenLibrary for TokenLibrary.SupportedFeatures;
     uint256 internal constant OMNIBUS_NO_ACTION = 0;
 
-    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public initializer forceInitializeFromProxy {
-        IDSToken.initialize();
+    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public virtual initializer forceInitializeFromProxy {
         StandardToken.initialize();
 
         VERSIONS.push(5);
@@ -30,7 +31,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         supportedFeatures.value = features;
     }
 
-    function setCap(uint256 _cap) public onlyMaster {
+    function setCap(uint256 _cap) public override onlyMaster {
         require(cap == 0, "Token cap already set");
         require(_cap > 0);
         cap = _cap;
@@ -50,12 +51,12 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
      * @param _value uint256 the value of tokens to issue
      * @return true if successful
      */
-
     function issueTokens(
         address _to,
         uint256 _value /*onlyIssuerOrAbove*/
-    ) public returns (bool) {
-        issueTokensCustom(_to, _value, now, 0, "", 0);
+    ) public override returns (bool) {
+        issueTokensCustom(_to, _value, block.timestamp, 0, "", 0);
+        return true;
     }
 
     /**
@@ -69,6 +70,8 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
      */
     function issueTokensCustom(address _to, uint256 _value, uint256 _issuanceTime, uint256 _valueLocked, string memory _reason, uint64 _releaseTime)
     public
+    virtual
+    override
     returns (
     /*onlyIssuerOrAbove*/
         bool
@@ -89,6 +92,8 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
 
     function issueTokensWithMultipleLocks(address _to, uint256 _value, uint256 _issuanceTime, uint256[] memory _valuesLocked, string memory _reason, uint64[] memory _releaseTimes)
     public
+    virtual
+    override
     onlyIssuerOrAbove
     returns (bool)
     {
@@ -103,14 +108,14 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     // TOKEN BURNING
     //*********************
 
-    function burn(address _who, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
+    function burn(address _who, uint256 _value, string memory _reason) public virtual override onlyIssuerOrAbove {
         TokenLibrary.burn(tokenData, getCommonServices(), _who, _value);
         emit Burn(_who, _value, _reason);
         emit Transfer(_who, address(0), _value);
         checkWalletsForList(_who, address(0));
     }
 
-    function omnibusBurn(address _omnibusWallet, address _who, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
+    function omnibusBurn(address _omnibusWallet, address _who, uint256 _value, string memory _reason) public override onlyIssuerOrAbove {
         require(_value <= tokenData.walletsBalances[_omnibusWallet]);
         TokenLibrary.omnibusBurn(tokenData, getCommonServices(), _omnibusWallet, _who, _value);
         emit OmnibusBurn(_omnibusWallet, _who, _value, _reason, getAssetTrackingMode(_omnibusWallet));
@@ -123,14 +128,14 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     // TOKEN SEIZING
     //*********************
 
-    function seize(address _from, address _to, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
+    function seize(address _from, address _to, uint256 _value, string memory _reason) public virtual override onlyIssuerOrAbove {
         TokenLibrary.seize(tokenData, getCommonServices(), _from, _to, _value);
         emit Seize(_from, _to, _value, _reason);
         emit Transfer(_from, _to, _value);
         checkWalletsForList(_from, _to);
     }
 
-    function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string memory _reason) public onlyIssuerOrAbove {
+    function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string memory _reason) public override onlyIssuerOrAbove {
         TokenLibrary.omnibusSeize(tokenData, getCommonServices(), _omnibusWallet, _from, _to, _value);
         emit OmnibusSeize(_omnibusWallet, _from, _value, _reason, getAssetTrackingMode(_omnibusWallet));
         emit Seize(_omnibusWallet, _to, _value, _reason);
@@ -157,7 +162,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
      * @param _to The address that will receive the tokens.
      * @param _value The amount of tokens to be transferred.
      */
-    function transfer(address _to, uint256 _value) public canTransfer(msg.sender, _to, _value) returns (bool) {
+    function transfer(address _to, uint256 _value) public virtual override canTransfer(msg.sender, _to, _value) returns (bool) {
         return postTransferImpl(super.transfer(_to, _value), msg.sender, _to, _value);
     }
 
@@ -169,8 +174,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
      * @param _to The address that will receive the tokens.
      * @param _value The amount of tokens to be transferred.
      */
-
-    function transferFrom(address _from, address _to, uint256 _value) public canTransfer(_from, _to, _value) returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value) public virtual override canTransfer(_from, _to, _value) returns (bool) {
         return postTransferImpl(super.transferFrom(_from, _to, _value), _from, _to, _value);
     }
 
@@ -188,12 +192,12 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     // WALLET ENUMERATION
     //****
 
-    function getWalletAt(uint256 _index) public view returns (address) {
+    function getWalletAt(uint256 _index) public view override returns (address) {
         require(_index > 0 && _index <= walletsCount);
         return walletsList[_index];
     }
 
-    function walletCount() public view returns (uint256) {
+    function walletCount() public view override returns (uint256) {
         return walletsCount;
     }
 
@@ -211,7 +215,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         uint256 existingIndex = walletsToIndexes[_address];
         if (existingIndex == 0) {
             //If not - add it
-            uint256 index = walletsCount.add(1);
+            uint256 index = walletsCount + 1;
             walletsList[index] = _address;
             walletsToIndexes[_address] = index;
             walletsCount = index;
@@ -227,7 +231,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
             address lastWalletAddress = walletsList[lastIndex];
             walletsList[existingIndex] = lastWalletAddress;
             //Decrease the total count
-            walletsCount = lastIndex.sub(1);
+            walletsCount = lastIndex - 1;
             //Remove from reverse index
             delete walletsToIndexes[_address];
         }
@@ -237,7 +241,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
     // MISCELLANEOUS FUNCTIONS
     //**************************************
 
-    function balanceOfInvestor(string memory _id) public view returns (uint256) {
+    function balanceOfInvestor(string memory _id) public view override returns (uint256) {
         return tokenData.investorsBalances[_id];
     }
 
@@ -247,6 +251,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
 
     function updateOmnibusInvestorBalance(address _omnibusWallet, address _wallet, uint256 _value, CommonUtils.IncDec _increase)
     public
+    override
     onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
     returns (bool)
     {
@@ -255,17 +260,18 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
 
     function emitOmnibusTransferEvent(address _omnibusWallet, address _from, address _to, uint256 _value)
     public
+    override
     onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
     {
         emit OmnibusTransfer(_omnibusWallet, _from, _to, _value, getAssetTrackingMode(_omnibusWallet));
     }
 
     function emitOmnibusTBEEvent(address omnibusWallet, int256 totalDelta, int256 accreditedDelta,
-        int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta) public onlyTBEOmnibus {
+        int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta) public override onlyTBEOmnibus {
         emit OmnibusTBEOperation(omnibusWallet, totalDelta, accreditedDelta, usAccreditedDelta, usTotalDelta, jpTotalDelta);
     }
 
-    function emitOmnibusTBETransferEvent(address omnibusWallet, string memory externalId) public onlyTBEOmnibus {
+    function emitOmnibusTBETransferEvent(address omnibusWallet, string memory externalId) public override onlyTBEOmnibus {
         emit OmnibusTBETransfer(omnibusWallet, externalId);
     }
 
@@ -277,14 +283,14 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         }
     }
 
-    function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal returns (bool) {
+    function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal override returns (bool) {
         string memory investor = getRegistryService().getInvestor(_wallet);
         if (!CommonUtils.isEmptyString(investor)) {
             uint256 balance = balanceOfInvestor(investor);
             if (_increase == CommonUtils.IncDec.Increase) {
-                balance = balance.add(_value);
+                balance += _value;
             } else {
-                balance = balance.sub(_value);
+                balance -= _value;
             }
             tokenData.investorsBalances[investor] = balance;
         }
@@ -292,7 +298,7 @@ contract DSToken is ProxyTarget, Initializable, IDSToken, StandardToken {
         return true;
     }
 
-    function preTransferCheck(address _from, address _to, uint256 _value) public view returns (uint256 code, string memory reason) {
+    function preTransferCheck(address _from, address _to, uint256 _value) public view override returns (uint256 code, string memory reason) {
         return getComplianceService().preTransferCheck(_from, _to, _value);
     }
 

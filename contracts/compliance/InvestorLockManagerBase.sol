@@ -1,29 +1,35 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "../data-stores/InvestorLockManagerDataStore.sol";
 import "../utils/ProxyTarget.sol";
 import "../service/ServiceConsumer.sol";
-import "../zeppelin/math/Math.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-contract InvestorLockManagerBase is ProxyTarget, Initializable, ServiceConsumer, InvestorLockManagerDataStore {
+//SPDX-License-Identifier: UNLICENSED
+abstract contract InvestorLockManagerBase is ProxyTarget, IDSLockManager, ServiceConsumer, InvestorLockManagerDataStore {
     event InvestorFullyLocked(string investorId);
     event InvestorFullyUnlocked(string investorId);
 
-    function lockInvestor(string memory _investorId) public onlyIssuerOrAbove returns (bool) {
+    function initialize() public virtual override(IDSLockManager, ServiceConsumer) {
+        ServiceConsumer.initialize();
+        VERSIONS.push(1);
+    }
+
+    function lockInvestor(string memory _investorId) public override onlyIssuerOrAbove returns (bool) {
         require(!investorsLocked[_investorId], "Investor is already locked");
         investorsLocked[_investorId] = true;
         emit InvestorFullyLocked(_investorId);
         return true;
     }
 
-    function unlockInvestor(string memory _investorId) public onlyIssuerOrAbove returns (bool) {
+    function unlockInvestor(string memory _investorId) public override onlyIssuerOrAbove returns (bool) {
         require(investorsLocked[_investorId], "Investor is not locked");
         delete investorsLocked[_investorId];
         emit InvestorFullyUnlocked(_investorId);
         return true;
     }
 
-    function isInvestorLocked(string memory _investorId) public view returns (bool) {
+    function isInvestorLocked(string memory _investorId) public override view returns (bool) {
         return investorsLocked[_investorId];
     }
 }

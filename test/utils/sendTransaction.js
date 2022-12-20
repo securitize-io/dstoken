@@ -1,8 +1,8 @@
 const _ = require('lodash');
 const ethjsABI = require('ethjs-abi');
 
-function findMethod(abi, name, args) {
-  for (var i = 0; i < abi.length; i++) {
+function findMethod (abi, name, args) {
+  for (let i = 0; i < abi.length; i++) {
     const methodArgs = _.map(abi[i].inputs, 'type').join(',');
     if (abi[i].name === name && methodArgs === args) {
       return abi[i];
@@ -10,12 +10,12 @@ function findMethod(abi, name, args) {
   }
 }
 
-module.exports = function sendTransaction(
+module.exports = function sendTransaction (
   target,
   name,
   argsTypes,
   argsValues,
-  opts
+  opts,
 ) {
   const abiMethod = findMethod(target.abi, name, argsTypes);
   const encodedData = ethjsABI.encodeMethod(abiMethod, argsValues);

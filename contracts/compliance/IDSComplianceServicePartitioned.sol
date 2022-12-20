@@ -1,11 +1,11 @@
-pragma solidity 0.5.17;
+pragma solidity ^0.8.13;
 
 import "./IDSComplianceService.sol";
 
-contract IDSComplianceServicePartitioned is IDSComplianceService {
-    constructor() internal {}
+//SPDX-License-Identifier: UNLICENSED
+abstract contract IDSComplianceServicePartitioned is IDSComplianceService {
 
-    function initialize() public {
+    function initialize() public virtual override {
         VERSIONS.push(2);
     }
 
@@ -13,25 +13,25 @@ contract IDSComplianceServicePartitioned is IDSComplianceService {
         address _who,
         uint256 _time,
         bool _checkFlowback
-    ) public view returns (uint256 transferable);
+    ) public view virtual returns (uint256 transferable);
 
     function getComplianceTransferableTokens(
         address _who,
         uint256 _time,
         bool _checkFlowback,
         bytes32 _partition
-    ) public view returns (uint256);
+    ) public view virtual returns (uint256);
 
     function getComplianceTransferableTokens(
         address _who,
         uint256 _time,
         address _to
-    ) public view returns (uint256 transferable);
+    ) public view virtual returns (uint256 transferable);
 
     function getComplianceTransferableTokens(
         address _who,
         uint256 _time,
         address _to,
         bytes32 _partition
-    ) public view returns (uint256);
+    ) public view virtual returns (uint256);
 }
