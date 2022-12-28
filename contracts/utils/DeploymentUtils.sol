@@ -25,7 +25,6 @@ contract DeploymentUtils {
     uint8 public constant COMPLIANCE_SERVICE_REGULATED = 2;
     uint8 public constant COMPLIANCE_SERVICE_PARTITIONED = 3;
     uint8 public constant COMPLIANCE_SERVICE_WHITELISTED = 4;
-    uint8 public constant COMPLIANCE_CONFIGURATION = 5;
     uint8 public constant WALLET_MANAGER = 6;
     uint8 public constant INVESTOR_LOCK_MANAGER = 7;
     uint8 public constant INVESTOR_LOCK_MANAGER_PARTITIONED = 8;
@@ -52,6 +51,11 @@ contract DeploymentUtils {
     modifier restricted() {
         require (msg.sender == owner, "Unauthorized wallet");
         _;
+    }
+
+    function setImplementationAddress(uint8 service, address implementationAddress ) public restricted {
+        implementationAddresses[service] = implementationAddress;
+        emit ImplementationAddressAdded(service, implementationAddress);
     }
 
     function setImplementationAddresses(uint8[] memory services, address[] memory addresses ) public restricted {
