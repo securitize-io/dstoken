@@ -158,6 +158,12 @@ contract('DSToken (regulated)', function ([
     });
   });
 
+  describe('Token Initialization', function () {
+    it('Token cannot be initialized twice', async function () {
+      await expectRevert(this.token.initialize(), 'Contract instance has already been initialized');
+    });
+  });
+
   describe('Ownership', function () {
     it('Should allow to transfer ownership and return the correct owner address', async function () {
       await this.token.transferOwnership(issuerWallet);

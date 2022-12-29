@@ -8,7 +8,7 @@ abstract contract Ownable is Initializable {
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
-    function initialize() public virtual {
+    function initialize() public virtual initializer {
         _owner = msg.sender;
         emit OwnershipTransferred(address(0), _owner);
     }
