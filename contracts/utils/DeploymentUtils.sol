@@ -28,17 +28,18 @@ contract DeploymentUtils {
     uint8 public constant COMPLIANCE_SERVICE_NOT_REGULATED = 5;
     uint8 public constant COMPLIANCE_CONFIGURATION = 6;
     uint8 public constant WALLET_MANAGER = 7;
-    uint8 public constant INVESTOR_LOCK_MANAGER = 8;
-    uint8 public constant INVESTOR_LOCK_MANAGER_PARTITIONED = 9;
-    uint8 public constant DS_TOKEN = 10;
-    uint8 public constant DS_TOKEN_PARTITIONED = 11;
-    uint8 public constant TOKEN_ISSUER = 12;
-    uint8 public constant WALLET_REGISTRAR = 13;
-    uint8 public constant PARTITIONS_MANAGER = 14;
-    uint8 public constant OMNIBUS_TBE_CONTROLLER = 15;
-    uint8 public constant OMNIBUS_TBE_CONTROLLER_WHITELISTED = 16;
-    uint8 public constant TRANSACTION_RELAYER = 17;
-    uint8 public constant TOKEN_REALLOCATOR = 18;
+    uint8 public constant LOCK_MANAGER = 8;
+    uint8 public constant INVESTOR_LOCK_MANAGER = 9;
+    uint8 public constant INVESTOR_LOCK_MANAGER_PARTITIONED = 10;
+    uint8 public constant DS_TOKEN = 11;
+    uint8 public constant DS_TOKEN_PARTITIONED = 12;
+    uint8 public constant TOKEN_ISSUER = 13;
+    uint8 public constant WALLET_REGISTRAR = 14;
+    uint8 public constant PARTITIONS_MANAGER = 15;
+    uint8 public constant OMNIBUS_TBE_CONTROLLER = 16;
+    uint8 public constant OMNIBUS_TBE_CONTROLLER_WHITELISTED = 17;
+    uint8 public constant TRANSACTION_RELAYER = 18;
+    uint8 public constant TOKEN_REALLOCATOR = 19;
 
     address public owner;
     mapping(uint8 => address) public implementationAddresses;
@@ -139,6 +140,10 @@ contract DeploymentUtils {
         address proxyAddress = _deployProxy(implementationAddresses[WALLET_MANAGER]);
         IDSWalletManager(proxyAddress).initialize();
         emit ProxyContractDeployed(proxyAddress);
+    }
+
+    function deployLockManager() public {
+        _deployLockManagerService(LOCK_MANAGER);
     }
 
     function deployInvestorLockManager() public {
