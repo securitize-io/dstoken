@@ -8,6 +8,7 @@ const WalletManager = artifacts.require('WalletManager');
 const ComplianceServiceRegulated = artifacts.require('ComplianceServiceRegulated');
 const ComplianceServiceWhitelisted = artifacts.require('ComplianceServiceWhitelisted');
 const ComplianceServiceRegulatedPartitioned = artifacts.require('ComplianceServiceRegulatedPartitioned');
+const ComplianceServiceNotRegulated = artifacts.require('ComplianceServiceNotRegulated');
 const ComplianceConfigurationService = artifacts.require('ComplianceConfigurationService');
 const DSToken = artifacts.require('DSToken');
 const DSTokenPartitioned = artifacts.require('DSTokenPartitioned');
@@ -27,19 +28,20 @@ const REGISTRY_SERVICE = 1;
 const COMPLIANCE_SERVICE_REGULATED = 2;
 const COMPLIANCE_SERVICE_PARTITIONED = 3;
 const COMPLIANCE_SERVICE_WHITELISTED = 4;
-const COMPLIANCE_CONFIGURATION = 5;
-const WALLET_MANAGER = 6;
-const INVESTOR_LOCK_MANAGER = 7;
-const INVESTOR_LOCK_MANAGER_PARTITIONED = 8;
-const DS_TOKEN = 9;
-const DS_TOKEN_PARTITIONED = 10;
-const TOKEN_ISSUER = 11;
-const WALLET_REGISTRAR = 12;
-const PARTITIONS_MANAGER = 13;
-const OMNIBUS_TBE_CONTROLLER = 14;
-const OMNIBUS_TBE_CONTROLLER_WHITELISTED = 15;
-const TRANSACTION_RELAYER = 16;
-const TOKEN_REALLOCATOR = 17;
+const COMPLIANCE_SERVICE_NOT_REGULATED = 5;
+const COMPLIANCE_CONFIGURATION = 6;
+const WALLET_MANAGER = 7;
+const INVESTOR_LOCK_MANAGER = 8;
+const INVESTOR_LOCK_MANAGER_PARTITIONED = 9;
+const DS_TOKEN = 10;
+const DS_TOKEN_PARTITIONED = 11;
+const TOKEN_ISSUER = 12;
+const WALLET_REGISTRAR = 13;
+const PARTITIONS_MANAGER = 14;
+const OMNIBUS_TBE_CONTROLLER = 15;
+const OMNIBUS_TBE_CONTROLLER_WHITELISTED = 16;
+const TRANSACTION_RELAYER = 17;
+const TOKEN_REALLOCATOR = 18;
 
 const globals = require('../../utils/globals');
 const { roles } = require('../../utils/globals');
@@ -58,6 +60,7 @@ contract.only('DeploymentUtils', function (accounts) {
   let complianceServiceRegulatedImplementation;
   let complianceServiceWhitelistedImplementation;
   let complianceServicePartitionedImplementation;
+  let complianceServiceNotRegulatedImplementation;
   let proxyComplianceServiceRegulated;
   let complianceConfigurationServiceImplementation;
   let walletManagerImplementation;
@@ -97,6 +100,11 @@ contract.only('DeploymentUtils', function (accounts) {
     complianceServicePartitionedImplementation = await ComplianceServiceRegulatedPartitioned.new();
     services.push(COMPLIANCE_SERVICE_PARTITIONED);
     addresses.push(complianceServicePartitionedImplementation.address);
+
+    //complianceServiceNotRegulatedImplementation
+    complianceServiceNotRegulatedImplementation = await ComplianceServiceNotRegulated.new();
+    services.push(COMPLIANCE_SERVICE_NOT_REGULATED);
+    addresses.push(complianceServiceNotRegulatedImplementation.address);
 
     complianceConfigurationServiceImplementation = await ComplianceConfigurationService.new();
     services.push(COMPLIANCE_CONFIGURATION);
@@ -156,6 +164,7 @@ contract.only('DeploymentUtils', function (accounts) {
     const compServiceRegulatedImpl = await deploymentUtils.getImplementationAddress(COMPLIANCE_SERVICE_REGULATED);
     const compServicePartitionedImpl = await deploymentUtils.getImplementationAddress(COMPLIANCE_SERVICE_PARTITIONED);
     const compServiceWhitelistedImpl = await deploymentUtils.getImplementationAddress(COMPLIANCE_SERVICE_WHITELISTED);
+    const compServiceNotRegulatedImpl = await deploymentUtils.getImplementationAddress(COMPLIANCE_SERVICE_NOT_REGULATED);
     const compConfigurationServiceImpl = await deploymentUtils.getImplementationAddress(COMPLIANCE_CONFIGURATION);
     const walletManagerImpl = await deploymentUtils.getImplementationAddress(WALLET_MANAGER);
     const investorLockManagerImpl = await deploymentUtils.getImplementationAddress(INVESTOR_LOCK_MANAGER);
@@ -176,6 +185,7 @@ contract.only('DeploymentUtils', function (accounts) {
     assert.equal(compServicePartitionedImpl, complianceServicePartitionedImplementation.address);
     assert.equal(compServiceWhitelistedImpl, complianceServiceWhitelistedImplementation.address);
     assert.equal(compConfigurationServiceImpl, complianceConfigurationServiceImplementation.address);
+    assert.equal(compServiceNotRegulatedImpl, complianceServiceNotRegulatedImplementation.address);
     assert.equal(walletManagerImpl, walletManagerImplementation.address);
     assert.equal(investorLockManagerImpl, investorLockManagerImplementation.address);
     assert.equal(investorLockManagerPartitionedImpl, investorLockManagerPartitionedImplementation.address);
@@ -206,6 +216,16 @@ contract.only('DeploymentUtils', function (accounts) {
       deployedProxies.push*(proxyRegistryService);
     });
   });
+
+  describe('Deploying new ComplianceServiceNotRegulated', () => {
+    it('Should deploy a new Proxy ComplianceServiceRegulated and initialize it', async () => {
+      const { logs } = await deploymentUtils.deployComplianceServiceNotRegulated();
+      await checkProxyContractDeployedEvent(logs);
+      proxyComplianceServiceRegulated = logs[0].args.proxyAddress;
+      deployedProxies.push(logs[0].args.proxyAddress);
+    });
+  });
+
 
   describe('Deploying new ComplianceServiceRegulated', () => {
     it('Should deploy a new Proxy ComplianceServiceRegulated and initialize it', async () => {

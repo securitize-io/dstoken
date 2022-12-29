@@ -25,19 +25,21 @@ contract DeploymentUtils {
     uint8 public constant COMPLIANCE_SERVICE_REGULATED = 2;
     uint8 public constant COMPLIANCE_SERVICE_PARTITIONED = 3;
     uint8 public constant COMPLIANCE_SERVICE_WHITELISTED = 4;
-    uint8 public constant COMPLIANCE_CONFIGURATION = 5;
-    uint8 public constant WALLET_MANAGER = 6;
-    uint8 public constant INVESTOR_LOCK_MANAGER = 7;
-    uint8 public constant INVESTOR_LOCK_MANAGER_PARTITIONED = 8;
-    uint8 public constant DS_TOKEN = 9;
-    uint8 public constant DS_TOKEN_PARTITIONED = 10;
-    uint8 public constant TOKEN_ISSUER = 11;
-    uint8 public constant WALLET_REGISTRAR = 12;
-    uint8 public constant PARTITIONS_MANAGER = 13;
-    uint8 public constant OMNIBUS_TBE_CONTROLLER = 14;
-    uint8 public constant OMNIBUS_TBE_CONTROLLER_WHITELISTED = 15;
-    uint8 public constant TRANSACTION_RELAYER = 16;
-    uint8 public constant TOKEN_REALLOCATOR = 17;
+    uint8 public constant COMPLIANCE_SERVICE_NOT_REGULATED = 5;
+    uint8 public constant COMPLIANCE_CONFIGURATION = 6;
+    uint8 public constant WALLET_MANAGER = 7;
+    uint8 public constant INVESTOR_LOCK_MANAGER = 8;
+    uint8 public constant INVESTOR_LOCK_MANAGER_PARTITIONED = 9;
+    uint8 public constant DS_TOKEN = 10;
+    uint8 public constant DS_TOKEN_PARTITIONED = 11;
+    uint8 public constant TOKEN_ISSUER = 12;
+    uint8 public constant WALLET_REGISTRAR = 13;
+    uint8 public constant PARTITIONS_MANAGER = 14;
+    uint8 public constant OMNIBUS_TBE_CONTROLLER = 15;
+    uint8 public constant OMNIBUS_TBE_CONTROLLER_WHITELISTED = 16;
+    uint8 public constant TRANSACTION_RELAYER = 17;
+    uint8 public constant TOKEN_REALLOCATOR = 18;
+
     address public owner;
     mapping(uint8 => address) public implementationAddresses;
 
@@ -60,7 +62,7 @@ contract DeploymentUtils {
     }
 
     function setImplementationAddresses(uint8[] memory services, address[] memory addresses ) public restricted {
-        require(services.length <= 18, "Exceeded the maximum number of addresses");
+        require(services.length <= 20, "Exceeded the maximum number of addresses");
         require(services.length == addresses.length, "Wrong length of parameters");
         for (uint i = 0; i < services.length; i++) {
             uint8 service = services[i];
@@ -87,6 +89,10 @@ contract DeploymentUtils {
 
     function deployComplianceServiceRegulated() public {
         _deployComplianceService(COMPLIANCE_SERVICE_REGULATED);
+    }
+
+    function deployComplianceServiceNotRegulated() public {
+        _deployComplianceService(COMPLIANCE_SERVICE_NOT_REGULATED);
     }
 
     function deployComplianceServicePartitioned() public {
