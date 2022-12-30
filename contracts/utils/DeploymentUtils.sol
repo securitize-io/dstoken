@@ -211,6 +211,10 @@ contract DeploymentUtils {
         IDSComplianceConfigurationService(proxyCompConfiguration).setCountriesCompliance(countries, values);
     }
 
+    function setAllComplianceValues(address proxyCompConfiguration, uint256[] memory uintValues, bool[] memory boolValues) public restricted {
+        IDSComplianceConfigurationService(proxyCompConfiguration).setAll(uintValues, boolValues);
+    }
+
     function setDSServices(address contractAddress, uint256[] memory services, address[] memory serviceAddresses) public restricted {
         require(services.length <= 25, "Exceeded the maximum number of addresses");
         require(services.length == serviceAddresses.length, "Wrong length of parameters");
