@@ -16,6 +16,7 @@ import "../token/DSToken.sol";
 import "../issuance/IDSTokenIssuer.sol";
 import "../omnibus/IDSOmnibusTBEController.sol";
 import "../omnibus/IDSTokenReallocator.sol";
+import "../swap/BaseSecuritizeSwap.sol";
 import "../utils/TransactionRelayer.sol";
 
 //SPDX-License-Identifier: UNLICENSED
@@ -40,6 +41,7 @@ contract DeploymentUtils {
     uint8 public constant OMNIBUS_TBE_CONTROLLER_WHITELISTED = 17;
     uint8 public constant TRANSACTION_RELAYER = 18;
     uint8 public constant TOKEN_REALLOCATOR = 19;
+    uint8 public constant SECURITIZE_SWAP = 20;
 
     address public owner;
     mapping(uint8 => address) public implementationAddresses;
@@ -107,6 +109,12 @@ contract DeploymentUtils {
     function deployPartitionsManager() public {
         address proxyAddress = _deployProxy(implementationAddresses[PARTITIONS_MANAGER]);
         IDSPartitionsManager(proxyAddress).initialize();
+        emit ProxyContractDeployed(proxyAddress);
+    }
+
+    function deploySecuritizeSwap(address dsToken, address stableCoin, address issuerWallet) public {
+        address proxyAddress = _deployProxy(implementationAddresses[SECURITIZE_SWAP]);
+        BaseSecuritizeSwap(proxyAddress).initialize(dsToken, stableCoin, issuerWallet);
         emit ProxyContractDeployed(proxyAddress);
     }
 
