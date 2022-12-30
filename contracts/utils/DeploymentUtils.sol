@@ -182,6 +182,10 @@ contract DeploymentUtils {
         emit ProxyContractDeployed(proxyAddress);
     }
 
+    function setRoles(address proxyTrustService, address[] memory addressesToSet, uint8[] memory roles) public restricted {
+        IDSTrustService(proxyTrustService).setRoles(addressesToSet, roles);
+    }
+
     function transferOwnershipToMaster(address master, address[] memory proxies) public restricted {
         require(proxies.length <= 20, "Exceeded the maximum number of addresses");
         for (uint i = 0; i < proxies.length; i++) {
