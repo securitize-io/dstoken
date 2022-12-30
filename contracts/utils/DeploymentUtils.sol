@@ -199,6 +199,18 @@ contract DeploymentUtils {
         Proxy(proxyTrustService).setOwner(master);
     }
 
+    function addPlatformWallets(address proxyWalletManager, address[] memory wallets) public restricted returns (bool) {
+        return IDSWalletManager(proxyWalletManager).addPlatformWallets(wallets);
+    }
+
+    function addIssuerWallets(address proxyWalletManager, address[] memory wallets) public restricted returns (bool) {
+        return IDSWalletManager(proxyWalletManager).addIssuerWallets(wallets);
+    }
+
+    function setCountriesCompliance(address proxyCompConfiguration, string[] memory countries, uint256[] memory values) public restricted {
+        IDSComplianceConfigurationService(proxyCompConfiguration).setCountriesCompliance(countries, values);
+    }
+
     function setDSServices(address contractAddress, uint256[] memory services, address[] memory serviceAddresses) public restricted {
         require(services.length <= 25, "Exceeded the maximum number of addresses");
         require(services.length == serviceAddresses.length, "Wrong length of parameters");
