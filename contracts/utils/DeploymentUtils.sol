@@ -78,27 +78,27 @@ contract DeploymentUtils {
         return implementationAddresses[service];
     }
 
-    function deployTrustService() public {
+    function deployTrustService() public restricted {
         address proxyAddress = _deployProxy(implementationAddresses[TRUST_SERVICE]);
         IDSTrustService(proxyAddress).initialize();
         emit ProxyContractDeployed(proxyAddress);
     }
 
-    function deployRegistryService() public {
+    function deployRegistryService() public restricted {
         address proxyAddress = _deployProxy(implementationAddresses[REGISTRY_SERVICE]);
         IDSRegistryService(proxyAddress).initialize();
         emit ProxyContractDeployed(proxyAddress);
     }
 
-    function deployComplianceServiceRegulated() public {
+    function deployComplianceServiceRegulated() public restricted {
         _deployComplianceService(COMPLIANCE_SERVICE_REGULATED);
     }
 
-    function deployComplianceServiceNotRegulated() public {
+    function deployComplianceServiceNotRegulated() public restricted {
         _deployComplianceService(COMPLIANCE_SERVICE_NOT_REGULATED);
     }
 
-    function deployComplianceServicePartitioned() public {
+    function deployComplianceServicePartitioned() public restricted {
         _deployComplianceService(COMPLIANCE_SERVICE_PARTITIONED);
     }
 
@@ -106,77 +106,77 @@ contract DeploymentUtils {
         _deployComplianceService(COMPLIANCE_SERVICE_WHITELISTED);
     }
 
-    function deployPartitionsManager() public {
+    function deployPartitionsManager() public restricted {
         address proxyAddress = _deployProxy(implementationAddresses[PARTITIONS_MANAGER]);
         IDSPartitionsManager(proxyAddress).initialize();
         emit ProxyContractDeployed(proxyAddress);
     }
 
-    function deploySecuritizeSwap(address dsToken, address stableCoin, address issuerWallet) public {
+    function deploySecuritizeSwap(address dsToken, address stableCoin, address issuerWallet) public restricted {
         address proxyAddress = _deployProxy(implementationAddresses[SECURITIZE_SWAP]);
         BaseSecuritizeSwap(proxyAddress).initialize(dsToken, stableCoin, issuerWallet);
         emit ProxyContractDeployed(proxyAddress);
     }
 
-    function deployOmnibusTbeController(address omnibusWallet, bool isPartitionedToken) public {
+    function deployOmnibusTbeController(address omnibusWallet, bool isPartitionedToken) public restricted {
         _deployOmnibusTbeController(OMNIBUS_TBE_CONTROLLER, omnibusWallet, isPartitionedToken);
     }
 
-    function deployOmnibusTbeControllerWhitelisted(address omnibusWallet, bool isPartitionedToken) public {
+    function deployOmnibusTbeControllerWhitelisted(address omnibusWallet, bool isPartitionedToken) public restricted {
         _deployOmnibusTbeController(OMNIBUS_TBE_CONTROLLER_WHITELISTED, omnibusWallet, isPartitionedToken);
     }
 
-    function deployTransactionRelayer(uint256 chainId) public {
+    function deployTransactionRelayer(uint256 chainId) public restricted {
         address proxyAddress = _deployProxy(implementationAddresses[TRANSACTION_RELAYER]);
         TransactionRelayer(proxyAddress).initialize(chainId);
         emit ProxyContractDeployed(proxyAddress);
     }
 
-    function deployConfigurationService() public {
+    function deployConfigurationService() public restricted {
         address proxyAddress = _deployProxy(implementationAddresses[COMPLIANCE_CONFIGURATION]);
         IDSComplianceConfigurationService(proxyAddress).initialize();
         emit ProxyContractDeployed(proxyAddress);
     }
 
-    function deployTokenReallocator() public {
+    function deployTokenReallocator() public restricted {
         address proxyAddress = _deployProxy(implementationAddresses[TOKEN_REALLOCATOR]);
         IDSTokenReallocator(proxyAddress).initialize();
         emit ProxyContractDeployed(proxyAddress);
     }
 
-    function deployWalletManager() public {
+    function deployWalletManager() public restricted {
         address proxyAddress = _deployProxy(implementationAddresses[WALLET_MANAGER]);
         IDSWalletManager(proxyAddress).initialize();
         emit ProxyContractDeployed(proxyAddress);
     }
 
-    function deployLockManager() public {
+    function deployLockManager() public restricted {
         _deployLockManagerService(LOCK_MANAGER);
     }
 
-    function deployInvestorLockManager() public {
+    function deployInvestorLockManager() public restricted {
         _deployLockManagerService(INVESTOR_LOCK_MANAGER);
     }
 
-    function deployInvestorLockManagerPartitioned() public {
+    function deployInvestorLockManagerPartitioned() public restricted {
         _deployLockManagerService(INVESTOR_LOCK_MANAGER_PARTITIONED);
     }
 
-    function deployDsToken(string memory name, string memory symbol, uint8 decimals) public {
+    function deployDsToken(string memory name, string memory symbol, uint8 decimals) public restricted {
         _deployToken(DS_TOKEN, name, symbol, decimals);
     }
 
-    function deployDsTokenPartitioned(string memory name, string memory symbol, uint8 decimals) public {
+    function deployDsTokenPartitioned(string memory name, string memory symbol, uint8 decimals) public restricted {
         _deployToken(DS_TOKEN_PARTITIONED, name, symbol, decimals);
     }
 
-    function deployTokenIssuer() public {
+    function deployTokenIssuer() public restricted {
         address proxyAddress = _deployProxy(implementationAddresses[TOKEN_ISSUER]);
         IDSTokenIssuer(proxyAddress).initialize();
         emit ProxyContractDeployed(proxyAddress);
     }
 
-    function deployWalletRegistrar() public {
+    function deployWalletRegistrar() public restricted {
         address proxyAddress = _deployProxy(implementationAddresses[WALLET_REGISTRAR]);
         IDSWalletRegistrar(proxyAddress).initialize();
         emit ProxyContractDeployed(proxyAddress);
