@@ -92,7 +92,6 @@ module.exports = {
     },
   },
   plugins: [
-    'truffle-contract-size',
-    'eth-gas-reporter',
+    'truffle-contract-size'
   ],
 };

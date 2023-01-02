@@ -67,6 +67,12 @@ contract('DSToken (not regulated)', function ([
       });
     });
 
+    describe('Token Initialization', function () {
+      it('Token cannot be initialized twice', async function () {
+        await expectRevert(this.token.initialize(), 'Contract instance has already been initialized');
+      });
+    });
+
     describe('Cap', function () {
       beforeEach(async function () {
         await this.token.setCap(1000);

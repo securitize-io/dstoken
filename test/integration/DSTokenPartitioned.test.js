@@ -162,6 +162,12 @@ contract('DSTokenPartitioned (regulated)', function ([
     });
   });
 
+  describe('Token Initialization', function () {
+    it('Token cannot be initialized twice', async function () {
+      await expectRevert(this.token.initialize(), 'Contract instance has already been initialized');
+    });
+  });
+
   describe('Issuance', function () {
     it('Should issue tokens to a us wallet', async function () {
       const result = await this.token.issueTokens(usInvestorWallet, 100);
