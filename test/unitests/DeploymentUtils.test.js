@@ -52,7 +52,7 @@ const services = globals.services;
 
 const deployedProxies = [];
 
-contract.only('DeploymentUtils', function (accounts) {
+contract('DeploymentUtils', function (accounts) {
   const newMasterAddress = accounts[2];
   let deploymentUtils;
   let trustServiceImplementation;
