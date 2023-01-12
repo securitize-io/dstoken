@@ -7,7 +7,7 @@ import "../utils/Initializable.sol";
 abstract contract IDSComplianceConfigurationService is Initializable, VersionedContract {
 
     function initialize() public virtual {
-        VERSIONS.push(6);
+        VERSIONS.push(7);
     }
 
     event DSComplianceUIntRuleSet(string ruleName, uint256 prevValue, uint256 newValue);
@@ -15,6 +15,8 @@ abstract contract IDSComplianceConfigurationService is Initializable, VersionedC
     event DSComplianceStringToUIntMapRuleSet(string ruleName, string keyValue, uint256 prevValue, uint256 newValue);
 
     function getCountryCompliance(string memory _country) public view virtual returns (uint256);
+
+    function setCountriesCompliance(string[] memory _countries, uint256[] memory _values) public virtual;
 
     function setCountryCompliance(
         string memory _country,

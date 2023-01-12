@@ -151,7 +151,33 @@ We provide a command-line tools and libraries to facilitate the interaction with
 ### Other components
 
 - **Proxy** - The main token contract is deployed behind a proxy, using the proxy-delegate pattern. This allows for seamless upgrade of a deployed token in case a new protocol version is required or a problem is found.
-- **MultiSig Wallet** - We have developed a MultiSig Wallet following this [implementation](https://github.com/christianlundkvist/simple-multisig). This allows us to offer higher level of security. 
+- **MultiSigWallet** - We have developed a MultiSig Wallet following this [implementation](https://github.com/christianlundkvist/simple-multisig). This allows us to offer higher level of security. 
+ -**DeploymentUtils**  - This contract allows us to optimize the deployment process in conjunction with the **contract-deployments-service**. 
+
+#### DeploymentUtils
+
+There are 3 types of functions: 
+- settings: It is possible to update the addresses of the implementation contracts. 
+- deployment: There are a set of methods to deploys proxy contracts, set implementation targets and calls initialize functions.
+- Token deployment settings: Sets a token calling functions like setRoles, setDSServices and setCountriesCompliance in bulk mode.
+
+The owner of the DeploymentUtils contract must be the **deployment wallet**.
+
+There are deployed tokens in different public networks.
+
+- Avalanche Juji Testnet: **0x63705379db29D008d1EBdB0F8e60aD89216927AF** Deployment Account DEV **0xd40D720b1cdC8AeD2a75489F219cA02faF45587C**
+- Polygon mumbai Testnet: **0x78da8F43717E0fb583028D8F5E2D7D67274Cf65C** Deployment Account DEV **0xD8559dfEd9300775a2DeF456c7BDa65310Ad21E6**
+- Sepolia testnet: **0xC68DFf4D8557727778143a68C66d11430bd9474C** Deployment Account DEV **0xD8559dfEd9300775a2DeF456c7BDa65310Ad21E6**
+
+- First we have to set the address of implementation contracts. 
+
+- **Settings functions**
+```solidity
+    function setImplementationAddress(uint8 service, address implementationAddress ) public restricted;
+    function setImplementationAddresses(uint8[] memory services, address[] memory addresses ) public restricted;
+```
+
+
 
 ## Roadmap and open issues
 

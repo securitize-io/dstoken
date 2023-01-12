@@ -6,12 +6,17 @@ const country = require('../fixtures').Country;
 
 const ACCREDITATION_STATUS = 1;
 const SLOTS = 3;
+const MAX_WALLETS = 30;
 
 contract('WalletManager', function ([
   owner,
   wallet,
   issuerWallet1,
   issuerWallet2,
+  issuerWallet3,
+  issuerWallet4,
+  platformWallet1,
+  platformWallet2,
   exchangeWallet1,
   exchangeWallet2,
   noneWallet,
@@ -67,6 +72,34 @@ contract('WalletManager', function ([
       assert.equal(isPlatformWallet, false);
     });
 
+    it(`Trying to add multiple issuer wallets with ISSUER permissions`, async function () {
+      const role = await this.trustService.getRole(issuerWallet1);
+      assert.equal(role.words[0], roles.ISSUER);
+
+      const { logs } = await this.walletManager.addIssuerWallets([issuerWallet3, issuerWallet4], {
+        from: issuerWallet1,
+      });
+
+      assert.equal(logs[0].args.wallet, issuerWallet3);
+      assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletAdded');
+      const isIssuer = await this.walletManager.isIssuerSpecialWallet(issuerWallet3);
+      const isSpecialWallet = await this.walletManager.isSpecialWallet(issuerWallet3);
+      const isPlatformWallet = await this.walletManager.isPlatformWallet(issuerWallet3);
+      assert.equal(isIssuer, true);
+      assert.equal(isSpecialWallet, true);
+      assert.equal(isPlatformWallet, false);
+
+      assert.equal(logs[1].args.wallet, issuerWallet4);
+      assert.equal(logs[1].event, 'DSWalletManagerSpecialWalletAdded');
+      const isIssuerWallet2 = await this.walletManager.isIssuerSpecialWallet(issuerWallet4);
+      const isSpecialWallet2 = await this.walletManager.isSpecialWallet(issuerWallet4);
+      const isPlatformWallet2 = await this.walletManager.isPlatformWallet(issuerWallet4);
+      assert.equal(isIssuerWallet2, true);
+      assert.equal(isSpecialWallet2, true);
+      assert.equal(isPlatformWallet2, false);
+    });
+
+
     describe('Add issuer wallet: negative tests', function () {
       it(`Trying to add the issuer wallet with NONE - ${roles.NONE} permissions - should be the error`, async function () {
         const role = await this.trustService.getRole(noneWallet);
@@ -110,6 +143,11 @@ contract('WalletManager', function ([
 
         await expectRevert.unspecified(this.walletManager.addIssuerWallet(issuerWallet2));
       });
+
+      it('Trying to add more than 30 wallets - should be the error', async function () {
+        const issuerWalletsToAdd = Array(MAX_WALLETS + 1).fill(issuerWallet2);
+        await expectRevert.unspecified(this.walletManager.addIssuerWallets(issuerWalletsToAdd));
+      });
     });
   });
 
@@ -136,6 +174,20 @@ contract('WalletManager', function ([
 
       assert.equal(logs[0].args.wallet, issuerWallet2);
       assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletAdded');
+    });
+
+    it(`Trying to add multiple platform wallets`, async function () {
+      const role = await this.trustService.getRole(issuerWallet1);
+      assert.equal(role.words[0], roles.ISSUER);
+
+      const { logs } = await this.walletManager.addPlatformWallets([platformWallet1, platformWallet2], {
+        from: issuerWallet1,
+      });
+
+      assert.equal(logs[0].args.wallet, platformWallet1);
+      assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletAdded');
+      assert.equal(logs[1].args.wallet, platformWallet2);
+      assert.equal(logs[1].event, 'DSWalletManagerSpecialWalletAdded');
     });
 
     describe('Add platform wallet: negative tests', function () {
@@ -171,6 +223,11 @@ contract('WalletManager', function ([
         assert.equal(logs[0].event, 'DSWalletManagerSpecialWalletAdded');
 
         await expectRevert.unspecified(this.walletManager.addPlatformWallet(issuerWallet2));
+      });
+      it('Trying to add more than 30 platform wallet - should be the error', async function () {
+        await expectRevert.unspecified(
+          this.walletManager.addPlatformWallets(Array(MAX_WALLETS + 1).fill(platformWallet1))
+        );
       });
     });
   });

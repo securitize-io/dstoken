@@ -10,7 +10,15 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
     function initialize() public override(IDSComplianceConfigurationService, ServiceConsumer) initializer forceInitializeFromProxy {
         IDSComplianceConfigurationService.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(7);
+        VERSIONS.push(8);
+    }
+
+    function setCountriesCompliance(string[] memory _countries, uint256[] memory _values) public override onlyIssuerOrAbove {
+        require(_countries.length <= 35, "Exceeded the maximum number of countries");
+        require(_countries.length == _values.length, "Wrong length of parameters");
+        for (uint i = 0; i < _countries.length; i++) {
+            setCountryCompliance(_countries[i], _values[i]);
+        }
     }
 
     function setCountryCompliance(string memory _country, uint256 _value) public override onlyIssuerOrAbove {

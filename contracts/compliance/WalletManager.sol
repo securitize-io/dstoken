@@ -15,7 +15,7 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
     function initialize() public override(IDSWalletManager, ServiceConsumer) initializer forceInitializeFromProxy {
         IDSWalletManager.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(4);
+        VERSIONS.push(5);
     }
 
     /**
@@ -51,12 +51,38 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
     }
 
     /**
+    * @dev Sets an array of wallets to be issuer wallets.
+    * @param _wallets The address of the wallet.
+    * @return A boolean that indicates if the operation was successful.
+   */
+    function addIssuerWallets(address[] memory _wallets) public override onlyIssuerOrAbove returns (bool) {
+        require(_wallets.length <= 30, "Exceeded the maximum number of wallets");
+        for (uint i = 0; i < _wallets.length; i++) {
+            addIssuerWallet(_wallets[i]);
+        }
+        return true;
+    }
+
+    /**
    * @dev Sets a wallet to be an platform wallet.
    * @param _wallet The address of the wallet.
    * @return A boolean that indicates if the operation was successful.
    */
     function addPlatformWallet(address _wallet) public override onlyIssuerOrAbove returns (bool) {
         return setSpecialWallet(_wallet, PLATFORM);
+    }
+
+    /**
+    * @dev Sets an array of wallets to be platform wallet.
+    * @param _wallets The address of the wallet.
+    * @return A boolean that indicates if the operation was successful.
+   */
+    function addPlatformWallets(address[] memory _wallets) public override onlyIssuerOrAbove returns (bool) {
+        require(_wallets.length <= 30, "Exceeded the maximum number of wallets");
+        for (uint i = 0; i < _wallets.length; i++) {
+            addPlatformWallet(_wallets[i]);
+        }
+        return true;
     }
 
     /**
