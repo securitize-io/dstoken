@@ -195,6 +195,7 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
     function changeEntityOwner(string memory _name, address _oldOwner, address _newOwner) public override onlyMasterOrIssuer onlyExistingEntityOwner(_name, _oldOwner) {
         delete ownersEntities[_oldOwner];
         ownersEntities[_newOwner] = _name;
+        entitiesOwners[_name] = _newOwner;
     }
 
     function addOperator(string memory _name, address _operator) public override onlyEntityOwnerOrAbove(_name) onlyNewOperator(_operator) {

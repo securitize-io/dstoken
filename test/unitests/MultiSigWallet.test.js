@@ -90,8 +90,14 @@ contract('MultiSigWallet', function (accounts) {
       await expectRevert(MultiSigWallet.new(owners, 1, CHAINID, { from: accounts[0] }), 'threshold not allowed');
     });
 
+    it('SHOULD revert - Duplicate Owner', async () => {
+      const owners = [acct[0], acct[0], acct[1], ];
+      await expectRevert(MultiSigWallet.new(owners, threshold, CHAINID, { from: accounts[0] }), 'duplicate owner');
+    });
+
     it('SHOULD Multisig contract be properly instanced', async () => {
-      const owners = [acct[0], acct[1], acct[2], acct[3]];
+      const owners = [acct[0], acct[1], acct[2]];
+      console.log('XXXX', acct[0], acct[1], acct[2]);
       const multisig = await MultiSigWallet.new(owners, threshold, CHAINID, { from: accounts[0] });
       assert.ok(multisig);
     })
