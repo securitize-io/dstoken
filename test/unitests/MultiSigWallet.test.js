@@ -67,6 +67,36 @@ contract('MultiSigWallet', function (accounts) {
     });
   });
 
+  describe('Multisig contract initialization', () => {
+    beforeEach(async () => {
+      const owners = [acct[0], acct[1], acct[2]];
+      executor = acct[0];
+      tokenInstance = await TestToken.new({ from: accounts[0] });
+      assert.ok(tokenInstance);
+    });
+
+    it('SHOULD revert - Owners length > 10', async () => {
+      const owners = [acct[0], acct[1], acct[2], acct[3], acct[4], acct[5], acct[6], acct[7], acct[8], acct[9], '0xef7073cbc1E6F4CC8CFA8f297e8e3cA53fa54537'];
+      await expectRevert(MultiSigWallet.new(owners, threshold, CHAINID, { from: accounts[0] }), 'threshold not allowed');
+    });
+
+    it('SHOULD revert - Threshold > Owners length', async () => {
+      const owners = [acct[0]];
+      await expectRevert(MultiSigWallet.new(owners, threshold, CHAINID, { from: accounts[0] }), 'threshold not allowed');
+    });
+
+    it('SHOULD revert - Threshold <= Owners length / 2', async () => {
+      const owners = [acct[0], acct[1], acct[2], acct[3]];
+      await expectRevert(MultiSigWallet.new(owners, 1, CHAINID, { from: accounts[0] }), 'threshold not allowed');
+    });
+
+    it('SHOULD Multisig contract be properly instanced', async () => {
+      const owners = [acct[0], acct[1], acct[2], acct[3]];
+      const multisig = await MultiSigWallet.new(owners, threshold, CHAINID, { from: accounts[0] });
+      assert.ok(multisig);
+    })
+  });
+
   describe('Calling TestToken transactions with 3 owners and threshold = 2', () => {
     describe('WHEN transferring 1000000 TestToken with an off-chain multisig wallet', () => {
       beforeEach(async () => {

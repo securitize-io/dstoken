@@ -37,6 +37,7 @@ contract MultiSigWallet is VersionedContract {
         require(
             owners_.length <= 10 &&
             threshold_ <= owners_.length &&
+            threshold_ >= owners_.length / 2 &&
             threshold_ > 0, "threshold not allowed"
         );
 
