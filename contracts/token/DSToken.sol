@@ -226,14 +226,17 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
         //Make sure it's there
         uint256 existingIndex = walletsToIndexes[_address];
         if (existingIndex != 0) {
-            //Put the last wallet instead of it (this will work even with 1 wallet in the list)
             uint256 lastIndex = walletsCount;
-            address lastWalletAddress = walletsList[lastIndex];
-            walletsList[existingIndex] = lastWalletAddress;
-            //Decrease the total count
-            walletsCount = lastIndex - 1;
-            //Remove from reverse index
+            if (lastIndex != existingIndex) {
+                //Put the last wallet instead of it (this will work even with 1 wallet in the list)
+                address lastWalletAddress = walletsList[lastIndex];
+                walletsList[existingIndex] = lastWalletAddress;
+                walletsToIndexes[lastWalletAddress] = existingIndex;
+            }
+
             delete walletsToIndexes[_address];
+            delete walletsList[lastIndex];
+            walletsCount = lastIndex - 1;
         }
     }
 
