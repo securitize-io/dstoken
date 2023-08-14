@@ -26,14 +26,15 @@ contract WalletRegistrar is ProxyTarget, Initializable, IDSWalletRegistrar, Serv
 
         IDSRegistryService registryService = getRegistryService();
 
+        if (!registryService.isInvestor(_id)) {
+            registryService.registerInvestor(_id, _collisionHash);
+            registryService.setCountry(_id, _country);
+        }
+
         for (uint256 i = 0; i < _wallets.length; i++) {
             if (registryService.isWallet(_wallets[i])) {
                 require(CommonUtils.isEqualString(registryService.getInvestor(_wallets[i]), _id), "Wallet belongs to a different investor");
             } else {
-                if (!registryService.isInvestor(_id)) {
-                    registryService.registerInvestor(_id, _collisionHash);
-                    registryService.setCountry(_id, _country);
-                }
                 registryService.addWallet(_wallets[i], _id);
             }
         }
