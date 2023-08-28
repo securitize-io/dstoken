@@ -37,11 +37,13 @@ contract MultiSigWallet is VersionedContract {
         require(
             owners_.length <= 10 &&
             threshold_ <= owners_.length &&
+            threshold_ >= owners_.length / 2 &&
             threshold_ > 0, "threshold not allowed"
         );
 
         for (uint256 i = 0; i < owners_.length; i++) {
             require(owners_[i] != address(0), "owner address can not be zero address");
+            require(!isOwner[owners_[i]], "duplicate owner");
             isOwner[owners_[i]] = true;
         }
         ownersArr = owners_;

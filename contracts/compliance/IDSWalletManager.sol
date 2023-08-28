@@ -109,32 +109,4 @@ abstract contract IDSWalletManager is Initializable, VersionedContract {
     function removeSpecialWallet(
         address _wallet /*onlyIssuerOrAbove*/
     ) public virtual returns (bool);
-
-    /**
-     * @dev Sets the amount of reserved slots for a wallet based on country and accreditation status.
-     * @param _wallet The address of the wallet.
-     * @param _country The investors' country.
-     * @param _accreditationStatus the investors' accrediation status.
-     * @param _slots number of reserved slots.
-     * @return A boolean that indicates if the operation was successful.
-     */
-    function setReservedSlots(
-        address _wallet,
-        string memory _country,
-        uint8 _accreditationStatus,
-        uint256 _slots /*onlyIssuerOrAbove*/
-    ) public virtual returns (bool);
-
-    /**
-     * @dev Gets the amount of reserved slots for a wallet based on country and accreditation status.
-     * @param _wallet The address of the wallet.
-     * @param _country The investors' country.
-     * @param _accreditationStatus the investors' accrediation status.
-     * @return The number of reserved slots.
-     */
-    function getReservedSlots(
-        address _wallet,
-        string memory _country,
-        uint8 _accreditationStatus
-    ) public view virtual returns (uint256);
 }

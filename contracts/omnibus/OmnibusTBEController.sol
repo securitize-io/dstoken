@@ -35,8 +35,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
         uint256 usAccreditedInvestors, uint256 usTotalInvestors, uint256 jpTotalInvestors, bytes32[] memory euRetailCountries,
         uint256[] memory euRetailCountryCounts) public override onlyIssuerOrAbove {
         require(euRetailCountries.length == euRetailCountryCounts.length, 'EU Retail countries arrays do not match');
-        addToCounters(totalInvestors, accreditedInvestors,
-            usAccreditedInvestors, usTotalInvestors, jpTotalInvestors, euRetailCountries, euRetailCountryCounts, false);
+
         if(isPartitionedToken) {
             IDSTokenPartitioned token = getTokenPartitioned();
             uint256 pendingBurn = value;
