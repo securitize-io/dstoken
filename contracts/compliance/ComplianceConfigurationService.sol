@@ -13,7 +13,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         VERSIONS.push(8);
     }
 
-    function setCountriesCompliance(string[] memory _countries, uint256[] memory _values) public override onlyIssuerOrAbove {
+    function setCountriesCompliance(string[] memory _countries, uint256[] memory _values) public override onlyTransferAgentOrAbove {
         require(_countries.length <= 35, "Exceeded the maximum number of countries");
         require(_countries.length == _values.length, "Wrong length of parameters");
         for (uint i = 0; i < _countries.length; i++) {
@@ -21,7 +21,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         }
     }
 
-    function setCountryCompliance(string memory _country, uint256 _value) public override onlyIssuerOrAbove {
+    function setCountryCompliance(string memory _country, uint256 _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceStringToUIntMapRuleSet("countryCompliance", _country, countriesCompliances[_country], _value);
         countriesCompliances[_country] = _value;
     }
@@ -34,7 +34,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         return totalInvestorsLimit;
     }
 
-    function setTotalInvestorsLimit(uint256 _value) public override onlyIssuerOrAbove {
+    function setTotalInvestorsLimit(uint256 _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceUIntRuleSet("totalInvestorsLimit", totalInvestorsLimit, _value);
         totalInvestorsLimit = _value;
     }
@@ -43,7 +43,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         return minUSTokens;
     }
 
-    function setMinUSTokens(uint256 _value) public override onlyIssuerOrAbove {
+    function setMinUSTokens(uint256 _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceUIntRuleSet("minUSTokens", minUSTokens, _value);
         minUSTokens = _value;
     }
@@ -52,7 +52,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         return minEUTokens;
     }
 
-    function setMinEUTokens(uint256 _value) public override onlyIssuerOrAbove {
+    function setMinEUTokens(uint256 _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceUIntRuleSet("minEUTokens", minEUTokens, _value);
         minEUTokens = _value;
     }
@@ -61,7 +61,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         return usInvestorsLimit;
     }
 
-    function setUSInvestorsLimit(uint256 _value) public override onlyIssuerOrAbove {
+    function setUSInvestorsLimit(uint256 _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceUIntRuleSet("usInvestorsLimit", usInvestorsLimit, _value);
         usInvestorsLimit = _value;
     }
@@ -70,7 +70,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         return jpInvestorsLimit;
     }
 
-    function setJPInvestorsLimit(uint256 _value) public override onlyIssuerOrAbove {
+    function setJPInvestorsLimit(uint256 _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceUIntRuleSet("jpInvestorsLimit", jpInvestorsLimit, _value);
         jpInvestorsLimit = _value;
     }
@@ -79,7 +79,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         return usAccreditedInvestorsLimit;
     }
 
-    function setUSAccreditedInvestorsLimit(uint256 _value) public override onlyIssuerOrAbove {
+    function setUSAccreditedInvestorsLimit(uint256 _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceUIntRuleSet("usAccreditedInvestorsLimit", usAccreditedInvestorsLimit, _value);
         usAccreditedInvestorsLimit = _value;
     }
@@ -88,7 +88,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         return nonAccreditedInvestorsLimit;
     }
 
-    function setNonAccreditedInvestorsLimit(uint256 _value) public override onlyIssuerOrAbove {
+    function setNonAccreditedInvestorsLimit(uint256 _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceUIntRuleSet("nonAccreditedInvestorsLimit", nonAccreditedInvestorsLimit, _value);
         nonAccreditedInvestorsLimit = _value;
     }
@@ -97,7 +97,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         return maxUSInvestorsPercentage;
     }
 
-    function setMaxUSInvestorsPercentage(uint256 _value) public override onlyIssuerOrAbove {
+    function setMaxUSInvestorsPercentage(uint256 _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceUIntRuleSet("maxUSInvestorsPercentage", maxUSInvestorsPercentage, _value);
         maxUSInvestorsPercentage = _value;
     }
@@ -106,7 +106,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         return blockFlowbackEndTime;
     }
 
-    function setBlockFlowbackEndTime(uint256 _value) public override onlyIssuerOrAbove {
+    function setBlockFlowbackEndTime(uint256 _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceUIntRuleSet("blockFlowbackEndTime", blockFlowbackEndTime, _value);
         blockFlowbackEndTime = _value;
     }
@@ -115,7 +115,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         return nonUSLockPeriod;
     }
 
-    function setNonUSLockPeriod(uint256 _value) public override onlyIssuerOrAbove {
+    function setNonUSLockPeriod(uint256 _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceUIntRuleSet("nonUSLockPeriod", nonUSLockPeriod, _value);
         nonUSLockPeriod = _value;
     }
@@ -124,7 +124,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         return minimumTotalInvestors;
     }
 
-    function setMinimumTotalInvestors(uint256 _value) public override onlyIssuerOrAbove {
+    function setMinimumTotalInvestors(uint256 _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceUIntRuleSet("minimumTotalInvestors", minimumTotalInvestors, _value);
         minimumTotalInvestors = _value;
     }
@@ -133,7 +133,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         return minimumHoldingsPerInvestor;
     }
 
-    function setMinimumHoldingsPerInvestor(uint256 _value) public override onlyIssuerOrAbove {
+    function setMinimumHoldingsPerInvestor(uint256 _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceUIntRuleSet("minimumHoldingsPerInvestor", minimumHoldingsPerInvestor, _value);
         minimumHoldingsPerInvestor = _value;
     }
@@ -142,7 +142,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         return maximumHoldingsPerInvestor;
     }
 
-    function setMaximumHoldingsPerInvestor(uint256 _value) public override onlyIssuerOrAbove {
+    function setMaximumHoldingsPerInvestor(uint256 _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceUIntRuleSet("maximumHoldingsPerInvestor", maximumHoldingsPerInvestor, _value);
         maximumHoldingsPerInvestor = _value;
     }
@@ -151,7 +151,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         return euRetailInvestorsLimit;
     }
 
-    function setEURetailInvestorsLimit(uint256 _value) public override onlyIssuerOrAbove {
+    function setEURetailInvestorsLimit(uint256 _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceUIntRuleSet("euRetailInvestorsLimit", euRetailInvestorsLimit, _value);
         euRetailInvestorsLimit = _value;
     }
@@ -160,7 +160,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         return usLockPeriod;
     }
 
-    function setUSLockPeriod(uint256 _value) public override onlyIssuerOrAbove {
+    function setUSLockPeriod(uint256 _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceUIntRuleSet("usLockPeriod", usLockPeriod, _value);
         usLockPeriod = _value;
     }
@@ -169,7 +169,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         return forceFullTransfer;
     }
 
-    function setForceFullTransfer(bool _value) public override onlyIssuerOrAbove {
+    function setForceFullTransfer(bool _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceBoolRuleSet("forceFullTransfer", forceFullTransfer, _value);
         forceFullTransfer = _value;
     }
@@ -178,7 +178,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         return forceAccreditedUS;
     }
 
-    function setForceAccreditedUS(bool _value) public override onlyIssuerOrAbove {
+    function setForceAccreditedUS(bool _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceBoolRuleSet("forceAccreditedUS", forceAccreditedUS, _value);
         forceAccreditedUS = _value;
     }
@@ -187,7 +187,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         return forceAccredited;
     }
 
-    function setForceAccredited(bool _value) public override onlyIssuerOrAbove {
+    function setForceAccredited(bool _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceBoolRuleSet("forceAccredited", forceAccredited, _value);
         forceAccredited = _value;
     }
@@ -196,7 +196,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         return worldWideForceFullTransfer;
     }
 
-    function setWorldWideForceFullTransfer(bool _value) public override onlyIssuerOrAbove {
+    function setWorldWideForceFullTransfer(bool _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceBoolRuleSet("worldWideForceFullTransfer", worldWideForceFullTransfer, _value);
         worldWideForceFullTransfer = _value;
     }
@@ -205,12 +205,12 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         return authorizedSecurities;
     }
 
-    function setAuthorizedSecurities(uint256 _value) public override onlyIssuerOrAbove {
+    function setAuthorizedSecurities(uint256 _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceUIntRuleSet("authorizedSecurities", authorizedSecurities, _value);
         authorizedSecurities = _value;
     }
 
-    function setAll(uint256[] memory _uint_values, bool[] memory _bool_values) public override onlyIssuerOrAbove {
+    function setAll(uint256[] memory _uint_values, bool[] memory _bool_values) public override onlyTransferAgentOrAbove {
         require(_uint_values.length == 16, "Wrong length of parameters");
         require(_bool_values.length == 4, "Wrong length of parameters");
         setTotalInvestorsLimit(_uint_values[0]);

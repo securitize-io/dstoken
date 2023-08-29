@@ -19,12 +19,12 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
     function createLockForHolder(string memory _holder, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime)
         public
         view
-        onlyIssuerOrAboveOrToken
+        onlyTransferAgentOrAboveOrToken
     {
         createLockForInvestor(_holder, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
 
-    function removeLockRecordForHolder(string memory _holderId, uint256 _lockIndex) public view onlyIssuerOrAbove returns (bool) {
+    function removeLockRecordForHolder(string memory _holderId, uint256 _lockIndex) public view onlyTransferAgentOrAbove returns (bool) {
         return removeLockRecordForInvestor(_holderId, _lockIndex);
     }
 
@@ -76,7 +76,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
     function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime)
         public
         override
-        onlyIssuerOrAboveOrToken
+        onlyTransferAgentOrAboveOrToken
         validLock(_valueLocked, _releaseTime)
     {
         require(_to != address(0), "Invalid address");
@@ -91,7 +91,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
      * note - this may change the order of the locks on an address, so if iterating the iteration should be restarted.
      * @return true on success
      */
-    function removeLockRecord(address _to, uint256 _lockIndex) public override onlyIssuerOrAbove returns (bool) {
+    function removeLockRecord(address _to, uint256 _lockIndex) public override onlyTransferAgentOrAbove returns (bool) {
         require(_to != address(0), "Invalid address");
         //Put the last lock instead of the lock to remove (this will work even with 1 lock in the list)
         uint256 lastLockNumber = locksCounts[_to];
@@ -190,11 +190,11 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         return 0;
     }
 
-    function createLockForInvestor(string memory, uint256, uint256, string memory, uint256) public view override onlyIssuerOrAboveOrToken {
+    function createLockForInvestor(string memory, uint256, uint256, string memory, uint256) public view override onlyTransferAgentOrAboveOrToken {
         revertInvestorLevelMethod();
     }
 
-    function removeLockRecordForInvestor(string memory, uint256) public view override onlyIssuerOrAbove returns (bool) {
+    function removeLockRecordForInvestor(string memory, uint256) public view override onlyTransferAgentOrAbove returns (bool) {
         revertInvestorLevelMethod();
     }
 

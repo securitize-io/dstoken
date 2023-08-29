@@ -27,7 +27,7 @@ contract OmnibusTBEControllerWhitelisted is ProxyTarget, Initializable, IDSOmnib
 
     function bulkBurn(uint256 value, uint256 totalInvestors, uint256 accreditedInvestors,
         uint256 usAccreditedInvestors, uint256 usTotalInvestors, uint256 jpTotalInvestors, bytes32[] memory euRetailCountries,
-        uint256[] memory euRetailCountryCounts) public override onlyIssuerOrAbove {
+        uint256[] memory euRetailCountryCounts) public override onlyTransferAgentOrAbove {
         require(euRetailCountries.length == euRetailCountryCounts.length, 'EU Retail countries arrays do not match');
         // Burn tokens
         getToken().burn(omnibusWallet, value, 'Omnibus');

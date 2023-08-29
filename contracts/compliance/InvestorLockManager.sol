@@ -26,7 +26,7 @@ contract InvestorLockManager is InvestorLockManagerBase {
         public
         override
         validLock(_valueLocked, _releaseTime)
-        onlyIssuerOrAboveOrToken
+        onlyTransferAgentOrAboveOrToken
     {
         //Get total count
         uint256 totalLockCount = investorsLocksCounts[_investor];
@@ -43,12 +43,12 @@ contract InvestorLockManager is InvestorLockManagerBase {
         emit Locked(_to, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
 
-    function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime) public override onlyIssuerOrAboveOrToken {
+    function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime) public override onlyTransferAgentOrAboveOrToken {
         require(_to != address(0), "Invalid address");
         createLock(_to, _valueLocked, 0, _reason, _releaseTime);
     }
 
-    function removeLockRecordForInvestor(string memory _investorId, uint256 _lockIndex) public override onlyIssuerOrAbove returns (bool) {
+    function removeLockRecordForInvestor(string memory _investorId, uint256 _lockIndex) public override onlyTransferAgentOrAbove returns (bool) {
         emit HolderUnlocked(
             _investorId,
             investorsLocks[_investorId][_lockIndex].value,
@@ -91,7 +91,7 @@ contract InvestorLockManager is InvestorLockManagerBase {
      * note - this may change the order of the locks on an address, so if iterating the iteration should be restarted.
      * @return true on success
      */
-    function removeLockRecord(address _to, uint256 _lockIndex) public override onlyIssuerOrAbove returns (bool) {
+    function removeLockRecord(address _to, uint256 _lockIndex) public override onlyTransferAgentOrAbove returns (bool) {
         require(_to != address(0), "Invalid address");
         string memory investor = getRegistryService().getInvestor(_to);
         //Emit must be done on start ,because we're going to overwrite this value

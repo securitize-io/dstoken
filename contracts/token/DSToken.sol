@@ -31,7 +31,7 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
         supportedFeatures.value = features;
     }
 
-    function setCap(uint256 _cap) public override onlyMaster {
+    function setCap(uint256 _cap) public override onlyTransferAgentOrAbove {
         require(cap == 0, "Token cap already set");
         require(_cap > 0);
         cap = _cap;
@@ -108,14 +108,14 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
     // TOKEN BURNING
     //*********************
 
-    function burn(address _who, uint256 _value, string memory _reason) public virtual override onlyIssuerOrAbove {
+    function burn(address _who, uint256 _value, string memory _reason) public virtual override onlyIssuerOrTransferAgentOrAbove {
         TokenLibrary.burn(tokenData, getCommonServices(), _who, _value);
         emit Burn(_who, _value, _reason);
         emit Transfer(_who, address(0), _value);
         checkWalletsForList(_who, address(0));
     }
 
-    function omnibusBurn(address _omnibusWallet, address _who, uint256 _value, string memory _reason) public override onlyIssuerOrAbove {
+    function omnibusBurn(address _omnibusWallet, address _who, uint256 _value, string memory _reason) public override onlyTransferAgentOrAbove {
         require(_value <= tokenData.walletsBalances[_omnibusWallet]);
         TokenLibrary.omnibusBurn(tokenData, getCommonServices(), _omnibusWallet, _who, _value);
         emit OmnibusBurn(_omnibusWallet, _who, _value, _reason, getAssetTrackingMode(_omnibusWallet));
@@ -128,14 +128,14 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
     // TOKEN SEIZING
     //*********************
 
-    function seize(address _from, address _to, uint256 _value, string memory _reason) public virtual override onlyIssuerOrAbove {
+    function seize(address _from, address _to, uint256 _value, string memory _reason) public virtual override onlyTransferAgentOrAbove {
         TokenLibrary.seize(tokenData, getCommonServices(), _from, _to, _value);
         emit Seize(_from, _to, _value, _reason);
         emit Transfer(_from, _to, _value);
         checkWalletsForList(_from, _to);
     }
 
-    function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string memory _reason) public override onlyIssuerOrAbove {
+    function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string memory _reason) public override onlyTransferAgentOrAbove {
         TokenLibrary.omnibusSeize(tokenData, getCommonServices(), _omnibusWallet, _from, _to, _value);
         emit OmnibusSeize(_omnibusWallet, _from, _value, _reason, getAssetTrackingMode(_omnibusWallet));
         emit Seize(_omnibusWallet, _to, _value, _reason);

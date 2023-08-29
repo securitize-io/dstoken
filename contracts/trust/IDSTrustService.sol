@@ -29,6 +29,7 @@ abstract contract IDSTrustService is Initializable, VersionedContract {
     uint8 public constant MASTER = 1;
     uint8 public constant ISSUER = 2;
     uint8 public constant EXCHANGE = 4;
+    uint8 public constant TRANSFER_AGENT = 8;
 
     /**
      * @dev Transfers the ownership (MASTER role) of the contract.

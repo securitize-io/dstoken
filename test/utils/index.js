@@ -1,3 +1,4 @@
+const { roles } = require("../../utils/globals");
 const services = require('../../utils/globals').services;
 const compliance = require('../../utils/globals').complianceType;
 const lockManager = require('../../utils/globals').lockManagerType;
@@ -302,7 +303,7 @@ async function deployContracts (
     ],
   );
   if (omnibusTBEAddress) {
-    await testObject.trustService.setRole(testObject.omnibusTBEController.address, 2);
+    await testObject.trustService.setRole(testObject.omnibusTBEController.address, roles.ISSUER);
     await testObject.walletManager.addPlatformWallet(omnibusTBEAddress);
   }
 
@@ -319,6 +320,7 @@ async function deployContracts (
       testObject.lockManager.address,
     ],
   );
+  await testObject.trustService.setRole(testObject.reallocator.address, roles.TRANSFER_AGENT);
 }
 
 async function deployContractBehindProxy (
