@@ -32,19 +32,19 @@ module.exports = {
     //   gas: 0xfffffffffff,
     //   gasPrice: 0x01,
     // },
-    // goerli: {
+    // sepolia: {
     //   gasPrice: 4000000000,
     //   provider: new HDWalletProvider({
     //     privateKeys: [privateKey],
-    //     providerOrUrl: `wss://goerli.infura.io/ws/v3/${process.env.INFURA_API_KEY}`,
+    //     providerOrUrl: `wss://sepolia.infura.io/ws/v3/${process.env.INFURA_API_KEY}`,
     //     chainId: 5,
     //   }),
     //   network_id: '5',
     //   timeoutBlocks,
     // },
     // quorum: {
-    //   host: '127.0.0.1',
-    //   port: 22000, // was 8545
+    //   host: '3.20.198.114',
+    //   port: 22002, // was 8545
     //   network_id: '*', // Match any network id
     //   gasPrice: 0,
     //   type: 'quorum', // needed for Truffle to support Quorum

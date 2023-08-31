@@ -36,8 +36,9 @@ contract MultiSigWallet is VersionedContract {
     constructor(address[] memory owners_, uint256 threshold_, uint256 chainId) {
         require(
             owners_.length <= 10 &&
+            owners_.length > 1 &&
             threshold_ <= owners_.length &&
-            threshold_ >= owners_.length / 2 &&
+            threshold_ >= (owners_.length / 2) + 1 && // Round up integer division to get a threshold of more than (at least) half of total signer count
             threshold_ > 0, "threshold not allowed"
         );
 
