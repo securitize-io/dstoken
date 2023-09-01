@@ -20,7 +20,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         public
         override
         validLock(_valueLocked, _releaseTime)
-        onlyIssuerOrAboveOrToken
+        onlyTransferAgentOrAboveOrToken
     {
         uint256 totalLockCount = investorsPartitionsLocksCounts[_investorId][_partition];
 
@@ -53,7 +53,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         return removeLockRecordForInvestor(investorId, _lockIndex, _partition);
     }
 
-    function removeLockRecordForInvestor(string memory _investorId, uint256 _lockIndex, bytes32 _partition) public override onlyIssuerOrAbove returns (bool) {
+    function removeLockRecordForInvestor(string memory _investorId, uint256 _lockIndex, bytes32 _partition) public override onlyTransferAgentOrAbove returns (bool) {
         //Put the last lock instead of the lock to remove (this will work even with 1 lock in the list)
         uint256 lastLockNumber = investorsPartitionsLocksCounts[_investorId][_partition];
 

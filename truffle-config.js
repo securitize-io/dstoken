@@ -32,43 +32,43 @@ module.exports = {
     //   gas: 0xfffffffffff,
     //   gasPrice: 0x01,
     // },
-    // goerli: {
+    // sepolia: {
     //   gasPrice: 4000000000,
     //   provider: new HDWalletProvider({
     //     privateKeys: [privateKey],
-    //     providerOrUrl: `wss://goerli.infura.io/ws/v3/${process.env.INFURA_API_KEY}`,
+    //     providerOrUrl: `wss://sepolia.infura.io/ws/v3/${process.env.INFURA_API_KEY}`,
     //     chainId: 5,
     //   }),
     //   network_id: '5',
     //   timeoutBlocks,
     // },
     // quorum: {
-    //   host: '127.0.0.1',
-    //   port: 22000, // was 8545
+    //   host: '3.20.198.114',
+    //   port: 22002, // was 8545
     //   network_id: '*', // Match any network id
     //   gasPrice: 0,
     //   type: 'quorum', // needed for Truffle to support Quorum
     // },
-    matic: {
-      gasPrice: 100000000000,
-      provider: () => new HDWalletProvider({
-        privateKeys: [privateKey],
-        providerOrUrl: `wss://polygon-mumbai.g.alchemy.com/v2/${process.env.API_KEY}`,
-        chainId: 80001,
-      }),
-      network_id: 80001,
-      timeoutBlocks: 10000000,
-      skipDryRun: true,
-    },
-    avalanche: {
-      provider: new HDWalletProvider({
-        privateKeys: [privateKey],
-        providerOrUrl: 'https://api.avax-test.network/ext/bc/C/rpc',
-        chainId: 43113,
-      }),
-      network_id: '43113',
-      skipDryRun: true,
-    },
+    // matic: {
+    //   gasPrice: 100000000000,
+    //   provider: () => new HDWalletProvider({
+    //     privateKeys: [privateKey],
+    //     providerOrUrl: `wss://polygon-mumbai.g.alchemy.com/v2/${process.env.API_KEY}`,
+    //     chainId: 80001,
+    //   }),
+    //   network_id: 80001,
+    //   timeoutBlocks: 10000000,
+    //   skipDryRun: true,
+    // },
+    // avalanche: {
+    //   provider: new HDWalletProvider({
+    //     privateKeys: [privateKey],
+    //     providerOrUrl: 'https://api.avax-test.network/ext/bc/C/rpc',
+    //     chainId: 43113,
+    //   }),
+    //   network_id: '43113',
+    //   skipDryRun: true,
+    // },
     // live: {
     //   gasPrice: 40000000000,
     //   provider: new HDWalletProvider({

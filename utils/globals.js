@@ -18,7 +18,8 @@ module.exports = {
     NONE: 0,
     MASTER: 1,
     ISSUER: 2,
-    EXCHANGE: 4
+    EXCHANGE: 4,
+    TRANSFER_AGENT: 8
   },
   complianceType: {
     NOT_REGULATED: 0,

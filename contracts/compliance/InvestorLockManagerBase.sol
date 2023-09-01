@@ -15,14 +15,14 @@ abstract contract InvestorLockManagerBase is ProxyTarget, IDSLockManager, Servic
         VERSIONS.push(1);
     }
 
-    function lockInvestor(string memory _investorId) public override onlyIssuerOrAbove returns (bool) {
+    function lockInvestor(string memory _investorId) public override onlyTransferAgentOrAbove returns (bool) {
         require(!investorsLocked[_investorId], "Investor is already locked");
         investorsLocked[_investorId] = true;
         emit InvestorFullyLocked(_investorId);
         return true;
     }
 
-    function unlockInvestor(string memory _investorId) public override onlyIssuerOrAbove returns (bool) {
+    function unlockInvestor(string memory _investorId) public override onlyTransferAgentOrAbove returns (bool) {
         require(investorsLocked[_investorId], "Investor is not locked");
         delete investorsLocked[_investorId];
         emit InvestorFullyUnlocked(_investorId);
