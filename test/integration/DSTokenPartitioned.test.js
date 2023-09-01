@@ -11,16 +11,16 @@ const complianceType = require('../../utils/globals').complianceType;
 const lockManagerType = require('../../utils/globals').lockManagerType;
 
 contract('DSTokenPartitioned (regulated)', function ([
-  owner,
-  issuerWallet,
-  usInvestorWallet,
-  usInvestorSecondaryWallet,
-  usInvestor2Wallet,
-  spainInvestorWallet,
-  germanyInvestorWallet,
-  chinaInvestorWallet,
-  israelInvestorWallet,
-]) {
+                                                       owner,
+                                                       issuerWallet,
+                                                       usInvestorWallet,
+                                                       usInvestorSecondaryWallet,
+                                                       usInvestor2Wallet,
+                                                       spainInvestorWallet,
+                                                       germanyInvestorWallet,
+                                                       chinaInvestorWallet,
+                                                       israelInvestorWallet,
+                                                     ]) {
   before(async function () {
     // Setting up the environment
     await deployContracts(
@@ -135,7 +135,7 @@ contract('DSTokenPartitioned (regulated)', function ([
 
     await this.complianceConfiguration.setAll(
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 1 * time.YEARS, 0, 0],
-      [true, false, false, false],
+      [true, false, false, false, false],
     );
   });
 
@@ -269,6 +269,41 @@ contract('DSTokenPartitioned (regulated)', function ([
           from: israelInvestorWallet,
         }),
       );
+      const partition = await this.token.partitionOf(israelInvestorWallet, 0);
+      await this.token.burnByPartition(israelInvestorWallet, 100, 'test burn', partition);
+      const balance = await this.token.balanceOf(israelInvestorWallet);
+      assert.equal(balance, 0);
+    });
+
+    it('Should ignore issuance time if token has disallowBackDating set to true and allow transferring', async function () {
+      await this.complianceConfiguration.setDisallowBackDating(true);
+      const time = await latestTime();
+      await this.token.issueTokensCustom(israelInvestorWallet, 100, time + 10000, 0, 'TEST', 0);
+      const balance = await this.token.balanceOf(israelInvestorWallet);
+      assert.equal(balance, 100);
+      await this.token.transfer(germanyInvestorWallet, 100, {
+        from: israelInvestorWallet,
+      });
+      const israelBalance = await this.token.balanceOf(israelInvestorWallet);
+      assert.equal(israelBalance, 0);
+      const germanyBalance = await this.token.balanceOf(germanyInvestorWallet);
+      assert.equal(germanyBalance, 100);
+    });
+
+    it('Should not ignore issuance time if token has disallowBackDating set to false and not allow transferring', async function () {
+      const time = await latestTime();
+      await this.complianceConfiguration.setDisallowBackDating(false);
+      await this.token.issueTokensCustom(israelInvestorWallet, 100, time + 10000, 0, 'TEST', 0);
+      await expectRevert(
+        this.token.transfer(germanyInvestorWallet, 1, {
+          from: israelInvestorWallet,
+        }),
+        'Hold-up'
+      );
+      const partition = await this.token.partitionOf(israelInvestorWallet, 0);
+      await this.token.burnByPartition(israelInvestorWallet, 100, 'test burn', partition);
+      const israelBalance = await this.token.balanceOf(israelInvestorWallet);
+      assert.equal(israelBalance, 0);
     });
 
     it('Should allow transferring tokens when enough tokens are unlocked', async function () {

@@ -210,9 +210,18 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         authorizedSecurities = _value;
     }
 
+    function getDisallowBackDating() public view override returns (bool) {
+        return disallowBackDating;
+    }
+
+    function setDisallowBackDating(bool _value) public override onlyTransferAgentOrAbove {
+        emit DSComplianceBoolRuleSet("disallowBackDating", disallowBackDating, _value);
+        disallowBackDating = _value;
+    }
+
     function setAll(uint256[] memory _uint_values, bool[] memory _bool_values) public override onlyTransferAgentOrAbove {
         require(_uint_values.length == 16, "Wrong length of parameters");
-        require(_bool_values.length == 4, "Wrong length of parameters");
+        require(_bool_values.length == 5, "Wrong length of parameters");
         setTotalInvestorsLimit(_uint_values[0]);
         setMinUSTokens(_uint_values[1]);
         setMinEUTokens(_uint_values[2]);
@@ -233,11 +242,12 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         setForceAccredited(_bool_values[1]);
         setForceAccreditedUS(_bool_values[2]);
         setWorldWideForceFullTransfer(_bool_values[3]);
+        setDisallowBackDating(_bool_values[4]);
     }
 
     function getAll() public view override returns (uint256[] memory, bool[] memory) {
         uint256[] memory uintValues = new uint256[](16);
-        bool[] memory boolValues = new bool[](4);
+        bool[] memory boolValues = new bool[](5);
 
         uintValues[0] = getTotalInvestorsLimit();
         uintValues[1] = getMinUSTokens();
@@ -259,6 +269,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         boolValues[1] = getForceAccredited();
         boolValues[2] = getForceAccreditedUS();
         boolValues[3] = getWorldWideForceFullTransfer();
+        boolValues[4] = getDisallowBackDating();
         return (uintValues, boolValues);
     }
 }

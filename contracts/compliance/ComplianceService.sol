@@ -181,4 +181,16 @@ abstract contract ComplianceService is ProxyTarget, Initializable, IDSCompliance
         address _to,
         uint256 _value
     ) internal view virtual returns (uint256, string memory);
+
+    /**
+     * @dev Verify disallowBackDating compliance: if set to false returns _issuanceTime parameter, otherwise returns current timestamp
+     * @param _issuanceTime.
+     * @return issuanceTime
+     */
+    function validateIssuanceTime(uint256 _issuanceTime) external view override returns (uint256 issuanceTime) {
+        if (!getComplianceConfigurationService().getDisallowBackDating()) {
+            return _issuanceTime;
+        }
+        return block.timestamp;
+    }
 }
