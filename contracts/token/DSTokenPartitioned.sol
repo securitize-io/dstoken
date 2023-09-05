@@ -23,7 +23,8 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
         string memory _reason,
         uint64[] memory _releaseTimes /*onlyIssuerOrAbove*/
     ) public override returns (bool) {
-        super.issueTokensWithMultipleLocks(_to, _value, _issuanceTime, new uint256[](0), "", new uint64[](0));
+        uint256 issuanceTime = getComplianceService().validateIssuanceTime(_issuanceTime);
+        super.issueTokensWithMultipleLocks(_to, _value, issuanceTime, new uint256[](0), "", new uint64[](0));
         partitionsManagement.issueTokensCustom(
             getRegistryService(),
             getComplianceConfigurationService(),
@@ -31,7 +32,7 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
             getLockManagerPartitioned(),
             _to,
             _value,
-            _issuanceTime,
+            issuanceTime,
             _valuesLocked,
             _reason,
             _releaseTimes

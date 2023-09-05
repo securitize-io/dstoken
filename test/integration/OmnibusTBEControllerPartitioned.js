@@ -4,7 +4,7 @@ const fixtures = require('../fixtures');
 const { expectRevert } = require('@openzeppelin/test-helpers');
 const {
   setOmnibusTBEServicesDependencies, resetCounters, setCounters,
-  getCountersDelta, toHex, assertCounters, assertCountryCounters, assertEvent,
+  toHex, assertCounters, assertCountryCounters, assertEvent,
 } =
     require('../utils/omnibus/utils');
 

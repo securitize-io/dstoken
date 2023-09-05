@@ -49,7 +49,7 @@ contract('ComplianceServiceRegulatedPartitioned', function ([
     );
     await this.complianceConfiguration.setAll(
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, time.YEARS, 0, 0],
-      [true, false, false, false],
+      [true, false, false, false, false],
     );
     await this.registryService.registerInvestor(
       investorId.GENERAL_INVESTOR_ID_1,

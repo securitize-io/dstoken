@@ -37,7 +37,7 @@ contract('Integration', function ([
     await this.trustService.setRole(this.issuer.address, roles.ISSUER);
     await this.complianceConfiguration.setAll(
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 1 * time.YEARS, 0, 0],
-      [true, false, false, false],
+      [true, false, false, false, false],
     );
   });
 

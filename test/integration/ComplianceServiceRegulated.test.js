@@ -53,7 +53,7 @@ contract('ComplianceServiceRegulated', function ([
     );
     await this.complianceConfiguration.setAll(
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, time.YEARS, 0, 0],
-      [true, false, false, false],
+      [true, false, false, false, false],
     );
   });
 
