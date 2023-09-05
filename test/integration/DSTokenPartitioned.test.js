@@ -11,16 +11,16 @@ const complianceType = require('../../utils/globals').complianceType;
 const lockManagerType = require('../../utils/globals').lockManagerType;
 
 contract('DSTokenPartitioned (regulated)', function ([
-                                                       owner,
-                                                       issuerWallet,
-                                                       usInvestorWallet,
-                                                       usInvestorSecondaryWallet,
-                                                       usInvestor2Wallet,
-                                                       spainInvestorWallet,
-                                                       germanyInvestorWallet,
-                                                       chinaInvestorWallet,
-                                                       israelInvestorWallet,
-                                                     ]) {
+  owner,
+  issuerWallet,
+  usInvestorWallet,
+  usInvestorSecondaryWallet,
+  usInvestor2Wallet,
+  spainInvestorWallet,
+  germanyInvestorWallet,
+  chinaInvestorWallet,
+  israelInvestorWallet,
+]) {
   before(async function () {
     // Setting up the environment
     await deployContracts(
