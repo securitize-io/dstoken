@@ -11,7 +11,6 @@ const complianceType = require('../../utils/globals').complianceType;
 const lockManagerType = require('../../utils/globals').lockManagerType;
 
 contract('DSTokenPartitioned (regulated)', function ([
-  owner,
   issuerWallet,
   usInvestorWallet,
   usInvestorSecondaryWallet,
