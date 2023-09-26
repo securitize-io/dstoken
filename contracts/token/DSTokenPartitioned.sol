@@ -60,6 +60,18 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
         return true;
     }
 
+    function issueTokensWithNoCompliance(address _to, uint256 _value) public override {
+        super.issueTokensWithNoCompliance(_to, _value);
+        partitionsManagement.issueTokensWithNoCompliance(
+            getRegistryService(),
+            getComplianceConfigurationService(),
+            getPartitionsManager(),
+            _to,
+            _value,
+            block.timestamp
+        );
+    }
+
     function transfer(address _to, uint256 _value) public override returns (bool) {
         return DSToken.transfer(_to, _value) && partitionsManagement.transferPartitions(getCommonServices(), msg.sender, _to, _value);
     }

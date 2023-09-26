@@ -253,6 +253,90 @@ contract('DSTokenPartitioned (regulated)', function ([
     });
   });
 
+  describe('Issuance with no compliance', function () {
+    it('Should issue tokens to a us wallet', async function () {
+      const result = await this.token.issueTokensWithNoCompliance(usInvestorWallet, 100);
+      const partition = await this.token.partitionOf(usInvestorWallet, 0);
+      const balance = await this.token.balanceOf(usInvestorWallet);
+      assert.equal(balance.toNumber(), 100);
+      assert.equal(result.logs.length, 4);
+      assert.equal(result.logs[0].event, 'Issue');
+      assert.equal(result.logs[1].event, 'Transfer');
+      assert.equal(result.logs[2].event, 'IssueByPartition');
+      assert.equal(result.logs[2].args.to, usInvestorWallet);
+      assert.equal(result.logs[2].args.value, 100);
+      assert.equal(result.logs[2].args.partition, partition);
+      assert.equal(result.logs[3].event, 'TransferByPartition');
+      assert.equal(
+        result.logs[3].args.from,
+        '0x0000000000000000000000000000000000000000',
+      );
+      assert.equal(result.logs[3].args.to, usInvestorWallet);
+      assert.equal(result.logs[3].args.value, 100);
+      assert.equal(result.logs[3].args.partition, partition);
+    });
+
+    it('Should issue tokens to a eu wallet', async function () {
+      await this.token.issueTokensWithNoCompliance(germanyInvestorWallet, 100);
+      const balance = await this.token.balanceOf(germanyInvestorWallet);
+      assert.equal(balance.toNumber(), 100);
+    });
+
+    it('Should issue tokens to a forbidden wallet (no compliance)', async function () {
+      this.token.issueTokensWithNoCompliance(chinaInvestorWallet, 100);
+    });
+
+    it('Should issue tokens to a none wallet', async function () {
+      await this.token.issueTokensWithNoCompliance(israelInvestorWallet, 100);
+      const balance = await this.token.balanceOf(israelInvestorWallet);
+      assert.equal(balance.toNumber(), 100);
+    });
+
+    it('Should record the number of total issued token correctly', async function () {
+      await this.token.issueTokensWithNoCompliance(usInvestorWallet, 100);
+      await this.token.issueTokensWithNoCompliance(usInvestorSecondaryWallet, 100);
+      await this.token.issueTokensWithNoCompliance(germanyInvestorWallet, 100);
+      await this.token.issueTokensWithNoCompliance(israelInvestorWallet, 100);
+
+      const totalIssued = await this.token.totalIssued();
+
+      assert.equal(totalIssued.toNumber(), 400);
+    });
+
+    it('Should create a partition with the given time and region', async function () {
+      await this.token.issueTokensCustom(usInvestorWallet, 100, 1, 0, '', 0);
+      const partition = await this.token.partitionOf(usInvestorWallet, 0);
+      const issuanceTime = await this.partitionsManager.getPartitionIssuanceDate(
+        partition,
+      );
+      const region = await this.partitionsManager.getPartitionRegion.call(
+        partition,
+      );
+      assert.equal(issuanceTime, 1);
+      assert.equal(region, compliance.US);
+    });
+
+    it('Should return the correct balance of investor by partition', async function () {
+      await this.token.issueTokensCustom(usInvestorWallet, 100, 1, 0, '', 0);
+      const partition = await this.token.partitionOf(usInvestorWallet, 0);
+      const balance = await this.token.balanceOfInvestorByPartition.call(
+        investorId.US_INVESTOR_ID,
+        partition,
+      );
+      assert.equal(balance.toNumber(), 100);
+    });
+
+    it('Should return the correct balance of wallet by partition', async function () {
+      await this.token.issueTokensCustom(usInvestorWallet, 100, 1, 0, '', 0);
+      const partition = await this.token.partitionOf(usInvestorWallet, 0);
+      const balance = await this.token.balanceOfByPartition.call(
+        usInvestorWallet,
+        partition,
+      );
+      assert.equal(balance.toNumber(), 100);
+    });
+  });
+
   describe('Locking', function () {
     it('Should not allow transferring any tokens when all locked', async function () {
       await this.token.issueTokensCustom(

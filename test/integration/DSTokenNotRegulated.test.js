@@ -132,6 +132,63 @@ contract('DSToken (not regulated)', function ([
       });
     });
 
+    describe('Issuance with no compliance', async function () {
+      before(async function() {
+        await this.registryService.registerInvestor(
+          investorId.US_INVESTOR_ID,
+          investorId.US_INVESTOR_COLLISION_HASH,
+        );
+        await this.registryService.registerInvestor(
+          investorId.US_INVESTOR_ID_2,
+          investorId.US_INVESTOR_COLLISION_HASH_2,
+        );
+        await this.registryService.addWallet(
+          wallet2,
+          investorId.US_INVESTOR_ID,
+        );
+        await this.registryService.addWallet(
+          wallet3,
+          investorId.US_INVESTOR_ID_2,
+        );
+      });
+      beforeEach(async function () {
+        await this.token.issueTokensWithNoCompliance(wallet2, 100);
+      });
+
+      it('Should issue tokens to a wallet', async function () {
+        const balance = await this.token.balanceOf(wallet2);
+        assert.equal(balance, 100);
+      });
+
+      it('Should issue unlocked tokens to a wallet', async function () {
+        const balance = await this.token.balanceOf(wallet2);
+        assert.equal(balance, 100);
+        await this.token.transfer(wallet3, 100, { from: wallet2 });
+        const wallet2balance = await this.token.balanceOf(wallet2);
+        assert.equal(wallet2balance, 0);
+        const recipientBalance = await this.token.balanceOf(wallet3);
+        assert.equal(recipientBalance, 100);
+      });
+
+      it('Should record the number of total issued token correctly', async function () {
+        await this.token.issueTokensWithNoCompliance(wallet2, 100);
+        await this.token.issueTokensWithNoCompliance(wallet2, 100);
+
+        const totalIssued = await this.token.totalIssued();
+
+        assert.equal(totalIssued, 300);
+      });
+
+      it('Should record the number of total issued token correctly after burn', async function () {
+        await this.token.issueTokensWithNoCompliance(wallet2, 100);
+        await this.token.issueTokensWithNoCompliance(wallet2, 100);
+        await this.token.burn(wallet2, 100, 'test burn');
+
+        const totalIssued = await this.token.totalIssued();
+        assert.equal(totalIssued, 300);
+      });
+    });
+
     describe('Burn', function () {
       it('Should burn tokens from a specific wallet', async function () {
         await this.token.issueTokens(owner, 100);
@@ -231,6 +288,7 @@ contract('DSToken (not regulated)', function ([
       it('Issue Tokens to investor not in the Registry (should fail) and add new investor and try issuing again (should now work)', async function () {
         await this.token.setCap(1000);
         await expectRevert.unspecified(this.token.issueTokens(wallet1, 100));
+        await expectRevert(this.token.issueTokensWithNoCompliance(wallet1, 100), 'Unknown wallet');
         await this.registryService.registerInvestor(
           investorId.US_INVESTOR_ID,
           'anotherAccount',

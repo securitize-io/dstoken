@@ -105,6 +105,12 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
         return true;
     }
 
+    function issueTokensWithNoCompliance(address _to, uint256 _value) public virtual override onlyIssuerOrAbove {
+        require(getRegistryService().isWallet(_to), "Unknown wallet");
+        TokenLibrary.issueTokensWithNoCompliance(tokenData, getCommonServices(), _to, _value, block.timestamp, cap);
+        emit Transfer(address(0), _to, _value);
+    }
+
     //*********************
     // TOKEN BURNING
     //*********************

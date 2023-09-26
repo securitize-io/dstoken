@@ -37,9 +37,9 @@ module.exports = {
     //   provider: new HDWalletProvider({
     //     privateKeys: [privateKey],
     //     providerOrUrl: `wss://sepolia.infura.io/ws/v3/${process.env.INFURA_API_KEY}`,
-    //     chainId: 5,
+    //     chainId: 11155111,
     //   }),
-    //   network_id: '5',
+    //   network_id: '11155111',
     //   timeoutBlocks,
     // },
     // quorum: {

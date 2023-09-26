@@ -19,6 +19,7 @@ contract('DSToken (regulated)', function ([
   germanyInvestorWallet,
   chinaInvestorWallet,
   israelInvestorWallet,
+  unregisteredWallet,
 ]) {
   before(async function () {
     // Setting up the environment
@@ -283,6 +284,39 @@ contract('DSToken (regulated)', function ([
       const totalIssued = await this.token.totalIssued();
 
       assert.equal(totalIssued, 600);
+    });
+  });
+
+  describe('Issuance with no compliance', function () {
+    it('Should issue tokens to a us wallet', async function () {
+      await this.token.issueTokensWithNoCompliance(usInvestorWallet, 100);
+      const balance = await this.token.balanceOf(usInvestorWallet);
+      assert.equal(balance, 100);
+    });
+
+    it('Should issue tokens to a eu wallet', async function () {
+      await this.token.issueTokensWithNoCompliance(germanyInvestorWallet, 100);
+      const balance = await this.token.balanceOf(germanyInvestorWallet);
+      assert.equal(balance, 100);
+    });
+
+    it('Should issue tokens to a forbidden wallet (no compliance)', async function () {
+      this.token.issueTokensWithNoCompliance(chinaInvestorWallet, 100);
+    });
+
+    it('Should failed when trying to issue tokens to a non existing wallet (no compliance)', async function () {
+      await expectRevert(this.token.issueTokensWithNoCompliance(unregisteredWallet, 100), 'Unknown wallet');
+    });
+
+    it('Should record the number of total issued token correctly', async function () {
+      await this.token.issueTokensWithNoCompliance(usInvestorWallet, 100);
+      await this.token.issueTokensWithNoCompliance(usInvestorSecondaryWallet, 100);
+      await this.token.issueTokensWithNoCompliance(germanyInvestorWallet, 100);
+      await this.token.issueTokensWithNoCompliance(israelInvestorWallet, 100);
+
+      const totalIssued = await this.token.totalIssued();
+
+      assert.equal(totalIssued, 500);
     });
   });
 

@@ -57,7 +57,7 @@ abstract contract ComplianceService is ProxyTarget, Initializable, IDSCompliance
         address _to,
         uint256 _value,
         uint256 _issuanceTime
-    ) public virtual override onlyToken returns (bool) {
+    ) public override onlyToken returns (bool) {
         uint256 code;
         string memory reason;
 
@@ -68,6 +68,19 @@ abstract contract ComplianceService is ProxyTarget, Initializable, IDSCompliance
 
         (code, reason) = preIssuanceCheck(_to, _value);
         require(code == 0, reason);
+
+        return recordIssuance(_to, _value, _issuanceTime);
+    }
+
+    function validateIssuanceWithNoCompliance(
+        address _to,
+        uint256 _value,
+        uint256 _issuanceTime
+    ) public override onlyToken returns (bool) {
+        uint256 authorizedSecurities = getComplianceConfigurationService().getAuthorizedSecurities();
+
+        require(authorizedSecurities == 0 || getToken().totalSupply() + _value <= authorizedSecurities,
+            MAX_AUTHORIZED_SECURITIES_EXCEEDED);
 
         return recordIssuance(_to, _value, _issuanceTime);
     }
