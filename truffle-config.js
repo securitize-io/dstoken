@@ -49,17 +49,17 @@ module.exports = {
     //   gasPrice: 0,
     //   type: 'quorum', // needed for Truffle to support Quorum
     // },
-    // matic: {
-    //   gasPrice: 100000000000,
-    //   provider: () => new HDWalletProvider({
-    //     privateKeys: [privateKey],
-    //     providerOrUrl: `wss://polygon-mumbai.g.alchemy.com/v2/${process.env.API_KEY}`,
-    //     chainId: 80001,
-    //   }),
-    //   network_id: 80001,
-    //   timeoutBlocks: 10000000,
-    //   skipDryRun: true,
-    // },
+    matic: {
+      gasPrice: 100000000000,
+      provider: () => new HDWalletProvider({
+        privateKeys: [privateKey],
+        providerOrUrl: `wss://polygon-mumbai.g.alchemy.com/v2/${process.env.API_KEY}`,
+        chainId: 80001,
+      }),
+      network_id: 80001,
+      timeoutBlocks: 10000000,
+      skipDryRun: true,
+    },
     // avalanche: {
     //   provider: new HDWalletProvider({
     //     privateKeys: [privateKey],

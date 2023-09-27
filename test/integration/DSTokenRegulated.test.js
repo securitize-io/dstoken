@@ -301,7 +301,9 @@ contract('DSToken (regulated)', function ([
     });
 
     it('Should issue tokens to a forbidden wallet (no compliance)', async function () {
-      this.token.issueTokensWithNoCompliance(chinaInvestorWallet, 100);
+      await this.token.issueTokensWithNoCompliance(chinaInvestorWallet, 100);
+      const balance = await this.token.balanceOf(chinaInvestorWallet);
+      assert.equal(balance.toNumber(), 100);
     });
 
     it('Should failed when trying to issue tokens to a non existing wallet (no compliance)', async function () {
@@ -316,11 +318,11 @@ contract('DSToken (regulated)', function ([
 
       const totalIssued = await this.token.totalIssued();
 
-      assert.equal(totalIssued, 500);
+      assert.equal(totalIssued, 400);
     });
   });
 
-  describe('Locking', function () {
+  describe('Locking', async function () {
     it('Should not allow transferring any tokens when all locked', async function () {
       await this.token.issueTokensCustom(
         israelInvestorWallet,

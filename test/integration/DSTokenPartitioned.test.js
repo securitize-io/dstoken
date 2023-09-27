@@ -161,13 +161,13 @@ contract('DSTokenPartitioned (regulated)', function ([
     });
   });
 
-  describe('Token Initialization', function () {
+  describe('Token Initialization', async function () {
     it('Token cannot be initialized twice', async function () {
       await expectRevert(this.token.initialize(), 'Contract instance has already been initialized');
     });
   });
 
-  describe('Issuance', function () {
+  describe('Issuance', async function () {
     it('Should issue tokens to a us wallet', async function () {
       const result = await this.token.issueTokens(usInvestorWallet, 100);
       const partition = await this.token.partitionOf(usInvestorWallet, 0);
@@ -253,7 +253,7 @@ contract('DSTokenPartitioned (regulated)', function ([
     });
   });
 
-  describe('Issuance with no compliance', function () {
+  describe('Issuance with no compliance', async function () {
     it('Should issue tokens to a us wallet', async function () {
       const result = await this.token.issueTokensWithNoCompliance(usInvestorWallet, 100);
       const partition = await this.token.partitionOf(usInvestorWallet, 0);
@@ -283,7 +283,9 @@ contract('DSTokenPartitioned (regulated)', function ([
     });
 
     it('Should issue tokens to a forbidden wallet (no compliance)', async function () {
-      this.token.issueTokensWithNoCompliance(chinaInvestorWallet, 100);
+      await this.token.issueTokensWithNoCompliance(chinaInvestorWallet, 50);
+      const balance = await this.token.balanceOf(chinaInvestorWallet);
+      assert.equal(balance.toNumber(), 50);
     });
 
     it('Should issue tokens to a none wallet', async function () {
@@ -293,14 +295,13 @@ contract('DSTokenPartitioned (regulated)', function ([
     });
 
     it('Should record the number of total issued token correctly', async function () {
-      await this.token.issueTokensWithNoCompliance(usInvestorWallet, 100);
-      await this.token.issueTokensWithNoCompliance(usInvestorSecondaryWallet, 120);
-      await this.token.issueTokensWithNoCompliance(germanyInvestorWallet, 130);
+      await this.token.issueTokensWithNoCompliance(germanyInvestorWallet, 150);
       await this.token.issueTokensWithNoCompliance(israelInvestorWallet, 150);
+      await this.token.issueTokensWithNoCompliance(chinaInvestorWallet, 20);
 
       const totalIssued = await this.token.totalIssued();
 
-      assert.equal(totalIssued.toNumber(), 500);
+      assert.equal(totalIssued.toNumber(), 320);
     });
 
     it('Should create a partition with the given time and region', async function () {
