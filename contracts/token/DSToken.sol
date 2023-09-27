@@ -97,8 +97,7 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
     onlyIssuerOrAbove
     returns (bool)
     {
-        uint256 issuanceTime = getComplianceService().validateIssuanceTime(_issuanceTime);
-        TokenLibrary.issueTokensCustom(tokenData, getCommonServices(), getLockManager(), _to, _value, issuanceTime, _valuesLocked, _releaseTimes, _reason, cap);
+        TokenLibrary.issueTokensCustom(tokenData, getCommonServices(), getLockManager(), _to, _value, _issuanceTime, _valuesLocked, _releaseTimes, _reason, cap);
         emit Transfer(address(0), _to, _value);
 
         checkWalletsForList(address(0), _to);

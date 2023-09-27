@@ -32,16 +32,17 @@ module.exports = {
     //   gas: 0xfffffffffff,
     //   gasPrice: 0x01,
     // },
-    // sepolia: {
-    //   gasPrice: 4000000000,
-    //   provider: new HDWalletProvider({
-    //     privateKeys: [privateKey],
-    //     providerOrUrl: `wss://sepolia.infura.io/ws/v3/${process.env.INFURA_API_KEY}`,
-    //     chainId: 11155111,
-    //   }),
-    //   network_id: '11155111',
-    //   timeoutBlocks,
-    // },
+    sepolia: {
+      gasPrice: 65000000000,
+      provider: new HDWalletProvider({
+        privateKeys: [privateKey],
+        providerOrUrl: `wss://sepolia.infura.io/ws/v3/${process.env.INFURA_API_KEY}`,
+        chainId: 11155111,
+      }),
+      network_id: '11155111',
+      skipDryRun: true,
+      disableConfirmationListener: true
+    },
     // quorum: {
     //   host: '3.20.198.114',
     //   port: 22002, // was 8545

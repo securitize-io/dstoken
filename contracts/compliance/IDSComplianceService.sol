@@ -94,5 +94,5 @@ abstract contract IDSComplianceService is Initializable, VersionedContract {
         uint256 _value
     ) public view virtual returns (uint256 code, string memory reason);
 
-    function validateIssuanceTime(uint256 _issuanceTime) external view virtual returns (uint256 issuanceTime);
+    function validateIssuanceTime(uint256 _issuanceTime) public view virtual returns (uint256 issuanceTime);
 }
