@@ -294,13 +294,13 @@ contract('DSTokenPartitioned (regulated)', function ([
 
     it('Should record the number of total issued token correctly', async function () {
       await this.token.issueTokensWithNoCompliance(usInvestorWallet, 100);
-      await this.token.issueTokensWithNoCompliance(usInvestorSecondaryWallet, 100);
-      await this.token.issueTokensWithNoCompliance(germanyInvestorWallet, 100);
-      await this.token.issueTokensWithNoCompliance(israelInvestorWallet, 100);
+      await this.token.issueTokensWithNoCompliance(usInvestorSecondaryWallet, 120);
+      await this.token.issueTokensWithNoCompliance(germanyInvestorWallet, 130);
+      await this.token.issueTokensWithNoCompliance(israelInvestorWallet, 150);
 
       const totalIssued = await this.token.totalIssued();
 
-      assert.equal(totalIssued.toNumber(), 400);
+      assert.equal(totalIssued.toNumber(), 500);
     });
 
     it('Should create a partition with the given time and region', async function () {
