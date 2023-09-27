@@ -348,8 +348,6 @@ contract('DSToken (regulated)', function ([
       await this.token.issueTokensCustom(germanyInvestorWallet, 100, time + 10000, 0, 'TEST', 0);
       const balance = await this.token.balanceOf(germanyInvestorWallet);
       assert.equal(balance, 100);
-      const complianceTransferableTokens = await this.complianceService.getComplianceTransferableTokens(germanyInvestorWallet, time, 0);
-      assert.equal(complianceTransferableTokens, 100);
       await this.token.transfer(israelInvestorWallet, 100, {
         from: germanyInvestorWallet,
       });
@@ -363,6 +361,8 @@ contract('DSToken (regulated)', function ([
       const time = await latestTime();
       await this.complianceConfiguration.setDisallowBackDating(false);
       await this.token.issueTokensCustom(israelInvestorWallet, 100, time + 10000, 0, 'TEST', 0);
+      const complianceTransferableTokens = await this.complianceService.getComplianceTransferableTokens(israelInvestorWallet, time, 0);
+      assert.equal(complianceTransferableTokens, 0);
       await expectRevert(
         this.token.transfer(germanyInvestorWallet, 1, {
           from: israelInvestorWallet,
