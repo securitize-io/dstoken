@@ -345,18 +345,18 @@ contract('DSToken (regulated)', function ([
     it('Should ignore issuance time if token has disallowBackDating set to true and allow transferring', async function () {
       await this.complianceConfiguration.setDisallowBackDating(true);
       const time = await latestTime();
-      await this.token.issueTokensCustom(israelInvestorWallet, 100, time + 10000, 0, 'TEST', 0);
-      const balance = await this.token.balanceOf(israelInvestorWallet);
+      await this.token.issueTokensCustom(germanyInvestorWallet, 100, time + 10000, 0, 'TEST', 0);
+      const balance = await this.token.balanceOf(germanyInvestorWallet);
       assert.equal(balance, 100);
-      const complianceTransferableTokens = await this.complianceService.getComplianceTransferableTokens(israelInvestorWallet, time, 0);
+      const complianceTransferableTokens = await this.complianceService.getComplianceTransferableTokens(germanyInvestorWallet, time, 0);
       assert.equal(complianceTransferableTokens, 100);
-      await this.token.transfer(germanyInvestorWallet, 100, {
-        from: israelInvestorWallet,
+      await this.token.transfer(israelInvestorWallet, 100, {
+        from: germanyInvestorWallet,
       });
-      const israelBalance = await this.token.balanceOf(israelInvestorWallet);
-      assert.equal(israelBalance, 0);
       const germanyBalance = await this.token.balanceOf(germanyInvestorWallet);
-      assert.equal(germanyBalance, 100);
+      assert.equal(germanyBalance, 0);
+      const israelBalance = await this.token.balanceOf(israelInvestorWallet);
+      assert.equal(israelBalance, 100);
     });
 
     it('Should not ignore issuance time if token has disallowBackDating set to false and not allow transferring', async function () {
