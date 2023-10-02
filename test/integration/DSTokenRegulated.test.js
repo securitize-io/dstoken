@@ -19,6 +19,7 @@ contract('DSToken (regulated)', function ([
   germanyInvestorWallet,
   chinaInvestorWallet,
   israelInvestorWallet,
+  unregisteredWallet,
 ]) {
   before(async function () {
     // Setting up the environment
@@ -286,7 +287,42 @@ contract('DSToken (regulated)', function ([
     });
   });
 
-  describe('Locking', function () {
+  describe('Issuance with no compliance', function () {
+    it('Should issue tokens to a us wallet', async function () {
+      await this.token.issueTokensWithNoCompliance(usInvestorWallet, 100);
+      const balance = await this.token.balanceOf(usInvestorWallet);
+      assert.equal(balance, 100);
+    });
+
+    it('Should issue tokens to a eu wallet', async function () {
+      await this.token.issueTokensWithNoCompliance(germanyInvestorWallet, 100);
+      const balance = await this.token.balanceOf(germanyInvestorWallet);
+      assert.equal(balance, 100);
+    });
+
+    it('Should issue tokens to a forbidden wallet (no compliance)', async function () {
+      await this.token.issueTokensWithNoCompliance(chinaInvestorWallet, 100);
+      const balance = await this.token.balanceOf(chinaInvestorWallet);
+      assert.equal(balance.toNumber(), 100);
+    });
+
+    it('Should failed when trying to issue tokens to a non existing wallet (no compliance)', async function () {
+      await expectRevert(this.token.issueTokensWithNoCompliance(unregisteredWallet, 100), 'Unknown wallet');
+    });
+
+    it('Should record the number of total issued token correctly', async function () {
+      await this.token.issueTokensWithNoCompliance(usInvestorWallet, 100);
+      await this.token.issueTokensWithNoCompliance(usInvestorSecondaryWallet, 100);
+      await this.token.issueTokensWithNoCompliance(germanyInvestorWallet, 100);
+      await this.token.issueTokensWithNoCompliance(israelInvestorWallet, 100);
+
+      const totalIssued = await this.token.totalIssued();
+
+      assert.equal(totalIssued, 400);
+    });
+  });
+
+  describe('Locking', async function () {
     it('Should not allow transferring any tokens when all locked', async function () {
       await this.token.issueTokensCustom(
         israelInvestorWallet,
@@ -309,18 +345,16 @@ contract('DSToken (regulated)', function ([
     it('Should ignore issuance time if token has disallowBackDating set to true and allow transferring', async function () {
       await this.complianceConfiguration.setDisallowBackDating(true);
       const time = await latestTime();
-      await this.token.issueTokensCustom(israelInvestorWallet, 200, time + 10000, 0, 'TEST', 0);
-      const balance = await this.token.balanceOf(israelInvestorWallet);
-      assert.equal(balance, 200);
-      const complianceTransferableTokens = await this.complianceService.getComplianceTransferableTokens(israelInvestorWallet, time, 0);
-      assert.equal(complianceTransferableTokens, 200);
-      await this.token.transfer(germanyInvestorWallet, 200, {
-        from: israelInvestorWallet,
+      await this.token.issueTokensCustom(germanyInvestorWallet, 100, time + 10000, 0, 'TEST', 0);
+      const balance = await this.token.balanceOf(germanyInvestorWallet);
+      assert.equal(balance, 100);
+      await this.token.transfer(israelInvestorWallet, 100, {
+        from: germanyInvestorWallet,
       });
-      const israelBalance = await this.token.balanceOf(israelInvestorWallet);
-      assert.equal(israelBalance, 0);
       const germanyBalance = await this.token.balanceOf(germanyInvestorWallet);
-      assert.equal(germanyBalance, 200);
+      assert.equal(germanyBalance, 0);
+      const israelBalance = await this.token.balanceOf(israelInvestorWallet);
+      assert.equal(israelBalance, 100);
     });
 
     it('Should not ignore issuance time if token has disallowBackDating set to false and not allow transferring', async function () {

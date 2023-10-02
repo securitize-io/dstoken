@@ -57,7 +57,7 @@ abstract contract ComplianceService is ProxyTarget, Initializable, IDSCompliance
         address _to,
         uint256 _value,
         uint256 _issuanceTime
-    ) public virtual override onlyToken returns (bool) {
+    ) public override onlyToken returns (bool) {
         uint256 code;
         string memory reason;
 
@@ -69,7 +69,22 @@ abstract contract ComplianceService is ProxyTarget, Initializable, IDSCompliance
         (code, reason) = preIssuanceCheck(_to, _value);
         require(code == 0, reason);
 
-        return recordIssuance(_to, _value, _issuanceTime);
+        uint256 issuanceTime = validateIssuanceTime(_issuanceTime);
+        return recordIssuance(_to, _value, issuanceTime);
+    }
+
+    function validateIssuanceWithNoCompliance(
+        address _to,
+        uint256 _value,
+        uint256 _issuanceTime
+    ) public override onlyToken returns (bool) {
+        uint256 authorizedSecurities = getComplianceConfigurationService().getAuthorizedSecurities();
+
+        require(authorizedSecurities == 0 || getToken().totalSupply() + _value <= authorizedSecurities,
+            MAX_AUTHORIZED_SECURITIES_EXCEEDED);
+
+        uint256 issuanceTime = validateIssuanceTime(_issuanceTime);
+        return recordIssuance(_to, _value, issuanceTime);
     }
 
     function validateBurn(address _who, uint256 _value) public virtual override onlyToken returns (bool) {
@@ -84,6 +99,18 @@ abstract contract ComplianceService is ProxyTarget, Initializable, IDSCompliance
         require(getWalletManager().isIssuerSpecialWallet(_to), "Target wallet type error");
 
         return recordSeize(_from, _to, _value);
+    }
+
+    /**
+     * @dev Verify disallowBackDating compliance: if set to false returns _issuanceTime parameter, otherwise returns current timestamp
+     * @param _issuanceTime.
+     * @return issuanceTime
+     */
+    function validateIssuanceTime(uint256 _issuanceTime) public view override returns (uint256 issuanceTime) {
+        if (!getComplianceConfigurationService().getDisallowBackDating()) {
+            return _issuanceTime;
+        }
+        return block.timestamp;
     }
 
     function newPreTransferCheck(
@@ -181,16 +208,4 @@ abstract contract ComplianceService is ProxyTarget, Initializable, IDSCompliance
         address _to,
         uint256 _value
     ) internal view virtual returns (uint256, string memory);
-
-    /**
-     * @dev Verify disallowBackDating compliance: if set to false returns _issuanceTime parameter, otherwise returns current timestamp
-     * @param _issuanceTime.
-     * @return issuanceTime
-     */
-    function validateIssuanceTime(uint256 _issuanceTime) external view override returns (uint256 issuanceTime) {
-        if (!getComplianceConfigurationService().getDisallowBackDating()) {
-            return _issuanceTime;
-        }
-        return block.timestamp;
-    }
 }

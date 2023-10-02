@@ -76,6 +76,29 @@ library TokenLibrary {
         return true;
     }
 
+    function issueTokensWithNoCompliance(
+        TokenData storage _tokenData,
+        address[] memory _services,
+        address _to,
+        uint256 _value,
+        uint256 _issuanceTime,
+        uint256 _cap
+    ) public returns (bool) {
+        //Make sure we are not hitting the cap
+        require(_cap == 0 || _tokenData.totalIssued + _value <= _cap, "Token Cap Hit");
+
+        //Check and inform issuance
+        IDSComplianceService(_services[COMPLIANCE_SERVICE]).validateIssuanceWithNoCompliance(_to, _value, _issuanceTime);
+
+        _tokenData.totalSupply += _value;
+        _tokenData.totalIssued += _value;
+        _tokenData.walletsBalances[_to] += _value;
+        updateInvestorBalance(_tokenData, IDSRegistryService(_services[REGISTRY_SERVICE]), _to, _value, CommonUtils.IncDec.Increase);
+
+        emit Issue(_to, _value, 0);
+        return true;
+    }
+
     modifier validSeizeParameters(TokenData storage _tokenData, address _from, address _to, uint256 _value) {
         require(_from != address(0), "Invalid address");
         require(_to != address(0), "Invalid address");

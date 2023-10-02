@@ -63,6 +63,12 @@ abstract contract IDSComplianceService is Initializable, VersionedContract {
         uint256 _issuanceTime /*onlyToken*/
     ) public virtual returns (bool);
 
+    function validateIssuanceWithNoCompliance(
+        address _to,
+        uint256 _value,
+        uint256 _issuanceTime /*onlyToken*/
+    ) public virtual returns (bool);
+
     function validateBurn(
         address _who,
         uint256 _value /*onlyToken*/
@@ -88,5 +94,5 @@ abstract contract IDSComplianceService is Initializable, VersionedContract {
         uint256 _value
     ) public view virtual returns (uint256 code, string memory reason);
 
-    function validateIssuanceTime(uint256 _issuanceTime) external view virtual returns (uint256 issuanceTime);
+    function validateIssuanceTime(uint256 _issuanceTime) public view virtual returns (uint256 issuanceTime);
 }

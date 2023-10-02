@@ -60,6 +60,23 @@ library TokenPartitionsLibrary {
         return true;
     }
 
+    function issueTokensWithNoCompliance(
+        TokenPartitions storage self,
+        IDSRegistryService _registry,
+        IDSComplianceConfigurationService _compConf,
+        IDSPartitionsManager _partitionsManager,
+        address _to,
+        uint256 _value,
+        uint256 _issuanceTime
+    ) public returns (bool) {
+        string memory investor = _registry.getInvestor(_to);
+        string memory country = _registry.getCountry(investor);
+        bytes32 partition = _partitionsManager.ensurePartition(_issuanceTime, _compConf.getCountryCompliance(country));
+        emit IssueByPartition(_to, _value, partition);
+        transferPartition(self, _registry, address(0), _to, _value, partition);
+        return true;
+    }
+
     function setPartitionToAddressImpl(TokenPartitions storage self, address _who, uint256 _index, bytes32 _partition) internal returns (bool) {
         self.walletPartitions[_who].partitions[_index] = _partition;
         self.walletPartitions[_who].toIndex[_partition] = _index;

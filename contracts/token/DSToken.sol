@@ -97,12 +97,17 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
     onlyIssuerOrAbove
     returns (bool)
     {
-        uint256 issuanceTime = getComplianceService().validateIssuanceTime(_issuanceTime);
-        TokenLibrary.issueTokensCustom(tokenData, getCommonServices(), getLockManager(), _to, _value, issuanceTime, _valuesLocked, _releaseTimes, _reason, cap);
+        TokenLibrary.issueTokensCustom(tokenData, getCommonServices(), getLockManager(), _to, _value, _issuanceTime, _valuesLocked, _releaseTimes, _reason, cap);
         emit Transfer(address(0), _to, _value);
 
         checkWalletsForList(address(0), _to);
         return true;
+    }
+
+    function issueTokensWithNoCompliance(address _to, uint256 _value) public virtual override onlyIssuerOrAbove {
+        require(getRegistryService().isWallet(_to), "Unknown wallet");
+        TokenLibrary.issueTokensWithNoCompliance(tokenData, getCommonServices(), _to, _value, block.timestamp, cap);
+        emit Transfer(address(0), _to, _value);
     }
 
     //*********************
