@@ -25,50 +25,51 @@ module.exports = {
       port: 7545,
       network_id: '*',
     },
-    coverage: {
-      host: 'localhost',
-      network_id: '*', // eslint-disable-line camelcase
-      port: 8555,
-      gas: 0xfffffffffff,
-      gasPrice: 0x01,
-    },
-    // goerli: {
-    //   gasPrice: 4000000000,
+    // coverage: {
+    //   host: 'localhost',
+    //   network_id: '*', // eslint-disable-line camelcase
+    //   port: 8555,
+    //   gas: 0xfffffffffff,
+    //   gasPrice: 0x01,
+    // },
+    // sepolia: {
+    //   gasPrice: 65000000000,
     //   provider: new HDWalletProvider({
     //     privateKeys: [privateKey],
-    //     providerOrUrl: `wss://goerli.infura.io/ws/v3/${process.env.INFURA_API_KEY}`,
-    //     chainId: 5,
+    //     providerOrUrl: `wss://sepolia.infura.io/ws/v3/${process.env.INFURA_API_KEY}`,
+    //     chainId: 11155111,
     //   }),
-    //   network_id: '5',
-    //   timeoutBlocks,
+    //   network_id: '11155111',
+    //   skipDryRun: true,
+    //   disableConfirmationListener: true
     // },
-    quorum: {
-      host: '127.0.0.1',
-      port: 22000, // was 8545
-      network_id: '*', // Match any network id
-      gasPrice: 0,
-      type: 'quorum', // needed for Truffle to support Quorum
-    },
-    matic: {
-      gasPrice: 100000000000,
-      provider: () => new HDWalletProvider({
-        privateKeys: [privateKey],
-        providerOrUrl: `wss://polygon-mumbai.g.alchemy.com/v2/${process.env.API_KEY}`,
-        chainId: 80001,
-      }),
-      network_id: 80001,
-      timeoutBlocks: 10000000,
-      skipDryRun: true,
-    },
-    avalanche: {
-      provider: new HDWalletProvider({
-        privateKeys: [privateKey],
-        providerOrUrl: 'https://api.avax-test.network/ext/bc/C/rpc',
-        chainId: 43113,
-      }),
-      network_id: '43113',
-      skipDryRun: true,
-    },
+    // quorum: {
+    //   host: '3.20.198.114',
+    //   port: 22002, // was 8545
+    //   network_id: '*', // Match any network id
+    //   gasPrice: 0,
+    //   type: 'quorum', // needed for Truffle to support Quorum
+    // },
+    // matic: {
+    //   gasPrice: 100000000000,
+    //   provider: () => new HDWalletProvider({
+    //     privateKeys: [privateKey],
+    //     providerOrUrl: `wss://polygon-mumbai.g.alchemy.com/v2/${process.env.API_KEY}`,
+    //     chainId: 80001,
+    //   }),
+    //   network_id: 80001,
+    //   timeoutBlocks: 10000000,
+    //   skipDryRun: true,
+    // },
+    // avalanche: {
+    //   provider: new HDWalletProvider({
+    //     privateKeys: [privateKey],
+    //     providerOrUrl: 'https://api.avax-test.network/ext/bc/C/rpc',
+    //     chainId: 43113,
+    //   }),
+    //   network_id: '43113',
+    //   skipDryRun: true,
+    // },
     // live: {
     //   gasPrice: 40000000000,
     //   provider: new HDWalletProvider({
@@ -82,7 +83,7 @@ module.exports = {
   },
   compilers: {
     solc: {
-      version: '^0.8.13',
+      version: '0.8.13',
       settings: {
         optimizer: {
           enabled: true,
@@ -92,7 +93,6 @@ module.exports = {
     },
   },
   plugins: [
-    'truffle-contract-size',
-    'eth-gas-reporter',
+    'truffle-contract-size'
   ],
 };

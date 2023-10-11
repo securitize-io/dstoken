@@ -15,7 +15,7 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
     function initialize() public override(IDSWalletManager, ServiceConsumer) initializer forceInitializeFromProxy {
         IDSWalletManager.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(4);
+        VERSIONS.push(5);
     }
 
     /**
@@ -51,12 +51,38 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
     }
 
     /**
+    * @dev Sets an array of wallets to be issuer wallets.
+    * @param _wallets The address of the wallet.
+    * @return A boolean that indicates if the operation was successful.
+   */
+    function addIssuerWallets(address[] memory _wallets) public override onlyIssuerOrAbove returns (bool) {
+        require(_wallets.length <= 30, "Exceeded the maximum number of wallets");
+        for (uint i = 0; i < _wallets.length; i++) {
+            addIssuerWallet(_wallets[i]);
+        }
+        return true;
+    }
+
+    /**
    * @dev Sets a wallet to be an platform wallet.
    * @param _wallet The address of the wallet.
    * @return A boolean that indicates if the operation was successful.
    */
     function addPlatformWallet(address _wallet) public override onlyIssuerOrAbove returns (bool) {
         return setSpecialWallet(_wallet, PLATFORM);
+    }
+
+    /**
+    * @dev Sets an array of wallets to be platform wallet.
+    * @param _wallets The address of the wallet.
+    * @return A boolean that indicates if the operation was successful.
+   */
+    function addPlatformWallets(address[] memory _wallets) public override onlyIssuerOrAbove returns (bool) {
+        require(_wallets.length <= 30, "Exceeded the maximum number of wallets");
+        for (uint i = 0; i < _wallets.length; i++) {
+            addPlatformWallet(_wallets[i]);
+        }
+        return true;
     }
 
     /**
@@ -92,35 +118,6 @@ contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceC
    * @return A boolean that indicates if the operation was successful.
    */
     function removeSpecialWallet(address _wallet) public override onlyIssuerOrAbove returns (bool) {
-        // TODO: check that wallet is empty
         return setSpecialWallet(_wallet, NONE);
-    }
-
-    /**
-   * @dev Sets the amount of reserved slots for a wallet based on country and accreditation status.
-   * @param _wallet The address of the wallet.
-   * @param _country The investors' country.
-   * @param _accreditationStatus the investors' accrediation status.
-   * @param _slots number of reserved slots.
-   * @return A boolean that indicates if the operation was successful.
-   */
-    function setReservedSlots(address _wallet, string memory _country, uint8 _accreditationStatus, uint256 _slots) public override onlyIssuerOrAbove returns (bool) {
-        // TODO: validate added slots
-        walletsSlots[_wallet][_country][_accreditationStatus] = _slots;
-
-        emit DSWalletManagerReservedSlotsSet(_wallet, _country, _accreditationStatus, _slots, msg.sender);
-
-        return true;
-    }
-
-    /**
-   * @dev Gets the amount of reserved slots for a wallet based on country and accreditation status.
-   * @param _wallet The address of the wallet.
-   * @param _country The investors' country.
-   * @param _accreditationStatus the investors' accrediation status.
-   * @return The number of reserved slots.
-   */
-    function getReservedSlots(address _wallet, string memory _country, uint8 _accreditationStatus) public override view returns (uint256) {
-        return walletsSlots[_wallet][_country][_accreditationStatus];
     }
 }

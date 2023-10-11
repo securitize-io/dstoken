@@ -52,6 +52,10 @@ contract StandardTokenMock is ProxyTarget, Initializable, StandardToken {
         revertFunction();
     }
 
+    function issueTokensWithNoCompliance(address, uint256) public pure override {
+        revertFunction();
+    }
+
     function omnibusBurn(address, address, uint256, string memory) public pure override {
         revertFunction();
     }

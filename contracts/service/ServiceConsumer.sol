@@ -24,6 +24,7 @@ abstract contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsume
     uint8 public constant ROLE_MASTER = 1;
     uint8 public constant ROLE_ISSUER = 2;
     uint8 public constant ROLE_EXCHANGE = 4;
+    uint8 public constant ROLE_TRANSFER_AGENT = 8;
 
     function initialize() public virtual override(IDSServiceConsumer, Ownable) {
         IDSServiceConsumer.initialize();
@@ -38,16 +39,34 @@ abstract contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsume
         _;
     }
 
+    /**
+   * @dev Allow invoking functions only by the users who have the MASTER role or the ISSUER role or the TRANSFER AGENT role.
+   */
+    modifier onlyIssuerOrTransferAgentOrAbove() {
+        IDSTrustService trustManager = getTrustService();
+        require(trustManager.getRole(msg.sender) == ROLE_TRANSFER_AGENT || trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
+        _;
+    }
+
     modifier onlyIssuerOrAbove {
         IDSTrustService trustManager = getTrustService();
         require(trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
         _;
     }
 
+    modifier onlyTransferAgentOrAbove {
+        IDSTrustService trustManager = getTrustService();
+        require(trustManager.getRole(msg.sender) == ROLE_TRANSFER_AGENT || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
+        _;
+    }
+
     modifier onlyExchangeOrAbove {
         IDSTrustService trustManager = getTrustService();
         require(
-            trustManager.getRole(msg.sender) == ROLE_EXCHANGE || trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER,
+            trustManager.getRole(msg.sender) == ROLE_EXCHANGE
+            || trustManager.getRole(msg.sender) == ROLE_ISSUER
+            || trustManager.getRole(msg.sender) == ROLE_TRANSFER_AGENT
+            || trustManager.getRole(msg.sender) == ROLE_MASTER,
             "Insufficient trust level"
         );
         _;
@@ -67,6 +86,14 @@ abstract contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsume
         if (msg.sender != getDSService(DS_TOKEN)) {
             IDSTrustService trustManager = IDSTrustService(getDSService(TRUST_SERVICE));
             require(trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
+        }
+        _;
+    }
+
+    modifier onlyTransferAgentOrAboveOrToken {
+        if (msg.sender != getDSService(DS_TOKEN)) {
+            IDSTrustService trustManager = IDSTrustService(getDSService(TRUST_SERVICE));
+            require(trustManager.getRole(msg.sender) == ROLE_TRANSFER_AGENT || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
         }
         _;
     }

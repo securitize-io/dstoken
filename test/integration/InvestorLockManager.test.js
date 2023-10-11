@@ -15,6 +15,7 @@ contract('InvestorLockManager', function ([
   owner,
   wallet,
   issuerWallet,
+  transferAgentWallet,
   exchangeWallet,
   noneWallet,
 ]) {
@@ -26,6 +27,7 @@ contract('InvestorLockManager', function ([
       lockManagerType.INVESTOR,
     );
     await this.trustService.setRole(issuerWallet, roles.ISSUER);
+    await this.trustService.setRole(transferAgentWallet, roles.TRANSFER_AGENT);
     await this.trustService.setRole(exchangeWallet, roles.EXCHANGE);
   });
 
@@ -117,7 +119,27 @@ contract('InvestorLockManager', function ([
       );
     });
 
-    it('Trying to Add ManualLock Record with roles.ISSUER permissions - should pass', async function () {
+    it('Trying to Add ManualLock Record with roles.ISSUER permissions - should be error', async function () {
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1,
+      );
+      await this.registryService.addWallet(
+        wallet,
+        investorId.GENERAL_INVESTOR_ID_1,
+      );
+      await expectRevert.unspecified(
+        this.lockManager.addManualLockRecord(
+          wallet,
+          100,
+          REASON_STRING,
+          (await latestTime()) + 1000,
+          { from: issuerWallet },
+        ),
+      );
+    });
+
+    it('Trying to Add ManualLock Record with roles.TRANSFER_AGENT permissions - should pass', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1,
@@ -137,7 +159,7 @@ contract('InvestorLockManager', function ([
         100,
         REASON_STRING,
         (await latestTime()) + 1000,
-        { from: issuerWallet },
+        { from: transferAgentWallet },
       );
       assert.equal(await this.lockManager.lockCount(owner), 1);
       assert.equal(
@@ -162,7 +184,7 @@ contract('InvestorLockManager', function ([
         100,
         REASON_STRING,
         (await latestTime()) + 1000,
-        { from: issuerWallet },
+        { from: transferAgentWallet },
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
       await expectRevert.unspecified(this.lockManager.removeLockRecord(wallet, 2));
@@ -182,7 +204,7 @@ contract('InvestorLockManager', function ([
         100,
         REASON_STRING,
         (await latestTime()) + 1000,
-        { from: issuerWallet },
+        { from: transferAgentWallet },
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
       await expectRevert.unspecified(
@@ -206,7 +228,7 @@ contract('InvestorLockManager', function ([
         100,
         REASON_STRING,
         (await latestTime()) + 1000,
-        { from: issuerWallet },
+        { from: transferAgentWallet },
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
       await expectRevert.unspecified(
@@ -216,7 +238,31 @@ contract('InvestorLockManager', function ([
       );
     });
 
-    it('Trying to Remove ManualLock Record with roles.ISSUER permissions - should pass', async function () {
+    it('Trying to Remove ManualLock Record with roles.ISSUER permissions - should be error', async function () {
+      await this.registryService.registerInvestor(
+        investorId.GENERAL_INVESTOR_ID_1,
+        investorId.GENERAL_INVESTOR_COLLISION_HASH_1,
+      );
+      await this.registryService.addWallet(
+        wallet,
+        investorId.GENERAL_INVESTOR_ID_1,
+      );
+      await this.lockManager.addManualLockRecord(
+        wallet,
+        100,
+        REASON_STRING,
+        (await latestTime()) + 1000,
+        { from: transferAgentWallet },
+      );
+      assert.equal(await this.lockManager.lockCount(wallet), 1);
+      await expectRevert.unspecified(
+        this.lockManager.removeLockRecord(wallet, LOCK_INDEX, {
+          from: issuerWallet,
+        }),
+      );
+    });
+
+    it('Trying to Remove ManualLock Record with roles.TRANSFER_AGENT permissions - should pass', async function () {
       await this.registryService.registerInvestor(
         investorId.GENERAL_INVESTOR_ID_1,
         investorId.GENERAL_INVESTOR_COLLISION_HASH_1,
@@ -236,7 +282,7 @@ contract('InvestorLockManager', function ([
         100,
         REASON_STRING,
         (await latestTime()) + 1000,
-        { from: issuerWallet },
+        { from: transferAgentWallet },
       );
       assert.equal(await this.lockManager.lockCount(owner), 1);
       assert.equal(
@@ -244,7 +290,7 @@ contract('InvestorLockManager', function ([
         0,
       );
       await this.lockManager.removeLockRecord(owner, LOCK_INDEX, {
-        from: issuerWallet,
+        from: transferAgentWallet,
       });
       assert.equal(await this.lockManager.lockCount(owner), 0);
     });
@@ -277,7 +323,7 @@ contract('InvestorLockManager', function ([
         100,
         REASON_STRING,
         (await latestTime()) + 1000,
-        { from: issuerWallet },
+        { from: transferAgentWallet },
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
     });
@@ -298,7 +344,7 @@ contract('InvestorLockManager', function ([
         100,
         REASON_STRING,
         (await latestTime()) + 1000,
-        { from: issuerWallet },
+        { from: transferAgentWallet },
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
       await expectRevert.unspecified(this.lockManager.lockInfo(wallet, 1));
@@ -319,7 +365,7 @@ contract('InvestorLockManager', function ([
         100,
         REASON_STRING,
         releaseTime,
-        { from: issuerWallet },
+        { from: transferAgentWallet },
       );
       assert.equal(await this.lockManager.lockCount(wallet), 1);
 
@@ -361,6 +407,7 @@ contract('InvestorLockManager', function ([
         100,
         REASON_STRING,
         releaseTime,
+        { from: transferAgentWallet }
       );
       assert.equal(
         await this.lockManager.getTransferableTokens(owner, releaseTime - 100),

@@ -23,7 +23,8 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
         string memory _reason,
         uint64[] memory _releaseTimes /*onlyIssuerOrAbove*/
     ) public override returns (bool) {
-        super.issueTokensWithMultipleLocks(_to, _value, _issuanceTime, new uint256[](0), "", new uint64[](0));
+        uint256 issuanceTime = getComplianceService().validateIssuanceTime(_issuanceTime);
+        super.issueTokensWithMultipleLocks(_to, _value, issuanceTime, new uint256[](0), "", new uint64[](0));
         partitionsManagement.issueTokensCustom(
             getRegistryService(),
             getComplianceConfigurationService(),
@@ -31,7 +32,7 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
             getLockManagerPartitioned(),
             _to,
             _value,
-            _issuanceTime,
+            issuanceTime,
             _valuesLocked,
             _reason,
             _releaseTimes
@@ -59,6 +60,18 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
         return true;
     }
 
+    function issueTokensWithNoCompliance(address _to, uint256 _value) public override {
+        super.issueTokensWithNoCompliance(_to, _value);
+        partitionsManagement.issueTokensWithNoCompliance(
+            getRegistryService(),
+            getComplianceConfigurationService(),
+            getPartitionsManager(),
+            _to,
+            _value,
+            block.timestamp
+        );
+    }
+
     function transfer(address _to, uint256 _value) public override returns (bool) {
         return DSToken.transfer(_to, _value) && partitionsManagement.transferPartitions(getCommonServices(), msg.sender, _to, _value);
     }
@@ -79,7 +92,7 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
         require(false, "Partitioned Token");
     }
 
-    function burnByPartition(address _who, uint256 _value, string memory _reason, bytes32 _partition) public override onlyIssuerOrAbove {
+    function burnByPartition(address _who, uint256 _value, string memory _reason, bytes32 _partition) public override onlyIssuerOrTransferAgentOrAbove {
         DSToken.burn(_who, _value, _reason);
         emit BurnByPartition(_who, _value, _reason, _partition);
         partitionsManagement.transferPartition(getRegistryService(), _who, address(0), _value, _partition);
@@ -89,7 +102,7 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
         require(false, "Partitioned Token");
     }
 
-    function seizeByPartition(address _from, address _to, uint256 _value, string memory _reason, bytes32 _partition) public override onlyIssuerOrAbove {
+    function seizeByPartition(address _from, address _to, uint256 _value, string memory _reason, bytes32 _partition) public override onlyTransferAgentOrAbove {
         DSToken.seize(_from, _to, _value, _reason);
         emit SeizeByPartition(_from, _to, _value, _reason, _partition);
         partitionsManagement.transferPartition(getRegistryService(), _from, _to, _value, _partition);

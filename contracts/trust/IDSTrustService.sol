@@ -12,7 +12,7 @@ import "../utils/Initializable.sol";
 abstract contract IDSTrustService is Initializable, VersionedContract {
 
     function initialize() public virtual {
-        VERSIONS.push(3);
+        VERSIONS.push(4);
     }
 
     /**
@@ -29,6 +29,7 @@ abstract contract IDSTrustService is Initializable, VersionedContract {
     uint8 public constant MASTER = 1;
     uint8 public constant ISSUER = 2;
     uint8 public constant EXCHANGE = 4;
+    uint8 public constant TRANSFER_AGENT = 8;
 
     /**
      * @dev Transfers the ownership (MASTER role) of the contract.
@@ -38,6 +39,15 @@ abstract contract IDSTrustService is Initializable, VersionedContract {
     function setServiceOwner(
         address _address /*onlyMaster*/
     ) public virtual returns (bool);
+
+    /**
+     * @dev Sets a role for an array of wallets.
+     * @dev Should not be used for setting MASTER (use setServiceOwner) or role removal (use removeRole).
+     * @param _addresses The array of wallet whose role needs to be set.
+     * @param _roles The array of role to be set. The lenght and order must match with _addresses
+     * @return A boolean that indicates if the operation was successful.
+     */
+    function setRoles(address[] memory _addresses, uint8[] memory _roles) public virtual returns (bool);
 
     /**
      * @dev Sets a role for a wallet.

@@ -14,7 +14,7 @@ import "../data-stores/TrustServiceDataStore.sol";
 contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServiceDataStore {
     function initialize() public override initializer forceInitializeFromProxy {
         IDSTrustService.initialize();
-        VERSIONS.push(3);
+        VERSIONS.push(4);
         owner = msg.sender;
         roles[msg.sender] = MASTER;
     }
@@ -32,6 +32,43 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
    */
     modifier onlyMasterOrIssuer() {
         require(roles[msg.sender] == MASTER || roles[msg.sender] == ISSUER, "Not enough permissions");
+        _;
+    }
+
+    /**
+   * @dev Allow invoking of functions only by the users who have the MASTER role or the ISSUER role or the TRANSFER AGENT role.
+   */
+    modifier onlyMasterOrIssuerOrTransferAgent() {
+        require(roles[msg.sender] == MASTER || roles[msg.sender] == ISSUER || roles[msg.sender] == TRANSFER_AGENT, "Not enough permissions");
+        _;
+    }
+
+    /**
+   * @dev Allow setting roles only by the user who has the same role.
+   */
+    modifier onlySameRole(uint8 _role) {
+        if (roles[msg.sender] != MASTER) {
+            if (roles[msg.sender] == ISSUER) {
+                require(_role == ISSUER || _role == EXCHANGE, "Not enough permissions. Only same role allowed");
+            } else {
+                require(roles[msg.sender] == _role, "Not enough permissions. Only same role allowed");
+            }
+        }
+        _;
+    }
+
+    /**
+   * @dev Allow setting roles only by the user who has the same role.
+   */
+    modifier onlySameRoleForAddress(address _address) {
+        if (roles[msg.sender] != MASTER) {
+            uint8 role = roles[_address];
+            if (roles[msg.sender] == ISSUER) {
+                require(role == ISSUER || role == EXCHANGE, "Not enough permissions. Only same role allowed");
+            } else {
+                require(roles[msg.sender] == role, "Not enough permissions. Only same role allowed");
+            }
+        }
         _;
     }
 
@@ -132,14 +169,30 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
     }
 
     /**
+   * @dev Sets roles to an array of wallets
+   * @dev Should not be used for setting MASTER (use setServiceOwner) or role removal (use removeRole).
+   * @param _addresses The array of wallet whose role needs to be set.
+   * @param _roles The array of role to be set. Length and order must match wit _addresss
+   * @return A boolean that indicates if the operation was successful.
+   */
+    function setRoles(address[] memory _addresses, uint8[] memory _roles) public override onlyMasterOrIssuerOrTransferAgent returns (bool) {
+        require(_addresses.length <= 30, "Exceeded the maximum number of addresses");
+        require(_addresses.length == _roles.length, "Wrong length of parameters");
+        for (uint i = 0; i < _addresses.length; i++) {
+            setRole(_addresses[i], _roles[i]);
+        }
+        return true;
+    }
+
+    /**
    * @dev Sets a role for a wallet.
    * @dev Should not be used for setting MASTER (use setServiceOwner) or role removal (use removeRole).
    * @param _address The wallet whose role needs to be set.
    * @param _role The role to be set.
    * @return A boolean that indicates if the operation was successful.
    */
-    function setRole(address _address, uint8 _role) public override onlyMasterOrIssuer returns (bool) {
-        require(_role == ISSUER || _role == EXCHANGE, "Invalid target role");
+    function setRole(address _address, uint8 _role) public override onlyMasterOrIssuerOrTransferAgent onlySameRole(_role) returns (bool) {
+        require(_role == ISSUER || _role == EXCHANGE || _role == TRANSFER_AGENT, "Invalid target role");
 
         setRoleImpl(_address, _role);
 
@@ -152,9 +205,8 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
    * @param _address The wallet whose role needs to be removed.
    * @return A boolean that indicates if the operation was successful.
    */
-    function removeRole(address _address) public override onlyMasterOrIssuer returns (bool) {
+    function removeRole(address _address) public override onlyMasterOrIssuerOrTransferAgent onlySameRoleForAddress(_address) returns (bool) {
         uint8 role = roles[_address];
-
         require(role != MASTER, "Cannot remove master");
 
         setRoleImpl(_address, NONE);
@@ -179,6 +231,7 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
     function changeEntityOwner(string memory _name, address _oldOwner, address _newOwner) public override onlyMasterOrIssuer onlyExistingEntityOwner(_name, _oldOwner) {
         delete ownersEntities[_oldOwner];
         ownersEntities[_newOwner] = _name;
+        entitiesOwners[_name] = _newOwner;
     }
 
     function addOperator(string memory _name, address _operator) public override onlyEntityOwnerOrAbove(_name) onlyNewOperator(_operator) {

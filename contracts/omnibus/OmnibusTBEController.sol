@@ -33,10 +33,9 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
 
     function bulkBurn(uint256 value, uint256 totalInvestors, uint256 accreditedInvestors,
         uint256 usAccreditedInvestors, uint256 usTotalInvestors, uint256 jpTotalInvestors, bytes32[] memory euRetailCountries,
-        uint256[] memory euRetailCountryCounts) public override onlyIssuerOrAbove {
+        uint256[] memory euRetailCountryCounts) public override onlyTransferAgentOrAbove {
         require(euRetailCountries.length == euRetailCountryCounts.length, 'EU Retail countries arrays do not match');
-        addToCounters(totalInvestors, accreditedInvestors,
-            usAccreditedInvestors, usTotalInvestors, jpTotalInvestors, euRetailCountries, euRetailCountryCounts, false);
+
         if(isPartitionedToken) {
             IDSTokenPartitioned token = getTokenPartitioned();
             uint256 pendingBurn = value;
@@ -59,7 +58,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
         emitTBEOperationEvent(totalInvestors, accreditedInvestors, usAccreditedInvestors, usTotalInvestors, jpTotalInvestors, false);
     }
 
-    function bulkTransfer(address[] memory wallets, uint256[] memory values) public override onlyIssuerOrAbove {
+    function bulkTransfer(address[] memory wallets, uint256[] memory values) public override onlyIssuerOrTransferAgentOrAbove {
         require(wallets.length == values.length, 'Wallets and values lengths do not match');
         for (uint i = 0; i < wallets.length; i++) {
             getToken().transferFrom(omnibusWallet, wallets[i], values[i]);
@@ -68,7 +67,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
 
     function internalTBETransfer(string memory externalId, int256 totalDelta, int256 accreditedDelta,
         int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta, bytes32[] memory euRetailCountries,
-        int256[] memory euRetailCountryDeltas) public onlyIssuerOrAbove {
+        int256[] memory euRetailCountryDeltas) public onlyIssuerOrTransferAgentOrAbove {
         adjustCounters(totalDelta, accreditedDelta, usAccreditedDelta, usTotalDelta, jpTotalDelta,
             euRetailCountries, euRetailCountryDeltas);
         getToken().emitOmnibusTBETransferEvent(omnibusWallet, externalId);
@@ -76,7 +75,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
 
     function adjustCounters(int256 totalDelta, int256 accreditedDelta,
         int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta, bytes32[] memory euRetailCountries,
-        int256[] memory euRetailCountryDeltas) public override onlyIssuerOrAbove {
+        int256[] memory euRetailCountryDeltas) public override onlyIssuerOrTransferAgentOrAbove {
         require(euRetailCountries.length == euRetailCountryDeltas.length, 'Array lengths do not match');
 
         addToCounters(

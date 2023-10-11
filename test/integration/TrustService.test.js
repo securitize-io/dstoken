@@ -10,7 +10,11 @@ contract('TrustService', function ([
   ownerWallet,
   newOwnerWallet,
   issuerWallet,
+  issuerWallet2,
+  issuerWallet3,
   exchangeWallet,
+  exchangeWallet2,
+  exchangeWallet3,
   wallet1,
   wallet2,
   entityOwner1,
@@ -130,6 +134,109 @@ contract('TrustService', function ([
       it(`The role for this account - ${exchangeWallet} should be set as EXCHANGE - ${roles.EXCHANGE}`, async function () {
         const role = await this.trustService.getRole(exchangeWallet);
         assert.equal(role.words[0], roles.EXCHANGE);
+      });
+    });
+  });
+
+  describe('Set Bulk Roles flow', function () {
+    it('Trying to call not by master or issuer', async function () {
+      await expectRevert.unspecified(
+        this.trustService.setRoles([issuerWallet2], [roles.ISSUER], {
+          from: wallet1,
+        }),
+      );
+    });
+
+    it(`Trying to set MASTER roles for account ${issuerWallet2} - should be the error`, async function () {
+      await expectRevert.unspecified(
+        this.trustService.setRoles([issuerWallet2], [roles.MASTER], {
+          from: newOwnerWallet,
+        }),
+      );
+    });
+
+    it(`Trying set NONE role in bulk mode for this account - ${newOwnerWallet} - should be the error`, async function () {
+      await expectRevert.unspecified(
+        this.trustService.setRoles([newOwnerWallet], [roles.NONE], {
+          from: newOwnerWallet,
+        }),
+      );
+    });
+
+    it(`Trying set Issuer role in bulk mode for this account ${issuerWallet2} and different roles length- should be the error`, async function () {
+      await expectRevert.unspecified(
+        this.trustService.setRoles([issuerWallet2], [roles.ISSUER, roles.ISSUER], {
+          from: newOwnerWallet,
+        }),
+      );
+    });
+
+    it(`Trying set Issuer role in bulk mode for accounts ${issuerWallet2} and ${issuerWallet3} different roles length- should be the error`, async function () {
+      await expectRevert.unspecified(
+        this.trustService.setRoles([issuerWallet2, issuerWallet3], [roles.ISSUER], {
+          from: newOwnerWallet,
+        }),
+      );
+    });
+
+    it(`Trying set Issuer role in bulk mode for accounts 50 accounts - should be the error`, async function () {
+      let wallets = [];
+      let rolesArg = [];
+      const MAX_ALLOWED_WALLETS = 30;
+      for (let i = 0; i < (MAX_ALLOWED_WALLETS + 1); i++) {
+        wallets.push(issuerWallet2);
+        rolesArg.push(roles.ISSUER);
+      }
+      await expectRevert.unspecified(
+        this.trustService.setRoles(wallets, rolesArg, {
+          from: newOwnerWallet,
+        }),
+      );
+    });
+
+    it(`Trying to set ISSUER role for accounts ${issuerWallet2} and ${issuerWallet3}`, async function () {
+      const { logs } = await this.trustService.setRoles(
+        [issuerWallet2, issuerWallet3],
+        [roles.ISSUER, roles.ISSUER],
+        {
+          from: newOwnerWallet,
+        },
+      );
+
+      assert.equal(logs[0].args.targetAddress, issuerWallet2);
+      assert.equal(logs[0].event, 'DSTrustServiceRoleAdded');
+      assert.equal(logs[1].args.targetAddress, issuerWallet3);
+      assert.equal(logs[1].event, 'DSTrustServiceRoleAdded');
+    });
+
+    describe('Check ISSUER role', function () {
+      it(`The role for accounts ${issuerWallet2} and ${issuerWallet3} should be set as ISSUER`, async function () {
+        const role = await this.trustService.getRole(issuerWallet2);
+        assert.equal(role.words[0], roles.ISSUER);
+        const role2 = await this.trustService.getRole(issuerWallet3);
+        assert.equal(role2.words[0], roles.ISSUER);
+      });
+    });
+
+    it(`Trying to set EXCHANGE roles for accounts ${exchangeWallet2} and ${exchangeWallet3}`, async function () {
+      const { logs } = await this.trustService.setRoles(
+        [exchangeWallet2,exchangeWallet3 ],
+        [roles.EXCHANGE, roles.EXCHANGE],
+        { from: newOwnerWallet },
+      );
+
+      assert.equal(logs[0].args.targetAddress, exchangeWallet2);
+      assert.equal(logs[0].event, 'DSTrustServiceRoleAdded');
+      assert.equal(logs[1].args.targetAddress, exchangeWallet3);
+      assert.equal(logs[1].event, 'DSTrustServiceRoleAdded');
+    });
+
+    describe('Check EXCHANGE role', function () {
+      it(`The role for accounts ${exchangeWallet2} and ${exchangeWallet3} should be set as EXCHANGE`, async function () {
+        const role = await this.trustService.getRole(exchangeWallet2);
+        assert.equal(role.words[0], roles.EXCHANGE);
+        const role2 = await this.trustService.getRole(exchangeWallet3);
+        assert.equal(role2.words[0], roles.EXCHANGE);
       });
     });
   });

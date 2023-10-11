@@ -31,7 +31,7 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
         supportedFeatures.value = features;
     }
 
-    function setCap(uint256 _cap) public override onlyMaster {
+    function setCap(uint256 _cap) public override onlyTransferAgentOrAbove {
         require(cap == 0, "Token cap already set");
         require(_cap > 0);
         cap = _cap;
@@ -104,18 +104,24 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
         return true;
     }
 
+    function issueTokensWithNoCompliance(address _to, uint256 _value) public virtual override onlyIssuerOrAbove {
+        require(getRegistryService().isWallet(_to), "Unknown wallet");
+        TokenLibrary.issueTokensWithNoCompliance(tokenData, getCommonServices(), _to, _value, block.timestamp, cap);
+        emit Transfer(address(0), _to, _value);
+    }
+
     //*********************
     // TOKEN BURNING
     //*********************
 
-    function burn(address _who, uint256 _value, string memory _reason) public virtual override onlyIssuerOrAbove {
+    function burn(address _who, uint256 _value, string memory _reason) public virtual override onlyIssuerOrTransferAgentOrAbove {
         TokenLibrary.burn(tokenData, getCommonServices(), _who, _value);
         emit Burn(_who, _value, _reason);
         emit Transfer(_who, address(0), _value);
         checkWalletsForList(_who, address(0));
     }
 
-    function omnibusBurn(address _omnibusWallet, address _who, uint256 _value, string memory _reason) public override onlyIssuerOrAbove {
+    function omnibusBurn(address _omnibusWallet, address _who, uint256 _value, string memory _reason) public override onlyTransferAgentOrAbove {
         require(_value <= tokenData.walletsBalances[_omnibusWallet]);
         TokenLibrary.omnibusBurn(tokenData, getCommonServices(), _omnibusWallet, _who, _value);
         emit OmnibusBurn(_omnibusWallet, _who, _value, _reason, getAssetTrackingMode(_omnibusWallet));
@@ -128,14 +134,14 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
     // TOKEN SEIZING
     //*********************
 
-    function seize(address _from, address _to, uint256 _value, string memory _reason) public virtual override onlyIssuerOrAbove {
+    function seize(address _from, address _to, uint256 _value, string memory _reason) public virtual override onlyTransferAgentOrAbove {
         TokenLibrary.seize(tokenData, getCommonServices(), _from, _to, _value);
         emit Seize(_from, _to, _value, _reason);
         emit Transfer(_from, _to, _value);
         checkWalletsForList(_from, _to);
     }
 
-    function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string memory _reason) public override onlyIssuerOrAbove {
+    function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string memory _reason) public override onlyTransferAgentOrAbove {
         TokenLibrary.omnibusSeize(tokenData, getCommonServices(), _omnibusWallet, _from, _to, _value);
         emit OmnibusSeize(_omnibusWallet, _from, _value, _reason, getAssetTrackingMode(_omnibusWallet));
         emit Seize(_omnibusWallet, _to, _value, _reason);
@@ -226,14 +232,17 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
         //Make sure it's there
         uint256 existingIndex = walletsToIndexes[_address];
         if (existingIndex != 0) {
-            //Put the last wallet instead of it (this will work even with 1 wallet in the list)
             uint256 lastIndex = walletsCount;
-            address lastWalletAddress = walletsList[lastIndex];
-            walletsList[existingIndex] = lastWalletAddress;
-            //Decrease the total count
-            walletsCount = lastIndex - 1;
-            //Remove from reverse index
+            if (lastIndex != existingIndex) {
+                //Put the last wallet instead of it (this will work even with 1 wallet in the list)
+                address lastWalletAddress = walletsList[lastIndex];
+                walletsList[existingIndex] = lastWalletAddress;
+                walletsToIndexes[lastWalletAddress] = existingIndex;
+            }
+
             delete walletsToIndexes[_address];
+            delete walletsList[lastIndex];
+            walletsCount = lastIndex - 1;
         }
     }
 

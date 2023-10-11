@@ -7,7 +7,7 @@ import "../utils/Initializable.sol";
 abstract contract IDSWalletManager is Initializable, VersionedContract {
 
     function initialize() public virtual {
-        VERSIONS.push(4);
+        VERSIONS.push(5);
     }
 
     // Special wallets constants
@@ -71,6 +71,13 @@ abstract contract IDSWalletManager is Initializable, VersionedContract {
     ) public virtual returns (bool);
 
     /**
+     * @dev Sets an array of wallets to be issuer wallets.
+     * @param _wallets The address of the wallets.
+     * @return A boolean that indicates if the operation was successful.
+     */
+    function addIssuerWallets(address[] memory _wallets) public virtual returns (bool);
+
+    /**
      * @dev Sets a wallet to be a platform wallet.
      * @param _wallet The address of the wallet.
      * @return A boolean that indicates if the operation was successful.
@@ -78,6 +85,13 @@ abstract contract IDSWalletManager is Initializable, VersionedContract {
     function addPlatformWallet(
         address _wallet /*onlyIssuerOrAbove*/
     ) public virtual returns (bool);
+
+    /**
+     * @dev Sets an array of wallets to be platforms wallet.
+     * @param _wallets The address of the wallets.
+     * @return A boolean that indicates if the operation was successful.
+     */
+    function addPlatformWallets(address[] memory _wallets) public virtual returns (bool);
 
     /**
      * @dev Sets a wallet to be an exchange wallet.
@@ -95,32 +109,4 @@ abstract contract IDSWalletManager is Initializable, VersionedContract {
     function removeSpecialWallet(
         address _wallet /*onlyIssuerOrAbove*/
     ) public virtual returns (bool);
-
-    /**
-     * @dev Sets the amount of reserved slots for a wallet based on country and accreditation status.
-     * @param _wallet The address of the wallet.
-     * @param _country The investors' country.
-     * @param _accreditationStatus the investors' accrediation status.
-     * @param _slots number of reserved slots.
-     * @return A boolean that indicates if the operation was successful.
-     */
-    function setReservedSlots(
-        address _wallet,
-        string memory _country,
-        uint8 _accreditationStatus,
-        uint256 _slots /*onlyIssuerOrAbove*/
-    ) public virtual returns (bool);
-
-    /**
-     * @dev Gets the amount of reserved slots for a wallet based on country and accreditation status.
-     * @param _wallet The address of the wallet.
-     * @param _country The investors' country.
-     * @param _accreditationStatus the investors' accrediation status.
-     * @return The number of reserved slots.
-     */
-    function getReservedSlots(
-        address _wallet,
-        string memory _country,
-        uint8 _accreditationStatus
-    ) public view virtual returns (uint256);
 }

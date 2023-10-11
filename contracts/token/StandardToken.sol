@@ -25,12 +25,12 @@ abstract contract StandardToken is IDSToken, ServiceConsumer, TokenDataStore {
         _;
     }
 
-    function pause() public onlyIssuerOrAbove whenNotPaused {
+    function pause() public onlyTransferAgentOrAbove whenNotPaused {
         paused = true;
         emit Pause();
     }
 
-    function unpause() public onlyIssuerOrAbove whenPaused {
+    function unpause() public onlyTransferAgentOrAbove whenPaused {
         paused = false;
         emit Unpause();
     }

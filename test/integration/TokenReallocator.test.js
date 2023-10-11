@@ -11,6 +11,7 @@ contract('TokenReallocator', function ([
   owner,
   wallet,
   issuerWallet,
+  transferAgentWallet,
   exchangeWallet,
   newWallet,
 ]) {
@@ -25,8 +26,8 @@ contract('TokenReallocator', function ([
         true,
         exchangeWallet,
       );
-      await this.trustService.setRole(this.reallocator.address, roles.ISSUER);
       await this.trustService.setRole(issuerWallet, roles.ISSUER);
+      await this.trustService.setRole(transferAgentWallet, roles.TRANSFER_AGENT);
     });
 
     beforeEach(async function () {
@@ -55,7 +56,7 @@ contract('TokenReallocator', function ([
       assert.equal(await this.lockManager.isInvestorLocked.call(investorId.GENERAL_INVESTOR_ID_1), false);
     });
 
-    it('Should NOT allow to reallocate tokens to a non-issuer or above wallet', async function () {
+    it('Should NOT allow to reallocate tokens using an exchange wallet', async function () {
       // Fund the Omnibus TBE wallet
       await this.omnibusTBEController.bulkIssuance(500, 1, 0, 0, 0, 0, 0,
         [], []);
@@ -64,13 +65,22 @@ contract('TokenReallocator', function ([
         'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, false, { from: exchangeWallet }));
     });
 
-    it('Should allow to reallocate tokens to a non-master but issuer wallet', async function () {
+    it('Should NOT allow to reallocate tokens using an issuer wallet', async function () {
+      // Fund the Omnibus TBE wallet
+      await this.omnibusTBEController.bulkIssuance(500, 1, 0, 0, 0, 0, 0,
+        [], []);
+      await expectRevert.unspecified(this.reallocator.reallocateTokens(investorId.GENERAL_INVESTOR_ID_1,
+        wallet, investorId.GENERAL_INVESTOR_ID_1,
+        'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, false, { from: issuerWallet }));
+    });
+
+    it('Should allow to reallocate tokens to a non-master but transfer agent wallet', async function () {
       // Fund the Omnibus TBE wallet
       await this.omnibusTBEController.bulkIssuance(500, 1, 0, 0, 0, 0, 0,
         [], []);
       await this.reallocator.reallocateTokens(investorId.GENERAL_INVESTOR_ID_1,
         wallet, investorId.GENERAL_INVESTOR_ID_1,
-        'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, false, { from: issuerWallet });
+        'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, false, { from: transferAgentWallet });
     });
 
     it('Should NOT allow to use Reallocator if the wallet already exists in another investor',
@@ -83,7 +93,7 @@ contract('TokenReallocator', function ([
           'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, false);
         await expectRevert.unspecified(this.reallocator.reallocateTokens(investorId.GENERAL_INVESTOR_ID_1,
           wallet, investorId.GENERAL_INVESTOR_ID_1,
-          'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 250, false, { from: issuerWallet }));
+          'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 250, false, { from: transferAgentWallet }));
       });
 
     it('Should allow to use Reallocator if the investor already exists but not the wallet',
@@ -96,7 +106,7 @@ contract('TokenReallocator', function ([
           'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, false);
         await this.reallocator.reallocateTokens(investorId.GENERAL_INVESTOR_ID_1,
           newWallet, investorId.GENERAL_INVESTOR_ID_1,
-          'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 250, false, { from: issuerWallet });
+          'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 250, false, { from: transferAgentWallet });
 
         assert.equal(await this.token.balanceOf.call(wallet), 200);
         assert.equal(await this.token.balanceOf.call(newWallet), 250);
@@ -109,7 +119,7 @@ contract('TokenReallocator', function ([
         [], []);
       await this.reallocator.reallocateTokens(investorId.GENERAL_INVESTOR_ID_1,
         wallet, investorId.GENERAL_INVESTOR_ID_1,
-        'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, true, { from: issuerWallet });
+        'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, true, { from: transferAgentWallet });
 
       const tbeWallet = await this.omnibusTBEController.getOmnibusWallet.call();
       assert.equal(await this.token.balanceOf.call(wallet), 200);

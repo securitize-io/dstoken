@@ -12,33 +12,6 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 contract InvestorLockManager is InvestorLockManagerBase {
     uint256 constant MAX_LOCKS_PER_INVESTOR = 30;
 
-    /*************** Legacy functions ***************/
-    function createLockForHolder(string memory _holder, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime) public {
-        createLockForInvestor(_holder, _valueLocked, _reasonCode, _reasonString, _releaseTime);
-    }
-
-    function removeLockRecordForHolder(string memory _holderId, uint256 _lockIndex) public returns (bool) {
-        return removeLockRecordForInvestor(_holderId, _lockIndex);
-    }
-
-    function lockCountForHolder(string memory _holderId) public view returns (uint256) {
-        return lockCountForInvestor(_holderId);
-    }
-
-    function lockInfoForHolder(string memory _holderId, uint256 _lockIndex)
-        public
-        view
-        returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime)
-    {
-        return lockInfoForInvestor(_holderId, _lockIndex);
-    }
-
-    function getTransferableTokensForHolder(string memory _holderId, uint256 _time) public view returns (uint256) {
-        return getTransferableTokensForInvestor(_holderId, _time);
-    }
-
-    /******************************/
-
     function initialize() public override initializer forceInitializeFromProxy {
         InvestorLockManagerBase.initialize();
 
@@ -53,7 +26,7 @@ contract InvestorLockManager is InvestorLockManagerBase {
         public
         override
         validLock(_valueLocked, _releaseTime)
-        onlyIssuerOrAboveOrToken
+        onlyTransferAgentOrAboveOrToken
     {
         //Get total count
         uint256 totalLockCount = investorsLocksCounts[_investor];
@@ -70,12 +43,12 @@ contract InvestorLockManager is InvestorLockManagerBase {
         emit Locked(_to, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
 
-    function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime) public override onlyIssuerOrAboveOrToken {
+    function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime) public override onlyTransferAgentOrAboveOrToken {
         require(_to != address(0), "Invalid address");
         createLock(_to, _valueLocked, 0, _reason, _releaseTime);
     }
 
-    function removeLockRecordForInvestor(string memory _investorId, uint256 _lockIndex) public override onlyIssuerOrAbove returns (bool) {
+    function removeLockRecordForInvestor(string memory _investorId, uint256 _lockIndex) public override onlyTransferAgentOrAbove returns (bool) {
         emit HolderUnlocked(
             _investorId,
             investorsLocks[_investorId][_lockIndex].value,
@@ -118,7 +91,7 @@ contract InvestorLockManager is InvestorLockManagerBase {
      * note - this may change the order of the locks on an address, so if iterating the iteration should be restarted.
      * @return true on success
      */
-    function removeLockRecord(address _to, uint256 _lockIndex) public override onlyIssuerOrAbove returns (bool) {
+    function removeLockRecord(address _to, uint256 _lockIndex) public override onlyTransferAgentOrAbove returns (bool) {
         require(_to != address(0), "Invalid address");
         string memory investor = getRegistryService().getInvestor(_to);
         //Emit must be done on start ,because we're going to overwrite this value
