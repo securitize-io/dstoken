@@ -22,7 +22,6 @@ const TokenReallocator = artifacts.require('TokenReallocator');
 const Initializable = artifacts.require('Initializable');
 const Ownable = artifacts.require('Ownable');
 const Proxy = artifacts.require('Proxy');
-const BulkOperation = artifacts.require('IBulkOperation');
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 const TRUST_SERVICE = 0;
@@ -45,8 +44,6 @@ const OMNIBUS_TBE_CONTROLLER = 16;
 const OMNIBUS_TBE_CONTROLLER_WHITELISTED = 17;
 const TRANSACTION_RELAYER = 18;
 const TOKEN_REALLOCATOR = 19;
-const BULK_OPERATIONS = 21;
-
 
 const globals = require('../../utils/globals');
 const { roles } = require('../../utils/globals');
@@ -81,7 +78,6 @@ contract('DeploymentUtils', function (accounts) {
   let omnibusTbeControllerWhitelistedImplementation;
   let transactionRelayerImplementation;
   let tokenReallocatorImplementation;
-  let bulkOperationImplementation;
 
   before(async () => {
     const services = [];
@@ -169,9 +165,6 @@ contract('DeploymentUtils', function (accounts) {
     services.push(TOKEN_REALLOCATOR);
     addresses.push(tokenReallocatorImplementation.address);
 
-    bulkOperationImplementation = await BulkOperation.new();
-    services.push(BULK_OPERATIONS);
-    addresses.push(bulkOperationImplementation.address);
 
     await deploymentUtils.setImplementationAddresses(services, addresses);
     const trustImpl = await deploymentUtils.getImplementationAddress(TRUST_SERVICE);
@@ -194,7 +187,6 @@ contract('DeploymentUtils', function (accounts) {
     const omnibusTbeControllerWhitelistedImpl = await deploymentUtils.getImplementationAddress(OMNIBUS_TBE_CONTROLLER_WHITELISTED);
     const transactionRelayerImpl = await deploymentUtils.getImplementationAddress(TRANSACTION_RELAYER);
     const tokenReallocatorImpl = await deploymentUtils.getImplementationAddress(TOKEN_REALLOCATOR);
-    const bulkOperation = await deploymentUtils.getImplementationAddress(BULK_OPERATIONS);
 
     assert.equal(trustImpl, trustServiceImplementation.address);
     assert.equal(registryImpl, registryServiceImplementation.address);
@@ -216,7 +208,6 @@ contract('DeploymentUtils', function (accounts) {
     assert.equal(omnibusTbeControllerWhitelistedImpl, omnibusTbeControllerWhitelistedImplementation.address);
     assert.equal(transactionRelayerImpl, transactionRelayerImplementation.address);
     assert.equal(tokenReallocatorImpl, tokenReallocatorImplementation.address);
-    assert.equal(bulkOperation, bulkOperationImplementation.address);
   });
 
   describe('Deploying new TrustService', () => {
@@ -332,15 +323,6 @@ contract('DeploymentUtils', function (accounts) {
       assert.equal(name, 'testing');
       assert.equal(symbol, 'tst');
       assert.equal(decimals, 2);
-      deployedProxies.push(logs[0].args.proxyAddress);
-    });
-  });
-
-  describe('Deploying new BulkOperations', () => {
-    it('Should deploy a new Bulk Operations and initialize it', async () => {
-      const dsToken = deployedProxies[deployedProxies.length - 1]
-      const { logs } = await deploymentUtils.deployBulkOperations(dsToken);
-      await checkProxyContractDeployedEvent(logs);
       deployedProxies.push(logs[0].args.proxyAddress);
     });
   });
