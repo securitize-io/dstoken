@@ -216,7 +216,7 @@ contract('DeploymentUtils', function (accounts) {
     assert.equal(omnibusTbeControllerWhitelistedImpl, omnibusTbeControllerWhitelistedImplementation.address);
     assert.equal(transactionRelayerImpl, transactionRelayerImplementation.address);
     assert.equal(tokenReallocatorImpl, tokenReallocatorImplementation.address);
-    //assert.equal(bulkOperation, bulkOperationImplementation.address);
+    assert.equal(bulkOperation, bulkOperationImplementation.address);
   });
 
   describe('Deploying new TrustService', () => {
