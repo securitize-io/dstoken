@@ -18,7 +18,7 @@ import "../omnibus/IDSOmnibusTBEController.sol";
 import "../omnibus/IDSTokenReallocator.sol";
 import "../swap/BaseSecuritizeSwap.sol";
 import "../utils/TransactionRelayer.sol";
-import "../bulk/IBulkOperation.sol";
+import "../bulk/IBulkOperator.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 contract DeploymentUtils {
@@ -43,7 +43,7 @@ contract DeploymentUtils {
     uint8 public constant TRANSACTION_RELAYER = 18;
     uint8 public constant TOKEN_REALLOCATOR = 19;
     uint8 public constant SECURITIZE_SWAP = 20;
-    uint8 public constant BULK_OPERATIONS = 21;
+    uint8 public constant BULK_OPERATOR = 21;
 
     address public owner;
     mapping(uint8 => address) public implementationAddresses;
@@ -184,9 +184,9 @@ contract DeploymentUtils {
         emit ProxyContractDeployed(proxyAddress);
     }
 
-    function deployBulkOperations(address dsToken) public restricted {
-        address proxyAddress = _deployProxy(implementationAddresses[BULK_OPERATIONS]);
-        IBulkOperation(proxyAddress).initialize(dsToken);
+    function deployBulkOperator(address dsToken) public restricted {
+        address proxyAddress = _deployProxy(implementationAddresses[BULK_OPERATOR]);
+        IBulkOperator(proxyAddress).initialize(dsToken);
         emit ProxyContractDeployed(proxyAddress);
     }
 
