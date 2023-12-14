@@ -55,6 +55,7 @@ const deployedProxies = [];
 contract('DeploymentUtils', function (accounts) {
   const newMasterAddress = accounts[2];
   let deploymentUtils;
+  let deploymentUtils2;
   let trustServiceImplementation;
   let proxyTrustService;
   let registryServiceImplementation;
@@ -83,6 +84,7 @@ contract('DeploymentUtils', function (accounts) {
     const services = [];
     const addresses = [];
     deploymentUtils = await DeploymentUtils.new();
+    deploymentUtils2 = await DeploymentUtils.new();
 
     trustServiceImplementation = await TrustService.new();
     services.push(TRUST_SERVICE);
@@ -208,6 +210,49 @@ contract('DeploymentUtils', function (accounts) {
     assert.equal(omnibusTbeControllerWhitelistedImpl, omnibusTbeControllerWhitelistedImplementation.address);
     assert.equal(transactionRelayerImpl, transactionRelayerImplementation.address);
     assert.equal(tokenReallocatorImpl, tokenReallocatorImplementation.address);
+
+    await deploymentUtils2.copyImplementationContracts(deploymentUtils.address);
+    const new_trustImpl = await deploymentUtils2.getImplementationAddress(TRUST_SERVICE);
+    const new_registryImpl = await deploymentUtils2.getImplementationAddress(REGISTRY_SERVICE);
+    const new_compServiceRegulatedImpl = await deploymentUtils2.getImplementationAddress(COMPLIANCE_SERVICE_REGULATED);
+    const new_compServicePartitionedImpl = await deploymentUtils2.getImplementationAddress(COMPLIANCE_SERVICE_PARTITIONED);
+    const new_compServiceWhitelistedImpl = await deploymentUtils2.getImplementationAddress(COMPLIANCE_SERVICE_WHITELISTED);
+    const new_compServiceNotRegulatedImpl = await deploymentUtils2.getImplementationAddress(COMPLIANCE_SERVICE_NOT_REGULATED);
+    const new_compConfigurationServiceImpl = await deploymentUtils2.getImplementationAddress(COMPLIANCE_CONFIGURATION);
+    const new_walletManagerImpl = await deploymentUtils2.getImplementationAddress(WALLET_MANAGER);
+    const new_lockManagerImpl = await deploymentUtils2.getImplementationAddress(LOCK_MANAGER);
+    const new_investorLockManagerImpl = await deploymentUtils2.getImplementationAddress(INVESTOR_LOCK_MANAGER);
+    const new_investorLockManagerPartitionedImpl = await deploymentUtils2.getImplementationAddress(INVESTOR_LOCK_MANAGER_PARTITIONED);
+    const new_dsTokenImpl = await deploymentUtils2.getImplementationAddress(DS_TOKEN);
+    const new_dsTokenPartitionedImpl = await deploymentUtils2.getImplementationAddress(DS_TOKEN_PARTITIONED);
+    const new_tokenIssuerImpl = await deploymentUtils2.getImplementationAddress(TOKEN_ISSUER);
+    const new_walletRegistrarImpl = await deploymentUtils2.getImplementationAddress(WALLET_REGISTRAR);
+    const new_partitionsManagerImpl = await deploymentUtils2.getImplementationAddress(PARTITIONS_MANAGER);
+    const new_omnibusTbeControllerImpl = await deploymentUtils2.getImplementationAddress(OMNIBUS_TBE_CONTROLLER);
+    const new_omnibusTbeControllerWhitelistedImpl = await deploymentUtils2.getImplementationAddress(OMNIBUS_TBE_CONTROLLER_WHITELISTED);
+    const new_transactionRelayerImpl = await deploymentUtils2.getImplementationAddress(TRANSACTION_RELAYER);
+    const new_tokenReallocatorImpl = await deploymentUtils2.getImplementationAddress(TOKEN_REALLOCATOR);
+    
+    assert.equal(trustImpl, new_trustImpl);
+    assert.equal(registryImpl,new_registryImpl);
+    assert.equal(compServiceRegulatedImpl,new_compServiceRegulatedImpl);
+    assert.equal(compServicePartitionedImpl,new_compServicePartitionedImpl);
+    assert.equal(compServiceWhitelistedImpl,new_compServiceWhitelistedImpl);
+    assert.equal(compConfigurationServiceImpl,new_compConfigurationServiceImpl);
+    assert.equal(compServiceNotRegulatedImpl,new_compServiceNotRegulatedImpl);
+    assert.equal(walletManagerImpl,new_walletManagerImpl);
+    assert.equal(lockManagerImpl,new_lockManagerImpl);
+    assert.equal(investorLockManagerImpl,new_investorLockManagerImpl);
+    assert.equal(investorLockManagerPartitionedImpl,new_investorLockManagerPartitionedImpl);
+    assert.equal(dsTokenImpl,new_dsTokenImpl);
+    assert.equal(dsTokenPartitionedImpl,new_dsTokenPartitionedImpl);
+    assert.equal(tokenIssuerImpl,new_tokenIssuerImpl);
+    assert.equal(walletRegistrarImpl,new_walletRegistrarImpl);
+    assert.equal(partitionsManagerImpl,new_partitionsManagerImpl);
+    assert.equal(omnibusTbeControllerImpl,new_omnibusTbeControllerImpl);
+    assert.equal(omnibusTbeControllerWhitelistedImpl,new_omnibusTbeControllerWhitelistedImpl);
+    assert.equal(transactionRelayerImpl,new_transactionRelayerImpl);
+    assert.equal(tokenReallocatorImpl,new_tokenReallocatorImpl);
   });
 
   describe('Deploying new TrustService', () => {

@@ -80,6 +80,14 @@ contract DeploymentUtils {
         return implementationAddresses[service];
     }
 
+    function copyImplementationContracts(address _oldDeploymentUtils) public restricted {
+        DeploymentUtils oldDeploymentUtils = DeploymentUtils(_oldDeploymentUtils);
+        for (uint8 i = 0; i <= 20; i++) {
+            address oldImplementation = oldDeploymentUtils.getImplementationAddress(i);
+            setImplementationAddress(i, oldImplementation);
+        }
+    }
+
     function deployTrustService() public restricted {
         address proxyAddress = _deployProxy(implementationAddresses[TRUST_SERVICE]);
         IDSTrustService(proxyAddress).initialize();
