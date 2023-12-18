@@ -18,6 +18,7 @@ import "../omnibus/IDSOmnibusTBEController.sol";
 import "../omnibus/IDSTokenReallocator.sol";
 import "../swap/BaseSecuritizeSwap.sol";
 import "../utils/TransactionRelayer.sol";
+import "../bulk/IBulkOperator.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 contract DeploymentUtils {
@@ -42,6 +43,7 @@ contract DeploymentUtils {
     uint8 public constant TRANSACTION_RELAYER = 18;
     uint8 public constant TOKEN_REALLOCATOR = 19;
     uint8 public constant SECURITIZE_SWAP = 20;
+    uint8 public constant BULK_OPERATOR = 21;
 
     address public owner;
     mapping(uint8 => address) public implementationAddresses;
@@ -76,6 +78,14 @@ contract DeploymentUtils {
 
     function getImplementationAddress(uint8 service) public view returns (address) {
         return implementationAddresses[service];
+    }
+
+    function copyImplementationContracts(address _oldDeploymentUtils) public restricted {
+        DeploymentUtils oldDeploymentUtils = DeploymentUtils(_oldDeploymentUtils);
+        for (uint8 i = 0; i <= 20; i++) {
+            address oldImplementation = oldDeploymentUtils.getImplementationAddress(i);
+            setImplementationAddress(i, oldImplementation);
+        }
     }
 
     function deployTrustService() public restricted {
@@ -179,6 +189,12 @@ contract DeploymentUtils {
     function deployWalletRegistrar() public restricted {
         address proxyAddress = _deployProxy(implementationAddresses[WALLET_REGISTRAR]);
         IDSWalletRegistrar(proxyAddress).initialize();
+        emit ProxyContractDeployed(proxyAddress);
+    }
+
+    function deployBulkOperator(address dsToken) public restricted {
+        address proxyAddress = _deployProxy(implementationAddresses[BULK_OPERATOR]);
+        IBulkOperator(proxyAddress).initialize(dsToken);
         emit ProxyContractDeployed(proxyAddress);
     }
 
