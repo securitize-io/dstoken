@@ -47,6 +47,8 @@ contract('RegistryService', async function ([
   wallet1,
   wallet2,
   wallet3,
+  wallet4,
+  unknownWallet,
   exchangeWallet,
   additionalWallet,
   omnibusWallet,
