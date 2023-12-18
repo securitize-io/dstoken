@@ -156,8 +156,8 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
     /**
      * @dev Add wallet by investor. This method should verify the new wallet to add,
      * the sender should be an investor, and the new wallet will be added to the retrieved investor (msg.sender)
-     * @param _issuanceTime.
-     * @return issuanceTime
+     * @param _address
+     * @return bool
      */
     function addWalletByInvestor(address _address) public override newWallet(_address) returns (bool) {
         require(!getWalletManager().isSpecialWallet(_address), "Wallet has special role");
