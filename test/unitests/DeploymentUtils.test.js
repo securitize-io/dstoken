@@ -45,6 +45,8 @@ const OMNIBUS_TBE_CONTROLLER_WHITELISTED = 17;
 const TRANSACTION_RELAYER = 18;
 const TOKEN_REALLOCATOR = 19;
 
+const CONTRACT_ALREADY_INITIALIZED_ERROR = 'Contract instance has already been initialized -- Reason given: Contract instance has already been initialized.';
+
 const globals = require('../../utils/globals');
 const { roles } = require('../../utils/globals');
 const { expectRevert } = require('@openzeppelin/test-helpers');
@@ -53,6 +55,7 @@ const services = globals.services;
 const deployedProxies = [];
 
 contract('DeploymentUtils', function (accounts) {
+  const master = accounts[0];
   const newMasterAddress = accounts[2];
   let deploymentUtils;
   let deploymentUtils2;
@@ -80,11 +83,21 @@ contract('DeploymentUtils', function (accounts) {
   let transactionRelayerImplementation;
   let tokenReallocatorImplementation;
 
+  const deployContractBehindProxy = async (Contract, parameters = []) => {
+    const proxy = await Proxy.new();
+    const contract = await Contract.new();
+    await proxy.setTarget(contract.address);
+    const proxifiedContract = await Contract.at(proxy.address);
+    await proxifiedContract.initialize(...parameters);
+    return proxifiedContract;
+};
+
   before(async () => {
     const services = [];
     const addresses = [];
-    deploymentUtils = await DeploymentUtils.new();
-    deploymentUtils2 = await DeploymentUtils.new();
+
+    deploymentUtils = await deployContractBehindProxy(DeploymentUtils);
+    deploymentUtils2 = await deployContractBehindProxy(DeploymentUtils);
 
     trustServiceImplementation = await TrustService.new();
     services.push(TRUST_SERVICE);
@@ -253,6 +266,18 @@ contract('DeploymentUtils', function (accounts) {
     assert.equal(omnibusTbeControllerWhitelistedImpl,new_omnibusTbeControllerWhitelistedImpl);
     assert.equal(transactionRelayerImpl,new_transactionRelayerImpl);
     assert.equal(tokenReallocatorImpl,new_tokenReallocatorImpl);
+  });
+
+
+  describe('DeploymentUtils initial setup', () => {
+    it('SHOULD contract be initialized', async () => {
+        assert.ok(deploymentUtils);
+        assert.equal(await deploymentUtils.owner(), master);
+    });
+
+    it('SHOULD fail when trying to initialize twice', async () => {
+        await expectRevert(deploymentUtils.initialize(), CONTRACT_ALREADY_INITIALIZED_ERROR);
+    });
   });
 
   describe('Deploying new TrustService', () => {

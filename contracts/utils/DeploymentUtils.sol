@@ -1,6 +1,8 @@
 pragma solidity ^0.8.13;
 
 import "./Proxy.sol";
+import "../utils/CommonUtils.sol";
+import "../utils/ProxyTarget.sol";
 import "./Ownable.sol";
 import "../trust/IDSTrustService.sol";
 import "../registry/IDSRegistryService.sol";
@@ -20,8 +22,9 @@ import "../swap/BaseSecuritizeSwap.sol";
 import "../utils/TransactionRelayer.sol";
 import "../bulk/IBulkOperator.sol";
 
+
 //SPDX-License-Identifier: UNLICENSED
-contract DeploymentUtils {
+contract DeploymentUtils is ProxyTarget, Initializable {
     uint8 public constant TRUST_SERVICE = 0;
     uint8 public constant REGISTRY_SERVICE = 1;
     uint8 public constant COMPLIANCE_SERVICE_REGULATED = 2;
@@ -52,7 +55,7 @@ contract DeploymentUtils {
     event ProxyContractDeployed(address proxyAddress);
     event ContractDeployed(address contractAddress);
 
-    constructor() {
+    function initialize() public initializer forceInitializeFromProxy {
         owner = msg.sender;
     }
 
