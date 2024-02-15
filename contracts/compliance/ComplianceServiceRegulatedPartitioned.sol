@@ -26,8 +26,7 @@ library ComplianceServicePartitionedLibrary {
     string internal constant WALLET_NOT_IN_REGISTRY_SERVICE = "Wallet not in registry service";
     string internal constant AMOUNT_OF_TOKENS_UNDER_MIN = "Amount of tokens under min";
     string internal constant AMOUNT_OF_TOKENS_ABOVE_MAX = "Amount of tokens above max";
-    string internal constant HOLD_UP = "Hold-up";
-    string internal constant HOLD_UP_1Y = "Hold-up 1y";
+    string internal constant HOLD_UP = "Under lock-up";
     string internal constant DESTINATION_RESTRICTED = "Destination restricted";
     string internal constant MAX_INVESTORS_IN_CATEGORY = "Max investors in category";
     string internal constant ONLY_ACCREDITED = "Only accredited";
@@ -204,7 +203,7 @@ library ComplianceServicePartitionedLibrary {
 
         if (_args.fromRegion == US) {
             if (checkHoldUp(_services, _args.from, _args.value, isPlatformWalletFrom)) {
-                return (32, HOLD_UP_1Y);
+                return (32, HOLD_UP);
             }
 
             if (

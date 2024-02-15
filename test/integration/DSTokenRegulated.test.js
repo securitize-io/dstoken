@@ -367,7 +367,7 @@ contract('DSToken (regulated)', function ([
         this.token.transfer(germanyInvestorWallet, 1, {
           from: israelInvestorWallet,
         }),
-        'Hold-up'
+        'Under lock-up'
       );
       await this.token.burn(israelInvestorWallet, 100, 'test burn');
       const balance = await this.token.balanceOf(israelInvestorWallet);
