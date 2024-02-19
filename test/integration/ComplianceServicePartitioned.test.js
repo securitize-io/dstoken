@@ -259,7 +259,7 @@ contract('ComplianceServiceRegulatedPartitioned', function ([
         10,
       );
       assert.equal(res[0].toNumber(), 32);
-      assert.equal(res[1], 'Hold-up 1y');
+      assert.equal(res[1], 'Under lock-up');
     });
 
     it('Pre transfer check with force accredited', async function () {

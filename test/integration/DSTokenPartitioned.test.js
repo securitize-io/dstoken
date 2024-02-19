@@ -382,7 +382,7 @@ contract('DSTokenPartitioned (regulated)', function ([
         this.token.transfer(germanyInvestorWallet, 1, {
           from: israelInvestorWallet,
         }),
-        'Hold-up'
+        'Under lock-up'
       );
       const partition = await this.token.partitionOf(israelInvestorWallet, 0);
       await this.token.burnByPartition(israelInvestorWallet, 100, 'test burn', partition);
