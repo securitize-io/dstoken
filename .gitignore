@@ -35,6 +35,7 @@ build/
 # hardhat build directory
 artifacts/
 cache/
+typechain-types/
 
 # lol macs
 .DS_Store/
