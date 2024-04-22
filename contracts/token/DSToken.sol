@@ -13,7 +13,6 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
     function initialize(string memory _name, string memory _symbol, uint8 _decimals) public virtual initializer forceInitializeFromProxy {
         StandardToken.initialize();
 
-        VERSIONS.push(5);
         name = _name;
         symbol = _symbol;
         decimals = _decimals;

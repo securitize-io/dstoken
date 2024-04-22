@@ -5,7 +5,6 @@ import "./InvestorLockManagerBase.sol";
 import "../data-stores/InvestorLockManagerDataStore.sol";
 import "../utils/ProxyTarget.sol";
 import "../service/ServiceConsumer.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
 //SPDX-License-Identifier: UNLICENSED
@@ -184,7 +183,7 @@ contract InvestorLockManager is InvestorLockManagerBase {
         }
 
         //there may be more locked tokens than actual tokens, so the minimum between the two
-        uint256 transferable = SafeMath.sub(balanceOfInvestor, Math.min(totalLockedTokens, balanceOfInvestor));
+        uint256 transferable = balanceOfInvestor - Math.min(totalLockedTokens, balanceOfInvestor);
 
         return transferable;
     }

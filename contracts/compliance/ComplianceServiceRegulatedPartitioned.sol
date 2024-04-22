@@ -1,7 +1,6 @@
 pragma solidity ^0.8.13;
 
 import "./ComplianceServiceRegulated.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 
 library ComplianceServicePartitionedLibrary {
@@ -41,8 +40,6 @@ library ComplianceServicePartitionedLibrary {
         uint256 fromRegion;
         bool isPlatformWalletTo;
     }
-
-    using SafeMath for uint256;
 
     function isRetail(address[] memory _services, address _wallet) internal view returns (bool) {
         IDSRegistryService registry = IDSRegistryService(_services[REGISTRY_SERVICE]);
@@ -385,7 +382,6 @@ library ComplianceServicePartitionedLibrary {
  */
 //SPDX-License-Identifier: UNLICENSED
 contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitioned, ComplianceServiceRegulated {
-    using SafeMath for uint256;
 
     function initialize() public override(ComplianceServiceRegulated, IDSComplianceServicePartitioned) initializer forceInitializeFromProxy {
         ComplianceServiceRegulated.initialize();
@@ -410,7 +406,7 @@ contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitione
     function getComplianceTransferableTokens(address _who, uint256 _time, bool _checkFlowback) public view override returns (uint256 transferable) {
         for (uint256 index = 0; index < getTokenPartitioned().partitionCountOf(_who); ++index) {
             bytes32 partition = getTokenPartitioned().partitionOf(_who, index);
-            transferable = SafeMath.add(transferable, getComplianceTransferableTokens(_who, _time, _checkFlowback, partition));
+            transferable = transferable + getComplianceTransferableTokens(_who, _time, _checkFlowback, partition);
         }
     }
 

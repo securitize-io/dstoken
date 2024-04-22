@@ -2,7 +2,6 @@ pragma solidity ^0.8.13;
 
 import "./IDSLockManagerPartitioned.sol";
 import "./InvestorLockManagerBase.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
 // import "../data-stores/LockManagerPartitionedDataStore.sol";
@@ -136,14 +135,14 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
             }
         }
         //there may be more locked tokens than actual tokens, so the minimum between the two
-        return SafeMath.sub(balanceOfHolderByPartition, Math.min(totalLockedTokens, balanceOfHolderByPartition));
+        return balanceOfHolderByPartition - Math.min(totalLockedTokens, balanceOfHolderByPartition);
     }
 
     function getTransferableTokens(address _who, uint256 _time) public view override returns (uint256 transferable) {
         require(_time > 0, "Time must be greater than zero");
         uint256 countOfPartitions = getTokenPartitioned().partitionCountOf(_who);
         for (uint256 index = 0; index < countOfPartitions; ++index) {
-            transferable = SafeMath.add(transferable, getTransferableTokens(_who, _time, getTokenPartitioned().partitionOf(_who, index)));
+            transferable = transferable + getTransferableTokens(_who, _time, getTokenPartitioned().partitionOf(_who, index));
         }
     }
 

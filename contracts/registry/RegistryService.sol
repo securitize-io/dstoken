@@ -1,6 +1,5 @@
 pragma solidity ^0.8.13;
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./IDSRegistryService.sol";
 import "../service/ServiceConsumer.sol";
 import "../data-stores/RegistryServiceDataStore.sol";

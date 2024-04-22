@@ -3,7 +3,6 @@ pragma solidity ^0.8.13;
 import "./VersionedContract.sol";
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 /**
  @dev Based on SimpleWallet (https://github.com/christianlundkvist/simple-multisig) and uses EIP-712 standard validate a signature
@@ -33,8 +32,6 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
     uint256 public constant CONTRACT_VERSION = 4;
 
     mapping(bytes32 => uint256) internal noncePerInvestor;
-
-    using SafeMath for uint256;
 
     event InvestorNonceUpdated(string investorId, uint256 newNonce);
     event DomainSeparatorUpdated(uint256 chainId);

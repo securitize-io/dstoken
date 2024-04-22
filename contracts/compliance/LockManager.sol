@@ -4,7 +4,6 @@ import "../service/ServiceConsumer.sol";
 import "./IDSLockManager.sol";
 import "../utils/ProxyTarget.sol";
 import "../data-stores/LockManagerDataStore.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
 /**
@@ -13,7 +12,6 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
  */
 //SPDX-License-Identifier: UNLICENSED
 contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsumer, LockManagerDataStore {
-    using SafeMath for uint256;
 
     /*************** Legacy functions ***************/
     function createLockForHolder(string memory _holder, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime)
@@ -173,7 +171,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         }
 
         //there may be more locked tokens than actual tokens, so the minimum between the two
-        uint256 transferable = SafeMath.sub(balanceOfInvestor, Math.min(totalLockedTokens, balanceOfInvestor));
+        uint256 transferable = balanceOfInvestor - Math.min(totalLockedTokens, balanceOfInvestor);
 
         return transferable;
     }

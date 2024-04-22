@@ -12,7 +12,6 @@ abstract contract StandardToken is IDSToken, ServiceConsumer, TokenDataStore {
     function initialize() public virtual override(IDSToken, ServiceConsumer) {
         IDSToken.initialize();
         ServiceConsumer.initialize();
-        VERSIONS.push(5);
     }
 
     modifier whenNotPaused() {

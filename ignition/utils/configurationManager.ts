@@ -1,12 +1,24 @@
-const argv = require('minimist')(process.argv.slice(2), { string: ['omnibus_wallet', 'redemption_wallet','proxyDeploymentUtils'] });
+import minimist from 'minimist'
+const argv = minimist(process.argv.slice(2), {
+  string: ['name', 'omnibus_wallet', 'redemption_wallet','proxyDeploymentUtils'],
+  boolean: ['partitioned'],
+});
 
 const MAINNET_CHAIN_ID = 1;
 
 class ConfigurationManager {
-  constructor () {
-    this.proxiesAddresses = {};
-    this.proxyDeploymentUtils = argv.proxyDeploymentUtils || '';
-  }
+  public readonly proxiesAddresses: {};
+  public decimals: number;
+  public name: string;
+  public symbol: string;
+  public owners: string[];
+  public requiredConfirmations: number;
+  public chainId: string;
+  public complianceManagerType: string;
+  public lockManagerType: string;
+  public partitioned: boolean;
+  public omnibusWallet: string;
+  public redemptionWallet: string;
 
   setConfiguration () {
     const decimals = parseInt(argv.decimals);
@@ -64,42 +76,32 @@ class ConfigurationManager {
     this.decimals = decimals;
     this.name = argv.name;
     this.symbol = argv.symbol;
-    this.owners = argv.owners;
-    // Get multisig wallet owners as an array
-    this.owners = this.owners.split(' ');
+    this.owners = argv.owners.split(' ');
     this.requiredConfirmations = argv.required_confirmations || 2;
     this.chainId = argv.chain_id || MAINNET_CHAIN_ID;
     this.complianceManagerType = argv.compliance || 'NORMAL';
     this.lockManagerType = argv.lock_manager || 'INVESTOR';
-    this.noRegistry = argv.no_registry;
     this.partitioned = argv.partitioned;
     if (this.partitioned) {
       this.complianceManagerType = 'PARTITIONED';
       this.lockManagerType = 'PARTITIONED';
     }
-
-    if (this.noRegistry) {
-      this.noOmnibusWallet = true;
-    } else {
-      this.noOmnibusWallet = argv.no_omnibus_wallet;
-      this.omnibusWallet = argv.omnibus_wallet;
-    }
-
+    this.omnibusWallet = argv.omnibus_wallet;
     this.redemptionWallet = argv.redemption_wallet;
 
     return true;
   }
 
-  getAbstractComplianceServiceContract (artifacts) {
+  getAbstractComplianceServiceContract () {
     switch (this.complianceManagerType) {
     case 'NOT_REGULATED':
-      return artifacts.require('ComplianceServiceNotRegulated');
+      return 'ComplianceServiceNotRegulated';
     case 'WHITELIST':
-      return artifacts.require('ComplianceServiceWhitelisted');
+      return 'ComplianceServiceWhitelisted';
     case 'NORMAL':
-      return artifacts.require('ComplianceServiceRegulated');
+      return 'ComplianceServiceRegulated';
     case 'PARTITIONED':
-      return artifacts.require('ComplianceServiceRegulatedPartitioned');
+      return 'ComplianceServiceRegulatedPartitioned';
     default:
       break;
     }
@@ -155,17 +157,9 @@ class ConfigurationManager {
     this.proxiesAddresses[contractName] = address;
   }
 
-  getProxyAddressForContractName (contractName) {
-    return this.proxiesAddresses[contractName];
-  }
-
-  isTestMode () {
-    return process.env.TEST_MODE === 'TRUE';
-  }
-
   isPartitioned () {
-    return this.partitioned != undefined;
+    return this.partitioned;
   }
 }
 
-module.exports = new ConfigurationManager();
+export const configurationManager = new ConfigurationManager();

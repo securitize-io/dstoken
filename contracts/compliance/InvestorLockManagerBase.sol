@@ -3,7 +3,6 @@ pragma solidity ^0.8.13;
 import "../data-stores/InvestorLockManagerDataStore.sol";
 import "../utils/ProxyTarget.sol";
 import "../service/ServiceConsumer.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 abstract contract InvestorLockManagerBase is ProxyTarget, IDSLockManager, ServiceConsumer, InvestorLockManagerDataStore {
