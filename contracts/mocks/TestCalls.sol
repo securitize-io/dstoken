@@ -1,4 +1,4 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 /// @title Contract for testing low-level calls issued from the multisig wallet
 //SPDX-License-Identifier: UNLICENSED

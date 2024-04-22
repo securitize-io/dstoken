@@ -1,4 +1,4 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "../service/ServiceConsumer.sol";
 
@@ -13,7 +13,6 @@ library TokenLibrary {
     uint256 internal constant OMNIBUS_NO_ACTION = 0;
     uint256 internal constant OMNIBUS_DEPOSIT = 1;
     uint256 internal constant OMNIBUS_WITHDRAW = 2;
-    using SafeMath for uint256;
 
     struct TokenData {
         mapping(address => uint256) walletsBalances;

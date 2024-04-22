@@ -1,7 +1,7 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "../utils/VersionedContract.sol";
-import "../utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 abstract contract IDSComplianceService is Initializable, VersionedContract {

@@ -1,13 +1,12 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/interfaces/IERC20.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../utils/CommonUtils.sol";
-import "../utils/Initializable.sol";
 import "../omnibus/IDSOmnibusWalletController.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-abstract contract IDSToken is IERC20, Initializable, UUPSUpgradeable {
+abstract contract IDSToken is IERC20, Initializable {
     event Issue(address indexed to, uint256 value, uint256 valueLocked);
     event Burn(address indexed burner, uint256 value, string reason);
     event Seize(address indexed from, address indexed to, uint256 value, string reason);
@@ -23,14 +22,7 @@ abstract contract IDSToken is IERC20, Initializable, UUPSUpgradeable {
     event WalletAdded(address wallet);
     event WalletRemoved(address wallet);
 
-    function initialize() public virtual {
-        __UUPSUpgradeable_init();
-    }
-
-    /**
-     * @dev required by the OZ UUPS module
-     */
-    function _authorizeUpgrade(address) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
+    function initialize() public virtual {}
 
     /******************************
        CONFIGURATION

@@ -13,7 +13,15 @@ const config: HardhatUserConfig = {
       },
     },
   },
-  solidity: "0.8.20",
+  solidity: {
+    version: "0.8.20",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200,
+      },
+    },
+  },
   networks: {
     sepolia: {
       chainId: 11155111,

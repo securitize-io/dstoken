@@ -1,4 +1,4 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "./ComplianceServiceRegulated.sol";
 
@@ -92,10 +92,10 @@ library ComplianceServicePartitionedLibrary {
         }
 
         if (compConfService.getUSInvestorsLimit() == 0) {
-            return compConfService.getMaxUSInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100);
+            return compConfService.getMaxUSInvestorsPercentage() * (complianceService.getTotalInvestorsCount()) / 100;
         }
 
-        return Math.min(compConfService.getUSInvestorsLimit(), compConfService.getMaxUSInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100));
+        return Math.min(compConfService.getUSInvestorsLimit(), compConfService.getMaxUSInvestorsPercentage() * (complianceService.getTotalInvestorsCount()) / 100);
     }
 
     function checkHoldUp(address[] memory _services, address _from, uint256 _value, bool _isPlatformWalletFrom) internal view returns (bool) {

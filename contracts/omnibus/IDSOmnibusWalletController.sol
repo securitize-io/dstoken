@@ -1,7 +1,7 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../utils/VersionedContract.sol";
-import "../utils/Initializable.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 abstract contract IDSOmnibusWalletController is Initializable, VersionedContract {

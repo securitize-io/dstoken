@@ -1,4 +1,4 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "./IDSOmnibusWalletController.sol";
 import "../data-stores/OmnibusControllerDataStore.sol";
@@ -6,8 +6,7 @@ import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-contract OmnibusWalletController is ProxyTarget, Initializable, IDSOmnibusWalletController, ServiceConsumer, OmnibusControllerDataStore {
-    using SafeMath for uint256;
+contract OmnibusWalletController is ProxyTarget, IDSOmnibusWalletController, ServiceConsumer, OmnibusControllerDataStore {
 
     modifier onlyOperatorOrAbove {
         IDSTrustService trustService = getTrustService();

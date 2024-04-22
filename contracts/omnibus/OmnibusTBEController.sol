@@ -1,4 +1,4 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
@@ -9,7 +9,6 @@ import "../compliance/ComplianceConfigurationService.sol";
 //SPDX-License-Identifier: UNLICENSED
 contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEController, ServiceConsumer, OmnibusTBEControllerDataStore {
 
-    using SafeMath for uint256;
     string internal constant MAX_INVESTORS_IN_CATEGORY = "Max investors in category";
 
     function initialize(address _omnibusWallet, bool _isPartitionedToken) public override initializer forceInitializeFromProxy {
