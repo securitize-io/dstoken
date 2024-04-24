@@ -21,3 +21,14 @@ export const getComplianceContractName = (complianceType: string): string => {
       return 'ComplianceServiceRegulated';
   }
 }
+
+export const getLockManagerContractName = (lockManagerType: string): string => {
+  switch (lockManagerType) {
+    case 'WALLET':
+      return 'LockManager';
+    case 'PARTITIONED':
+      return 'InvestorLockManagerPartitioned';
+    default:
+      return 'InvestorLockManager';
+  }
+}

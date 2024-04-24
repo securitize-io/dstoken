@@ -7,7 +7,7 @@ pragma solidity ^0.8.20;
 //SPDX-License-Identifier: UNLICENSED
 abstract contract IDSTrustService {
 
-    function initialize() public virtual {}
+    function initialize() public virtual;
 
     /**
      * @dev Should be emitted when a role is set for a user.

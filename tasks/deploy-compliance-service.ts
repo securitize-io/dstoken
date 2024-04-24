@@ -8,14 +8,12 @@ subtask('deploy-compliance-service', 'Deploy Compliance Service')
       const ComplianceLib = await hre.ethers.getContractFactory('ComplianceServiceLibrary');
       const complianceLib = await ComplianceLib.deploy();
 
-      const libraries = {};
+      const libraries = { ComplianceServiceLibrary: complianceLib};
 
       if (args.compliance === 'PARTITIONED') {
         const CompliancePartitionedLib = await hre.ethers.getContractFactory('ComplianceServicePartitionedLibrary');
         const compliancePartitionedLib = await CompliancePartitionedLib.deploy();
         libraries.ComplianceServicePartitionedLibrary = compliancePartitionedLib;
-      } else {
-        libraries.ComplianceServiceLibrary =  complianceLib;
       }
 
       const complianceContractName = getComplianceContractName(args.compliance);
@@ -32,6 +30,6 @@ subtask('deploy-compliance-service', 'Deploy Compliance Service')
 
       await service.waitForDeployment();
 
-      return printContractAddresses('Registry Service', service, hre);
+      return printContractAddresses('Compliance Service', service, hre);
     }
   );

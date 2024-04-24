@@ -6,7 +6,7 @@ import "../omnibus/IDSOmnibusWalletController.sol";
 //SPDX-License-Identifier: UNLICENSED
 abstract contract IDSRegistryService {
 
-    function initialize() public virtual {}
+    function initialize() public virtual;
 
     event DSRegistryServiceInvestorAdded(string investorId, address sender);
     event DSRegistryServiceInvestorRemoved(string investorId, address sender);

@@ -3,19 +3,21 @@ pragma solidity ^0.8.20;
 import "./IDSLockManager.sol";
 import "./InvestorLockManagerBase.sol";
 import "../data-stores/InvestorLockManagerDataStore.sol";
-import "../utils/ProxyTarget.sol";
-import "../service/ServiceConsumer.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-contract InvestorLockManager is InvestorLockManagerBase {
+contract InvestorLockManager is InvestorLockManagerBase, UUPSUpgradeable {
     uint256 constant MAX_LOCKS_PER_INVESTOR = 30;
 
-    function initialize() public override initializer forceInitializeFromProxy {
-        InvestorLockManagerBase.initialize();
-
-        VERSIONS.push(3);
+    function initialize() public override onlyProxy initializer {
+        __ServiceConsumer_init();
     }
+
+    /**
+     * @dev required by the OZ UUPS module
+     */
+    function _authorizeUpgrade(address) internal override onlyMaster {}
 
     function setLockInfoImpl(string memory _investor, uint256 _lockIndex, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime) internal {
         investorsLocks[_investor][_lockIndex] = Lock(_valueLocked, _reasonCode, _reasonString, _releaseTime);

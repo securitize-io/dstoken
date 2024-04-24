@@ -5,10 +5,15 @@ task('deploy-all', 'Deploy DS Protocol')
   .addParam('symbol', 'DS Token symbol', 'EXA', types.string)
   .addParam('decimals', 'DS Token decimals', 2, types.int)
   .addParam('compliance', 'Compliance Type', 'REGULATED', types.string)
+  .addParam('lock', 'Lock Type', 'INVESTOR', types.string)
   .setAction(async (args, { run }) => {
     await run('compile');
     await run('deploy-token', args);
     await run('deploy-trust-service');
     await run('deploy-registry-service');
     await run('deploy-compliance-service', args);
+    await run('deploy-wallet-manager');
+    await run('deploy-lock-manager', args);
+    await run('deploy-partitions-manager', args);
+    await run('deploy-compliance-configuration-service');
   });

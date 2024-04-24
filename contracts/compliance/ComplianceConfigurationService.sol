@@ -3,15 +3,19 @@ pragma solidity ^0.8.20;
 import "./IDSComplianceConfigurationService.sol";
 import "../data-stores/ComplianceConfigurationDataStore.sol";
 import "../service/ServiceConsumer.sol";
-import "../utils/ProxyTarget.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurationService, ServiceConsumer, ComplianceConfigurationDataStore {
-    function initialize() public override(IDSComplianceConfigurationService) initializer forceInitializeFromProxy {
-        IDSComplianceConfigurationService.initialize();
+contract ComplianceConfigurationService is IDSComplianceConfigurationService, ServiceConsumer, ComplianceConfigurationDataStore, UUPSUpgradeable {
+
+    function initialize() public override onlyProxy initializer {
         __ServiceConsumer_init();
-        VERSIONS.push(8);
     }
+
+    /**
+     * @dev required by the OZ UUPS module
+     */
+    function _authorizeUpgrade(address) internal override onlyMaster {}
 
     function setCountriesCompliance(string[] memory _countries, uint256[] memory _values) public override onlyTransferAgentOrAbove {
         require(_countries.length <= 35, "Exceeded the maximum number of countries");

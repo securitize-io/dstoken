@@ -76,7 +76,7 @@ library ComplianceServicePartitionedLibrary {
         return IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getCountryCompliance(getCountry(_services, _wallet));
     }
 
-    function isOmnibusTBE(IDSOmnibusTBEController _omnibusTBE, address _from) public view returns (bool) {
+    function isOmnibusTBE(IDSOmnibusTBEController _omnibusTBE, address _from) internal view returns (bool) {
         if (address(_omnibusTBE) != address(0)) {
             return _omnibusTBE.getOmnibusWallet() == _from;
         }
@@ -362,7 +362,7 @@ library ComplianceServicePartitionedLibrary {
         return (0, VALID);
     }
 
-    function getLockTime(IDSComplianceConfigurationService _complianceConfiguration, uint256 _partitionRegion, bool _checkFlowback) public view returns (uint256) {
+    function getLockTime(IDSComplianceConfigurationService _complianceConfiguration, uint256 _partitionRegion, bool _checkFlowback) internal view returns (uint256) {
         if (_partitionRegion == US) {
             return _complianceConfiguration.getUSLockPeriod();
         } else {

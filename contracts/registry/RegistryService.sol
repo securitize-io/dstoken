@@ -3,7 +3,6 @@ pragma solidity ^0.8.20;
 import "./IDSRegistryService.sol";
 import "../service/ServiceConsumer.sol";
 import "../data-stores/RegistryServiceDataStore.sol";
-import "../utils/ProxyTarget.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 //SPDX-License-Identifier: UNLICENSED

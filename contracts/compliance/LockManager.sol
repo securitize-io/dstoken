@@ -2,16 +2,16 @@ pragma solidity ^0.8.20;
 
 import "../service/ServiceConsumer.sol";
 import "./IDSLockManager.sol";
-import "../utils/ProxyTarget.sol";
 import "../data-stores/LockManagerDataStore.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 /**
  * @title LockManager
  * @dev An interface for controlling and getting information about locked funds in a compliance manager
  */
 //SPDX-License-Identifier: UNLICENSED
-contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsumer, LockManagerDataStore {
+contract LockManager is IDSLockManager, ServiceConsumer, LockManagerDataStore, UUPSUpgradeable {
 
     /*************** Legacy functions ***************/
     function createLockForHolder(string memory _holder, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime)
@@ -44,10 +44,14 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
 
     /******************************/
 
-    function initialize() public override(IDSLockManager) initializer forceInitializeFromProxy {
+    function initialize() public override onlyProxy initializer {
         __ServiceConsumer_init();
-        VERSIONS.push(3);
     }
+
+    /**
+     * @dev required by the OZ UUPS module
+     */
+    function _authorizeUpgrade(address) internal override onlyMaster {}
 
     uint256 constant MAX_LOCKS_PER_ADDRESS = 30;
 

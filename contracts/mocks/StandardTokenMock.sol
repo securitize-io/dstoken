@@ -1,17 +1,15 @@
 pragma solidity ^0.8.20;
 
 import "../token/StandardToken.sol";
-import "../utils/ProxyTarget.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "../token/DSToken.sol";
 
 // mock class using StandardToken
 //SPDX-License-Identifier: UNLICENSED
-contract StandardTokenMock is ProxyTarget, Initializable, StandardToken {
-    function initialize(address _initialAccount, uint256 _initialBalance) public initializer forceInitializeFromProxy {
-        VERSIONS.push(2);
-        tokenData.walletsBalances[_initialAccount] = _initialBalance;
-        tokenData.totalSupply = _initialBalance;
+contract StandardTokenMock is StandardToken {
+
+    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public virtual override onlyProxy initializer {
+        name = _name;
+        symbol = _symbol;
+        decimals = _decimals;
     }
 
     function balanceOfInvestor(string memory) public pure override returns (uint256) {

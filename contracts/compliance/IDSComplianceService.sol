@@ -25,7 +25,7 @@ abstract contract IDSComplianceService {
     string internal constant NOT_ENOUGH_INVESTORS = "Not enough investors";
     string internal constant MAX_AUTHORIZED_SECURITIES_EXCEEDED = "Max authorized securities exceeded";
 
-    function initialize() public virtual {}
+    function initialize() public virtual;
 
     function adjustInvestorCountsAfterCountryChange(
         string memory _id,

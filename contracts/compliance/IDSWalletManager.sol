@@ -1,14 +1,9 @@
 pragma solidity ^0.8.20;
 
-import "../utils/VersionedContract.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-
 //SPDX-License-Identifier: UNLICENSED
-abstract contract IDSWalletManager is Initializable, VersionedContract {
+abstract contract IDSWalletManager {
 
-    function initialize() public virtual {
-        VERSIONS.push(5);
-    }
+    function initialize() public virtual;
 
     // Special wallets constants
     uint8 public constant NONE = 0;

@@ -4,6 +4,7 @@ import "../service/ServiceConsumer.sol";
 import "./IDSWalletManager.sol";
 import "../utils/ProxyTarget.sol";
 import "../data-stores/WalletManagerDataStore.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 /**
  * @title WalletManager
@@ -11,12 +12,13 @@ import "../data-stores/WalletManagerDataStore.sol";
  * @dev Implements DSTrustServiceInterface and ESServiceConsumer.
  */
 //SPDX-License-Identifier: UNLICENSED
-contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceConsumer, WalletManagerDataStore {
-    function initialize() public override(IDSWalletManager) initializer forceInitializeFromProxy {
-        IDSWalletManager.initialize();
-        __ServiceConsumer_init();
-        VERSIONS.push(5);
-    }
+contract WalletManager is IDSWalletManager, ServiceConsumer, WalletManagerDataStore, UUPSUpgradeable {
+    function initialize() public override onlyProxy initializer {}
+
+    /**
+     * @dev required by the OZ UUPS module
+     */
+    function _authorizeUpgrade(address) internal override onlyMaster {}
 
     /**
    * @dev Sets a wallet to be an special wallet. (internal)

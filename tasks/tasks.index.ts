@@ -3,3 +3,7 @@ export * from './deploy-token.ts';
 export * from './deploy-trust-service.ts';
 export * from './deploy-registry-service.ts';
 export * from './deploy-compliance-service.ts';
+export * from './deploy-wallet-manager.ts';
+export * from './deploy-lock-manager.ts';
+export * from './deploy-partitions-manager.ts';
+export * from './deploy-compliance-configuration-service.ts';

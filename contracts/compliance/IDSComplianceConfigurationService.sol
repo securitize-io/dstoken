@@ -1,14 +1,9 @@
 pragma solidity ^0.8.20;
 
-import "../utils/VersionedContract.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-
 //SPDX-License-Identifier: UNLICENSED
-abstract contract IDSComplianceConfigurationService is Initializable, VersionedContract {
+abstract contract IDSComplianceConfigurationService {
 
-    function initialize() public virtual {
-        VERSIONS.push(7);
-    }
+    function initialize() public virtual;
 
     event DSComplianceUIntRuleSet(string ruleName, uint256 prevValue, uint256 newValue);
     event DSComplianceBoolRuleSet(string ruleName, bool prevValue, bool newValue);

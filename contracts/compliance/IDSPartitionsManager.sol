@@ -1,16 +1,11 @@
 pragma solidity ^0.8.20;
 
-import "../service/IDSServiceConsumer.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-
 //SPDX-License-Identifier: UNLICENSED
-abstract contract IDSPartitionsManager is Initializable, IDSServiceConsumer {
+abstract contract IDSPartitionsManager {
 
     event PartitionCreated(uint256 _date, uint256 _region, bytes32 _partition);
 
-    function initialize() public virtual {
-        VERSIONS.push(2);
-    }
+    function initialize() public virtual;
 
     function ensurePartition(
         uint256 _issuanceDate,

@@ -92,7 +92,7 @@ library ComplianceServiceLibrary {
         return Math.min(compConfService.getUSInvestorsLimit(), compConfService.getMaxUSInvestorsPercentage() * (complianceService.getTotalInvestorsCount()) / 100);
     }
 
-    function isOmnibusTBE(IDSOmnibusTBEController _omnibusTBE, address _from) public view returns (bool) {
+    function isOmnibusTBE(IDSOmnibusTBEController _omnibusTBE, address _from) internal view returns (bool) {
         if (address(_omnibusTBE) != address(0)) {
             return _omnibusTBE.getOmnibusWallet() == _from;
         }

@@ -1,10 +1,7 @@
 pragma solidity ^0.8.20;
 
-import "../utils/VersionedContract.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-
 //SPDX-License-Identifier: UNLICENSED
-abstract contract IDSLockManager is Initializable, VersionedContract {
+abstract contract IDSLockManager {
 
     function initialize() public virtual;
 
