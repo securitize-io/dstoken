@@ -9,9 +9,9 @@ import "../utils/ProxyTarget.sol";
 //SPDX-License-Identifier: UNLICENSED
 contract PartitionsManager is ProxyTarget, Initializable,  IDSPartitionsManager, ServiceConsumer, PartitionsManagerDataStore {
 
-  function initialize() public override(IDSPartitionsManager, ServiceConsumer) initializer forceInitializeFromProxy {
+  function initialize() public override(IDSPartitionsManager) initializer forceInitializeFromProxy {
     IDSPartitionsManager.initialize();
-    ServiceConsumer.initialize();
+    __ServiceConsumer_init();
     VERSIONS.push(2);
   }
 

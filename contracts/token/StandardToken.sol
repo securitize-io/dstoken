@@ -10,12 +10,6 @@ abstract contract StandardToken is IDSToken, ServiceConsumer, TokenDataStore, UU
     event Pause();
     event Unpause();
 
-    function initialize() public virtual override(IDSToken, ServiceConsumer) {
-        __UUPSUpgradeable_init();
-        IDSToken.initialize();
-        ServiceConsumer.initialize();
-    }
-
     /**
      * @dev required by the OZ UUPS module
      */

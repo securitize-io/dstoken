@@ -383,10 +383,8 @@ library ComplianceServicePartitionedLibrary {
 //SPDX-License-Identifier: UNLICENSED
 contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitioned, ComplianceServiceRegulated {
 
-    function initialize() public override(ComplianceServiceRegulated, IDSComplianceServicePartitioned) initializer forceInitializeFromProxy {
+    function initialize() public override(ComplianceServiceRegulated, IDSComplianceServicePartitioned) onlyProxy initializer {
         ComplianceServiceRegulated.initialize();
-        IDSComplianceServicePartitioned.initialize();
-        VERSIONS.push(7);
     }
 
     function preTransferCheck(address _from, address _to, uint256 _value) public view override(IDSComplianceService, ComplianceServiceRegulated) returns (uint256 code, string memory reason) {

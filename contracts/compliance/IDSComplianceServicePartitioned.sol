@@ -5,9 +5,7 @@ import "./IDSComplianceService.sol";
 //SPDX-License-Identifier: UNLICENSED
 abstract contract IDSComplianceServicePartitioned is IDSComplianceService {
 
-    function initialize() public virtual override {
-        VERSIONS.push(2);
-    }
+    function initialize() public virtual override {}
 
     function getComplianceTransferableTokens(
         address _who,

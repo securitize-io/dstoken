@@ -10,9 +10,8 @@ import "./ComplianceService.sol";
 */
 //SPDX-License-Identifier: UNLICENSED
 contract ComplianceServiceNotRegulated is ComplianceService {
-    function initialize() public override initializer forceInitializeFromProxy {
+    function initialize() public override onlyProxy initializer {
         ComplianceService.initialize();
-        VERSIONS.push(3);
     }
 
     function recordIssuance(address, uint256, uint256) internal pure override returns (bool) {

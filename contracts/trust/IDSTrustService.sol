@@ -1,19 +1,13 @@
 pragma solidity ^0.8.20;
 
-import "../utils/VersionedContract.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-
-
 /**
  * @title IDSTrustService
  * @dev An interface for a trust service which allows role-based access control for other contracts.
  */
 //SPDX-License-Identifier: UNLICENSED
-abstract contract IDSTrustService is Initializable, VersionedContract {
+abstract contract IDSTrustService {
 
-    function initialize() public virtual {
-        VERSIONS.push(4);
-    }
+    function initialize() public virtual {}
 
     /**
      * @dev Should be emitted when a role is set for a user.

@@ -9,8 +9,8 @@ abstract contract InvestorLockManagerBase is ProxyTarget, IDSLockManager, Servic
     event InvestorFullyLocked(string investorId);
     event InvestorFullyUnlocked(string investorId);
 
-    function initialize() public virtual override(IDSLockManager, ServiceConsumer) {
-        ServiceConsumer.initialize();
+    function initialize() public virtual override(IDSLockManager) {
+        __ServiceConsumer_init();
         VERSIONS.push(1);
     }
 

@@ -1,14 +1,7 @@
 pragma solidity ^0.8.20;
 
-import "../utils/VersionedContract.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-
 //SPDX-License-Identifier: UNLICENSED
-abstract contract IDSComplianceService is Initializable, VersionedContract {
-
-    function initialize() public virtual {
-        VERSIONS.push(7);
-    }
+abstract contract IDSComplianceService {
 
     uint256 internal constant NONE = 0;
     uint256 internal constant US = 1;
@@ -31,6 +24,8 @@ abstract contract IDSComplianceService is Initializable, VersionedContract {
     string internal constant ONLY_US_ACCREDITED = "Only us accredited";
     string internal constant NOT_ENOUGH_INVESTORS = "Not enough investors";
     string internal constant MAX_AUTHORIZED_SECURITIES_EXCEEDED = "Max authorized securities exceeded";
+
+    function initialize() public virtual {}
 
     function adjustInvestorCountsAfterCountryChange(
         string memory _id,

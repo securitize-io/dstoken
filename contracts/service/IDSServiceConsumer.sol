@@ -7,10 +7,6 @@ import "../omnibus/IDSOmnibusWalletController.sol";
 //SPDX-License-Identifier: UNLICENSED
 abstract contract IDSServiceConsumer is Initializable, VersionedContract {
 
-    function initialize() public virtual {
-        VERSIONS.push(6);
-    }
-
     uint256 public constant TRUST_SERVICE = 1;
     uint256 public constant DS_TOKEN = 2;
     uint256 public constant REGISTRY_SERVICE = 4;
@@ -25,6 +21,8 @@ abstract contract IDSServiceConsumer is Initializable, VersionedContract {
     uint256 public constant OMNIBUS_TBE_CONTROLLER = 2048;
     uint256 public constant TRANSACTION_RELAYER = 4096;
     uint256 public constant TOKEN_REALLOCATOR = 8192;
+    uint256 public constant MCTA = 8192;
+    uint256 public constant MCI = 8192;
     uint256 public constant SECURITIZE_SWAP = 16384;
 
     function getDSService(uint256 _serviceId) public view virtual returns (address);

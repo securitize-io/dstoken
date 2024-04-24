@@ -26,11 +26,8 @@ abstract contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsume
     uint8 public constant ROLE_EXCHANGE = 4;
     uint8 public constant ROLE_TRANSFER_AGENT = 8;
 
-    function initialize() public virtual override(IDSServiceConsumer, Ownable) {
-        IDSServiceConsumer.initialize();
-        Ownable.initialize();
-
-        VERSIONS.push(6);
+    function __ServiceConsumer_init() public virtual {
+        __Ownable_init();
     }
 
     modifier onlyMaster {

@@ -6,9 +6,9 @@ import "../utils/ProxyTarget.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 contract TokenIssuer is ProxyTarget, Initializable, IDSTokenIssuer, ServiceConsumer {
-    function initialize() public override(IDSTokenIssuer, ServiceConsumer) initializer forceInitializeFromProxy {
+    function initialize() public override(IDSTokenIssuer) initializer forceInitializeFromProxy {
         IDSTokenIssuer.initialize();
-        ServiceConsumer.initialize();
+        __ServiceConsumer_init();
         VERSIONS.push(5);
     }
 

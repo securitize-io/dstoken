@@ -12,9 +12,9 @@ import "../data-stores/WalletManagerDataStore.sol";
  */
 //SPDX-License-Identifier: UNLICENSED
 contract WalletManager is ProxyTarget, Initializable, IDSWalletManager, ServiceConsumer, WalletManagerDataStore {
-    function initialize() public override(IDSWalletManager, ServiceConsumer) initializer forceInitializeFromProxy {
+    function initialize() public override(IDSWalletManager) initializer forceInitializeFromProxy {
         IDSWalletManager.initialize();
-        ServiceConsumer.initialize();
+        __ServiceConsumer_init();
         VERSIONS.push(5);
     }
 

@@ -4,6 +4,7 @@ import "../utils/CommonUtils.sol";
 import "../utils/ProxyTarget.sol";
 import "./IDSTrustService.sol";
 import "../data-stores/TrustServiceDataStore.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 /**
  * @title TrustService
@@ -11,13 +12,17 @@ import "../data-stores/TrustServiceDataStore.sol";
  * @dev Implements IDSTrustService.
  */
 //SPDX-License-Identifier: UNLICENSED
-contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServiceDataStore {
-    function initialize() public override initializer forceInitializeFromProxy {
-        IDSTrustService.initialize();
-        VERSIONS.push(4);
+contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable {
+
+    function initialize() public override onlyProxy initializer {
         owner = msg.sender;
         roles[msg.sender] = MASTER;
     }
+
+    /**
+     * @dev required by the OZ UUPS module
+     */
+    function _authorizeUpgrade(address) internal override onlyMaster {}
 
     /**
    * @dev Allow invoking of functions only by the user who has the MASTER role.

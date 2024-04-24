@@ -8,7 +8,7 @@ abstract contract IDSPartitionsManager is Initializable, IDSServiceConsumer {
 
     event PartitionCreated(uint256 _date, uint256 _region, bytes32 _partition);
 
-    function initialize() public virtual override {
+    function initialize() public virtual {
         VERSIONS.push(2);
     }
 

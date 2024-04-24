@@ -1,7 +1,6 @@
 pragma solidity ^0.8.20;
 
 import "./ComplianceService.sol";
-import "../registry/IDSRegistryService.sol";
 
 /**
 *   @title Concrete compliance service for tokens with whitelisted wallets.
@@ -10,9 +9,9 @@ import "../registry/IDSRegistryService.sol";
 */
 //SPDX-License-Identifier: UNLICENSED
 contract ComplianceServiceWhitelisted is ComplianceService {
-    function initialize() public virtual override initializer forceInitializeFromProxy {
+
+    function initialize() public virtual override onlyProxy initializer {
         ComplianceService.initialize();
-        VERSIONS.push(5);
     }
     function newPreTransferCheck(
         address _from,

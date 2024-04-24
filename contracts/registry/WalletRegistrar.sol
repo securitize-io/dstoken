@@ -6,9 +6,9 @@ import "../utils/ProxyTarget.sol";
 
 //SPDX-License-Identifier: UNLICENSED
 contract WalletRegistrar is ProxyTarget, Initializable, IDSWalletRegistrar, ServiceConsumer {
-    function initialize() public override(IDSWalletRegistrar, ServiceConsumer) initializer forceInitializeFromProxy {
+    function initialize() public override(IDSWalletRegistrar) initializer forceInitializeFromProxy {
         IDSWalletRegistrar.initialize();
-        ServiceConsumer.initialize();
+        __ServiceConsumer_init();
         VERSIONS.push(4);
     }
 

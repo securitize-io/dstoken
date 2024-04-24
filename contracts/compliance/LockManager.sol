@@ -44,8 +44,8 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
 
     /******************************/
 
-    function initialize() public override(IDSLockManager, ServiceConsumer) initializer forceInitializeFromProxy {
-        ServiceConsumer.initialize();
+    function initialize() public override(IDSLockManager) initializer forceInitializeFromProxy {
+        __ServiceConsumer_init();
         VERSIONS.push(3);
     }
 

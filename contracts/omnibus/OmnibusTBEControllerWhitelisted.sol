@@ -10,7 +10,7 @@ import "../compliance/ComplianceConfigurationService.sol";
 contract OmnibusTBEControllerWhitelisted is ProxyTarget, Initializable, IDSOmnibusTBEController, ServiceConsumer, OmnibusTBEControllerDataStore {
     function initialize(address _omnibusWallet, bool _isPartitionedToken) public override initializer forceInitializeFromProxy {
         VERSIONS.push(2);
-        ServiceConsumer.initialize();
+        __ServiceConsumer_init();
         omnibusWallet = _omnibusWallet;
         isPartitionedToken = _isPartitionedToken;
         isPartitionedToken = false;

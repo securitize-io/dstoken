@@ -37,7 +37,7 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
     event DomainSeparatorUpdated(uint256 chainId);
 
     function initialize(uint256 chainId) public initializer forceInitializeFromProxy {
-        ServiceConsumer.initialize();
+        __ServiceConsumer_init();
         VERSIONS.push(CONTRACT_VERSION);
 
         DOMAIN_SEPARATOR = keccak256(

@@ -36,6 +36,7 @@ build/
 artifacts/
 cache/
 typechain-types/
+ignition/deployments/
 
 # lol macs
 .DS_Store/

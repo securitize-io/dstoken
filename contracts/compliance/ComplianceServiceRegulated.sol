@@ -496,9 +496,9 @@ library ComplianceServiceLibrary {
  */
 //SPDX-License-Identifier: UNLICENSED
 contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
-    function initialize() public virtual override initializer forceInitializeFromProxy {
+
+    function initialize() public virtual override onlyProxy initializer {
         super.initialize();
-        VERSIONS.push(13);
     }
 
     function compareInvestorBalance(

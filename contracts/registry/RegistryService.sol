@@ -4,14 +4,19 @@ import "./IDSRegistryService.sol";
 import "../service/ServiceConsumer.sol";
 import "../data-stores/RegistryServiceDataStore.sol";
 import "../utils/ProxyTarget.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 //SPDX-License-Identifier: UNLICENSED
-contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, ServiceConsumer, RegistryServiceDataStore {
-    function initialize() public override(IDSRegistryService, ServiceConsumer) initializer forceInitializeFromProxy {
-        IDSRegistryService.initialize();
-        ServiceConsumer.initialize();
-        VERSIONS.push(6);
+contract RegistryService is IDSRegistryService, ServiceConsumer, RegistryServiceDataStore, UUPSUpgradeable {
+
+    function initialize() public override onlyProxy initializer {
+        __ServiceConsumer_init();
     }
+
+    /**
+     * @dev required by the OZ UUPS module
+     */
+    function _authorizeUpgrade(address) internal override onlyMaster {}
 
     function registerInvestor(string memory _id, string memory _collisionHash) public override onlyExchangeOrAbove newInvestor(_id) returns (bool) {
         investors[_id] = Investor(_id, _collisionHash, msg.sender, msg.sender, "", 0);

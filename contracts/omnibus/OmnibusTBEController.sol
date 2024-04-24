@@ -13,7 +13,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
 
     function initialize(address _omnibusWallet, bool _isPartitionedToken) public override initializer forceInitializeFromProxy {
         VERSIONS.push(4);
-        ServiceConsumer.initialize();
+        __ServiceConsumer_init();
 
         omnibusWallet = _omnibusWallet;
         isPartitionedToken = _isPartitionedToken;
