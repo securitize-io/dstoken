@@ -40,4 +40,6 @@ module.exports = async function(deployer) {
     configurationManager.getProxyAddressForContractName("TokenReallocator"),
     roles.ISSUER
   );
+
+  //TODO dar los roles a los Multicall
 };

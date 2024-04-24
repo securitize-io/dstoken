@@ -17,24 +17,24 @@ contract MulticallProxy is IMulticallProxy, ServiceConsumer, Ownable {
     function initialize() public initializer {
         owner = msg.sender;
     }
-    //TODO refactorizar a cada Proxy independiente
-    function exMulticall(address[] memory _targets, bytes[] calldata data) external payable onlyExchangeOrAbove returns (bytes[] memory results) {
-        return _callTargets(_targets, _data);
-    }
 
     function taMulticall(address[] memory _targets, bytes[] calldata data) external payable onlyTransferAgentOrAbove returns (bytes[] memory results) {
-        return _callTargets(_targets, _data);
-    }
-
-    function isMulticall(address[] memory _targets, bytes[] calldata _data) external payable onlyIssuerOrAbove returns (bytes[] memory results) {
-        return _callTargets(_targets, _data);
-    }
-
-    function _callTarget(address[] memory _targets, bytes[] memory data) internal returns (bytes memory) {
         results = new bytes[](data.length);
         for (uint256 i = 0; i < data.length; i++) {
             results[i] = _callTarget(_targets[i], data[i]);
         }
+    }
+
+    function isMulticall(address[] memory _targets, bytes[] calldata data) external payable onlyIssuerOrAbove returns (bytes[] memory results) {
+        return _callTargets(_targets, _data);
+    }
+
+    function _callTarget(address target, bytes memory data) internal returns (bytes memory) {
+        results = new bytes[](data.length);
+        for (uint256 i = 0; i < data.length; i++) {
+            results[i] = _callTarget(_targets[i], data[i]);
+        }
+        bytes memory result = Address.functionCall(target, data);
         return result;
     }
 
