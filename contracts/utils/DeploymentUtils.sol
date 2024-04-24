@@ -272,4 +272,6 @@ contract DeploymentUtils is ProxyTarget, Initializable {
         IDSOmnibusTBEController(proxyAddress).initialize(omnibusWallet, isPartitionedToken);
         emit ProxyContractDeployed(proxyAddress);
     }
+
+    //TODO crear el deploytment del multicall proxy
 }
