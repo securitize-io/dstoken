@@ -16,7 +16,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
  *   and implement the five functions - recordIssuance,checkTransfer,recordTransfer,recordBurn and recordSeize.
  *   The rest of the functions should only be overridden in rare circumstances.
  */
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 abstract contract ComplianceService is IDSComplianceService, ComplianceServiceDataStore, ServiceConsumer, UUPSUpgradeable {
 
     function initialize() public virtual override onlyProxy initializer {

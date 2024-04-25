@@ -5,7 +5,7 @@ import "../data-stores/ComplianceConfigurationDataStore.sol";
 import "../service/ServiceConsumer.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract ComplianceConfigurationService is IDSComplianceConfigurationService, ServiceConsumer, ComplianceConfigurationDataStore, UUPSUpgradeable {
 
     function initialize() public override onlyProxy initializer {

@@ -4,7 +4,7 @@ import "./IDSToken.sol";
 import "../utils/ProxyTarget.sol";
 import "./StandardToken.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract DSToken is StandardToken {
     // using FeaturesLibrary for SupportedFeatures;
     using TokenLibrary for TokenLibrary.SupportedFeatures;

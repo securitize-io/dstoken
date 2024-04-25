@@ -6,7 +6,7 @@ import "../data-stores/OmnibusTBEControllerDataStore.sol";
 import "../compliance/ComplianceServiceRegulated.sol";
 import "../compliance/ComplianceConfigurationService.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract OmnibusTBEControllerWhitelisted is ProxyTarget, Initializable, IDSOmnibusTBEController, ServiceConsumer, OmnibusTBEControllerDataStore {
     function initialize(address _omnibusWallet, bool _isPartitionedToken) public override initializer forceInitializeFromProxy {
         VERSIONS.push(2);

@@ -5,7 +5,7 @@ import "../service/ServiceConsumer.sol";
 import "../data-stores/TokenDataStore.sol";
 import "../omnibus/OmnibusTBEController.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 abstract contract StandardToken is IDSToken, ServiceConsumer, TokenDataStore, UUPSUpgradeable {
     event Pause();
     event Unpause();

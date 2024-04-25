@@ -7,7 +7,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 // import "../data-stores/LockManagerPartitionedDataStore.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLockManagerBase, UUPSUpgradeable {
     uint256 constant MAX_LOCKS_PER_INVESTOR_PARTITION = 30;
 

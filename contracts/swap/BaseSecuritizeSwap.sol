@@ -2,7 +2,7 @@ pragma solidity ^0.8.20;
 
 import "../token/IDSToken.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 abstract contract BaseSecuritizeSwap {
     IDSToken public dsToken;
     IERC20 public stableCoinToken;

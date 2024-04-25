@@ -4,7 +4,7 @@ import "./ServiceConsumerDataStore.sol";
 import '../token/TokenPartitionsLibrary.sol';
 import '../token/TokenLibrary.sol';
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract TokenDataStore is ServiceConsumerDataStore {
 
     TokenLibrary.TokenData internal tokenData;

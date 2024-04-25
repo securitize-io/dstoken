@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../utils/VersionedContract.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 abstract contract IDSOmnibusWalletController is Initializable, VersionedContract {
     uint8 public constant BENEFICIARY = 0;
     uint8 public constant HOLDER_OF_RECORD = 1;

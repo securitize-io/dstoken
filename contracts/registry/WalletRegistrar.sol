@@ -4,7 +4,7 @@ import "./IDSWalletRegistrar.sol";
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract WalletRegistrar is ProxyTarget, Initializable, IDSWalletRegistrar, ServiceConsumer {
     function initialize() public override(IDSWalletRegistrar) initializer forceInitializeFromProxy {
         IDSWalletRegistrar.initialize();

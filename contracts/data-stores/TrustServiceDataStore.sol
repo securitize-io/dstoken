@@ -1,6 +1,6 @@
 pragma solidity ^0.8.20;
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract TrustServiceDataStore {
     address internal owner;
     mapping(address => uint8) internal roles;

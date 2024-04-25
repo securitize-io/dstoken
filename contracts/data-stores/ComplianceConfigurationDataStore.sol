@@ -2,7 +2,7 @@ pragma solidity ^0.8.20;
 
 import "./ServiceConsumerDataStore.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract ComplianceConfigurationDataStore is ServiceConsumerDataStore {
     mapping(string => uint256) public countriesCompliances;
     uint256 public totalInvestorsLimit;

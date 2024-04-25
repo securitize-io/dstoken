@@ -16,7 +16,7 @@ import "../omnibus/IDSOmnibusTBEController.sol";
 import "../trust/IDSTrustService.sol";
 import "../utils/Ownable.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 abstract contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStore {
 
     // Bring role constants to save gas both in deployment (less bytecode) and usage

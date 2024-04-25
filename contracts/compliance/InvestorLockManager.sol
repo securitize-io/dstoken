@@ -6,7 +6,7 @@ import "../data-stores/InvestorLockManagerDataStore.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract InvestorLockManager is InvestorLockManagerBase, UUPSUpgradeable {
     uint256 constant MAX_LOCKS_PER_INVESTOR = 30;
 

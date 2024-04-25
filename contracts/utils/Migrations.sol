@@ -2,7 +2,7 @@ pragma solidity ^0.8.20;
 
 import "./VersionedContract.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract Migrations is VersionedContract {
     constructor() {
         owner = msg.sender;

@@ -2,7 +2,7 @@ pragma solidity ^0.8.20;
 
 import "./IDSToken.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 abstract contract IDSTokenPartitioned {
 
     function balanceOfByPartition(address _who, bytes32 _partition) public view virtual returns (uint256);

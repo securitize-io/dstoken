@@ -1,6 +1,6 @@
 pragma solidity ^0.8.20;
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 abstract contract IDSPartitionsManager {
 
     event PartitionCreated(uint256 _date, uint256 _region, bytes32 _partition);

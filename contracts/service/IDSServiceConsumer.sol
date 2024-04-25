@@ -4,7 +4,7 @@ import "../utils/VersionedContract.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../omnibus/IDSOmnibusWalletController.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 abstract contract IDSServiceConsumer is Initializable, VersionedContract {
 
     uint256 public constant TRUST_SERVICE = 1;

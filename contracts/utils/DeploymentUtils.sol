@@ -23,7 +23,7 @@ import "../utils/TransactionRelayer.sol";
 import "../bulk/IBulkOperator.sol";
 
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract DeploymentUtils is ProxyTarget, Initializable {
     uint8 public constant TRUST_SERVICE = 0;
     uint8 public constant REGISTRY_SERVICE = 1;

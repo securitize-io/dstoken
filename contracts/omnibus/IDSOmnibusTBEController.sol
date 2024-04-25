@@ -6,7 +6,7 @@ import "../data-stores/OmnibusTBEControllerDataStore.sol";
 import "../utils/VersionedContract.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 abstract contract IDSOmnibusTBEController is Initializable, VersionedContract {
 
     function initialize(address _omnibusWallet, bool _isPartitionedToken) public virtual;

@@ -380,7 +380,7 @@ library ComplianceServicePartitionedLibrary {
  *   @title Concrete compliance service for tokens with regulation
  *
  */
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitioned, ComplianceServiceRegulated {
 
     function initialize() public override(ComplianceServiceRegulated, IDSComplianceServicePartitioned) onlyProxy initializer {

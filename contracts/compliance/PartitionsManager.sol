@@ -5,7 +5,7 @@ import "./IDSPartitionsManager.sol";
 import "../data-stores/PartitionsManagerDataStore.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract PartitionsManager is IDSPartitionsManager, ServiceConsumer, PartitionsManagerDataStore, UUPSUpgradeable {
 
     function initialize() public override onlyProxy initializer {

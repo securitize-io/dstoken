@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
  * @title IDSTrustService
  * @dev An interface for a trust service which allows role-based access control for other contracts.
  */
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 abstract contract IDSTrustService {
 
     function initialize() public virtual;

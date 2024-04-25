@@ -5,7 +5,7 @@ import "../service/ServiceConsumer.sol";
 import "../data-stores/RegistryServiceDataStore.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract RegistryService is IDSRegistryService, ServiceConsumer, RegistryServiceDataStore, UUPSUpgradeable {
 
     function initialize() public override onlyProxy initializer {

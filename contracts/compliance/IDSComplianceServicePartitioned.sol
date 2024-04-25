@@ -2,7 +2,7 @@ pragma solidity ^0.8.20;
 
 import "./IDSComplianceService.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 abstract contract IDSComplianceServicePartitioned is IDSComplianceService {
 
     function initialize() public virtual override;

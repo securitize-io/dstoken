@@ -494,7 +494,7 @@ library ComplianceServiceLibrary {
  *   @title Concrete compliance service for tokens with regulation
  *
  */
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
     function initialize() public virtual override onlyProxy initializer {

@@ -6,7 +6,7 @@ import "../data-stores/OmnibusTBEControllerDataStore.sol";
 import "../compliance/ComplianceServiceRegulated.sol";
 import "../compliance/ComplianceConfigurationService.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEController, ServiceConsumer, OmnibusTBEControllerDataStore {
 
     string internal constant MAX_INVESTORS_IN_CATEGORY = "Max investors in category";

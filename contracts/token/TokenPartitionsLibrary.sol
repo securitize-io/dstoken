@@ -9,7 +9,7 @@ import "../compliance/IDSPartitionsManager.sol";
 import "../omnibus/IDSOmnibusTBEController.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 library TokenPartitionsLibrary {
 
     uint256 internal constant COMPLIANCE_SERVICE = 0;

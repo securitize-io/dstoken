@@ -11,7 +11,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
  * @dev A wallet manager which allows marking special wallets in the system.
  * @dev Implements DSTrustServiceInterface and ESServiceConsumer.
  */
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract WalletManager is IDSWalletManager, ServiceConsumer, WalletManagerDataStore, UUPSUpgradeable {
     function initialize() public override onlyProxy initializer {}
 

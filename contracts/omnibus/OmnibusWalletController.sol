@@ -5,7 +5,7 @@ import "../data-stores/OmnibusControllerDataStore.sol";
 import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract OmnibusWalletController is ProxyTarget, IDSOmnibusWalletController, ServiceConsumer, OmnibusControllerDataStore {
 
     modifier onlyOperatorOrAbove {

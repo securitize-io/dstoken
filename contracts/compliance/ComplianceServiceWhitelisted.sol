@@ -7,7 +7,7 @@ import "./ComplianceService.sol";
 *
 *   This simple compliance service is meant to be used for tokens that only need to be validated against an investor registry.
 */
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract ComplianceServiceWhitelisted is ComplianceService {
 
     function initialize() public virtual override onlyProxy initializer {

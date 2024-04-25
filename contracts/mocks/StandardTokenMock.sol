@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 import "../token/StandardToken.sol";
 
 // mock class using StandardToken
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract StandardTokenMock is StandardToken {
 
     function initialize(string memory _name, string memory _symbol, uint8 _decimals) public virtual override onlyProxy initializer {

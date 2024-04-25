@@ -10,7 +10,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
  * @title LockManager
  * @dev An interface for controlling and getting information about locked funds in a compliance manager
  */
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract LockManager is IDSLockManager, ServiceConsumer, LockManagerDataStore, UUPSUpgradeable {
 
     /*************** Legacy functions ***************/

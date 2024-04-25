@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 import "../utils/CommonUtils.sol";
 import "../omnibus/IDSOmnibusWalletController.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 abstract contract IDSRegistryService {
 
     function initialize() public virtual;

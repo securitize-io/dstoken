@@ -5,7 +5,7 @@ import "./IDSTokenPartitioned.sol";
 import "../compliance/IDSPartitionsManager.sol";
 import "./TokenPartitionsLibrary.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
 
     using TokenPartitionsLibrary for TokenPartitionsLibrary.TokenPartitions;

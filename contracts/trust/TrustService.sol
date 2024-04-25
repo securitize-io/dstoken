@@ -11,7 +11,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
  * @dev A trust service which allows role-based access control for other contracts.
  * @dev Implements IDSTrustService.
  */
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable {
 
     function initialize() public override onlyProxy initializer {

@@ -4,7 +4,7 @@ import "../service/ServiceConsumer.sol";
 import "../utils/ProxyTarget.sol";
 import "./IDSTokenReallocator.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract TokenReallocator is ProxyTarget, Initializable, ServiceConsumer, IDSTokenReallocator {
     function initialize() public override(IDSTokenReallocator) initializer forceInitializeFromProxy {
         __ServiceConsumer_init();
