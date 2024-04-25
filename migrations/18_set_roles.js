@@ -41,5 +41,10 @@ module.exports = async function(deployer) {
     roles.ISSUER
   );
 
-  //TODO dar los roles a los Multicall
+  console.log("Give Issuer Multicall permissions to token issuer");
+  await trustService.setRole(
+    configurationManager.getStandAloneAddressForContractName("IssuerMulticall"),
+    roles.ISSUER
+  );
+
 };

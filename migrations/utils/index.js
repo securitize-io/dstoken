@@ -78,5 +78,6 @@ async function deployStandAloneContract(
 
 module.exports = {
   deployContractBehindProxy,
-  upgradeProxyImplementation
+  upgradeProxyImplementation,
+  deployStandAloneContract
 };
