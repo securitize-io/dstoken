@@ -51,6 +51,31 @@ async function upgradeProxyImplementation(
   }
 }
 
+async function deployStandAloneContract(
+  configurationManager,
+  deployer,
+  abstractContract,
+  initializeParams = []
+) {
+  try {
+    const contractName = abstractContract._json.contractName;
+
+    await deployer.deploy(abstractContract);
+    const deployedContract = await abstractContract.deployed();
+
+    configurationManager.setProxyAddressForContractName(
+      contractName,
+      deployedProxy.address
+    );
+
+    const proxifiedContract = await abstractContract.at(deployedProxy.address);
+    await proxifiedContract.initialize(...initializeParams);
+  } catch (error) {
+    console.error("There was an error deploying contract", error);
+  }
+
+}
+
 module.exports = {
   deployContractBehindProxy,
   upgradeProxyImplementation
