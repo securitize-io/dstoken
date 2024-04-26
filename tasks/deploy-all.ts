@@ -10,16 +10,24 @@ task('deploy-all', 'Deploy DS Protocol')
   .setAction(async (args, { run }) => {
     await run('compile');
     await run('deploy-token', args);
-    await run('deploy-trust-service');
+    const trustServiceAddress = await run('deploy-trust-service');
     await run('deploy-registry-service');
     await run('deploy-compliance-service', args);
     await run('deploy-wallet-manager');
     await run('deploy-lock-manager', args);
     await run('deploy-partitions-manager', args);
     await run('deploy-compliance-configuration-service');
-    await run('deploy-token-issuer');
-    await run('deploy-wallet-registrar');
-    await run('deploy-omnibus-tbe-controller', args);
-    await run('deploy-transaction-relayer');
-    await run('deploy-token-reallocator');
+    const tokenIssuerAddress = await run('deploy-token-issuer');
+    const walletRegistrarAddress = await run('deploy-wallet-registrar');
+    const omnibusTBEControllerAddress = await run('deploy-omnibus-tbe-controller', args);
+    const transactionRelayerAddress = await run('deploy-transaction-relayer');
+    const tokenReallocatorAddress = await run('deploy-token-reallocator');
+    await run('set-roles', {
+        trustServiceAddress,
+        tokenIssuerAddress,
+        walletRegistrarAddress,
+        omnibusTBEControllerAddress,
+        transactionRelayerAddress,
+        tokenReallocatorAddress,
+    });
   });
