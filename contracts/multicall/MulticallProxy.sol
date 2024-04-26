@@ -18,9 +18,16 @@ abstract contract MulticallProxy is ServiceConsumer{
     using Address for address;
 
     constructor() {
+        initialize();
     }
 
-        function multicall(address[] memory _targets, bytes[] calldata data) external payable virtual returns (bytes[] memory results);
+
+    function initialize() public virtual override(ServiceConsumer) {
+        IDSServiceConsumer.initialize();
+        Ownable.initialize();
+    }
+
+    function multicall(address[] memory _targets, bytes[] calldata data) external payable virtual returns (bytes[] memory results);
 
     
     /// @dev Calls a function in destination contract

@@ -13,37 +13,37 @@ module.exports = {
     OMNIBUS_TBE_CONTROLLER: 2048,
     TRANSACTION_RELAYER: 4096,
     TOKEN_REALLOCATOR: 8192,
+    MULTICALL: 8194,
     SECURITIZE_SWAP: 16384,
-    MULTICALL: 32768,
   },
   roles: {
     NONE: 0,
     MASTER: 1,
     ISSUER: 2,
     EXCHANGE: 4,
-    TRANSFER_AGENT: 8
+    TRANSFER_AGENT: 8,
   },
   complianceType: {
     NOT_REGULATED: 0,
     WHITELIST: 1,
     NORMAL: 2,
-    PARTITIONED: 4
+    PARTITIONED: 4,
   },
   lockManagerType: {
     WALLET: 0,
     INVESTOR: 1,
-    PARTITIONED: 2
+    PARTITIONED: 2,
   },
   attributeType: {
     NONE: 0,
     KYC_APPROVED: 1,
     ACCREDITED: 2,
     QUALIFIED: 4,
-    PROFESSIONAL: 8
+    PROFESSIONAL: 8,
   },
   attributeStatus: {
     PENDING: 0,
     APPROVED: 1,
-    REJECTED: 2
-  }
+    REJECTED: 2,
+  },
 };

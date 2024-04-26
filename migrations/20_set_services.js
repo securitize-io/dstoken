@@ -12,6 +12,7 @@ const TransactionRelayer = artifacts.require('TransactionRelayer');
 const PartitionsManager = artifacts.require('PartitionsManager');
 const TokenReallocator = artifacts.require('TokenReallocator');
 const configurationManager = require('./utils/configurationManager');
+const IssuerMulticall = artifacts.require('IssuerMulticall');
 const globals = require('../utils/globals');
 const services = globals.services;
 
@@ -84,6 +85,10 @@ module.exports = async function (deployer) {
     );
   }
 
+  const issuerMulticall = await IssuerMulticall.at(
+    configurationManager.getStandAloneAddressForContractName('IssuerMulticall')
+  );
+  
   let registry;
 
   console.log('Connecting compliance configuration to trust service');
@@ -334,6 +339,10 @@ module.exports = async function (deployer) {
     );
   }
 
+  console.log("Connecting Issuer multicall to trust service");
+  await issuerMulticall.setDSService(services.TRUST_SERVICE, trustService.address);
+
+
   console.log(
     `\n\nToken "${configurationManager.name}" (${configurationManager.symbol}) [decimals: ${configurationManager.decimals}] deployment complete`
   );
@@ -430,5 +439,13 @@ module.exports = async function (deployer) {
       tokenReallocator.address
     } | Version: ${await tokenReallocator.getVersion()}`
   );
+
+  console.log(
+    `Issuer Multicall is at address: ${
+      issuerMulticall.address
+    } | Version: ${await issuerMulticall.getVersion()}`
+  );
   console.log('\n');
 };
+
+

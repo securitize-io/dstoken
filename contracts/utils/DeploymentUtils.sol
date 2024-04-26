@@ -277,5 +277,4 @@ contract DeploymentUtils is ProxyTarget, Initializable {
         emit ProxyContractDeployed(proxyAddress);
     }
 
-    //TODO crear el deploytment del multicall proxy
 }

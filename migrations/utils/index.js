@@ -63,13 +63,10 @@ async function deployStandAloneContract(
     await deployer.deploy(abstractContract);
     const deployedContract = await abstractContract.deployed();
 
-    configurationManager.setProxyAddressForContractName(
+    configurationManager.setStandAloneAddressForContractName(
       contractName,
-      deployedProxy.address
+      deployedContract.address
     );
-
-    const proxifiedContract = await abstractContract.at(deployedProxy.address);
-    await proxifiedContract.initialize(...initializeParams);
   } catch (error) {
     console.error("There was an error deploying contract", error);
   }
