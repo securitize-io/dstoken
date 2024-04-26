@@ -2,15 +2,18 @@ pragma solidity ^0.8.20;
 
 import "./IDSTokenIssuer.sol";
 import "../service/ServiceConsumer.sol";
-import "../utils/ProxyTarget.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 //SPDX-License-Identifier: GPL-3.0
-contract TokenIssuer is ProxyTarget, Initializable, IDSTokenIssuer, ServiceConsumer {
-    function initialize() public override(IDSTokenIssuer) initializer forceInitializeFromProxy {
-        IDSTokenIssuer.initialize();
+contract TokenIssuer is IDSTokenIssuer, ServiceConsumer, UUPSUpgradeable {
+    function initialize() public override onlyProxy initializer {
         __ServiceConsumer_init();
-        VERSIONS.push(5);
     }
+
+    /**
+     * @dev required by the OZ UUPS module
+     */
+    function _authorizeUpgrade(address) internal override onlyMaster {}
 
     function issueTokens(
         string memory _id,

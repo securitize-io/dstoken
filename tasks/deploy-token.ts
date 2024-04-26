@@ -6,24 +6,24 @@ subtask('deploy-token', 'Deploy DS Token')
   .addParam('symbol', 'DS Token symbol', 'EXA', types.string)
   .addParam('decimals', 'DS Token decimals', 2, types.int)
   .setAction(
-  async (args, hre, run) => {
+    async (args, hre, run) => {
       const TokenLib = await hre.ethers.getContractFactory('TokenLibrary');
       const tokenLib = await TokenLib.deploy();
 
       const DSToken = await hre.ethers.getContractFactory('DSToken', {
-          libraries: {
-              TokenLibrary: tokenLib,
-          }
+        libraries: {
+          TokenLibrary: tokenLib
+        }
       });
 
       const dsToken = await hre.upgrades.deployProxy(
         DSToken,
         [ args.name, args.symbol, args.decimals ],
-        { kind: 'uups', unsafeAllow: ['external-library-linking'] }
+        { kind: 'uups', unsafeAllow: [ 'external-library-linking' ] }
       );
 
       await dsToken.waitForDeployment();
 
-    return printContractAddresses('DS Token', dsToken, hre);
-  }
-);
+      return printContractAddresses('DS Token', dsToken, hre);
+    }
+  );

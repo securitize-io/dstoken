@@ -12,7 +12,6 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
 
     function initialize(string memory _name, string memory _symbol, uint8 _decimals) public override onlyProxy initializer {
         DSToken.initialize(_name, _symbol, _decimals);
-        VERSIONS.push(3);
     }
 
     function issueTokensWithMultipleLocks(

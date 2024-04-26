@@ -1,20 +1,22 @@
 pragma solidity ^0.8.20;
 
 import "../service/ServiceConsumer.sol";
-import "../utils/ProxyTarget.sol";
 import "../data-stores/OmnibusTBEControllerDataStore.sol";
-import "../compliance/ComplianceServiceRegulated.sol";
-import "../compliance/ComplianceConfigurationService.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 //SPDX-License-Identifier: GPL-3.0
-contract OmnibusTBEControllerWhitelisted is ProxyTarget, Initializable, IDSOmnibusTBEController, ServiceConsumer, OmnibusTBEControllerDataStore {
-    function initialize(address _omnibusWallet, bool _isPartitionedToken) public override initializer forceInitializeFromProxy {
-        VERSIONS.push(2);
+contract OmnibusTBEControllerWhitelisted is IDSOmnibusTBEController, ServiceConsumer, OmnibusTBEControllerDataStore, UUPSUpgradeable {
+
+    function initialize(address _omnibusWallet, bool _isPartitionedToken) public override onlyProxy initializer {
         __ServiceConsumer_init();
         omnibusWallet = _omnibusWallet;
         isPartitionedToken = _isPartitionedToken;
-        isPartitionedToken = false;
     }
+
+    /**
+     * @dev required by the OZ UUPS module
+     */
+    function _authorizeUpgrade(address) internal override onlyMaster {}
 
     function bulkIssuance(uint256 value, uint256 issuanceTime, uint256 totalInvestors, uint256 accreditedInvestors,
         uint256 usAccreditedInvestors, uint256 usTotalInvestors, uint256 jpTotalInvestors, bytes32[] memory euRetailCountries,
@@ -61,8 +63,6 @@ contract OmnibusTBEControllerWhitelisted is ProxyTarget, Initializable, IDSOmnib
             usTotalDelta,
             jpTotalDelta);
     }
-
-
 
     function getOmnibusWallet() public view override returns (address) {
         return omnibusWallet;

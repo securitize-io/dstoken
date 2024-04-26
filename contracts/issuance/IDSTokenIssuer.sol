@@ -1,14 +1,9 @@
 pragma solidity ^0.8.20;
 
-import "../utils/VersionedContract.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-
 //SPDX-License-Identifier: GPL-3.0
-abstract contract IDSTokenIssuer is Initializable, VersionedContract {
+abstract contract IDSTokenIssuer {
 
-    function initialize() public virtual {
-        VERSIONS.push(4);
-    }
+    function initialize() public virtual;
 
     //Same values as IDSRegistryService
     uint8 public constant KYC_APPROVED = 1;

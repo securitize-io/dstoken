@@ -1,11 +1,11 @@
 import { subtask, types } from 'hardhat/config';
-import { getComplianceContractName, getLockManagerContractName, printContractAddresses } from './utils/task.helper';
+import { isPartitioned, printContractAddresses } from './utils/task.helper';
 
 subtask('deploy-partitions-manager', 'Deploy Partitions Manager')
   .addParam('compliance', 'Compliance Type', 'REGULATED', types.string)
   .setAction(
     async (args, hre, run) => {
-      if (args.compliance !== 'PARTITIONED') {
+      if (!isPartitioned(args.compliance)) {
         return;
       }
 

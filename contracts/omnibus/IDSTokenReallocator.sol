@@ -1,14 +1,9 @@
 pragma solidity ^0.8.20;
 
-import "../utils/VersionedContract.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-
 //SPDX-License-Identifier: GPL-3.0
-abstract contract IDSTokenReallocator is Initializable, VersionedContract {
+abstract contract IDSTokenReallocator {
 
-    function initialize() public virtual {
-        VERSIONS.push(3);
-    }
+    function initialize() public virtual;
 
     function reallocateTokens(
         string memory _id,

@@ -6,6 +6,7 @@ task('deploy-all', 'Deploy DS Protocol')
   .addParam('decimals', 'DS Token decimals', 2, types.int)
   .addParam('compliance', 'Compliance Type', 'REGULATED', types.string)
   .addParam('lock', 'Lock Type', 'INVESTOR', types.string)
+  .addParam('tbe', 'Omnibus TBE address', undefined, types.string, false)
   .setAction(async (args, { run }) => {
     await run('compile');
     await run('deploy-token', args);
@@ -16,4 +17,9 @@ task('deploy-all', 'Deploy DS Protocol')
     await run('deploy-lock-manager', args);
     await run('deploy-partitions-manager', args);
     await run('deploy-compliance-configuration-service');
+    await run('deploy-token-issuer');
+    await run('deploy-wallet-registrar');
+    await run('deploy-omnibus-tbe-controller', args);
+    await run('deploy-transaction-relayer');
+    await run('deploy-token-reallocator');
   });

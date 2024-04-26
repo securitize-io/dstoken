@@ -1,5 +1,5 @@
 import { subtask, types } from 'hardhat/config';
-import { getComplianceContractName, getLockManagerContractName, printContractAddresses } from './utils/task.helper';
+import { getLockManagerContractName, printContractAddresses } from './utils/task.helper';
 
 subtask('deploy-lock-manager', 'Deploy Lock Manager')
   .addParam('lock', 'Lock Type', 'INVESTOR', types.string)

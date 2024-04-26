@@ -139,9 +139,9 @@ contract DeploymentUtils is ProxyTarget, Initializable {
         _deployOmnibusTbeController(OMNIBUS_TBE_CONTROLLER_WHITELISTED, omnibusWallet, isPartitionedToken);
     }
 
-    function deployTransactionRelayer(uint256 chainId) public restricted {
+    function deployTransactionRelayer() public restricted {
         address proxyAddress = _deployProxy(implementationAddresses[TRANSACTION_RELAYER]);
-        TransactionRelayer(proxyAddress).initialize(chainId);
+        TransactionRelayer(proxyAddress).initialize();
         emit ProxyContractDeployed(proxyAddress);
     }
 

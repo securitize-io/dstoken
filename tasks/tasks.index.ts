@@ -7,3 +7,8 @@ export * from './deploy-wallet-manager.ts';
 export * from './deploy-lock-manager.ts';
 export * from './deploy-partitions-manager.ts';
 export * from './deploy-compliance-configuration-service.ts';
+export * from './deploy-token-issuer.ts';
+export * from './deploy-wallet-registrar.ts';
+export * from './deploy-omnibus-tbe-controller.ts';
+export * from './deploy-transaction-relayer.ts';
+export * from './deploy-token-reallocator';

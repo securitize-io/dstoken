@@ -1,11 +1,9 @@
 pragma solidity ^0.8.20;
 
-import "../utils/VersionedContract.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../omnibus/IDSOmnibusWalletController.sol";
 
 //SPDX-License-Identifier: GPL-3.0
-abstract contract IDSServiceConsumer is Initializable, VersionedContract {
+abstract contract IDSServiceConsumer {
 
     uint256 public constant TRUST_SERVICE = 1;
     uint256 public constant DS_TOKEN = 2;

@@ -32,3 +32,16 @@ export const getLockManagerContractName = (lockManagerType: string): string => {
       return 'InvestorLockManager';
   }
 }
+
+export const getTBEControllerContractName = (complianceType: string): string => {
+  switch (complianceType) {
+    case 'WHITELIST':
+      return 'OmnibusTBEControllerWhitelisted';
+    default:
+      return 'OmnibusTBEController';
+  }
+}
+
+export const isPartitioned = (complianceType: string): boolean => {
+  return complianceType === 'PARTITIONED';
+}
