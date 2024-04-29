@@ -96,6 +96,12 @@ contract('DeploymentUtils', function (accounts) {
     return proxifiedContract;
 };
 
+const deployStandAloneContract = async (Contract, parameters = []) => {
+  const contract = await Contract.new(...parameters);
+  return contract;
+
+}
+
   before(async () => {
     const services = [];
     const addresses = [];
@@ -484,15 +490,15 @@ contract('DeploymentUtils', function (accounts) {
     });
   });
 
-  // TODO VEER ESTO
-  // describe('Deploying new IssuerMulticall', () => {
-  //   it('Should deploy a new Proxy IssuerMulticall and initialize it', async () => {
-  //     const { logs } = await deploymentUtils.deployIssuerMulticall();
-  //     await checkProxyContractDeployedEvent(logs);
-  //     deployedProxies.push(logs[0].args.proxyAddress);
-  //   });
-  // }
+  describe('Deploying new IssuerMulticall', () => {
+    it('Should deploy a new Proxy IssuerMulticall and initialize it', async () => {
+      const { logs } = await deploymentUtils.deployIssuerMulticall();
+      await checkProxyContractDeployedEvent(logs);
+      deployedProxies.push(logs[0].args.proxyAddress);
+    });
+  }
 
+  
   describe('Set DSServices', () => {
     it('Should set DSServices', async () => {
       await deploymentUtils.setDSServices(

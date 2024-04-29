@@ -6,7 +6,6 @@ const increaseTime = require('../utils/increaseTime').increaseTime;
 const latestTime = require('../utils/latestTime');
 const deployContracts = require('../utils').deployContracts;
 const deployContractBehindProxy = require('../utils').deployContractBehindProxy;
-const deployContractsStandAlone = requiere('../utils').deployContractsStandAlone;
 const setServicesDependencies = require('../utils').setServicesDependencies;
 const services = require('../../utils/globals').services;
 const roles = require('../../utils/globals').roles;
@@ -16,6 +15,8 @@ const country = fixtures.Country;
 const compliance = fixtures.Compliance;
 const time = fixtures.Time;
 
+
+console.log('Integration Multiicall test');
 contract('Integration', function ([
   _,
   issuerWallet,

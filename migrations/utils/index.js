@@ -59,10 +59,8 @@ async function deployStandAloneContract(
 ) {
   try {
     const contractName = abstractContract._json.contractName;
-
-    await deployer.deploy(abstractContract);
+    await deployer.deploy(abstractContract, ...initializeParams);
     const deployedContract = await abstractContract.deployed();
-
     configurationManager.setStandAloneAddressForContractName(
       contractName,
       deployedContract.address
