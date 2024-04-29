@@ -496,8 +496,7 @@ const deployStandAloneContract = async (Contract, parameters = []) => {
       await checkProxyContractDeployedEvent(logs);
       deployedProxies.push(logs[0].args.proxyAddress);
     });
-  }
-
+  });
   
   describe('Set DSServices', () => {
     it('Should set DSServices', async () => {

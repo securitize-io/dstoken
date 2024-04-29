@@ -21,7 +21,7 @@ module.exports = {
   networks: {
     development: {
       provider: () => new Web3.providers.HttpProvider("http://127.0.0.1:7545"),
-      host: "ganache",
+      host: "localhost",
       port: 7545,
       network_id: "*",
     },

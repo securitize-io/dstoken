@@ -6,7 +6,7 @@
     "test": "npm run test:unitests && npm run test:integration",
     "test:unitests": "cross-env TEST_MODE=TRUE ./scripts/test.sh ./test/unitests/**",
     "test:integration": "cross-env TEST_MODE=TRUE ./scripts/test.sh ./test/integration/**",
-    "test:multicall": "cross-env TEST_MODE=TRUE ./scripts/test.sh ./test/integration/integration-multicall.test.js",
+    "test:multicall": "cross-env TEST_MODE=TRUE ./scripts/test.sh ./test/integration/integrationMulticall.test.js",
     "coverage": "truffle compile && ./node_modules/.bin/solidity-coverage",
     "compile": "truffle compile",
     "migrate": "truffle migrate",
