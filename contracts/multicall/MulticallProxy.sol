@@ -21,7 +21,6 @@ abstract contract MulticallProxy is ServiceConsumer{
         initialize();
     }
 
-
     function initialize() public virtual override(ServiceConsumer) {
         IDSServiceConsumer.initialize();
         Ownable.initialize();

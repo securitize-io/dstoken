@@ -155,8 +155,6 @@ async function deployContracts(
         ]
       );
     }
-
-    
   }
 
   const partitionsService = partitionsSupport
@@ -173,14 +171,12 @@ async function deployContracts(
       services.WALLET_MANAGER,
       services.DS_TOKEN,
       services.COMPLIANCE_SERVICE,
-      services.ISSUER_MULTICALL,  
     ],
     [
       testObject.trustService.address,
       testObject.walletManager.address,
       testObject.token.address,
       testObject.complianceService.address,
-      testObject.issuerMulticall.address,
     ]
   );
   await setServicesDependencies(
@@ -192,7 +188,6 @@ async function deployContracts(
       services.COMPLIANCE_CONFIGURATION_SERVICE,
       services.REGISTRY_SERVICE,
       services.DS_TOKEN,
-      services.ISSUER_MULTICALL,
       ...partitionsService,
     ],
     [
@@ -202,7 +197,6 @@ async function deployContracts(
       testObject.complianceConfiguration.address,
       testObject.registryService.address,
       testObject.token.address,
-      testObject.issuerMulticall.address,
       ...partitionsServiceAddress,
     ]
   );
@@ -310,14 +304,14 @@ async function deployContracts(
       services.LOCK_MANAGER,
       services.DS_TOKEN,
       services.TRUST_SERVICE,
-      services.ISSUER_MULTICALL
+      services.ISSUER_MULTICALL,
     ],
     [
       testObject.registryService.address,
       testObject.lockManager.address,
       testObject.token.address,
       testObject.trustService.address,
-      testObject.issuerMulticall.address
+      testObject.issuerMulticall.address,
     ]
   );
   if (omnibusTBEAddress) {
@@ -340,20 +334,8 @@ async function deployContracts(
 
   await setServicesDependencies(
     testObject.issuerMulticall,
-    [
-      services.REGISTRY_SERVICE,
-      services.LOCK_MANAGER,
-      services.DS_TOKEN,
-      services.TRUST_SERVICE,
-      services.ISSUER_MULTICALL,
-    ],
-    [
-      testObject.registryService.address,
-      testObject.lockManager.address,
-      testObject.token.address,
-      testObject.trustService.address,
-      testObject.issuerMulticall.address,
-    ]
+    [services.DS_TOKEN, services.TRUST_SERVICE],
+    [testObject.token.address, testObject.trustService.address]
   );
 
   await testObject.trustService.setRole(

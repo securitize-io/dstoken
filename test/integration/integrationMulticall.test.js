@@ -689,3 +689,5 @@ contract(
     });
   }
 );
+
+// TODO Test varias llamadas en una TX y que pinche una ver que pasa...

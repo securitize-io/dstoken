@@ -26,6 +26,7 @@ abstract contract IDSServiceConsumer is Initializable, VersionedContract {
     uint256 public constant TRANSACTION_RELAYER = 4096;
     uint256 public constant TOKEN_REALLOCATOR = 8192;
     uint256 public constant ISSUER_MULTICALL = 8194;
+    uint256 public constant TA_MULTICALL = 8195;
     uint256 public constant SECURITIZE_SWAP = 16384;
     
     function getDSService(uint256 _serviceId) public view virtual returns (address);
