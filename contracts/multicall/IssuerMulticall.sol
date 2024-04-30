@@ -12,7 +12,7 @@ contract IssuerMulticall is MulticallProxy {
     function multicall(address[] memory _targets, bytes[] calldata data) external payable override onlyIssuerOrAbove returns (bytes[] memory results) {
         results = new bytes[](data.length);
         for (uint256 i = 0; i < data.length; i++) {
-            results[i] = _callTarget(_targets[i], data[i]);
+            results[i] = _callTarget(_targets[i], data[i], i);
         }
     }
 }
