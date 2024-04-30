@@ -26,7 +26,10 @@ abstract contract MulticallProxy is ServiceConsumer{
         IDSServiceConsumer.initialize();
         Ownable.initialize();
     }
-
+    /// @dev Calls multiple functions in destination contracts
+    /// @dev Must override
+    /// @param _targets destination contract addresses array
+    /// @param data ABI encoded function signature and parameters array
     function multicall(address[] memory _targets, bytes[] calldata data) external payable virtual returns (bytes[] memory results);
 
     

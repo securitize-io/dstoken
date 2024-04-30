@@ -38,12 +38,21 @@ contract(
     before(async function () {
       await deployContracts(this, artifacts);
       await this.trustService.setRole(this.issuer.address, roles.ISSUER);
+      await this.trustService.setRole(
+        this.issuerMulticall.address,
+        roles.ISSUER
+      );
       await this.complianceConfiguration.setAll(
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 1 * time.YEARS, 0, 0],
         [true, false, false, false, false]
       );
     });
-
+    describe("Issuer Multicall Setup", function () {
+      it("Issuer Multicall should be deployed", async function () {
+        assert.notEqual(this.issuerMulticall, null);
+        assert.notEqual(this.issuerMulticall.address, undefined);
+      });
+    });
     describe("Issuance", function () {
       it("Should setup country compliance", async function () {
         // Basic seed
@@ -173,18 +182,45 @@ contract(
           "abcde"
         );
       });
-      it("Should register investors via the token issuer", async function () {
-        await this.issuer.issueTokens(
-          investorId.ISRAEL_INVESTOR_ID,
-          israelInvestorWallet,
-          [777, await latestTime()],
-          "",
-          [],
-          [],
-          investorId.ISRAEL_INVESTOR_COLLISION_HASH,
-          country.ISRAEL,
-          [1, 0, 0],
-          [0, 0, 0]
+      it("Should register investors via the token issuer Multicall proxy when an Issuer is calling", async function () {
+        const functionData = this.issuer.contract.methods
+          .issueTokens(
+            investorId.ISRAEL_INVESTOR_ID,
+            israelInvestorWallet,
+            [777, await latestTime()],
+            "",
+            [],
+            [],
+            investorId.ISRAEL_INVESTOR_COLLISION_HASH,
+            country.ISRAEL,
+            [1, 0, 0],
+            [0, 0, 0]
+          )
+          .encodeABI();
+        const targets = [this.issuer.address];
+        await this.issuerMulticall.multicall(targets, [functionData]);
+      });
+      it("Should revert when a non Issuer calls the Issuer Multicall proxy", async function () {
+        const functionData = this.issuer.contract.methods
+          .issueTokens(
+            investorId.ISRAEL_INVESTOR_ID,
+            israelInvestorWallet,
+            [777, await latestTime()],
+            "",
+            [],
+            [],
+            investorId.ISRAEL_INVESTOR_COLLISION_HASH,
+            country.ISRAEL,
+            [1, 0, 0],
+            [0, 0, 0]
+          )
+          .encodeABI();
+        const targets = [this.issuer.address];
+        await expectRevert.unspecified(
+          this.issuerMulticall.multicall(targets, [
+            functionData,
+          ],
+        { from: usInvestorWallet })
         );
       });
       it("should be able to issue and have a correct number of eu and us investors", async function () {

@@ -22,7 +22,6 @@ const TokenReallocator = artifacts.require('TokenReallocator');
 const Initializable = artifacts.require('Initializable');
 const Ownable = artifacts.require('Ownable');
 const Proxy = artifacts.require('Proxy');
-const IssuerMulticall = artifacts.require("IssuerMulticall");
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 const TRUST_SERVICE = 0;
@@ -45,7 +44,7 @@ const OMNIBUS_TBE_CONTROLLER = 16;
 const OMNIBUS_TBE_CONTROLLER_WHITELISTED = 17;
 const TRANSACTION_RELAYER = 18;
 const TOKEN_REALLOCATOR = 19;
-const ISSUER_MULTICALL = 20;
+
 
 const CONTRACT_ALREADY_INITIALIZED_ERROR = 'Contract instance has already been initialized -- Reason given: Contract instance has already been initialized.';
 
@@ -84,7 +83,6 @@ contract('DeploymentUtils', function (accounts) {
   let omnibusTbeControllerWhitelistedImplementation;
   let transactionRelayerImplementation;
   let tokenReallocatorImplementation;
-  let issuerMulticallImplementation;
 
 
   const deployContractBehindProxy = async (Contract, parameters = []) => {
@@ -95,12 +93,6 @@ contract('DeploymentUtils', function (accounts) {
     await proxifiedContract.initialize(...parameters);
     return proxifiedContract;
 };
-
-const deployStandAloneContract = async (Contract, parameters = []) => {
-  const contract = await Contract.new(...parameters);
-  return contract;
-
-}
 
   before(async () => {
     const services = [];
@@ -190,10 +182,6 @@ const deployStandAloneContract = async (Contract, parameters = []) => {
     services.push(TOKEN_REALLOCATOR);
     addresses.push(tokenReallocatorImplementation.address);
 
-    issuerMulticallImplementation = await IssuerMulticall.new();
-    services.push(ISSUER_MULTICALL);
-    addresses.push(issuerMulticallImplementation.address);
-
 
     await deploymentUtils.setImplementationAddresses(services, addresses);
     const trustImpl = await deploymentUtils.getImplementationAddress(TRUST_SERVICE);
@@ -216,7 +204,6 @@ const deployStandAloneContract = async (Contract, parameters = []) => {
     const omnibusTbeControllerWhitelistedImpl = await deploymentUtils.getImplementationAddress(OMNIBUS_TBE_CONTROLLER_WHITELISTED);
     const transactionRelayerImpl = await deploymentUtils.getImplementationAddress(TRANSACTION_RELAYER);
     const tokenReallocatorImpl = await deploymentUtils.getImplementationAddress(TOKEN_REALLOCATOR);
-    const issuerMulticallImpl = await deploymentUtils.getImplementationAddress(ISSUER_MULTICALL);
 
     assert.equal(trustImpl, trustServiceImplementation.address);
     assert.equal(registryImpl, registryServiceImplementation.address);
@@ -238,7 +225,6 @@ const deployStandAloneContract = async (Contract, parameters = []) => {
     assert.equal(omnibusTbeControllerWhitelistedImpl, omnibusTbeControllerWhitelistedImplementation.address);
     assert.equal(transactionRelayerImpl, transactionRelayerImplementation.address);
     assert.equal(tokenReallocatorImpl, tokenReallocatorImplementation.address);
-    assert.equal(issuerMulticallImpl, issuerMulticallImplementation.address);
 
     await deploymentUtils2.copyImplementationContracts(deploymentUtils.address);
     const new_trustImpl = await deploymentUtils2.getImplementationAddress(TRUST_SERVICE);
@@ -261,7 +247,6 @@ const deployStandAloneContract = async (Contract, parameters = []) => {
     const new_omnibusTbeControllerWhitelistedImpl = await deploymentUtils2.getImplementationAddress(OMNIBUS_TBE_CONTROLLER_WHITELISTED);
     const new_transactionRelayerImpl = await deploymentUtils2.getImplementationAddress(TRANSACTION_RELAYER);
     const new_tokenReallocatorImpl = await deploymentUtils2.getImplementationAddress(TOKEN_REALLOCATOR);
-    const new_issuerMulticallImpl = await deploymentUtils2.getImplementationAddress(ISSUER_MULTICALL);
     
     assert.equal(trustImpl, new_trustImpl);
     assert.equal(registryImpl,new_registryImpl);
@@ -283,7 +268,6 @@ const deployStandAloneContract = async (Contract, parameters = []) => {
     assert.equal(omnibusTbeControllerWhitelistedImpl,new_omnibusTbeControllerWhitelistedImpl);
     assert.equal(transactionRelayerImpl,new_transactionRelayerImpl);
     assert.equal(tokenReallocatorImpl,new_tokenReallocatorImpl);
-    assert.equal(issuerMulticallImpl,new_issuerMulticallImpl);
   });
 
 
@@ -490,14 +474,6 @@ const deployStandAloneContract = async (Contract, parameters = []) => {
     });
   });
 
-  describe('Deploying new IssuerMulticall', () => {
-    it('Should deploy a new Proxy IssuerMulticall and initialize it', async () => {
-      const { logs } = await deploymentUtils.deployIssuerMulticall();
-      await checkProxyContractDeployedEvent(logs);
-      deployedProxies.push(logs[0].args.proxyAddress);
-    });
-  });
-  
   describe('Set DSServices', () => {
     it('Should set DSServices', async () => {
       await deploymentUtils.setDSServices(

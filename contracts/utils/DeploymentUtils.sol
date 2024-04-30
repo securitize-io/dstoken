@@ -47,9 +47,6 @@ contract DeploymentUtils is ProxyTarget, Initializable {
     uint8 public constant TOKEN_REALLOCATOR = 19;
     uint8 public constant SECURITIZE_SWAP = 20;
     uint8 public constant BULK_OPERATOR = 21;
-    uint8 public constant TRANSFER_AGENT_MULTICALL = 22;
-    uint8 public constant EXCHANGE_MULTICALL = 23;
-    uint8 public constant ISSUER_MULTICALL = 24;
     
 
     address public owner;

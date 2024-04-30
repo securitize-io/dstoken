@@ -3,7 +3,7 @@ pragma solidity 0.8.13;
 import "./MulticallProxy.sol";
 
 contract IssuerMulticall is MulticallProxy {
- 
+
     constructor() MulticallProxy() {}
 
     /// @dev Calls multiple functions in destination contracts, needs the required modifier to whitelist the caller
