@@ -5,12 +5,12 @@ const roles = require("../../utils/globals").roles;
 const complianceType = require("../../utils/globals").complianceType;
 const lockManagerType = require("../../utils/globals").lockManagerType;
 
-const { expectRevert, assertFailure } = require("@openzeppelin/test-helpers");
+const { expectRevert } = require("@openzeppelin/test-helpers");
 
 contract(
   "Issuer MultiCall Proxy Contract",
-  function ([owner, wallet, issuerWallet, exchangeWallet, noneWallet]) {
-    describe("Basic Issuer operations", function () {
+  function ([owner, wallet, , exchangeWallet, noneWallet]) {
+    describe("Multicall Operations", function () {
       beforeEach(async function () {
         await deployContracts(
           this,
@@ -121,7 +121,7 @@ contract(
         assert.equal(await this.token.balanceOf.call(wallet), 100);
         assert.equal(await this.token.balanceOf.call(owner), 100);
       });
-      it("Complete bulk should revert when a transaction fails", async function () {
+      it("Complete bulk should revert when a transaction fails, transaction in position 1 is the one that fails", async function () {
         const functionData = [];
         functionData.push(
           this.issuer.contract.methods
@@ -183,12 +183,82 @@ contract(
           await this.issuerMulticall.multicall(targets, functionData);
           assert.fail("Expected multicall to revert");
         } catch (error) {
-          console.log(error.data.result); // Adjust based on the actual error structure
           const decodedError = decodeMulticallFailed(error.data.result);
           assert.equal(decodedError, 1);
         }
+        assert.equal(await this.token.balanceOf.call(wallet), 0);
+        assert.equal(await this.token.balanceOf.call(owner), 0);
+        assert.equal(await this.token.balanceOf.call(noneWallet), 0);
       });
+      it("Complete bulk should revert when a transaction fails, transaction in position 2 is the one that fails", async function () {
+        const functionData = [];
+        functionData.push(
+          this.issuer.contract.methods
+            .issueTokens(
+              "NewInvestor",
+              wallet,
+              [100, 1],
+              "IssueNewInvestor",
+              [],
+              [],
+              "NewInvestorCollisionHash",
+              "US",
+              [],
+              []
+            )
+            .encodeABI()
+        );
 
+        functionData.push(
+          this.issuer.contract.methods
+            .issueTokens(
+              "NewInvestor2",
+              owner,
+              [100, 1],
+              "IssueNewInvestor2",
+              [],
+              [],
+              "NewInvestorCollisionHash2",
+              "US",
+              [],
+              []
+            )
+            .encodeABI()
+        );
+
+        functionData.push(
+          this.issuer.contract.methods
+            .issueTokens(
+              "NewInvestorAssert",
+              noneWallet,
+              [100, 1],
+              "IssueNewInvestorAssert",
+              [],
+              [],
+              "NewInvestorCollisionAssertHash",
+              "US",
+              [0, 0],
+              [0, 0]
+            )
+            .encodeABI()
+        );
+
+        const targets = [
+          this.issuer.address,
+          this.issuer.address,
+          this.issuer.address,
+        ];
+        try {
+          await this.issuerMulticall.multicall(targets, functionData);
+          assert.fail("Expected multicall to revert");
+        } catch (error) {
+          const decodedError = decodeMulticallFailed(error.data.result);
+          assert.equal(decodedError, 2);
+        }
+        assert.equal(await this.token.balanceOf.call(wallet), 0);
+        assert.equal(await this.token.balanceOf.call(owner), 0);
+        assert.equal(await this.token.balanceOf.call(noneWallet), 0);
+      });
       function decodeMulticallFailed(revertData) {
         try {
           const sliced = "0x" + revertData.slice(10);
@@ -201,7 +271,4 @@ contract(
     });
   }
 );
-// issueTokens y burnTokens
-//
-
 

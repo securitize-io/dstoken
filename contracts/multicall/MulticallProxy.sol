@@ -42,10 +42,4 @@ abstract contract MulticallProxy is ServiceConsumer {
         }
         return returndata;
     }
-
-    fallback() external payable {
-        revert("Function not recognized");
-    }
-
-    receive() external payable {}
 }
