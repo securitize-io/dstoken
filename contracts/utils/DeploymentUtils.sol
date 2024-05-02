@@ -47,6 +47,7 @@ contract DeploymentUtils is ProxyTarget, Initializable {
     uint8 public constant TOKEN_REALLOCATOR = 19;
     uint8 public constant SECURITIZE_SWAP = 20;
     uint8 public constant BULK_OPERATOR = 21;
+    
 
     address public owner;
     mapping(uint8 => address) public implementationAddresses;
@@ -272,4 +273,5 @@ contract DeploymentUtils is ProxyTarget, Initializable {
         IDSOmnibusTBEController(proxyAddress).initialize(omnibusWallet, isPartitionedToken);
         emit ProxyContractDeployed(proxyAddress);
     }
+
 }

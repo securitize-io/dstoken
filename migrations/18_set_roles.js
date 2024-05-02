@@ -40,4 +40,11 @@ module.exports = async function(deployer) {
     configurationManager.getProxyAddressForContractName("TokenReallocator"),
     roles.ISSUER
   );
+
+  console.log("Give Issuer Multicall permissions to token issuer");
+  await trustService.setRole(
+    configurationManager.getStandAloneAddressForContractName("IssuerMulticall"),
+    roles.ISSUER
+  );
+
 };

@@ -20,10 +20,10 @@ const privateKey =
 module.exports = {
   networks: {
     development: {
-      provider: () => new Web3.providers.HttpProvider('http://127.0.0.1:7545'),
-      host: 'localhost',
+      provider: () => new Web3.providers.HttpProvider("http://127.0.0.1:7545"),
+      host: "localhost",
       port: 7545,
-      network_id: '*',
+      network_id: "*",
     },
     // coverage: {
     //   host: 'localhost',
@@ -83,7 +83,7 @@ module.exports = {
   },
   compilers: {
     solc: {
-      version: '0.8.13',
+      version: "0.8.13",
       settings: {
         optimizer: {
           enabled: true,
@@ -92,7 +92,5 @@ module.exports = {
       },
     },
   },
-  plugins: [
-    'truffle-contract-size'
-  ],
+  plugins: ["truffle-contract-size"],
 };
