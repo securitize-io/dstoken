@@ -8,13 +8,7 @@ error MulticallFailed(uint256 i);
 
 /// @title MulticallProxy
 /// @dev Proxy contract to call multiple functions in a single transaction
-/// @dev This contract is used to call multiple functions in a single transaction, requieres an implementation contract to set the following function, where the required modifier is set
-//  function multicall(address[] memory _targets, bytes[] calldata data) external payable onlyIssuerOrAbove returns (bytes[] memory results) {
-//     results = new bytes[](data.length);
-//     for (uint256 i = 0; i < data.length; i++) {
-//         results[i] = _callTarget(_targets[i], data[i]);
-//     }
-// }
+/// @dev This contract is used to call multiple functions in a single transaction, requires an implementation contract that overrides the multicall function setting the necessary permissions with a modifier
 abstract contract MulticallProxy is ServiceConsumer {
 
     constructor() {
