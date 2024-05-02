@@ -1,22 +1,16 @@
 pragma solidity ^0.8.20;
 
-import "../service/ServiceConsumer.sol";
 import "../data-stores/OmnibusTBEControllerDataStore.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "../utils/BaseDSContract.sol";
 
 //SPDX-License-Identifier: GPL-3.0
-contract OmnibusTBEControllerWhitelisted is IDSOmnibusTBEController, ServiceConsumer, OmnibusTBEControllerDataStore, UUPSUpgradeable {
+contract OmnibusTBEControllerWhitelisted is IDSOmnibusTBEController, OmnibusTBEControllerDataStore, BaseDSContract {
 
     function initialize(address _omnibusWallet, bool _isPartitionedToken) public override onlyProxy initializer {
-        __ServiceConsumer_init();
+        __BaseDSContract_init();
         omnibusWallet = _omnibusWallet;
         isPartitionedToken = _isPartitionedToken;
     }
-
-    /**
-     * @dev required by the OZ UUPS module
-     */
-    function _authorizeUpgrade(address) internal override onlyMaster {}
 
     function bulkIssuance(uint256 value, uint256 issuanceTime, uint256 totalInvestors, uint256 accreditedInvestors,
         uint256 usAccreditedInvestors, uint256 usTotalInvestors, uint256 jpTotalInvestors, bytes32[] memory euRetailCountries,

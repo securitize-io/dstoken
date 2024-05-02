@@ -1,19 +1,12 @@
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "../service/ServiceConsumer.sol";
 import "../data-stores/TokenDataStore.sol";
 import "../omnibus/OmnibusTBEController.sol";
 
 //SPDX-License-Identifier: GPL-3.0
-abstract contract StandardToken is IDSToken, ServiceConsumer, TokenDataStore, UUPSUpgradeable {
+abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
     event Pause();
     event Unpause();
-
-    /**
-     * @dev required by the OZ UUPS module
-     */
-    function _authorizeUpgrade(address) internal override onlyOwner {}
 
     modifier whenNotPaused() {
         require(!paused, "Contract is paused");

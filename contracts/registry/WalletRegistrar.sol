@@ -1,19 +1,13 @@
 pragma solidity ^0.8.20;
 
 import "./IDSWalletRegistrar.sol";
-import "../service/ServiceConsumer.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "../utils/BaseDSContract.sol";
 
 //SPDX-License-Identifier: GPL-3.0
-contract WalletRegistrar is IDSWalletRegistrar, ServiceConsumer, UUPSUpgradeable {
+contract WalletRegistrar is IDSWalletRegistrar, BaseDSContract {
     function initialize() public override onlyProxy initializer {
-        __ServiceConsumer_init();
+        __BaseDSContract_init();
     }
-
-    /**
-     * @dev required by the OZ UUPS module
-     */
-    function _authorizeUpgrade(address) internal override onlyMaster {}
 
     function registerWallet(
         string memory _id,

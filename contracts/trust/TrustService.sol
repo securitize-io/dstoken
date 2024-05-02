@@ -1,7 +1,6 @@
 pragma solidity ^0.8.20;
 
 import "../utils/CommonUtils.sol";
-import "../utils/ProxyTarget.sol";
 import "./IDSTrustService.sol";
 import "../data-stores/TrustServiceDataStore.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -23,6 +22,20 @@ contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable
      * @dev required by the OZ UUPS module
      */
     function _authorizeUpgrade(address) internal override onlyMaster {}
+
+    /**
+     * @dev returns proxy ERC1967 implementation address
+     */
+    function getImplementationAddress() external view returns (address) {
+        return ERC1967Utils.getImplementation();
+    }
+
+    /**
+     * @dev Returns the highest version that has been initialized. See {reinitializer}.
+     */
+    function getInitializedVersion() external view returns (uint64) {
+        return _getInitializedVersion();
+    }
 
     /**
    * @dev Allow invoking of functions only by the user who has the MASTER role.

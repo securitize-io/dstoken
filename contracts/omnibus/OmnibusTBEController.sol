@@ -1,27 +1,22 @@
 pragma solidity ^0.8.20;
 
-import "../service/ServiceConsumer.sol";
 import "../data-stores/OmnibusTBEControllerDataStore.sol";
 import "../compliance/ComplianceServiceRegulated.sol";
 import "../compliance/ComplianceConfigurationService.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "../token/IDSTokenPartitioned.sol";
+import "../utils/BaseDSContract.sol";
 
 //SPDX-License-Identifier: GPL-3.0
-contract OmnibusTBEController is IDSOmnibusTBEController, ServiceConsumer, OmnibusTBEControllerDataStore, UUPSUpgradeable {
+contract OmnibusTBEController is IDSOmnibusTBEController, OmnibusTBEControllerDataStore, BaseDSContract {
 
     string internal constant MAX_INVESTORS_IN_CATEGORY = "Max investors in category";
 
     function initialize(address _omnibusWallet, bool _isPartitionedToken) public override onlyProxy initializer {
-        __ServiceConsumer_init();
+        __BaseDSContract_init();
 
         omnibusWallet = _omnibusWallet;
         isPartitionedToken = _isPartitionedToken;
     }
-
-    /**
-     * @dev required by the OZ UUPS module
-     */
-    function _authorizeUpgrade(address) internal override onlyMaster {}
 
     function bulkIssuance(uint256 value, uint256 issuanceTime, uint256 totalInvestors, uint256 accreditedInvestors,
         uint256 usAccreditedInvestors, uint256 usTotalInvestors, uint256 jpTotalInvestors, bytes32[] memory euRetailCountries,
@@ -40,7 +35,7 @@ contract OmnibusTBEController is IDSOmnibusTBEController, ServiceConsumer, Omnib
         require(euRetailCountries.length == euRetailCountryCounts.length, 'EU Retail countries arrays do not match');
 
         if(isPartitionedToken) {
-            IDSTokenPartitioned token = getTokenPartitioned();
+            IDSTokenPartitioned token = IDSTokenPartitioned(getDSService(DS_TOKEN));
             uint256 pendingBurn = value;
             uint256 currentPartitionBalance;
             bytes32 partition;

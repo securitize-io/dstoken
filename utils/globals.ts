@@ -1,4 +1,4 @@
-module.exports = {
+export const DSConstants = {
   services: {
     TRUST_SERVICE: 1,
     DS_TOKEN: 2,

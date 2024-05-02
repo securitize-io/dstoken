@@ -1,21 +1,15 @@
 pragma solidity ^0.8.20;
 
 import "./IDSRegistryService.sol";
-import "../service/ServiceConsumer.sol";
 import "../data-stores/RegistryServiceDataStore.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "../utils/BaseDSContract.sol";
 
 //SPDX-License-Identifier: GPL-3.0
-contract RegistryService is IDSRegistryService, ServiceConsumer, RegistryServiceDataStore, UUPSUpgradeable {
+contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDSContract {
 
     function initialize() public override onlyProxy initializer {
-        __ServiceConsumer_init();
+        __BaseDSContract_init();
     }
-
-    /**
-     * @dev required by the OZ UUPS module
-     */
-    function _authorizeUpgrade(address) internal override onlyMaster {}
 
     function registerInvestor(string memory _id, string memory _collisionHash) public override onlyExchangeOrAbove newInvestor(_id) returns (bool) {
         investors[_id] = Investor(_id, _collisionHash, msg.sender, msg.sender, "", 0);

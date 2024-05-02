@@ -1,6 +1,8 @@
 pragma solidity ^0.8.20;
 
 import "./ComplianceServiceRegulated.sol";
+import "../token/IDSTokenPartitioned.sol";
+import "../compliance/IDSComplianceServicePartitioned.sol";
 
 
 library ComplianceServicePartitionedLibrary {
@@ -402,8 +404,8 @@ contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitione
     }
 
     function getComplianceTransferableTokens(address _who, uint256 _time, bool _checkFlowback) public view override returns (uint256 transferable) {
-        for (uint256 index = 0; index < getTokenPartitioned().partitionCountOf(_who); ++index) {
-            bytes32 partition = getTokenPartitioned().partitionOf(_who, index);
+        for (uint256 index = 0; index < IDSTokenPartitioned(getDSService(DS_TOKEN)).partitionCountOf(_who); ++index) {
+            bytes32 partition = IDSTokenPartitioned(getDSService(DS_TOKEN)).partitionOf(_who, index);
             transferable = transferable + getComplianceTransferableTokens(_who, _time, _checkFlowback, partition);
         }
     }

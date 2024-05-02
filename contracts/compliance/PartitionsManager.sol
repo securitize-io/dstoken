@@ -1,21 +1,15 @@
 pragma solidity ^0.8.20;
 
-import "../service/ServiceConsumer.sol";
 import "./IDSPartitionsManager.sol";
 import "../data-stores/PartitionsManagerDataStore.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "../utils/BaseDSContract.sol";
 
 //SPDX-License-Identifier: GPL-3.0
-contract PartitionsManager is IDSPartitionsManager, ServiceConsumer, PartitionsManagerDataStore, UUPSUpgradeable {
+contract PartitionsManager is IDSPartitionsManager, PartitionsManagerDataStore, BaseDSContract {
 
     function initialize() public override onlyProxy initializer {
-        __ServiceConsumer_init();
+        __BaseDSContract_init();
     }
-
-    /**
-     * @dev required by the OZ UUPS module
-     */
-    function _authorizeUpgrade(address) internal override onlyMaster {}
 
     function ensurePartition(uint256 _issuanceDate, uint256 _region) public override onlyIssuerOrAboveOrToken returns (bytes32 partition) {
         partition = keccak256(abi.encodePacked(_issuanceDate, _region));

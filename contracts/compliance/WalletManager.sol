@@ -1,10 +1,8 @@
 pragma solidity ^0.8.20;
 
-import "../service/ServiceConsumer.sol";
 import "./IDSWalletManager.sol";
-import "../utils/ProxyTarget.sol";
 import "../data-stores/WalletManagerDataStore.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "../utils/BaseDSContract.sol";
 
 /**
  * @title WalletManager
@@ -12,13 +10,10 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
  * @dev Implements DSTrustServiceInterface and ESServiceConsumer.
  */
 //SPDX-License-Identifier: GPL-3.0
-contract WalletManager is IDSWalletManager, ServiceConsumer, WalletManagerDataStore, UUPSUpgradeable {
-    function initialize() public override onlyProxy initializer {}
-
-    /**
-     * @dev required by the OZ UUPS module
-     */
-    function _authorizeUpgrade(address) internal override onlyMaster {}
+contract WalletManager is IDSWalletManager, WalletManagerDataStore, BaseDSContract {
+    function initialize() public override onlyProxy initializer {
+        __BaseDSContract_init();
+    }
 
     /**
    * @dev Sets a wallet to be an special wallet. (internal)

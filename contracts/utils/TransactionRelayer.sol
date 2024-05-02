@@ -1,13 +1,12 @@
 pragma solidity ^0.8.20;
 
-import "../service/ServiceConsumer.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "./BaseDSContract.sol";
 
 /**
  @dev Based on SimpleWallet (https://github.com/christianlundkvist/simple-multisig) and uses EIP-712 standard validate a signature
 */
 //SPDX-License-Identifier: GPL-3.0
-contract TransactionRelayer is ServiceConsumer, UUPSUpgradeable {
+contract TransactionRelayer is BaseDSContract {
     // EIP712 Precomputed hashes:
     // keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract,bytes32 salt)")
     bytes32 constant EIP712DOMAINTYPE_HASH = 0xd87cd6ef79d4e2b95e15ce8abf732db51ec771f1ca2edccf22a46c729ac56472;
@@ -36,7 +35,7 @@ contract TransactionRelayer is ServiceConsumer, UUPSUpgradeable {
     event DomainSeparatorUpdated(uint256 chainId);
 
     function initialize() public onlyProxy initializer {
-        __ServiceConsumer_init();
+        __BaseDSContract_init();
 
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
@@ -49,11 +48,6 @@ contract TransactionRelayer is ServiceConsumer, UUPSUpgradeable {
             )
         );
     }
-
-    /**
-     * @dev required by the OZ UUPS module
-     */
-    function _authorizeUpgrade(address) internal override onlyMaster {}
 
     // Note that address recovered from signatures must be strictly increasing, in order to prevent duplicates
     function execute(

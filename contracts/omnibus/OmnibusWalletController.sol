@@ -2,11 +2,10 @@ pragma solidity ^0.8.20;
 
 import "./IDSOmnibusWalletController.sol";
 import "../data-stores/OmnibusControllerDataStore.sol";
-import "../service/ServiceConsumer.sol";
-import "../utils/ProxyTarget.sol";
+import "../utils/BaseDSContract.sol";
 
 //SPDX-License-Identifier: GPL-3.0
-contract OmnibusWalletController is ProxyTarget, IDSOmnibusWalletController, ServiceConsumer, OmnibusControllerDataStore {
+contract OmnibusWalletController is IDSOmnibusWalletController, OmnibusControllerDataStore, BaseDSContract {
 
     modifier onlyOperatorOrAbove {
         IDSTrustService trustService = getTrustService();
@@ -25,10 +24,8 @@ contract OmnibusWalletController is ProxyTarget, IDSOmnibusWalletController, Ser
         _;
     }
 
-    function initialize(address _omnibusWallet) public initializer override forceInitializeFromProxy {
-        __ServiceConsumer_init();
-        VERSIONS.push(2);
-
+    function initialize(address _omnibusWallet) public override initializer onlyProxy {
+        __BaseDSContract_init();
         omnibusWallet = _omnibusWallet;
     }
 

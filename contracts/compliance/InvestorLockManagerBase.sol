@@ -1,10 +1,10 @@
 pragma solidity ^0.8.20;
 
 import "../data-stores/InvestorLockManagerDataStore.sol";
-import "../service/ServiceConsumer.sol";
+import "../utils/BaseDSContract.sol";
 
 //SPDX-License-Identifier: GPL-3.0
-abstract contract InvestorLockManagerBase is IDSLockManager, ServiceConsumer, InvestorLockManagerDataStore {
+abstract contract InvestorLockManagerBase is IDSLockManager, InvestorLockManagerDataStore, BaseDSContract {
     event InvestorFullyLocked(string investorId);
     event InvestorFullyUnlocked(string investorId);
 

@@ -1,21 +1,15 @@
 pragma solidity ^0.8.20;
 
-import "../service/ServiceConsumer.sol";
 import "./IDSTokenReallocator.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "../utils/BaseDSContract.sol";
 
 
 //SPDX-License-Identifier: GPL-3.0
-contract TokenReallocator is ServiceConsumer, IDSTokenReallocator, UUPSUpgradeable {
+contract TokenReallocator is IDSTokenReallocator, BaseDSContract {
 
     function initialize() public override(IDSTokenReallocator) onlyProxy initializer {
-        __ServiceConsumer_init();
+        __BaseDSContract_init();
     }
-
-    /**
-     * @dev required by the OZ UUPS module
-     */
-    function _authorizeUpgrade(address) internal override onlyMaster {}
 
     function reallocateTokens (
         string memory _id,

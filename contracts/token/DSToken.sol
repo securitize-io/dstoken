@@ -1,7 +1,6 @@
 pragma solidity ^0.8.20;
 
 import "./IDSToken.sol";
-import "../utils/ProxyTarget.sol";
 import "./StandardToken.sol";
 
 //SPDX-License-Identifier: GPL-3.0
@@ -11,7 +10,6 @@ contract DSToken is StandardToken {
     uint256 internal constant OMNIBUS_NO_ACTION = 0;
 
     function initialize(string memory _name, string memory _symbol, uint8 _decimals) public virtual override onlyProxy initializer {
-        __UUPSUpgradeable_init();
         __ServiceConsumer_init();
 
         name = _name;

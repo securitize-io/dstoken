@@ -3,8 +3,7 @@ pragma solidity ^0.8.20;
 import "./IDSComplianceService.sol";
 import "../utils/CommonUtils.sol";
 import "../data-stores/ComplianceServiceDataStore.sol";
-import "../service/ServiceConsumer.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "../utils/BaseDSContract.sol";
 
 /**
  *   @title Compliance service main implementation.
@@ -17,16 +16,11 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
  *   The rest of the functions should only be overridden in rare circumstances.
  */
 //SPDX-License-Identifier: GPL-3.0
-abstract contract ComplianceService is IDSComplianceService, ComplianceServiceDataStore, ServiceConsumer, UUPSUpgradeable {
+abstract contract ComplianceService is IDSComplianceService, ComplianceServiceDataStore, BaseDSContract {
 
     function initialize() public virtual override onlyProxy initializer {
-        __ServiceConsumer_init();
+        __BaseDSContract_init();
     }
-
-    /**
-     * @dev required by the OZ UUPS module
-     */
-    function _authorizeUpgrade(address) internal override onlyMaster {}
 
     function validateTransfer(
         address _from,
