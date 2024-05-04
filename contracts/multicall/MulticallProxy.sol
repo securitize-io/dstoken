@@ -4,7 +4,7 @@ pragma solidity 0.8.13;
 import "../utils/Ownable.sol";
 import "../service/ServiceConsumer.sol";
 
-error MulticallFailed(uint256 i);
+error MulticallFailed(uint256 index, string reason);
 
 /// @title MulticallProxy
 /// @dev Proxy contract to call multiple functions in a single transaction
@@ -32,8 +32,33 @@ abstract contract MulticallProxy is ServiceConsumer {
     function _callTarget(address target, bytes memory data, uint256 i) internal returns (bytes memory) {
         (bool success, bytes memory returndata) = target.call(data);
         if (!success) {
-            revert MulticallFailed(i);
+            if (returndata.length > 0) {
+            // Assumes revert reason is encoded as string
+            revert MulticallFailed(i, _getRevertReason(returndata));
+        } else {
+            revert MulticallFailed(i, "Call failed without revert reason");
+        }
         }
         return returndata;
+    }
+
+    /// @dev Parses revert reason
+    /// @param data ABI encoded function signature and parameters
+    function _getRevertReason(bytes memory data) internal pure returns (string memory) {
+        require(data.length > 4, "Data too short");
+        bytes memory slicedData = _slice(data, 4, data.length);
+        return abi.decode(slicedData, (string));
+    }
+
+    /// @dev Slices data
+    /// @param data bytes data
+    /// @param start data start to slice
+    /// @param end   data end to slice
+    function _slice(bytes memory data, uint256 start, uint256 end) internal pure returns (bytes memory) {
+        bytes memory result = new bytes(end - start);
+        for(uint256 i = start; i < end; ++i) {
+            result[i - start] = data[i];
+        }
+        return result;
     }
 }

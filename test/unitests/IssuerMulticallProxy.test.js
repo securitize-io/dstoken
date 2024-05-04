@@ -184,7 +184,8 @@ contract(
           assert.fail("Expected multicall to revert");
         } catch (error) {
           const decodedError = decodeMulticallFailed(error.data.result);
-          assert.equal(decodedError, 1);
+          assert.equal(decodedError[0], 1);
+          assert.equal(decodedError[1], "Wrong length of parameters");
         }
         assert.equal(await this.token.balanceOf.call(wallet), 0);
         assert.equal(await this.token.balanceOf.call(owner), 0);
@@ -253,7 +254,8 @@ contract(
           assert.fail("Expected multicall to revert");
         } catch (error) {
           const decodedError = decodeMulticallFailed(error.data.result);
-          assert.equal(decodedError, 2);
+          assert.equal(decodedError[0], 2);
+          assert.equal(decodedError[1], "Wrong length of parameters");
         }
         assert.equal(await this.token.balanceOf.call(wallet), 0);
         assert.equal(await this.token.balanceOf.call(owner), 0);
@@ -262,9 +264,10 @@ contract(
       function decodeMulticallFailed(revertData) {
         try {
           const sliced = "0x" + revertData.slice(10);
-          const decodedData =  web3.eth.abi.decodeParameters(['uint256'], sliced);
-          return decodedData[0];
+          const decodedData = web3.eth.abi.decodeParameters(['uint256', 'string'], sliced);
+          return decodedData;
         } catch (decodeError) {
+          console.log(decodeError);
           return null;
         }
       }
