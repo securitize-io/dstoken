@@ -45,6 +45,7 @@ const OMNIBUS_TBE_CONTROLLER_WHITELISTED = 17;
 const TRANSACTION_RELAYER = 18;
 const TOKEN_REALLOCATOR = 19;
 
+
 const CONTRACT_ALREADY_INITIALIZED_ERROR = 'Contract instance has already been initialized -- Reason given: Contract instance has already been initialized.';
 
 const globals = require('../../utils/globals');
@@ -82,6 +83,7 @@ contract('DeploymentUtils', function (accounts) {
   let omnibusTbeControllerWhitelistedImplementation;
   let transactionRelayerImplementation;
   let tokenReallocatorImplementation;
+
 
   const deployContractBehindProxy = async (Contract, parameters = []) => {
     const proxy = await Proxy.new();
@@ -529,6 +531,13 @@ async function checkProxyContractDeployedEvent(logs) {
   assert.equal(logs[0].event, 'ProxyContractDeployed');
   assert.notEqual(logs[0].args.proxyAddress, ZERO_ADDRESS);
   await checkInitializedContract(logs[0].args.proxyAddress);
+}
+
+async function checkStandAloneContractDeployedEvent(logs) {
+  assert.equal(logs.length, 1);
+  assert.equal(logs[0].event, 'ContractDeployed');
+  assert.notEqual(logs[0].args.contractAddress, ZERO_ADDRESS);
+  await checkInitializedContract(logs[0].args.contractAddress);
 }
 
 async function checkInitializedContract(proxyAddress) {

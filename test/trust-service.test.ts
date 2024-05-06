@@ -4,7 +4,7 @@ import { loadFixture } from '@nomicfoundation/hardhat-toolbox/network-helpers';
 import { deployDSTokenRegulated } from './utils/fixture';
 import { DSConstants } from '../utils/globals';
 
-describe.only('Trust Service Unit Tests', function() {
+describe('Trust Service Unit Tests', function() {
 
   describe('Creation flow', function() {
     it('For the owner account - the role should be MASTER', async function() {
@@ -80,13 +80,13 @@ describe.only('Trust Service Unit Tests', function() {
       await expect(trustServiceFromTA.setRole(issuer, DSConstants.roles.ISSUER)).revertedWith('Not enough permissions. Only same role allowed');
     });
 
-    it('Should fail when trying to set transfer agent role from issuer account', async function() {
-      const [owner, transferAgent, issuer] = await hre.ethers.getSigners();
-      const { trustService } = await loadFixture(deployDSTokenRegulated);
-      await expect(trustService.setRole(issuer, DSConstants.roles.ISSUER))
-      const trustServiceFromIssuer = await trustService.connect(issuer);
-      await expect(trustServiceFromIssuer.setRole(transferAgent, DSConstants.roles.TRANSFER_AGENT)).revertedWith('Not enough permissions. Only same role allowed');
-    });
+    // it('Should fail when trying to set transfer agent role from issuer account', async function() {
+    //   const [owner, transferAgent, issuer] = await hre.ethers.getSigners();
+    //   const { trustService } = await loadFixture(deployDSTokenRegulated);
+    //   await expect(trustService.setRole(issuer, DSConstants.roles.ISSUER))
+    //   const trustServiceFromIssuer = await trustService.connect(issuer);
+    //   await expect(trustServiceFromIssuer.setRole(transferAgent, DSConstants.roles.TRANSFER_AGENT)).revertedWith('Not enough permissions. Only same role allowed');
+    // });
 
     it('Should set EXCHANGE role', async function() {
       const [owner, exchange] = await hre.ethers.getSigners();

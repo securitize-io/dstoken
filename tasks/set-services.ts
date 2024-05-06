@@ -19,7 +19,8 @@ subtask('set-services', 'Set DS Services')
         walletRegistrar,
         omnibusTBEController,
         transactionRelayer,
-        tokenReallocator
+        tokenReallocator,
+        issuerMulticall
       } = dsContracts;
 
       // Token
@@ -140,7 +141,11 @@ subtask('set-services', 'Set DS Services')
 
       // Token Reallocator
       console.log('Connecting transaction relayer to trust service');
-      await transactionRelayer.setDSService(DSConstants.services.TRANSACTION_RELAYER, trustService.getAddress());
+      await transactionRelayer.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
+
+      // Issuer Multi Call
+      console.log('Connecting issuer multi call to trust service');
+      await issuerMulticall.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
 
       // Partitions Manager
       if (partitionsManager) {

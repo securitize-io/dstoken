@@ -21,6 +21,7 @@ task('deploy-all', 'Deploy DS Protocol')
     const omnibusTBEController = await run('deploy-omnibus-tbe-controller', args);
     const transactionRelayer = await run('deploy-transaction-relayer');
     const tokenReallocator = await run('deploy-token-reallocator');
+    const issuerMulticall = await run('deploy-issuer-multicall');
 
     const dsContracts = {
       dsToken,
@@ -36,10 +37,10 @@ task('deploy-all', 'Deploy DS Protocol')
       omnibusTBEController,
       transactionRelayer,
       tokenReallocator,
+      issuerMulticall
     };
 
     await run('set-roles', { dsContracts });
-
     await run('set-services', { dsContracts });
 
     return dsContracts;

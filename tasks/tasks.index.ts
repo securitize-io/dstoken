@@ -12,5 +12,6 @@ export * from './deploy-wallet-registrar.ts';
 export * from './deploy-omnibus-tbe-controller.ts';
 export * from './deploy-transaction-relayer.ts';
 export * from './deploy-token-reallocator';
+export * from './deploy-issuer-multicall';
 export * from './set-roles';
 export * from './set-services';
