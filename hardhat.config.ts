@@ -1,5 +1,4 @@
-import { HardhatUserConfig, task } from "hardhat/config";
-import '@nomicfoundation/hardhat-ignition-ethers';
+import { HardhatUserConfig } from "hardhat/config";
 import '@nomicfoundation/hardhat-toolbox';
 import '@openzeppelin/hardhat-upgrades';
 import './tasks/tasks.index';
