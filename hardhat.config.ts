@@ -5,6 +5,9 @@ import '@openzeppelin/hardhat-upgrades';
 import './tasks/tasks.index';
 
 const config: HardhatUserConfig = {
+  mocha: {
+    parallel: false,
+  },
   solidity: {
     version: '0.8.20',
     settings: {

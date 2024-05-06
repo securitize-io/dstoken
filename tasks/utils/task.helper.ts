@@ -7,9 +7,16 @@ export const printContractAddresses = async (name: string, contract: Contract, h
 
   const implementation = await hre.upgrades.erc1967.getImplementationAddress(contractAddress);
   console.log(`${name} Implementation address: ${implementation}`);
-
-  return contractAddress;
 };
+
+export const getTokenContractName = (complianceType: string): string => {
+  switch (complianceType) {
+    case 'PARTITIONED':
+      return 'DSTokenPartitioned';
+    default:
+      return 'DSToken';
+  }
+}
 
 export const getComplianceContractName = (complianceType: string): string => {
   switch (complianceType) {
@@ -22,10 +29,8 @@ export const getComplianceContractName = (complianceType: string): string => {
   }
 }
 
-export const getLockManagerContractName = (lockManagerType: string): string => {
-  switch (lockManagerType) {
-    case 'WALLET':
-      return 'LockManager';
+export const getLockManagerContractName = (complianceType: string): string => {
+  switch (complianceType) {
     case 'PARTITIONED':
       return 'InvestorLockManagerPartitioned';
     default:

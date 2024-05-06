@@ -5,46 +5,42 @@ task('deploy-all', 'Deploy DS Protocol')
   .addParam('symbol', 'DS Token symbol', 'EXA', types.string)
   .addParam('decimals', 'DS Token decimals', 2, types.int)
   .addParam('compliance', 'Compliance Type', 'REGULATED', types.string)
-  .addParam('lock', 'Lock Type', 'INVESTOR', types.string)
   .addParam('tbe', 'Omnibus TBE address', undefined, types.string, false)
   .setAction(async (args, { run }) => {
     await run('compile');
-    const dsTokenAddress = await run('deploy-token', args);
-    const trustServiceAddress = await run('deploy-trust-service');
-    const registryServiceAddress = await run('deploy-registry-service');
-    const complianceServiceAddress = await run('deploy-compliance-service', args);
-    const walletManagerAddress = await run('deploy-wallet-manager');
-    const lockManagerAddress = await run('deploy-lock-manager', args);
-    const partitionsManagerAddress = await run('deploy-partitions-manager', args);
-    const complianceConfigurationServiceAddress = await run('deploy-compliance-configuration-service');
-    const tokenIssuerAddress = await run('deploy-token-issuer');
-    const walletRegistrarAddress = await run('deploy-wallet-registrar');
-    const omnibusTBEControllerAddress = await run('deploy-omnibus-tbe-controller', args);
-    const transactionRelayerAddress = await run('deploy-transaction-relayer');
-    const tokenReallocatorAddress = await run('deploy-token-reallocator');
-    await run('set-roles', {
-      trustServiceAddress,
-      tokenIssuerAddress,
-      walletRegistrarAddress,
-      omnibusTBEControllerAddress,
-      transactionRelayerAddress,
-      tokenReallocatorAddress
-    });
+    const dsToken = await run('deploy-token', args);
+    const trustService = await run('deploy-trust-service');
+    const registryService = await run('deploy-registry-service');
+    const complianceService = await run('deploy-compliance-service', args);
+    const walletManager = await run('deploy-wallet-manager');
+    const lockManager = await run('deploy-lock-manager', args);
+    const partitionsManager = await run('deploy-partitions-manager', args);
+    const complianceConfigurationService = await run('deploy-compliance-configuration-service');
+    const tokenIssuer = await run('deploy-token-issuer');
+    const walletRegistrar = await run('deploy-wallet-registrar');
+    const omnibusTBEController = await run('deploy-omnibus-tbe-controller', args);
+    const transactionRelayer = await run('deploy-transaction-relayer');
+    const tokenReallocator = await run('deploy-token-reallocator');
 
     const dsContracts = {
-      dsTokenAddress,
-      trustServiceAddress,
-      registryServiceAddress,
-      complianceServiceAddress,
-      walletManagerAddress,
-      lockManagerAddress,
-      partitionsManagerAddress,
-      complianceConfigurationServiceAddress,
-      tokenIssuerAddress,
-      walletRegistrarAddress,
-      omnibusTBEControllerAddress,
-      transactionRelayerAddress,
-      tokenReallocatorAddress
+      dsToken,
+      trustService,
+      registryService,
+      complianceService,
+      walletManager,
+      lockManager,
+      partitionsManager,
+      complianceConfigurationService,
+      tokenIssuer,
+      walletRegistrar,
+      omnibusTBEController,
+      transactionRelayer,
+      tokenReallocator,
     };
+
+    await run('set-roles', { dsContracts });
+
     await run('set-services', { dsContracts });
+
+    return dsContracts;
   });

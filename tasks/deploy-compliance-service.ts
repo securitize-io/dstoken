@@ -18,9 +18,7 @@ subtask('deploy-compliance-service', 'Deploy Compliance Service')
 
       const complianceContractName = getComplianceContractName(args.compliance);
 
-      const Service = await hre.ethers.getContractFactory(complianceContractName, {
-        libraries
-      });
+      const Service = await hre.ethers.getContractFactory(complianceContractName, { libraries });
 
       const service = await hre.upgrades.deployProxy(
         Service,
@@ -30,6 +28,7 @@ subtask('deploy-compliance-service', 'Deploy Compliance Service')
 
       await service.waitForDeployment();
 
-      return printContractAddresses('Compliance Service', service, hre);
+      await printContractAddresses('Compliance Service', service, hre);
+      return service;
     }
   );

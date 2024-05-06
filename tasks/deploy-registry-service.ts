@@ -8,6 +8,7 @@ subtask('deploy-registry-service', 'Deploy Registry Service')
       const service = await hre.upgrades.deployProxy(Service);
       await service.waitForDeployment();
 
-      return printContractAddresses('Registry Service', service, hre);
+      await printContractAddresses('Registry Service', service, hre);
+      return service;
     }
   );

@@ -8,6 +8,7 @@ subtask('deploy-trust-service', 'Deploy Trust Service')
       const service = await hre.upgrades.deployProxy(Service);
       await service.waitForDeployment();
 
-      return printContractAddresses('Trust Service', service, hre);
+      await printContractAddresses('Trust Service', service, hre);
+      return service;
     }
   );

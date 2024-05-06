@@ -8,6 +8,7 @@ subtask('deploy-token-reallocator', 'Deploy Token Reallocator')
       const service = await hre.upgrades.deployProxy(Service);
       await service.waitForDeployment();
 
-      return printContractAddresses('Token Reallocator', service, hre);
+      await printContractAddresses('Token Reallocator', service, hre);
+      return service;
     }
   );

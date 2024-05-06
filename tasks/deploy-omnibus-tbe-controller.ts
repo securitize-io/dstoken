@@ -13,6 +13,7 @@ subtask('deploy-omnibus-tbe-controller', 'Deploy Omnibus TBE Controller')
       const service = await hre.upgrades.deployProxy(Service, [ args.tbe, isPartitioned(args.compliance) ]);
       await service.waitForDeployment();
 
-      return printContractAddresses('Omnibus TBE Controller', service, hre);
+      await printContractAddresses('Omnibus TBE Controller', service, hre);
+      return service;
     }
   );

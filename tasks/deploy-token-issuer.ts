@@ -8,6 +8,7 @@ subtask('deploy-token-issuer', 'Deploy Token Issuer')
       const service = await hre.upgrades.deployProxy(Service);
       await service.waitForDeployment();
 
-      return printContractAddresses('Token Issuer', service, hre);
+      await printContractAddresses('Token Issuer', service, hre);
+      return service;
     }
   );

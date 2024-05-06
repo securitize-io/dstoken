@@ -13,6 +13,7 @@ subtask('deploy-partitions-manager', 'Deploy Partitions Manager')
       const service = await hre.upgrades.deployProxy(Service);
       await service.waitForDeployment();
 
-      return printContractAddresses('Partitions Manager', service, hre);
+      await printContractAddresses('Partitions Manager', service, hre);
+      return service;
     }
   );

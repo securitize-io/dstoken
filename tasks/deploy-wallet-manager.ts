@@ -8,6 +8,7 @@ subtask('deploy-wallet-manager', 'Deploy Wallet Manager')
       const service = await hre.upgrades.deployProxy(Service);
       await service.waitForDeployment();
 
-      return printContractAddresses('Wallet Manager', service, hre);
+      await printContractAddresses('Wallet Manager', service, hre);
+      return service;
     }
   );

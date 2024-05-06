@@ -8,6 +8,7 @@ subtask('deploy-compliance-configuration-service', 'Deploy Compliance Configurat
       const service = await hre.upgrades.deployProxy(Service);
       await service.waitForDeployment();
 
-      return printContractAddresses('Compliance Configuration Service', service, hre);
+      await printContractAddresses('Compliance Configuration Service', service, hre);
+      return service;
     }
   );

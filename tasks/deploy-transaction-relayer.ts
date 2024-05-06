@@ -8,6 +8,7 @@ subtask('deploy-transaction-relayer', 'Deploy Transaction Relayer')
       const service = await hre.upgrades.deployProxy(Service);
       await service.waitForDeployment();
 
-      return printContractAddresses('Transaction Relayer', service, hre);
+      await printContractAddresses('Transaction Relayer', service, hre);
+      return service;
     }
   );
