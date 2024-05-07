@@ -1,5 +1,7 @@
 import { INVESTORS } from './fixture';
 import { expect } from 'chai';
+import { Contract } from 'ethers';
+import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
 
 export const setCounters = async (txCounters, complianceService) => {
   const currentCounters = await getCounters(complianceService);
@@ -37,4 +39,9 @@ export const getCountersDelta = (txCounters) => {
   Object.keys(txCounters).forEach(key => {
     INVESTORS.Counters[key] = Math.abs(INVESTORS.Counters[key] - Math.abs(txCounters[key]));
   });
+}
+
+export const registerInvestor = async (investorId: string, wallet: string | HardhatEthersSigner, registryService: any) => {
+  await registryService.registerInvestor(investorId, '');
+  await registryService.addWallet(wallet, investorId);
 }

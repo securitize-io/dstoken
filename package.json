@@ -6,10 +6,7 @@
     "test": "hardhat test",
     "test:unitests": "cross-env TEST_MODE=TRUE ./scripts/test.sh test2/unitests/**",
     "test:integration": "cross-env TEST_MODE=TRUE ./scripts/test.sh test2/integration/**",
-    "coverage": "truffle compile && ./node_modules/.bin/solidity-coverage",
-    "compile": "hardhat compile",
-    "generate": "node ./generators/EternalStorageClientGenerator.js",
-    "remixd": "./node_modules/.bin/remixd --remix-ide https://remix.ethereum.org -s ./"
+    "compile": "hardhat compile"
   },
   "contributors": [
     {
