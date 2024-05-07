@@ -3,8 +3,6 @@ image: node:18.20.0
 pipelines:
   default:
     - step:
-        caches:
-          - node
         script:
           - npm ci
           - npm run compile
