@@ -77,7 +77,7 @@ describe('Trust Service Unit Tests', function() {
       const { trustService } = await loadFixture(deployDSTokenRegulated);
       trustService.setRole(transferAgent, DSConstants.roles.TRANSFER_AGENT);
       const trustServiceFromTA = await trustService.connect(transferAgent);
-      await expect(trustServiceFromTA.setRole(issuer, DSConstants.roles.ISSUER)).revertedWith('Not enough permissions');
+      await expect(trustServiceFromTA.setRole(issuer, DSConstants.roles.ISSUER)).revertedWith('Not enough permissions. Only same role allowed');
     });
 
     // it('Should fail when trying to set transfer agent role from issuer account', async function() {
