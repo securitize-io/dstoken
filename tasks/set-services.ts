@@ -139,7 +139,7 @@ subtask('set-services', 'Set DS Services')
       console.log('Connecting token reallocator to lock manager');
       await tokenReallocator.setDSService(DSConstants.services.LOCK_MANAGER, lockManager.getAddress());
 
-      // Token Reallocator
+      // Transaction Relayer
       console.log('Connecting transaction relayer to trust service');
       await transactionRelayer.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
 
