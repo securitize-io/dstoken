@@ -6,7 +6,8 @@
     "test": "hardhat test",
     "test:unitests": "cross-env TEST_MODE=TRUE ./scripts/test.sh test2/unitests/**",
     "test:integration": "cross-env TEST_MODE=TRUE ./scripts/test.sh test2/integration/**",
-    "compile": "hardhat compile"
+    "compile": "hardhat compile",
+    "coverage": "hardhat coverage"
   },
   "contributors": [
     {
@@ -34,9 +35,12 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.6",
     "@nomicfoundation/hardhat-ethers": "^3.0.5",
+    "@nomicfoundation/hardhat-ignition": "^0.15.2",
+    "@nomicfoundation/hardhat-ignition-ethers": "^0.15.2",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.10",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@nomicfoundation/hardhat-verify": "^2.0.6",
+    "@nomicfoundation/ignition-core": "^0.15.2",
     "@openzeppelin/contracts": "^5.0.2",
     "@openzeppelin/contracts-upgradeable": "^5.0.2",
     "@openzeppelin/hardhat-upgrades": "^3.0.5",
@@ -56,6 +60,7 @@
     "eslint": "^8.26.0",
     "eslint-config-standard": "^17.0.0",
     "eslint-plugin-promise": "^6.1.1",
+    "eth-lightwallet": "^4.0.0",
     "ethereumjs-util": "^7.1.5",
     "ethers": "^6.12.0",
     "hardhat": "^2.22.2",
@@ -66,7 +71,6 @@
     "solium": "^0.5.5",
     "ts-node": "^10.9.2",
     "typechain": "^8.3.2",
-    "eth-lightwallet": "^4.0.0",
     "typescript": "^5.4.4"
   }
 }
