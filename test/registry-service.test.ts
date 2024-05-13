@@ -5,6 +5,23 @@ import { attributeStatuses, attributeTypes, deployDSTokenRegulated, INVESTORS } 
 import { DSConstants } from '../utils/globals';
 
 describe('Registry Service Unit Tests', function() {
+  describe('Creation', function() {
+    it('Should fail when trying to re initialize', async function() {
+      const { registryService } = await loadFixture(deployDSTokenRegulated);
+      await expect(registryService.initialize()).revertedWithCustomError(registryService, 'InvalidInitialization');
+    });
+
+    it('Should get version correctly', async function() {
+      const { registryService } = await loadFixture(deployDSTokenRegulated);
+      expect( await registryService.getInitializedVersion()).to.equal(1);
+    });
+
+    it('Should get implementation address correctly', async function() {
+      const { registryService } = await loadFixture(deployDSTokenRegulated);
+      expect( await registryService.getImplementationAddress()).to.be.exist;
+    });
+  });
+
   describe('Register the new investor flow', function() {
     describe('Register investor', function() {
       it('Checking the role for the creator account - should be MASTER', async function() {

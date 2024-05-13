@@ -1,11 +1,28 @@
 import hre from 'hardhat';
 import { expect } from 'chai';
 import { loadFixture, time } from '@nomicfoundation/hardhat-toolbox/network-helpers';
-import { deployDSTokenPartitioned, deployDSTokenPartitioned, INVESTORS } from './utils/fixture';
+import { deployDSTokenPartitioned, INVESTORS } from './utils/fixture';
 import { registerInvestor } from './utils/test-helper';
 import { DSConstants } from '../utils/globals';
 
 describe('Compliance Service Partitioned Unit Tests', function() {
+  describe('Creation', function() {
+    it('Should fail when trying to initialize twice', async function() {
+      const { complianceService } = await loadFixture(deployDSTokenPartitioned);
+      await expect(complianceService.initialize()).revertedWithCustomError(complianceService, 'InvalidInitialization');
+    });
+
+    it('Should get version correctly', async function() {
+      const { complianceService } = await loadFixture(deployDSTokenPartitioned);
+      expect( await complianceService.getInitializedVersion()).to.equal(1);
+    });
+
+    it('Should get implementation address correctly', async function() {
+      const { complianceService } = await loadFixture(deployDSTokenPartitioned);
+      expect( await complianceService.getImplementationAddress()).to.be.exist;
+    });
+  });
+
   describe('Pre transfer check', function() {
     it('Pre transfer check with paused', async function() {
       const [wallet, wallet2] = await hre.ethers.getSigners();

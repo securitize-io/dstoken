@@ -5,6 +5,22 @@ import { deployDSTokenRegulated } from './utils/fixture';
 import { DSConstants } from '../utils/globals';
 
 describe('Trust Service Unit Tests', function() {
+  describe('Creation', function() {
+    it('Should fail when trying to initialize twice', async function() {
+      const { trustService } = await loadFixture(deployDSTokenRegulated);
+      await expect(trustService.initialize()).revertedWithCustomError(trustService, 'InvalidInitialization');
+    });
+
+    it('Should get version correctly', async function() {
+      const { trustService } = await loadFixture(deployDSTokenRegulated);
+      expect( await trustService.getInitializedVersion()).to.equal(1);
+    });
+
+    it('Should get implementation address correctly', async function() {
+      const { trustService } = await loadFixture(deployDSTokenRegulated);
+      expect( await trustService.getImplementationAddress()).to.be.exist;
+    });
+  });
 
   describe('Creation flow', function() {
     it('For the owner account - the role should be MASTER', async function() {

@@ -5,6 +5,23 @@ import { deployDSTokenRegulated, INVESTORS } from './utils/fixture';
 import { DSConstants } from '../utils/globals';
 
 describe('Lock Manager Unit Tests', function() {
+  describe('Creation', function() {
+    it('Should fail when trying to initialize twice', async function() {
+      const { lockManager } = await loadFixture(deployDSTokenRegulated);
+      await expect(lockManager.initialize()).revertedWithCustomError(lockManager, 'InvalidInitialization');
+    });
+
+    it('Should get version correctly', async function() {
+      const { lockManager } = await loadFixture(deployDSTokenRegulated);
+      expect( await lockManager.getInitializedVersion()).to.equal(1);
+    });
+
+    it('Should get implementation address correctly', async function() {
+      const { lockManager } = await loadFixture(deployDSTokenRegulated);
+      expect( await lockManager.getImplementationAddress()).to.be.exist;
+    });
+  });
+
   describe('Add Manual Lock Record', function() {
     it('Should revert due to valueLocked = 0', async function() {
       const [ investor ] = await hre.ethers.getSigners();

@@ -4,6 +4,23 @@ import { loadFixture, time } from '@nomicfoundation/hardhat-toolbox/network-help
 import { deployDSTokenRegulated, INVESTORS } from './utils/fixture';
 
 describe('Investor Lock Unit Tests', function() {
+  describe('Creation', function() {
+    it('Should fail when trying to initialize twice', async function() {
+      const { lockManager } = await loadFixture(deployDSTokenRegulated);
+      await expect(lockManager.initialize()).revertedWithCustomError(lockManager, 'InvalidInitialization');
+    });
+
+    it('Should get version correctly', async function() {
+      const { lockManager } = await loadFixture(deployDSTokenRegulated);
+      expect( await lockManager.getInitializedVersion()).to.equal(1);
+    });
+
+    it('Should get implementation address correctly', async function() {
+      const { lockManager } = await loadFixture(deployDSTokenRegulated);
+      expect( await lockManager.getImplementationAddress()).to.be.exist;
+    });
+  });
+
   describe('Investor Full Lock', function () {
     it('Should lock an unlocked investor', async function() {
       const { lockManager, registryService } = await loadFixture(deployDSTokenRegulated);

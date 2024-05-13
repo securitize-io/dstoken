@@ -4,6 +4,22 @@ import { loadFixture, time } from '@nomicfoundation/hardhat-toolbox/network-help
 import { deployDSTokenPartitioned, deployDSTokenRegulated, INVESTORS } from './utils/fixture';
 
 describe('Token Issuer Unit Tests', function() {
+  describe('Creation', function() {
+    it('Should fail when trying to initialize twice', async function() {
+      const { tokenIssuer } = await loadFixture(deployDSTokenRegulated);
+      await expect(tokenIssuer.initialize()).revertedWithCustomError(tokenIssuer, 'InvalidInitialization');
+    });
+
+    it('Should get version correctly', async function() {
+      const { tokenIssuer } = await loadFixture(deployDSTokenRegulated);
+      expect( await tokenIssuer.getInitializedVersion()).to.equal(1);
+    });
+
+    it('Should get implementation address correctly', async function() {
+      const { tokenIssuer } = await loadFixture(deployDSTokenRegulated);
+      expect( await tokenIssuer.getImplementationAddress()).to.be.exist;
+    });
+  });
 
   describe('Normal Token Issuance', function() {
     it('Should issue tokens to a new investor without locks successfully', async function() {

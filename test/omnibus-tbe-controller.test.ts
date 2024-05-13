@@ -5,6 +5,23 @@ import { assertCounters, getCountersDelta, setCounters } from './utils/test-help
 import { expect } from 'chai';
 
 describe('Omnibus TBE Controller Unit Tests', function() {
+  describe('Creation', function() {
+    it('Should fail when trying to initialize twice', async function() {
+      const { omnibusTBEController } = await loadFixture(deployDSTokenRegulated);
+      await expect(omnibusTBEController.initialize(TBE, false)).revertedWithCustomError(omnibusTBEController, 'InvalidInitialization');
+    });
+
+    it('Should get version correctly', async function() {
+      const { omnibusTBEController } = await loadFixture(deployDSTokenRegulated);
+      expect( await omnibusTBEController.getInitializedVersion()).to.equal(1);
+    });
+
+    it('Should get implementation address correctly', async function() {
+      const { omnibusTBEController } = await loadFixture(deployDSTokenRegulated);
+      expect( await omnibusTBEController.getImplementationAddress()).to.be.exist;
+    });
+  });
+
   describe('Bulk issuance', function() {
     it('Should bulk issue tokens correctly', async function() {
       const {

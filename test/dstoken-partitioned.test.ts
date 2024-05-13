@@ -14,6 +14,21 @@ describe('DS Token Partitioned Unit Tests', function() {
       expect(await dsToken.decimals()).equal(2);
       expect(await dsToken.totalSupply()).equal(0);
     });
+
+    it('Should fail when trying to initialize twice', async function() {
+      const { dsToken } = await loadFixture(deployDSTokenPartitioned);
+      await expect(dsToken.initialize('TX1', 'TX1', 6)).revertedWithCustomError(dsToken, 'InvalidInitialization');
+    });
+
+    it('Should get version correctly', async function() {
+      const { dsToken } = await loadFixture(deployDSTokenPartitioned);
+      expect( await dsToken.getInitializedVersion()).to.equal(1);
+    });
+
+    it('Should get implementation address correctly', async function() {
+      const { dsToken } = await loadFixture(deployDSTokenPartitioned);
+      expect( await dsToken.getImplementationAddress()).to.be.exist;
+    });
   });
 
   describe('Ownership', function() {

@@ -5,6 +5,23 @@ import hre from 'hardhat';
 import { DSConstants } from '../utils/globals';
 
 describe('Wallet Manager Unit Tests', function() {
+  describe('Creation', function() {
+    it('Should fail when trying to initialize twice', async function() {
+      const { walletManager } = await loadFixture(deployDSTokenRegulated);
+      await expect(walletManager.initialize()).revertedWithCustomError(walletManager, 'InvalidInitialization');
+    });
+
+    it('Should get version correctly', async function() {
+      const { walletManager } = await loadFixture(deployDSTokenRegulated);
+      expect( await walletManager.getInitializedVersion()).to.equal(1);
+    });
+
+    it('Should get implementation address correctly', async function() {
+      const { walletManager } = await loadFixture(deployDSTokenRegulated);
+      expect( await walletManager.getImplementationAddress()).to.be.exist;
+    });
+  });
+
   describe('Add issuer wallet:', function() {
     it('Trying to add the issuer wallet with MASTER permissions', async function() {
       const [owner, wallet] = await hre.ethers.getSigners();

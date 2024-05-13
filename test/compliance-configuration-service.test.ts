@@ -3,6 +3,23 @@ import { loadFixture } from '@nomicfoundation/hardhat-toolbox/network-helpers';
 import { deployDSTokenRegulated, INVESTORS } from './utils/fixture';
 
 describe('Compliance Configuration Service Unit Tests', function() {
+  describe('Creation', function() {
+    it('Should fail when trying to initialize twice', async function() {
+      const { complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);
+      await expect(complianceConfigurationService.initialize()).revertedWithCustomError(complianceConfigurationService, 'InvalidInitialization');
+    });
+
+    it('Should get version correctly', async function() {
+      const { complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);
+      expect( await complianceConfigurationService.getInitializedVersion()).to.equal(1);
+    });
+
+    it('Should get implementation address correctly', async function() {
+      const { complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);
+      expect( await complianceConfigurationService.getImplementationAddress()).to.be.exist;
+    });
+  });
+
   describe('Compliance Configuration Service Unit Tests', function() {
     it('Should set all rules and emit events correctly', async function() {
       const { complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);

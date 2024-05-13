@@ -5,6 +5,23 @@ import { expect } from 'chai';
 import { DSConstants } from '../utils/globals';
 
 describe('Token Reallocator Unit Tests', function() {
+  describe('Creation', function() {
+    it('Should fail when trying to initialize twice', async function() {
+      const { tokenReallocator } = await loadFixture(deployDSTokenRegulated);
+      await expect(tokenReallocator.initialize()).revertedWithCustomError(tokenReallocator, 'InvalidInitialization');
+    });
+
+    it('Should get version correctly', async function() {
+      const { tokenReallocator } = await loadFixture(deployDSTokenRegulated);
+      expect( await tokenReallocator.getInitializedVersion()).to.equal(1);
+    });
+
+    it('Should get implementation address correctly', async function() {
+      const { tokenReallocator } = await loadFixture(deployDSTokenRegulated);
+      expect( await tokenReallocator.getImplementationAddress()).to.be.exist;
+    });
+  });
+
   it('Should register a wallet and reallocate tokens - happy path', async function() {
     const [ investor ] = await hre.ethers.getSigners();
     const {

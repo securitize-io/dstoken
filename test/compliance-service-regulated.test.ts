@@ -8,6 +8,23 @@ import { DSConstants } from '../utils/globals';
 describe('Compliance Service Regulated Unit Tests', function() {
 
   describe('Validate issuance(recordIssuance):', function() {
+    describe('Creation', function() {
+      it('Should fail when trying to initialize twice', async function() {
+        const { complianceService } = await loadFixture(deployDSTokenRegulated);
+        await expect(complianceService.initialize()).revertedWithCustomError(complianceService, 'InvalidInitialization');
+      });
+
+      it('Should get version correctly', async function() {
+        const { complianceService } = await loadFixture(deployDSTokenRegulated);
+        expect( await complianceService.getInitializedVersion()).to.equal(1);
+      });
+
+      it('Should get implementation address correctly', async function() {
+        const { complianceService } = await loadFixture(deployDSTokenRegulated);
+        expect( await complianceService.getImplementationAddress()).to.be.exist;
+      });
+    });
+
     it('Should revert due to not token call', async function() {
       const [wallet] = await hre.ethers.getSigners();
       const { complianceService, dsToken } = await loadFixture(deployDSTokenRegulated);
