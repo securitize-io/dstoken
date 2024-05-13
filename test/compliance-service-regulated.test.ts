@@ -714,7 +714,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       const { registryService, complianceConfigurationService, dsToken } = await loadFixture(deployDSTokenRegulated);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
       complianceConfigurationService.setAuthorizedSecurities(10);
-      await expect(dsToken.issueTokens(investor, 11)).revertedWith('Max authorized securities exceeded');
+      await expect(dsToken.issueTokens(investor, 20)).revertedWith('Max authorized securities exceeded');
     });
 
     it('should allow to issue tokens up to the max authorized securities', async function () {

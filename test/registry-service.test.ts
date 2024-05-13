@@ -1,7 +1,7 @@
 import hre from 'hardhat';
 import { expect } from 'chai';
 import { loadFixture } from '@nomicfoundation/hardhat-toolbox/network-helpers';
-import { attributeStatuses, attributeTypes, deployDSTokenRegulated, INVESTORS, TBE } from './utils/fixture';
+import { attributeStatuses, attributeTypes, deployDSTokenRegulated, INVESTORS } from './utils/fixture';
 import { DSConstants } from '../utils/globals';
 
 describe('Registry Service Unit Tests', function() {
@@ -20,6 +20,98 @@ describe('Registry Service Unit Tests', function() {
         await expect(
           registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1)
         ).to.emit(registryService, 'DSRegistryServiceInvestorAdded').withArgs(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, owner);
+        expect(await registryService.isInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1)).to.equal(true);
+      });
+
+      it('Should register the new full investor', async function() {
+        const [owner, investor] = await hre.ethers.getSigners();
+        const { registryService } = await loadFixture(deployDSTokenRegulated);
+        await expect(
+          registryService.updateInvestor(
+            INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
+            INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1,
+            INVESTORS.Country.USA,
+            [investor],
+            [1, 2, 4],
+            [1, 1, 1],
+            [0, 0, 0]
+          )
+        ).to.emit(registryService, 'DSRegistryServiceInvestorAdded').withArgs(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, owner);
+        expect(await registryService.isInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1)).to.equal(true);
+        expect(await registryService.isWallet(investor)).to.equal(true);
+        expect(await registryService['isAccreditedInvestor(address)'](investor)).to.equal(true);
+        expect(await registryService['isAccreditedInvestor(string)'](INVESTORS.INVESTOR_ID.INVESTOR_ID_1)).to.equal(true);
+        expect(await registryService['isQualifiedInvestor(address)'](investor)).to.equal(true);
+        expect(await registryService['isQualifiedInvestor(string)'](INVESTORS.INVESTOR_ID.INVESTOR_ID_1)).to.equal(true);
+        const details = await registryService.getInvestorDetailsFull(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+        expect(details[0]).to.equal(INVESTORS.Country.USA);
+        expect(details[1][0]).to.equal(1);
+        expect(details[1][1]).to.equal(1);
+        expect(details[1][2]).to.equal(1);
+        expect(details[1][3]).to.equal(0);
+        expect(details[2][0]).to.equal(0);
+        expect(details[2][1]).to.equal(0);
+        expect(details[2][2]).to.equal(0);
+        expect(details[3]).to.equal('');
+        expect(details[4]).to.equal('');
+        expect(details[5]).to.equal('');
+      });
+
+      it('Should fail trying to register a new full investor because wallet already exists', async function() {
+        const [owner, investor] = await hre.ethers.getSigners();
+        const { registryService } = await loadFixture(deployDSTokenRegulated);
+        await registryService.updateInvestor(
+          INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
+          INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1,
+          INVESTORS.Country.USA,
+          [investor],
+          [1, 2, 4],
+          [1, 1, 1],
+          [0, 0, 0]
+        );
+        await expect(registryService.updateInvestor(
+          INVESTORS.INVESTOR_ID.INVESTOR_ID_2,
+          INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1,
+          INVESTORS.Country.USA,
+          [investor],
+          [1, 2, 4],
+          [1, 1, 1],
+          [0, 0, 0]
+        )).revertedWith('Wallet belongs to a different investor');
+      });
+
+      it('Should update the investor', async function() {
+        const [owner, investor] = await hre.ethers.getSigners();
+        const { registryService } = await loadFixture(deployDSTokenRegulated);
+        await registryService.updateInvestor(
+          INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
+          INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1,
+          INVESTORS.Country.USA,
+          [investor],
+          [1, 2, 4],
+          [1, 1, 1],
+          [0, 0, 0]
+        );
+        await registryService.updateInvestor(
+          INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
+          INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1,
+          INVESTORS.Country.GERMANY,
+          [investor],
+          [1, 2, 4],
+          [1, 1, 1],
+          [0, 0, 0]
+        );
+        const details = await registryService.getInvestorDetailsFull(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+        expect(details[0]).to.equal(INVESTORS.Country.GERMANY);
+      });
+
+      it('Should remove an investor', async function() {
+        const [owner] = await hre.ethers.getSigners();
+        const { registryService } = await loadFixture(deployDSTokenRegulated);
+        await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
+        await expect(
+          registryService.removeInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1)
+        ).to.emit(registryService, 'DSRegistryServiceInvestorRemoved').withArgs(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, owner);
       });
 
       it('Trying to register an investor with empty id - should be an error', async function() {
@@ -46,6 +138,31 @@ describe('Registry Service Unit Tests', function() {
             INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1
           )
         ).to.revertedWith('Insufficient trust level');
+      });
+
+      it('Trying to register the new full investor using an account with NONE permissions - should be an error', async function() {
+        const [owner, unauthorizedWallet, investor] = await hre.ethers.getSigners();
+        const { registryService } = await loadFixture(deployDSTokenRegulated);
+        const registryServiceFromUnauthorizedWallet = await registryService.connect(unauthorizedWallet);
+        await expect(
+          registryServiceFromUnauthorizedWallet.updateInvestor(
+            INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
+            INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1,
+            INVESTORS.Country.USA,
+            [investor],
+            [1, 2, 4],
+            [1, 1, 1],
+            [0, 0, 0]
+          )
+        ).to.revertedWith('Insufficient trust level');
+      });
+
+      it('Trying to remove the new investor using an account with NONE permissions - should be an error', async function() {
+        const [owner, unauthorizedWallet] = await hre.ethers.getSigners();
+        const { registryService } = await loadFixture(deployDSTokenRegulated);
+        await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
+        const registryServiceFromUnauthorizedWallet = await registryService.connect(unauthorizedWallet);
+        await expect(registryServiceFromUnauthorizedWallet.removeInvestor(INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1)).to.revertedWith('Insufficient trust level');
       });
     });
 
@@ -124,11 +241,12 @@ describe('Registry Service Unit Tests', function() {
               attributeStatus,
               0,
               '',
-              owner,
+              owner
             );
 
-            const value = await registryService.getAttributeValue(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, attributeType);
-            expect(value).to.equal(attributeStatus);
+            expect(await registryService.getAttributeValue(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, attributeType)).to.equal(attributeStatus);
+            expect(await registryService.getAttributeExpiry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, DSConstants.attributeType.KYC_APPROVED)).to.equal(0);
+            expect(await registryService.getAttributeProofHash(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, DSConstants.attributeType.KYC_APPROVED)).to.equal('');
           }
         }
       });
@@ -166,17 +284,22 @@ describe('Registry Service Unit Tests', function() {
       });
     });
 
-    describe('Wallets', function () {
-      it('Trying to add the wallet', async function () {
+    describe('Wallets', function() {
+      it('Trying to add the wallet', async function() {
         const [owner, investor] = await hre.ethers.getSigners();
         const { registryService } = await loadFixture(deployDSTokenRegulated);
         await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
         await expect(
           registryService.addWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1)
         ).to.emit(registryService, 'DSRegistryServiceWalletAdded').withArgs(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1, owner);
+        expect(await registryService.isWallet(investor)).to.equal(true);
+        expect(await registryService['isAccreditedInvestor(address)'](investor)).to.equal(false);
+        expect(await registryService['isAccreditedInvestor(string)'](INVESTORS.INVESTOR_ID.INVESTOR_ID_1)).to.equal(false);
+        expect(await registryService['isQualifiedInvestor(address)'](investor)).to.equal(false);
+        expect(await registryService['isQualifiedInvestor(string)'](INVESTORS.INVESTOR_ID.INVESTOR_ID_1)).to.equal(false);
       });
 
-      it('Trying to remove the wallet with MASTER permissions', async function () {
+      it('Trying to remove the wallet with MASTER permissions', async function() {
         const [owner, investor] = await hre.ethers.getSigners();
         const { registryService } = await loadFixture(deployDSTokenRegulated);
         await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
@@ -186,7 +309,7 @@ describe('Registry Service Unit Tests', function() {
         ).to.emit(registryService, 'DSRegistryServiceWalletRemoved').withArgs(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1, owner);
       });
 
-      it('Trying to remove the wallet with ISSUER permissions', async function () {
+      it('Trying to remove the wallet with ISSUER permissions', async function() {
         const [owner, issuer, investor] = await hre.ethers.getSigners();
         const { registryService, trustService } = await loadFixture(deployDSTokenRegulated);
         await trustService.setRole(issuer, DSConstants.roles.ISSUER);
@@ -198,7 +321,7 @@ describe('Registry Service Unit Tests', function() {
         ).to.emit(registryService, 'DSRegistryServiceWalletRemoved').withArgs(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1, issuer);
       });
 
-      it('Trying to remove the wallet with Exchange permissions', async function () {
+      it('Trying to remove the wallet with Exchange permissions', async function() {
         const [owner, exchange, investor] = await hre.ethers.getSigners();
         const { registryService, trustService } = await loadFixture(deployDSTokenRegulated);
         await trustService.setRole(exchange, DSConstants.roles.EXCHANGE);
@@ -210,16 +333,16 @@ describe('Registry Service Unit Tests', function() {
         ).to.emit(registryService, 'DSRegistryServiceWalletRemoved').withArgs(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1, exchange);
       });
 
-      it('Trying to add the wallet with NONE permissions', async function () {
+      it('Trying to add the wallet with NONE permissions', async function() {
         const [owner, unauthorized, investor] = await hre.ethers.getSigners();
         const { registryService } = await loadFixture(deployDSTokenRegulated);
         const registryServiceFromUnauthorized = await registryService.connect(unauthorized);
         await expect(
           registryServiceFromUnauthorized.addWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1)
-        ).to.revertedWith('Insufficient trust level')
+        ).to.revertedWith('Insufficient trust level');
       });
 
-      it('Trying to add the same wallet - should be an error', async function () {
+      it('Trying to add the same wallet - should be an error', async function() {
         const [investor] = await hre.ethers.getSigners();
         const { registryService } = await loadFixture(deployDSTokenRegulated);
         await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
@@ -227,13 +350,13 @@ describe('Registry Service Unit Tests', function() {
         await expect(registryService.addWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1)).to.revertedWith('Wallet already exists');
       });
 
-      it('Trying to remove the wallet from the investor that does not exist - should be an error', async function () {
+      it('Trying to remove the wallet from the investor that does not exist - should be an error', async function() {
         const [investor] = await hre.ethers.getSigners();
         const { registryService } = await loadFixture(deployDSTokenRegulated);
         await expect(registryService.removeWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1)).to.revertedWith('Unknown wallet');
       });
 
-      it('Trying to remove the wallet with the wrong investor - should be an error', async function () {
+      it('Trying to remove the wallet with the wrong investor - should be an error', async function() {
         const [investor] = await hre.ethers.getSigners();
         const { registryService } = await loadFixture(deployDSTokenRegulated);
         await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
@@ -241,14 +364,14 @@ describe('Registry Service Unit Tests', function() {
         await expect(registryService.removeWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_2)).to.revertedWith('Wallet does not belong to investor');
       });
 
-      it('Trying to remove the wallet that does not exist - should be an error', async function () {
+      it('Trying to remove the wallet that does not exist - should be an error', async function() {
         const [investor] = await hre.ethers.getSigners();
         const { registryService } = await loadFixture(deployDSTokenRegulated);
         await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
         await expect(registryService.removeWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1)).to.revertedWith('Unknown wallet');
       });
 
-      it('Trying to remove the wallet by an exchange which did not create it - should be an error', async function () {
+      it('Trying to remove the wallet by an exchange which did not create it - should be an error', async function() {
         const [owner, exchange, investor] = await hre.ethers.getSigners();
         const { registryService, trustService } = await loadFixture(deployDSTokenRegulated);
         await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
@@ -258,7 +381,7 @@ describe('Registry Service Unit Tests', function() {
         await expect(registryServiceFromExchange.removeWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1)).to.revertedWith('Insufficient permissions');
       });
 
-      it('Trying to remove the wallet by a wallet without permissions - should be the error', async function () {
+      it('Trying to remove the wallet by a wallet without permissions - should be the error', async function() {
         const [owner, unauthorized, investor] = await hre.ethers.getSigners();
         const { registryService } = await loadFixture(deployDSTokenRegulated);
         await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
@@ -268,8 +391,8 @@ describe('Registry Service Unit Tests', function() {
       });
     });
 
-    describe('Wallet By Investor', function () {
-      it('Trying to add the wallet by Investor with own wallet', async function () {
+    describe('Wallet By Investor', function() {
+      it('Trying to add the wallet by Investor with own wallet', async function() {
         const [owner, investor, investorWallet2] = await hre.ethers.getSigners();
         const { registryService } = await loadFixture(deployDSTokenRegulated);
         await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
@@ -279,7 +402,7 @@ describe('Registry Service Unit Tests', function() {
         expect(await registryService.getInvestor(investorWallet2)).to.equal(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
       });
 
-      it('Trying to add the wallet by Investor with own wallet twice - Wallet already exists', async function () {
+      it('Trying to add the wallet by Investor with own wallet twice - Wallet already exists', async function() {
         const [owner, investor, investorWallet2] = await hre.ethers.getSigners();
         const { registryService } = await loadFixture(deployDSTokenRegulated);
         await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
@@ -289,7 +412,7 @@ describe('Registry Service Unit Tests', function() {
         await expect(registryServiceFromInvestor.addWalletByInvestor(investorWallet2)).to.revertedWith('Wallet already exists');
       });
 
-      it('Trying to add the wallet by Investor with unknown wallet - Unknown investor', async function () {
+      it('Trying to add the wallet by Investor with unknown wallet - Unknown investor', async function() {
         const [owner, investor] = await hre.ethers.getSigners();
         const { registryService } = await loadFixture(deployDSTokenRegulated);
         await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
@@ -298,8 +421,8 @@ describe('Registry Service Unit Tests', function() {
       });
     });
 
-    describe('Get the investor', function () {
-      it('Trying to get the investor', async function () {
+    describe('Get the investor', function() {
+      it('Trying to get the investor', async function() {
         const [investor] = await hre.ethers.getSigners();
         const { registryService } = await loadFixture(deployDSTokenRegulated);
         await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
@@ -307,24 +430,24 @@ describe('Registry Service Unit Tests', function() {
         expect(await registryService.getInvestor(investor)).to.equal(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
       });
 
-      it('Trying to get the investor details', async function () {
+      it('Trying to get the investor details', async function() {
         const [investor] = await hre.ethers.getSigners();
         const { registryService } = await loadFixture(deployDSTokenRegulated);
         await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
-        await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA)
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
         await registryService.addWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
         const investorDetails = await registryService.getInvestorDetails(investor);
         expect(investorDetails[0]).to.equal(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
         expect(investorDetails[1]).to.equal(INVESTORS.Country.USA);
       });
 
-      it('Trying to get the investor using the wrong Wallet - should be empty', async function () {
+      it('Trying to get the investor using the wrong Wallet - should be empty', async function() {
         const [investor] = await hre.ethers.getSigners();
         const { registryService } = await loadFixture(deployDSTokenRegulated);
         expect(await registryService.getInvestor(investor)).to.equal('');
       });
 
-      it('Trying to get the investor details using the wrong Wallet - should be empty', async function () {
+      it('Trying to get the investor details using the wrong Wallet - should be empty', async function() {
         const [investor] = await hre.ethers.getSigners();
         const { registryService } = await loadFixture(deployDSTokenRegulated);
         const investorDetails = await registryService.getInvestorDetails(investor);
