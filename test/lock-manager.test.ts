@@ -39,10 +39,10 @@ describe('Lock Manager Unit Tests', function() {
       const { lockManager } = await loadFixture(deployDSTokenRegulated);
       await expect(lockManager.addManualLockRecord(
         investor,
-        0,
+        100,
         'reason',
         await time.latest() - 1000
-      )).to.revertedWith('Value is zero');
+      )).to.revertedWith('Release time is in the past');
     });
 
     it('Should revert when trying to Add ManualLock Record with NONE permissions', async function() {

@@ -1,10 +1,10 @@
 import hre from 'hardhat';
 import { loadFixture, time } from '@nomicfoundation/hardhat-toolbox/network-helpers';
 import { deployDSTokenWhitelisted, INVESTORS, TBE } from './utils/fixture';
-import { assertCounters, getCountersDelta, setCounters } from './utils/test-helper';
+import { getCountersDelta } from './utils/test-helper';
 import { expect } from 'chai';
 
-describe.only('Omnibus TBE Controller Whitelisted Unit Tests', function() {
+describe('Omnibus TBE Controller Whitelisted Unit Tests', function() {
   describe('Creation', function() {
     it('Should fail when trying to initialize twice', async function() {
       const { omnibusTBEController } = await loadFixture(deployDSTokenWhitelisted);
@@ -22,12 +22,11 @@ describe.only('Omnibus TBE Controller Whitelisted Unit Tests', function() {
     });
   });
 
-  describe.only('Bulk issuance', function() {
-    it.only('Should bulk issue tokens correctly', async function() {
+  describe('Bulk issuance', function() {
+    it('Should bulk issue tokens correctly', async function() {
       const {
         omnibusTBEController,
-        dsToken,
-        complianceService
+        dsToken
       } = await loadFixture(deployDSTokenWhitelisted);
 
       const value = 1000;
@@ -42,8 +41,6 @@ describe.only('Omnibus TBE Controller Whitelisted Unit Tests', function() {
       const euRetailCountries = [hre.ethers.zeroPadBytes(hre.ethers.toUtf8Bytes('EU'), 32)];
       const euRetailCountryCounts = ['1'];
 
-      await setCounters(txCounters, complianceService);
-
       await expect(omnibusTBEController.bulkIssuance(
         value,
         await time.latest(),
@@ -56,20 +53,15 @@ describe.only('Omnibus TBE Controller Whitelisted Unit Tests', function() {
         euRetailCountryCounts
       )).to.emit(dsToken, 'OmnibusTBEOperation').withArgs(TBE, 1, 1, 0, 0, 0);
 
-      await assertCounters(complianceService);
       expect(await dsToken.balanceOf(TBE)).to.equal(value);
     });
 
     it('Should bulk issue tokens correctly w/o countries array', async function() {
       const {
         omnibusTBEController,
-        complianceService,
-        complianceConfigurationService,
         dsToken
-      } = await loadFixture(deployDSTokenRegulated);
+      } = await loadFixture(deployDSTokenWhitelisted);
 
-      await complianceService.setTotalInvestorsCount(1);
-      await complianceConfigurationService.setNonAccreditedInvestorsLimit(1);
       const value = 1000;
       const txCounters = {
         totalInvestorsCount: 1,
@@ -79,8 +71,6 @@ describe.only('Omnibus TBE Controller Whitelisted Unit Tests', function() {
         jpTotalInvestorsCount: 0
       };
 
-      await setCounters(txCounters, complianceService);
-
       await expect(omnibusTBEController.bulkIssuance(
         value,
         await time.latest(),
@@ -93,65 +83,23 @@ describe.only('Omnibus TBE Controller Whitelisted Unit Tests', function() {
         []
       )).to.emit(dsToken, 'OmnibusTBEOperation').withArgs(TBE, 1, 1, 0, 0, 0);
 
-      await assertCounters(complianceService);
       expect(await dsToken.balanceOf(TBE)).to.equal(value);
     });
 
-    it('Should not bulk issue tokens if it exceeds counter', async function() {
-      const {
-        omnibusTBEController,
-        complianceService,
-        complianceConfigurationService
-      } = await loadFixture(deployDSTokenRegulated);
-
-      await complianceService.setTotalInvestorsCount(1);
-      await complianceConfigurationService.setNonAccreditedInvestorsLimit(1);
-      const value = 1000;
-      const txCounters = {
-        totalInvestorsCount: 1,
-        accreditedInvestorsCount: 0,
-        usTotalInvestorsCount: 0,
-        usAccreditedInvestorsCount: 0,
-        jpTotalInvestorsCount: 0
-      };
-
-      await setCounters(txCounters, complianceService);
-
-      await expect(omnibusTBEController.bulkIssuance(
-        value,
-        await time.latest(),
-        txCounters.totalInvestorsCount,
-        txCounters.accreditedInvestorsCount,
-        txCounters.usAccreditedInvestorsCount,
-        txCounters.usTotalInvestorsCount,
-        txCounters.jpTotalInvestorsCount,
-        [],
-        []
-      )).to.revertedWith('Max investors in category');
-    });
-
     it('Should not bulk issue tokens if countries array does not match with country counters array', async function() {
-      const {
-        omnibusTBEController,
-        complianceService,
-        complianceConfigurationService
-      } = await loadFixture(deployDSTokenRegulated);
+      const { omnibusTBEController } = await loadFixture(deployDSTokenWhitelisted);
 
-      await complianceService.setTotalInvestorsCount(1);
-      await complianceConfigurationService.setNonAccreditedInvestorsLimit(1);
       const value = 1000;
       const txCounters = {
         totalInvestorsCount: 1,
-        accreditedInvestorsCount: 0,
+        accreditedInvestorsCount: 1,
         usTotalInvestorsCount: 0,
         usAccreditedInvestorsCount: 0,
         jpTotalInvestorsCount: 0
       };
-
-      await setCounters(txCounters, complianceService);
 
       const euRetailCountries = [hre.ethers.zeroPadBytes(hre.ethers.toUtf8Bytes('EU'), 32)];
-      const euRetailCountryCounts = ['0'];
+      const euRetailCountryCounts = [];
 
       await expect(omnibusTBEController.bulkIssuance(
         value,
@@ -163,31 +111,22 @@ describe.only('Omnibus TBE Controller Whitelisted Unit Tests', function() {
         txCounters.jpTotalInvestorsCount,
         euRetailCountries,
         euRetailCountryCounts
-      )).to.revertedWith('Max investors in category');
+      )).to.revertedWith('EU Retail countries arrays do not match');
     });
   });
 
   describe('Bulk burn', function() {
-    it('Should bulk burn tokens correctly without decrement counters', async function() {
-      const {
-        omnibusTBEController,
-        complianceService,
-        complianceConfigurationService,
-        dsToken
-      } = await loadFixture(deployDSTokenRegulated);
+    it('Should bulk burn tokens correctly', async function() {
+      const { omnibusTBEController, dsToken } = await loadFixture(deployDSTokenWhitelisted);
 
-      await complianceService.setTotalInvestorsCount(1);
-      await complianceConfigurationService.setNonAccreditedInvestorsLimit(1);
       const value = 1000;
       const txCounters = {
-        totalInvestorsCount: 5,
+        totalInvestorsCount: 6,
         accreditedInvestorsCount: 5,
         usTotalInvestorsCount: 4,
         usAccreditedInvestorsCount: 1,
         jpTotalInvestorsCount: 0
       };
-
-      await setCounters(txCounters, complianceService);
 
       const burnValue = 500;
       const txBurnCounters = {
@@ -210,8 +149,6 @@ describe.only('Omnibus TBE Controller Whitelisted Unit Tests', function() {
         []
       );
 
-      await assertCounters(complianceService);
-
       await expect(omnibusTBEController.bulkBurn(
         burnValue,
         txBurnCounters.totalInvestorsCount,
@@ -232,10 +169,9 @@ describe.only('Omnibus TBE Controller Whitelisted Unit Tests', function() {
       const [investor1, investor2] = await hre.ethers.getSigners();
       const {
         omnibusTBEController,
-        complianceService,
         dsToken,
         registryService
-      } = await loadFixture(deployDSTokenRegulated);
+      } = await loadFixture(deployDSTokenWhitelisted);
 
       await registryService.registerInvestor(
         INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
@@ -267,9 +203,7 @@ describe.only('Omnibus TBE Controller Whitelisted Unit Tests', function() {
       const euRetailCountries = [hre.ethers.zeroPadBytes(hre.ethers.toUtf8Bytes('EU'), 32)];
       const euRetailCountryCounts = ['2'];
 
-      await setCounters(txCounters, complianceService);
-
-      omnibusTBEController.bulkIssuance(
+      await omnibusTBEController.bulkIssuance(
         value,
         await time.latest(),
         txCounters.totalInvestorsCount,
@@ -282,7 +216,6 @@ describe.only('Omnibus TBE Controller Whitelisted Unit Tests', function() {
       );
 
       await omnibusTBEController.bulkTransfer(investorWallets, tokenValues);
-      await assertCounters(complianceService);
       expect(await dsToken.balanceOf(TBE)).to.equal(0);
       expect(await dsToken.balanceOf(investor1)).to.equal(500);
       expect(await dsToken.balanceOf(investor2)).to.equal(500);
@@ -292,17 +225,17 @@ describe.only('Omnibus TBE Controller Whitelisted Unit Tests', function() {
       const [investor1, investor2] = await hre.ethers.getSigners();
       const tokenValues = ['500', '500'];
       const investorWallets = [investor1, investor2];
-      const { omnibusTBEController, dsToken } = await loadFixture(deployDSTokenRegulated);
+      const { omnibusTBEController, dsToken } = await loadFixture(deployDSTokenWhitelisted);
 
       expect(await dsToken.balanceOf(TBE)).to.equal(0);
-      await expect(omnibusTBEController.bulkTransfer(investorWallets, tokenValues)).to.revertedWith('Not enough tokens');
+      await expect(omnibusTBEController.bulkTransfer(investorWallets, tokenValues)).to.revertedWith('Not Enough Tokens');
     });
 
     it('Should not bulk transfer tokens if token value array length does not match wallet array length', async function() {
       const [investor1, investor2] = await hre.ethers.getSigners();
       const tokenValues = ['500', '500', '500'];
       const investorWallets = [investor1, investor2];
-      const { omnibusTBEController, dsToken } = await loadFixture(deployDSTokenRegulated);
+      const { omnibusTBEController, dsToken } = await loadFixture(deployDSTokenWhitelisted);
 
       expect(await dsToken.balanceOf(TBE)).to.equal(0);
       await expect(omnibusTBEController.bulkTransfer(investorWallets, tokenValues)).to.revertedWith('Wallets and values lengths do not match');
@@ -312,10 +245,9 @@ describe.only('Omnibus TBE Controller Whitelisted Unit Tests', function() {
       const [investor1] = await hre.ethers.getSigners();
       const {
         omnibusTBEController,
-        complianceService,
         dsToken,
         registryService
-      } = await loadFixture(deployDSTokenRegulated);
+      } = await loadFixture(deployDSTokenWhitelisted);
 
       await registryService.registerInvestor(
         INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
@@ -350,9 +282,7 @@ describe.only('Omnibus TBE Controller Whitelisted Unit Tests', function() {
       const euRetailCountries = [hre.ethers.zeroPadBytes(hre.ethers.toUtf8Bytes('EU'), 32)];
       const euRetailCountryCounts = ['2'];
 
-      await setCounters(txCounters, complianceService);
-
-      omnibusTBEController.bulkIssuance(
+      await omnibusTBEController.bulkIssuance(
         value,
         await time.latest(),
         txCounters.totalInvestorsCount,
@@ -367,19 +297,82 @@ describe.only('Omnibus TBE Controller Whitelisted Unit Tests', function() {
       await omnibusTBEController.bulkTransfer(investorWallets, tokenValues);
 
       await getCountersDelta(txDeltaCounters);
-      await assertCounters(complianceService);
       expect(await dsToken.balanceOf(TBE)).to.equal(500);
       expect(await dsToken.balanceOf(investor1)).to.equal(700);
     });
   });
 
+  describe('Adjust counters', function() {
+    it('should adjust counters with positive value correctly', async function() {
+      const { omnibusTBEController } = await loadFixture(deployDSTokenWhitelisted);
+
+      const txCounters = {
+        totalInvestorsCount: 5,
+        accreditedInvestorsCount: 5,
+        usTotalInvestorsCount: 4,
+        usAccreditedInvestorsCount: 1,
+        jpTotalInvestorsCount: 0
+      };
+
+      // WHEN
+      await omnibusTBEController.adjustCounters(
+        txCounters.totalInvestorsCount,
+        txCounters.accreditedInvestorsCount,
+        txCounters.usAccreditedInvestorsCount,
+        txCounters.usTotalInvestorsCount,
+        txCounters.jpTotalInvestorsCount,
+        [],
+        []);
+    });
+
+    it('should adjust counters with negative value correctly', async function() {
+      const { omnibusTBEController } = await loadFixture(deployDSTokenWhitelisted);
+      const value = 1000;
+      const txCounters = {
+        totalInvestorsCount: 6,
+        accreditedInvestorsCount: 5,
+        usTotalInvestorsCount: 4,
+        usAccreditedInvestorsCount: 1,
+        jpTotalInvestorsCount: 0
+      };
+
+      const negativeCounters = {
+        totalInvestorsCount: -1,
+        accreditedInvestorsCount: -1,
+        usTotalInvestorsCount: -1,
+        usAccreditedInvestorsCount: -1,
+        jpTotalInvestorsCount: 0
+      };
+
+      await omnibusTBEController.bulkIssuance(
+        value,
+        await time.latest(),
+        txCounters.totalInvestorsCount,
+        txCounters.accreditedInvestorsCount,
+        txCounters.usAccreditedInvestorsCount,
+        txCounters.usTotalInvestorsCount,
+        txCounters.jpTotalInvestorsCount,
+        [],
+        []
+      );
+
+      await omnibusTBEController.adjustCounters(
+        negativeCounters.totalInvestorsCount,
+        negativeCounters.accreditedInvestorsCount,
+        negativeCounters.usAccreditedInvestorsCount,
+        negativeCounters.usTotalInvestorsCount,
+        negativeCounters.jpTotalInvestorsCount,
+        [],
+        []
+      );
+
+      await getCountersDelta(negativeCounters);
+    });
+  });
+
   describe('Internal TBE Transfer', function() {
     it('Should correctly reflect an internal TBE transfer', async function() {
-      const {
-        omnibusTBEController,
-        complianceService,
-        dsToken
-      } = await loadFixture(deployDSTokenRegulated);
+      const { omnibusTBEController, dsToken } = await loadFixture(deployDSTokenWhitelisted);
 
       const value = 1000;
       const txCounters = {
@@ -398,12 +391,8 @@ describe.only('Omnibus TBE Controller Whitelisted Unit Tests', function() {
         jpTotalInvestorsCount: 0
       };
 
-      await setCounters(txCounters, complianceService);
-
       const euRetailCountries = [hre.ethers.zeroPadBytes(hre.ethers.toUtf8Bytes('EU'), 32)];
       const euRetailCountryCounts = ['1'];
-
-      await setCounters(txCounters, complianceService);
 
       await expect(omnibusTBEController.bulkIssuance(
         value,
@@ -427,8 +416,6 @@ describe.only('Omnibus TBE Controller Whitelisted Unit Tests', function() {
         [],
         []
       )).to.emit(dsToken, 'OmnibusTBETransfer').withArgs(TBE, 'this_is_externalID');
-
-      await assertCounters(complianceService);
     });
   });
 });

@@ -78,7 +78,7 @@ describe('Compliance Service Partitioned Unit Tests', function() {
       await dsToken.issueTokens(wallet, 100);
 
       const partition = await dsToken.partitionOf(wallet, 0);
-      await lockManager[['addManualLockRecord(address,uint256,string,uint256,bytes32)']](wallet, 95, '', await time.latest() + 1000, partition);
+      await lockManager['addManualLockRecord(address,uint256,string,uint256,bytes32)'](wallet, 95, '', await time.latest() + 1000, partition);
 
       const res = await complianceService.preTransferCheck(wallet, wallet2, 10);
       expect(res[0]).equal(16);

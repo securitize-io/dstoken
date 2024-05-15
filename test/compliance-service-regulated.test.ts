@@ -730,7 +730,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       const [owner, investor] = await hre.ethers.getSigners();
       const { registryService, complianceConfigurationService, dsToken } = await loadFixture(deployDSTokenRegulated);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-      complianceConfigurationService.setAuthorizedSecurities(10);
+      await complianceConfigurationService.setAuthorizedSecurities(10);
       await expect(dsToken.issueTokens(investor, 20)).revertedWith('Max authorized securities exceeded');
     });
 
@@ -738,20 +738,20 @@ describe('Compliance Service Regulated Unit Tests', function() {
       const [owner, investor] = await hre.ethers.getSigners();
       const { registryService, complianceConfigurationService, dsToken } = await loadFixture(deployDSTokenRegulated);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-      complianceConfigurationService.setAuthorizedSecurities(10);
-      dsToken.issueTokens(investor, 2);
-      dsToken.issueTokens(investor, 4);
-      dsToken.issueTokens(investor, 4);
+      await complianceConfigurationService.setAuthorizedSecurities(10);
+      await dsToken.issueTokens(investor, 2);
+      await dsToken.issueTokens(investor, 4);
+      await dsToken.issueTokens(investor, 4);
     });
 
     it('should allow to issue any amount of tokens if the authorized securities is 0', async function () {
       const [owner, investor] = await hre.ethers.getSigners();
       const { registryService, complianceConfigurationService, dsToken } = await loadFixture(deployDSTokenRegulated);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-      complianceConfigurationService.setAuthorizedSecurities(9);
-      dsToken.issueTokens(investor, 200);
-      dsToken.issueTokens(investor, 4000);
-      dsToken.issueTokens(investor, 400);
+      await complianceConfigurationService.setAuthorizedSecurities(0);
+      await dsToken.issueTokens(investor, 200);
+      await dsToken.issueTokens(investor, 4000);
+      await dsToken.issueTokens(investor, 400);
     });
 
   });

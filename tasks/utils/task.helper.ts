@@ -40,7 +40,7 @@ export const getLockManagerContractName = (complianceType: string): string => {
 
 export const getTBEControllerContractName = (complianceType: string): string => {
   switch (complianceType) {
-    case 'WHITELIST':
+    case 'WHITELISTED':
       return 'OmnibusTBEControllerWhitelisted';
     default:
       return 'OmnibusTBEController';

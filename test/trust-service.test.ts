@@ -91,7 +91,7 @@ describe('Trust Service Unit Tests', function() {
     it('Should fail when trying to set issuer role from transfer agent account', async function() {
       const [owner, transferAgent, issuer] = await hre.ethers.getSigners();
       const { trustService } = await loadFixture(deployDSTokenRegulated);
-      trustService.setRole(transferAgent, DSConstants.roles.TRANSFER_AGENT);
+      await trustService.setRole(transferAgent, DSConstants.roles.TRANSFER_AGENT);
       const trustServiceFromTA = await trustService.connect(transferAgent);
       await expect(trustServiceFromTA.setRole(issuer, DSConstants.roles.ISSUER)).revertedWith('Not enough permissions. Only same role allowed');
     });
@@ -99,7 +99,7 @@ describe('Trust Service Unit Tests', function() {
     it('Should fail when trying to set transfer agent role from issuer account', async function() {
       const [owner, transferAgent, issuer] = await hre.ethers.getSigners();
       const { trustService } = await loadFixture(deployDSTokenRegulated);
-      await expect(trustService.setRole(issuer, DSConstants.roles.ISSUER))
+      await trustService.setRole(issuer, DSConstants.roles.ISSUER);
       const trustServiceFromIssuer = await trustService.connect(issuer);
       await expect(trustServiceFromIssuer.setRole(transferAgent, DSConstants.roles.TRANSFER_AGENT)).revertedWith('Not enough permissions. Only same role allowed');
     });

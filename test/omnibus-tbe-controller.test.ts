@@ -145,7 +145,7 @@ describe('Omnibus TBE Controller Unit Tests', function() {
       const value = 1000;
       const txCounters = {
         totalInvestorsCount: 1,
-        accreditedInvestorsCount: 0,
+        accreditedInvestorsCount: 1,
         usTotalInvestorsCount: 0,
         usAccreditedInvestorsCount: 0,
         jpTotalInvestorsCount: 0
@@ -154,7 +154,7 @@ describe('Omnibus TBE Controller Unit Tests', function() {
       await setCounters(txCounters, complianceService);
 
       const euRetailCountries = [hre.ethers.zeroPadBytes(hre.ethers.toUtf8Bytes('EU'), 32)];
-      const euRetailCountryCounts = ['0'];
+      const euRetailCountryCounts = [];
 
       await expect(omnibusTBEController.bulkIssuance(
         value,
@@ -166,7 +166,7 @@ describe('Omnibus TBE Controller Unit Tests', function() {
         txCounters.jpTotalInvestorsCount,
         euRetailCountries,
         euRetailCountryCounts
-      )).to.revertedWith('Max investors in category');
+      )).to.revertedWith('EU Retail countries arrays do not match');
     });
   });
 
@@ -272,7 +272,7 @@ describe('Omnibus TBE Controller Unit Tests', function() {
 
       await setCounters(txCounters, complianceService);
 
-      omnibusTBEController.bulkIssuance(
+      await omnibusTBEController.bulkIssuance(
         value,
         await time.latest(),
         txCounters.totalInvestorsCount,
@@ -355,7 +355,7 @@ describe('Omnibus TBE Controller Unit Tests', function() {
 
       await setCounters(txCounters, complianceService);
 
-      omnibusTBEController.bulkIssuance(
+      await omnibusTBEController.bulkIssuance(
         value,
         await time.latest(),
         txCounters.totalInvestorsCount,
