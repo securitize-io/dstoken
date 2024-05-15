@@ -10,6 +10,13 @@ export const deployDSTokenRegulated = () => {
   return hre.run('deploy-all', { name, symbol, tbe: TBE });
 }
 
+export const deployDSTokenWhitelisted = () => {
+  const name = 'Token Example 1';
+  const symbol = 'TX1';
+  const compliance = 'WHITELISTED'
+  return hre.run('deploy-all', { name, symbol, tbe: TBE, compliance });
+}
+
 export const deployDSTokenPartitioned = () => {
   const name = 'Token Example 1';
   const symbol = 'TX1';

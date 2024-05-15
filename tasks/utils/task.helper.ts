@@ -20,7 +20,7 @@ export const getTokenContractName = (complianceType: string): string => {
 
 export const getComplianceContractName = (complianceType: string): string => {
   switch (complianceType) {
-    case 'WHITELIST':
+    case 'WHITELISTED':
       return 'ComplianceServiceWhitelisted';
     case 'PARTITIONED':
       return 'ComplianceServiceRegulatedPartitioned';
