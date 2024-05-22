@@ -31,7 +31,7 @@ contract MultiSigWallet {
     bytes32 DOMAIN_SEPARATOR; // hash for EIP712, computed from contract address
 
     // Note that owners_ must be strictly increasing, in order to prevent duplicates
-    constructor(address[] memory owners_, uint256 threshold_, uint256 chainId) {
+    constructor(address[] memory owners_, uint256 threshold_) {
         require(
             owners_.length <= 10 &&
             owners_.length > 1 &&
@@ -53,7 +53,7 @@ contract MultiSigWallet {
                 EIP712DOMAINTYPE_HASH,
                 NAME_HASH,
                 VERSION_HASH,
-                chainId,
+                block.chainid,
                 this,
                 SALT
             )

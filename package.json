@@ -1,6 +1,6 @@
 {
   "name": "Digital_Securities",
-  "version": "4.0.0",
+  "version": "3.1.0",
   "description": "Digital Securities Reference Implementation",
   "scripts": {
     "test": "hardhat test",

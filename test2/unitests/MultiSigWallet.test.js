@@ -50,7 +50,7 @@ contract('MultiSigWallet', function (accounts) {
         acct = acctWithout0x.map((a) => { return a; });
         acct.sort();
 
-        multiSigSigner = new MultiSigSigner({
+          multiSigSigner = new MultiSigSigner({
           nameHash: NAME_HASH,
           versionHash: VERSION_HASH,
           chainId: CHAINID,
