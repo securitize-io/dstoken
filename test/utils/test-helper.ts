@@ -58,7 +58,7 @@ export const TR_DOMAIN_DATA = {
 
 export const EIP712_MS_NAME = 'Securitize Off-Chain Multisig Wallet';
 export const EIP712_MS_VERSION = '1';
-export const SALT_MS = '0x3ee892349ae4bbe61dce18f95115b5dc02daf49204cc602458cd4c1f540d56d7';
+export const SALT_MS = '0xb37745e66c38577667d690143f874b67afebdda0d4baa8b47e7ec4f32a43ff12';
 export const MS_DOMAIN_DATA = {
   name: EIP712_MS_NAME,
   version: EIP712_MS_VERSION,
