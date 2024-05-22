@@ -1,19 +1,17 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "./IDSToken.sol";
-import "../utils/ProxyTarget.sol";
 import "./StandardToken.sol";
 
-//SPDX-License-Identifier: UNLICENSED
-contract DSToken is ProxyTarget, Initializable, StandardToken {
+//SPDX-License-Identifier: GPL-3.0
+contract DSToken is StandardToken {
     // using FeaturesLibrary for SupportedFeatures;
     using TokenLibrary for TokenLibrary.SupportedFeatures;
     uint256 internal constant OMNIBUS_NO_ACTION = 0;
 
-    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public virtual initializer forceInitializeFromProxy {
-        StandardToken.initialize();
+    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public virtual override onlyProxy initializer {
+        __ServiceConsumer_init();
 
-        VERSIONS.push(5);
         name = _name;
         symbol = _symbol;
         decimals = _decimals;

@@ -1,10 +1,13 @@
-//SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.13;
+//SPDX-License-Identifier: GPL-3.0
+pragma solidity 0.8.20;
 import "./MulticallProxy.sol";
+import "../utils/BaseDSContract.sol";
 
-contract IssuerMulticall is MulticallProxy {
+contract IssuerMulticall is MulticallProxy, BaseDSContract {
 
-    constructor() MulticallProxy() {}
+    function initialize() public override onlyProxy initializer {
+        __BaseDSContract_init();
+    }
 
     /// @dev Calls multiple functions in destination contracts, needs the required modifier to whitelist the caller
     /// @param _targets destination contract addresses array

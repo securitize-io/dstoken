@@ -1,19 +1,15 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
-import "../service/ServiceConsumer.sol";
-import "../utils/ProxyTarget.sol";
 import "../data-stores/OmnibusTBEControllerDataStore.sol";
-import "../compliance/ComplianceServiceRegulated.sol";
-import "../compliance/ComplianceConfigurationService.sol";
+import "../utils/BaseDSContract.sol";
 
-//SPDX-License-Identifier: UNLICENSED
-contract OmnibusTBEControllerWhitelisted is ProxyTarget, Initializable, IDSOmnibusTBEController, ServiceConsumer, OmnibusTBEControllerDataStore {
-    function initialize(address _omnibusWallet, bool _isPartitionedToken) public override initializer forceInitializeFromProxy {
-        VERSIONS.push(2);
-        ServiceConsumer.initialize();
+//SPDX-License-Identifier: GPL-3.0
+contract OmnibusTBEControllerWhitelisted is IDSOmnibusTBEController, OmnibusTBEControllerDataStore, BaseDSContract {
+
+    function initialize(address _omnibusWallet, bool _isPartitionedToken) public override onlyProxy initializer {
+        __BaseDSContract_init();
         omnibusWallet = _omnibusWallet;
         isPartitionedToken = _isPartitionedToken;
-        isPartitionedToken = false;
     }
 
     function bulkIssuance(uint256 value, uint256 issuanceTime, uint256 totalInvestors, uint256 accreditedInvestors,
@@ -61,8 +57,6 @@ contract OmnibusTBEControllerWhitelisted is ProxyTarget, Initializable, IDSOmnib
             usTotalDelta,
             jpTotalDelta);
     }
-
-
 
     function getOmnibusWallet() public view override returns (address) {
         return omnibusWallet;

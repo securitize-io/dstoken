@@ -1,7 +1,6 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "./ComplianceServiceWhitelisted.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
 library ComplianceServiceLibrary {
@@ -41,8 +40,6 @@ library ComplianceServiceLibrary {
         uint256 fromRegion;
         bool isPlatformWalletTo;
     }
-
-    using SafeMath for uint256;
 
     function isRetail(address[] memory _services, address _wallet) internal view returns (bool) {
         IDSRegistryService registry = IDSRegistryService(_services[REGISTRY_SERVICE]);
@@ -89,13 +86,13 @@ library ComplianceServiceLibrary {
         }
 
         if (compConfService.getUSInvestorsLimit() == 0) {
-            return compConfService.getMaxUSInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100);
+            return compConfService.getMaxUSInvestorsPercentage() * (complianceService.getTotalInvestorsCount()) / 100;
         }
 
-        return Math.min(compConfService.getUSInvestorsLimit(), compConfService.getMaxUSInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100));
+        return Math.min(compConfService.getUSInvestorsLimit(), compConfService.getMaxUSInvestorsPercentage() * (complianceService.getTotalInvestorsCount()) / 100);
     }
 
-    function isOmnibusTBE(IDSOmnibusTBEController _omnibusTBE, address _from) public view returns (bool) {
+    function isOmnibusTBE(IDSOmnibusTBEController _omnibusTBE, address _from) internal view returns (bool) {
         if (address(_omnibusTBE) != address(0)) {
             return _omnibusTBE.getOmnibusWallet() == _from;
         }
@@ -497,11 +494,11 @@ library ComplianceServiceLibrary {
  *   @title Concrete compliance service for tokens with regulation
  *
  */
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
-    function initialize() public virtual override initializer forceInitializeFromProxy {
+
+    function initialize() public virtual override onlyProxy initializer {
         super.initialize();
-        VERSIONS.push(13);
     }
 
     function compareInvestorBalance(
@@ -679,13 +676,13 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         for (uint256 i = 0; i < investorIssuancesCount; i++) {
             uint256 issuanceTimestamp = issuancesTimestamps[investor][i];
 
-            if (_lockTime > _time || issuanceTimestamp > SafeMath.sub(_time, _lockTime)) {
+            if (_lockTime > _time || issuanceTimestamp > (_time - _lockTime)) {
                 totalLockedTokens = totalLockedTokens + issuancesValues[investor][i];
             }
         }
 
         //there may be more locked tokens than actual tokens, so the minimum between the two
-        uint256 transferable = SafeMath.sub(balanceOfInvestor, Math.min(totalLockedTokens, balanceOfInvestor));
+        uint256 transferable = balanceOfInvestor - Math.min(totalLockedTokens, balanceOfInvestor);
 
         return transferable;
     }

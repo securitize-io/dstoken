@@ -1,21 +1,17 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "./IDSLockManager.sol";
 import "./InvestorLockManagerBase.sol";
 import "../data-stores/InvestorLockManagerDataStore.sol";
-import "../utils/ProxyTarget.sol";
-import "../service/ServiceConsumer.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "../utils/BaseDSContract.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract InvestorLockManager is InvestorLockManagerBase {
     uint256 constant MAX_LOCKS_PER_INVESTOR = 30;
 
-    function initialize() public override initializer forceInitializeFromProxy {
-        InvestorLockManagerBase.initialize();
-
-        VERSIONS.push(3);
+    function initialize() public override onlyProxy initializer {
+        __BaseDSContract_init();
     }
 
     function setLockInfoImpl(string memory _investor, uint256 _lockIndex, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime) internal {
@@ -184,7 +180,7 @@ contract InvestorLockManager is InvestorLockManagerBase {
         }
 
         //there may be more locked tokens than actual tokens, so the minimum between the two
-        uint256 transferable = SafeMath.sub(balanceOfInvestor, Math.min(totalLockedTokens, balanceOfInvestor));
+        uint256 transferable = balanceOfInvestor - Math.min(totalLockedTokens, balanceOfInvestor);
 
         return transferable;
     }

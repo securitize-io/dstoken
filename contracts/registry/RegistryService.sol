@@ -1,17 +1,14 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./IDSRegistryService.sol";
-import "../service/ServiceConsumer.sol";
 import "../data-stores/RegistryServiceDataStore.sol";
-import "../utils/ProxyTarget.sol";
+import "../utils/BaseDSContract.sol";
 
-//SPDX-License-Identifier: UNLICENSED
-contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, ServiceConsumer, RegistryServiceDataStore {
-    function initialize() public override(IDSRegistryService, ServiceConsumer) initializer forceInitializeFromProxy {
-        IDSRegistryService.initialize();
-        ServiceConsumer.initialize();
-        VERSIONS.push(6);
+//SPDX-License-Identifier: GPL-3.0
+contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDSContract {
+
+    function initialize() public override onlyProxy initializer {
+        __BaseDSContract_init();
     }
 
     function registerInvestor(string memory _id, string memory _collisionHash) public override onlyExchangeOrAbove newInvestor(_id) returns (bool) {

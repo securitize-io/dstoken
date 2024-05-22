@@ -1,14 +1,9 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
-import "../utils/VersionedContract.sol";
-import "../utils/Initializable.sol";
+//SPDX-License-Identifier: GPL-3.0
+abstract contract IDSTokenReallocator {
 
-//SPDX-License-Identifier: UNLICENSED
-abstract contract IDSTokenReallocator is Initializable, VersionedContract {
-
-    function initialize() public virtual {
-        VERSIONS.push(3);
-    }
+    function initialize() public virtual;
 
     function reallocateTokens(
         string memory _id,

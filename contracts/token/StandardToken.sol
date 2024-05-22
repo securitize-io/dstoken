@@ -1,19 +1,12 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
-import "../service/ServiceConsumer.sol";
 import "../data-stores/TokenDataStore.sol";
 import "../omnibus/OmnibusTBEController.sol";
 
-//SPDX-License-Identifier: UNLICENSED
-abstract contract StandardToken is IDSToken, ServiceConsumer, TokenDataStore {
+//SPDX-License-Identifier: GPL-3.0
+abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
     event Pause();
     event Unpause();
-
-    function initialize() public virtual override(IDSToken, ServiceConsumer) {
-        IDSToken.initialize();
-        ServiceConsumer.initialize();
-        VERSIONS.push(5);
-    }
 
     modifier whenNotPaused() {
         require(!paused, "Contract is paused");

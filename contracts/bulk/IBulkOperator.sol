@@ -1,6 +1,6 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 interface IBulkOperator {
 
     /**
@@ -28,5 +28,5 @@ interface IBulkOperator {
      * @param addresses - Array of addresses to be burn to
      * @param values - Array of values to be burned
     **/
-    function bulkBurn(address[] memory addresses, uint256[] memory values) external;    
+    function bulkBurn(address[] memory addresses, uint256[] memory values) external;
 }

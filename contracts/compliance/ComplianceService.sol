@@ -1,9 +1,9 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
-import "../utils/ProxyTarget.sol";
 import "./IDSComplianceService.sol";
-import "../service/ServiceConsumer.sol";
+import "../utils/CommonUtils.sol";
 import "../data-stores/ComplianceServiceDataStore.sol";
+import "../utils/BaseDSContract.sol";
 
 /**
  *   @title Compliance service main implementation.
@@ -15,12 +15,11 @@ import "../data-stores/ComplianceServiceDataStore.sol";
  *   and implement the five functions - recordIssuance,checkTransfer,recordTransfer,recordBurn and recordSeize.
  *   The rest of the functions should only be overridden in rare circumstances.
  */
-//SPDX-License-Identifier: UNLICENSED
-abstract contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, ServiceConsumer, ComplianceServiceDataStore {
-    function initialize() public virtual override(IDSComplianceService, ServiceConsumer) forceInitializeFromProxy {
-        IDSComplianceService.initialize();
-        ServiceConsumer.initialize();
-        VERSIONS.push(7);
+//SPDX-License-Identifier: GPL-3.0
+abstract contract ComplianceService is IDSComplianceService, ComplianceServiceDataStore, BaseDSContract {
+
+    function initialize() public virtual override onlyProxy initializer {
+        __BaseDSContract_init();
     }
 
     function validateTransfer(

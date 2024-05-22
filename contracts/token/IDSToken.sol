@@ -1,13 +1,12 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
+import "@openzeppelin/contracts/interfaces/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../utils/CommonUtils.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../utils/VersionedContract.sol";
-import "../utils/Initializable.sol";
 import "../omnibus/IDSOmnibusWalletController.sol";
 
-//SPDX-License-Identifier: UNLICENSED
-abstract contract IDSToken is IERC20, Initializable, VersionedContract {
+//SPDX-License-Identifier: GPL-3.0
+abstract contract IDSToken is IERC20, Initializable {
     event Issue(address indexed to, uint256 value, uint256 valueLocked);
     event Burn(address indexed burner, uint256 value, string reason);
     event Seize(address indexed from, address indexed to, uint256 value, string reason);
@@ -23,9 +22,7 @@ abstract contract IDSToken is IERC20, Initializable, VersionedContract {
     event WalletAdded(address wallet);
     event WalletRemoved(address wallet);
 
-    function initialize() public virtual {
-        VERSIONS.push(3);
-    }
+    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public virtual;
 
     /******************************
        CONFIGURATION

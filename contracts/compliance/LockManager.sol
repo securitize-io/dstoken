@@ -1,19 +1,16 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
-import "../service/ServiceConsumer.sol";
 import "./IDSLockManager.sol";
-import "../utils/ProxyTarget.sol";
 import "../data-stores/LockManagerDataStore.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "../utils/BaseDSContract.sol";
 
 /**
  * @title LockManager
  * @dev An interface for controlling and getting information about locked funds in a compliance manager
  */
-//SPDX-License-Identifier: UNLICENSED
-contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsumer, LockManagerDataStore {
-    using SafeMath for uint256;
+//SPDX-License-Identifier: GPL-3.0
+contract LockManager is IDSLockManager, LockManagerDataStore, BaseDSContract {
 
     /*************** Legacy functions ***************/
     function createLockForHolder(string memory _holder, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime)
@@ -46,9 +43,8 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
 
     /******************************/
 
-    function initialize() public override(IDSLockManager, ServiceConsumer) initializer forceInitializeFromProxy {
-        ServiceConsumer.initialize();
-        VERSIONS.push(3);
+    function initialize() public override onlyProxy initializer {
+        __BaseDSContract_init();
     }
 
     uint256 constant MAX_LOCKS_PER_ADDRESS = 30;
@@ -173,7 +169,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         }
 
         //there may be more locked tokens than actual tokens, so the minimum between the two
-        uint256 transferable = SafeMath.sub(balanceOfInvestor, Math.min(totalLockedTokens, balanceOfInvestor));
+        uint256 transferable = balanceOfInvestor - Math.min(totalLockedTokens, balanceOfInvestor);
 
         return transferable;
     }

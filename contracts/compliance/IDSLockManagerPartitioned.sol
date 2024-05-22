@@ -1,9 +1,9 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "./IDSLockManager.sol";
 
-//SPDX-License-Identifier: UNLICENSED
-abstract contract IDSLockManagerPartitioned is Initializable, VersionedContract {
+//SPDX-License-Identifier: GPL-3.0
+abstract contract IDSLockManagerPartitioned {
 
     event LockedPartition(address indexed who, uint256 value, uint256 indexed reason, string reasonString, uint256 releaseTime, bytes32 indexed partition);
     event UnlockedPartition(address indexed who, uint256 value, uint256 indexed reason, string reasonString, uint256 releaseTime, bytes32 indexed partition);

@@ -1,16 +1,12 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "../utils/CommonUtils.sol";
-import "../utils/VersionedContract.sol";
-import "../utils/Initializable.sol";
 import "../omnibus/IDSOmnibusWalletController.sol";
 
-//SPDX-License-Identifier: UNLICENSED
-abstract contract IDSRegistryService is Initializable, VersionedContract {
+//SPDX-License-Identifier: GPL-3.0
+abstract contract IDSRegistryService {
 
-    function initialize() public virtual {
-        VERSIONS.push(6);
-    }
+    function initialize() public virtual;
 
     event DSRegistryServiceInvestorAdded(string investorId, address sender);
     event DSRegistryServiceInvestorRemoved(string investorId, address sender);

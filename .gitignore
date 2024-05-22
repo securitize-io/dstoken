@@ -32,6 +32,12 @@ npm-debug.log
 # truffle build directory
 build/
 
+# hardhat build directory
+artifacts/
+cache/
+typechain-types/
+ignition/deployments/
+
 # lol macs
 .DS_Store/
 

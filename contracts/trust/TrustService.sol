@@ -1,22 +1,40 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "../utils/CommonUtils.sol";
-import "../utils/ProxyTarget.sol";
 import "./IDSTrustService.sol";
 import "../data-stores/TrustServiceDataStore.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 /**
  * @title TrustService
  * @dev A trust service which allows role-based access control for other contracts.
  * @dev Implements IDSTrustService.
  */
-//SPDX-License-Identifier: UNLICENSED
-contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServiceDataStore {
-    function initialize() public override initializer forceInitializeFromProxy {
-        IDSTrustService.initialize();
-        VERSIONS.push(4);
+//SPDX-License-Identifier: GPL-3.0
+contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable {
+
+    function initialize() public override onlyProxy initializer {
         owner = msg.sender;
         roles[msg.sender] = MASTER;
+    }
+
+    /**
+     * @dev required by the OZ UUPS module
+     */
+    function _authorizeUpgrade(address) internal override onlyMaster {}
+
+    /**
+     * @dev returns proxy ERC1967 implementation address
+     */
+    function getImplementationAddress() external view returns (address) {
+        return ERC1967Utils.getImplementation();
+    }
+
+    /**
+     * @dev Returns the highest version that has been initialized. See {reinitializer}.
+     */
+    function getInitializedVersion() external view returns (uint64) {
+        return _getInitializedVersion();
     }
 
     /**

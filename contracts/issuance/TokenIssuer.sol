@@ -1,15 +1,12 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "./IDSTokenIssuer.sol";
-import "../service/ServiceConsumer.sol";
-import "../utils/ProxyTarget.sol";
+import "../utils/BaseDSContract.sol";
 
-//SPDX-License-Identifier: UNLICENSED
-contract TokenIssuer is ProxyTarget, Initializable, IDSTokenIssuer, ServiceConsumer {
-    function initialize() public override(IDSTokenIssuer, ServiceConsumer) initializer forceInitializeFromProxy {
-        IDSTokenIssuer.initialize();
-        ServiceConsumer.initialize();
-        VERSIONS.push(5);
+//SPDX-License-Identifier: GPL-3.0
+contract TokenIssuer is IDSTokenIssuer, BaseDSContract {
+    function initialize() public override onlyProxy initializer {
+        __BaseDSContract_init();
     }
 
     function issueTokens(

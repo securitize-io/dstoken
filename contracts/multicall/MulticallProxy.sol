@@ -1,7 +1,6 @@
-//SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.13;
+//SPDX-License-Identifier: GPL-3.0
+pragma solidity 0.8.20;
 
-import "../utils/Ownable.sol";
 import "../service/ServiceConsumer.sol";
 
 error MulticallFailed(uint256 index, string reason);
@@ -9,16 +8,9 @@ error MulticallFailed(uint256 index, string reason);
 /// @title MulticallProxy
 /// @dev Proxy contract to call multiple functions in a single transaction
 /// @dev This contract is used to call multiple functions in a single transaction, requires an implementation contract that overrides the multicall function setting the necessary permissions with a modifier
-abstract contract MulticallProxy is ServiceConsumer {
+abstract contract MulticallProxy {
 
-    constructor() {
-        initialize();
-    }
-
-    function initialize() public virtual override(ServiceConsumer) {
-        IDSServiceConsumer.initialize();
-        Ownable.initialize();
-    }
+    function initialize() public virtual;
 
     /// @dev Calls multiple functions in destination contracts
     /// @dev Must override

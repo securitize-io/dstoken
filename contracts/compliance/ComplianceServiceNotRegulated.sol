@@ -1,4 +1,4 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "./ComplianceService.sol";
 
@@ -8,11 +8,10 @@ import "./ComplianceService.sol";
 *   This simple compliance service is meant to be used for tokens outside of any specific regulations
 *   it simply returns true for all checks.
 */
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract ComplianceServiceNotRegulated is ComplianceService {
-    function initialize() public override initializer forceInitializeFromProxy {
+    function initialize() public override onlyProxy initializer {
         ComplianceService.initialize();
-        VERSIONS.push(3);
     }
 
     function recordIssuance(address, uint256, uint256) internal pure override returns (bool) {

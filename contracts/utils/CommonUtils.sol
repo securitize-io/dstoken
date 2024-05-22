@@ -1,6 +1,6 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 library CommonUtils {
   enum IncDec { Increase, Decrease }
 

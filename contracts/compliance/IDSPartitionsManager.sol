@@ -1,16 +1,11 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
-import "../service/IDSServiceConsumer.sol";
-import "../utils/Initializable.sol";
-
-//SPDX-License-Identifier: UNLICENSED
-abstract contract IDSPartitionsManager is Initializable, IDSServiceConsumer {
+//SPDX-License-Identifier: GPL-3.0
+abstract contract IDSPartitionsManager {
 
     event PartitionCreated(uint256 _date, uint256 _region, bytes32 _partition);
 
-    function initialize() public virtual override {
-        VERSIONS.push(2);
-    }
+    function initialize() public virtual;
 
     function ensurePartition(
         uint256 _issuanceDate,

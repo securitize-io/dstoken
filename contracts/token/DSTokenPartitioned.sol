@@ -1,18 +1,17 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "./DSToken.sol";
 import "./IDSTokenPartitioned.sol";
 import "../compliance/IDSPartitionsManager.sol";
 import "./TokenPartitionsLibrary.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
 
     using TokenPartitionsLibrary for TokenPartitionsLibrary.TokenPartitions;
 
-    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public override initializer forceInitializeFromProxy {
+    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public override onlyProxy initializer {
         DSToken.initialize(_name, _symbol, _decimals);
-        VERSIONS.push(3);
     }
 
     function issueTokensWithMultipleLocks(

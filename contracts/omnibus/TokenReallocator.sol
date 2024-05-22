@@ -1,14 +1,14 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
-import "../service/ServiceConsumer.sol";
-import "../utils/ProxyTarget.sol";
 import "./IDSTokenReallocator.sol";
+import "../utils/BaseDSContract.sol";
 
-//SPDX-License-Identifier: UNLICENSED
-contract TokenReallocator is ProxyTarget, Initializable, ServiceConsumer, IDSTokenReallocator {
-    function initialize() public override(ServiceConsumer, IDSTokenReallocator) initializer forceInitializeFromProxy {
-        ServiceConsumer.initialize();
-        VERSIONS.push(1);
+
+//SPDX-License-Identifier: GPL-3.0
+contract TokenReallocator is IDSTokenReallocator, BaseDSContract {
+
+    function initialize() public override(IDSTokenReallocator) onlyProxy initializer {
+        __BaseDSContract_init();
     }
 
     function reallocateTokens (

@@ -1,20 +1,18 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
-import "../service/ServiceConsumer.sol";
-import "../utils/ProxyTarget.sol";
 import "../data-stores/OmnibusTBEControllerDataStore.sol";
 import "../compliance/ComplianceServiceRegulated.sol";
 import "../compliance/ComplianceConfigurationService.sol";
+import "../token/IDSTokenPartitioned.sol";
+import "../utils/BaseDSContract.sol";
 
-//SPDX-License-Identifier: UNLICENSED
-contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEController, ServiceConsumer, OmnibusTBEControllerDataStore {
+//SPDX-License-Identifier: GPL-3.0
+contract OmnibusTBEController is IDSOmnibusTBEController, OmnibusTBEControllerDataStore, BaseDSContract {
 
-    using SafeMath for uint256;
     string internal constant MAX_INVESTORS_IN_CATEGORY = "Max investors in category";
 
-    function initialize(address _omnibusWallet, bool _isPartitionedToken) public override initializer forceInitializeFromProxy {
-        VERSIONS.push(4);
-        ServiceConsumer.initialize();
+    function initialize(address _omnibusWallet, bool _isPartitionedToken) public override onlyProxy initializer {
+        __BaseDSContract_init();
 
         omnibusWallet = _omnibusWallet;
         isPartitionedToken = _isPartitionedToken;
@@ -37,7 +35,7 @@ contract OmnibusTBEController is ProxyTarget, Initializable, IDSOmnibusTBEContro
         require(euRetailCountries.length == euRetailCountryCounts.length, 'EU Retail countries arrays do not match');
 
         if(isPartitionedToken) {
-            IDSTokenPartitioned token = getTokenPartitioned();
+            IDSTokenPartitioned token = IDSTokenPartitioned(getDSService(DS_TOKEN));
             uint256 pendingBurn = value;
             uint256 currentPartitionBalance;
             bytes32 partition;

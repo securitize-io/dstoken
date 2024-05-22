@@ -1,13 +1,11 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "./IDSComplianceService.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 abstract contract IDSComplianceServicePartitioned is IDSComplianceService {
 
-    function initialize() public virtual override {
-        VERSIONS.push(2);
-    }
+    function initialize() public virtual override;
 
     function getComplianceTransferableTokens(
         address _who,

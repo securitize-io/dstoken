@@ -1,19 +1,14 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "../data-stores/InvestorLockManagerDataStore.sol";
-import "../utils/ProxyTarget.sol";
-import "../service/ServiceConsumer.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "../utils/BaseDSContract.sol";
 
-//SPDX-License-Identifier: UNLICENSED
-abstract contract InvestorLockManagerBase is ProxyTarget, IDSLockManager, ServiceConsumer, InvestorLockManagerDataStore {
+//SPDX-License-Identifier: GPL-3.0
+abstract contract InvestorLockManagerBase is IDSLockManager, InvestorLockManagerDataStore, BaseDSContract {
     event InvestorFullyLocked(string investorId);
     event InvestorFullyUnlocked(string investorId);
 
-    function initialize() public virtual override(IDSLockManager, ServiceConsumer) {
-        ServiceConsumer.initialize();
-        VERSIONS.push(1);
-    }
+    function initialize() public virtual override;
 
     function lockInvestor(string memory _investorId) public override onlyTransferAgentOrAbove returns (bool) {
         require(!investorsLocked[_investorId], "Investor is already locked");

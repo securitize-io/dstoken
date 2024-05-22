@@ -1,17 +1,13 @@
 {
   "name": "Digital_Securities",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Digital Securities Reference Implementation",
   "scripts": {
-    "test": "npm run test:unitests && npm run test:integration",
-    "test:unitests": "cross-env TEST_MODE=TRUE ./scripts/test.sh ./test/unitests/**",
-    "test:integration": "cross-env TEST_MODE=TRUE ./scripts/test.sh ./test/integration/**",
-    "coverage": "truffle compile && ./node_modules/.bin/solidity-coverage",
-    "compile": "truffle compile",
-    "migrate": "truffle migrate",
-    "contract-size": "truffle run contract-size",
-    "generate": "node ./generators/EternalStorageClientGenerator.js",
-    "remixd": "./node_modules/.bin/remixd --remix-ide https://remix.ethereum.org -s ./"
+    "test": "hardhat test",
+    "test:unitests": "cross-env TEST_MODE=TRUE ./scripts/test.sh test2/unitests/**",
+    "test:integration": "cross-env TEST_MODE=TRUE ./scripts/test.sh test2/integration/**",
+    "compile": "hardhat compile",
+    "coverage": "hardhat coverage"
   },
   "contributors": [
     {
@@ -37,10 +33,25 @@
   ],
   "license": "ISC",
   "devDependencies": {
-    "@openzeppelin/test-helpers": "^0.5.16",
-    "@truffle/hdwallet-provider": "^2.1.0",
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.6",
+    "@nomicfoundation/hardhat-ethers": "^3.0.5",
+    "@nomicfoundation/hardhat-ignition": "^0.15.2",
+    "@nomicfoundation/hardhat-ignition-ethers": "^0.15.2",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.10",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.6",
+    "@nomicfoundation/ignition-core": "^0.15.2",
+    "@openzeppelin/contracts": "^5.0.2",
+    "@openzeppelin/contracts-upgradeable": "^5.0.2",
+    "@openzeppelin/hardhat-upgrades": "^3.0.5",
+    "@typechain/ethers-v6": "^0.5.1",
+    "@typechain/hardhat": "^9.1.0",
+    "@types/chai": "^4.3.14",
+    "@types/minimist": "^1.2.5",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.12.6",
     "bluebird": "^3.7.2",
-    "chai": "^4.3.6",
+    "chai": "^4.4.1",
     "chai-as-promised": "^7.1.1",
     "chai-bignumber": "^3.1.0",
     "coveralls": "^3.1.1",
@@ -49,19 +60,17 @@
     "eslint": "^8.26.0",
     "eslint-config-standard": "^17.0.0",
     "eslint-plugin-promise": "^6.1.1",
-    "eth-gas-reporter": "^0.2.25",
+    "eth-lightwallet": "^4.0.0",
     "ethereumjs-util": "^7.1.5",
-    "ganache": "^7.5.0",
-    "minimist": "^1.2.7",
+    "ethers": "^6.12.0",
+    "hardhat": "^2.22.2",
+    "hardhat-gas-reporter": "^1.0.10",
     "prettier": "^2.7.1",
     "prettier-plugin-solidity": "^1.0.0-beta.24",
+    "solidity-coverage": "^0.8.12",
     "solium": "^0.5.5",
-    "truffle": "^5.6.0",
-    "truffle-contract-size": "^2.0.1"
-  },
-  "dependencies": {
-    "@openzeppelin/contracts": "^4.7.3",
-    "eth-lightwallet": "^4.0.0",
-    "web3": "^1.8.0"
+    "ts-node": "^10.9.2",
+    "typechain": "^8.3.2",
+    "typescript": "^5.4.4"
   }
 }

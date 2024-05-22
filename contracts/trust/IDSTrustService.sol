@@ -1,19 +1,13 @@
-pragma solidity ^0.8.13;
-
-import "../utils/VersionedContract.sol";
-import "../utils/Initializable.sol";
-
+pragma solidity ^0.8.20;
 
 /**
  * @title IDSTrustService
  * @dev An interface for a trust service which allows role-based access control for other contracts.
  */
-//SPDX-License-Identifier: UNLICENSED
-abstract contract IDSTrustService is Initializable, VersionedContract {
+//SPDX-License-Identifier: GPL-3.0
+abstract contract IDSTrustService {
 
-    function initialize() public virtual {
-        VERSIONS.push(4);
-    }
+    function initialize() public virtual;
 
     /**
      * @dev Should be emitted when a role is set for a user.

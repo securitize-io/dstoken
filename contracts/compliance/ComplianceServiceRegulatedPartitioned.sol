@@ -1,7 +1,8 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "./ComplianceServiceRegulated.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "../token/IDSTokenPartitioned.sol";
+import "../compliance/IDSComplianceServicePartitioned.sol";
 
 
 library ComplianceServicePartitionedLibrary {
@@ -42,8 +43,6 @@ library ComplianceServicePartitionedLibrary {
         bool isPlatformWalletTo;
     }
 
-    using SafeMath for uint256;
-
     function isRetail(address[] memory _services, address _wallet) internal view returns (bool) {
         IDSRegistryService registry = IDSRegistryService(_services[REGISTRY_SERVICE]);
 
@@ -79,7 +78,7 @@ library ComplianceServicePartitionedLibrary {
         return IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getCountryCompliance(getCountry(_services, _wallet));
     }
 
-    function isOmnibusTBE(IDSOmnibusTBEController _omnibusTBE, address _from) public view returns (bool) {
+    function isOmnibusTBE(IDSOmnibusTBEController _omnibusTBE, address _from) internal view returns (bool) {
         if (address(_omnibusTBE) != address(0)) {
             return _omnibusTBE.getOmnibusWallet() == _from;
         }
@@ -95,10 +94,10 @@ library ComplianceServicePartitionedLibrary {
         }
 
         if (compConfService.getUSInvestorsLimit() == 0) {
-            return compConfService.getMaxUSInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100);
+            return compConfService.getMaxUSInvestorsPercentage() * (complianceService.getTotalInvestorsCount()) / 100;
         }
 
-        return Math.min(compConfService.getUSInvestorsLimit(), compConfService.getMaxUSInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100));
+        return Math.min(compConfService.getUSInvestorsLimit(), compConfService.getMaxUSInvestorsPercentage() * (complianceService.getTotalInvestorsCount()) / 100);
     }
 
     function checkHoldUp(address[] memory _services, address _from, uint256 _value, bool _isPlatformWalletFrom) internal view returns (bool) {
@@ -365,7 +364,7 @@ library ComplianceServicePartitionedLibrary {
         return (0, VALID);
     }
 
-    function getLockTime(IDSComplianceConfigurationService _complianceConfiguration, uint256 _partitionRegion, bool _checkFlowback) public view returns (uint256) {
+    function getLockTime(IDSComplianceConfigurationService _complianceConfiguration, uint256 _partitionRegion, bool _checkFlowback) internal view returns (uint256) {
         if (_partitionRegion == US) {
             return _complianceConfiguration.getUSLockPeriod();
         } else {
@@ -383,14 +382,11 @@ library ComplianceServicePartitionedLibrary {
  *   @title Concrete compliance service for tokens with regulation
  *
  */
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitioned, ComplianceServiceRegulated {
-    using SafeMath for uint256;
 
-    function initialize() public override(ComplianceServiceRegulated, IDSComplianceServicePartitioned) initializer forceInitializeFromProxy {
+    function initialize() public override(ComplianceServiceRegulated, IDSComplianceServicePartitioned) onlyProxy initializer {
         ComplianceServiceRegulated.initialize();
-        IDSComplianceServicePartitioned.initialize();
-        VERSIONS.push(7);
     }
 
     function preTransferCheck(address _from, address _to, uint256 _value) public view override(IDSComplianceService, ComplianceServiceRegulated) returns (uint256 code, string memory reason) {
@@ -408,9 +404,9 @@ contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitione
     }
 
     function getComplianceTransferableTokens(address _who, uint256 _time, bool _checkFlowback) public view override returns (uint256 transferable) {
-        for (uint256 index = 0; index < getTokenPartitioned().partitionCountOf(_who); ++index) {
-            bytes32 partition = getTokenPartitioned().partitionOf(_who, index);
-            transferable = SafeMath.add(transferable, getComplianceTransferableTokens(_who, _time, _checkFlowback, partition));
+        for (uint256 index = 0; index < IDSTokenPartitioned(getDSService(DS_TOKEN)).partitionCountOf(_who); ++index) {
+            bytes32 partition = IDSTokenPartitioned(getDSService(DS_TOKEN)).partitionOf(_who, index);
+            transferable = transferable + getComplianceTransferableTokens(_who, _time, _checkFlowback, partition);
         }
     }
 

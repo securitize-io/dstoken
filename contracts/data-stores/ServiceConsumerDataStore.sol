@@ -1,10 +1,7 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract ServiceConsumerDataStore {
-    using SafeMath for uint256;
 
     mapping(uint256 => address) internal services;
 }

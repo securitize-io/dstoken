@@ -1,23 +1,22 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "./IDSServiceConsumer.sol";
 import "../data-stores/ServiceConsumerDataStore.sol";
 import "../token/IDSToken.sol";
-import "../token/IDSTokenPartitioned.sol";
 import "../compliance/IDSWalletManager.sol";
 import "../compliance/IDSLockManager.sol";
 import "../compliance/IDSLockManagerPartitioned.sol";
 import "../compliance/IDSComplianceService.sol";
-import "../compliance/IDSComplianceServicePartitioned.sol";
 import "../compliance/IDSPartitionsManager.sol";
 import "../compliance/IDSComplianceConfigurationService.sol";
 import "../registry/IDSRegistryService.sol";
 import "../omnibus/IDSOmnibusTBEController.sol";
 import "../trust/IDSTrustService.sol";
-import "../utils/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-//SPDX-License-Identifier: UNLICENSED
-abstract contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsumerDataStore {
+
+//SPDX-License-Identifier: GPL-3.0
+abstract contract ServiceConsumer is IDSServiceConsumer, ServiceConsumerDataStore, OwnableUpgradeable {
 
     // Bring role constants to save gas both in deployment (less bytecode) and usage
     uint8 public constant ROLE_NONE = 0;
@@ -26,16 +25,13 @@ abstract contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsume
     uint8 public constant ROLE_EXCHANGE = 4;
     uint8 public constant ROLE_TRANSFER_AGENT = 8;
 
-    function initialize() public virtual override(IDSServiceConsumer, Ownable) {
-        IDSServiceConsumer.initialize();
-        Ownable.initialize();
-
-        VERSIONS.push(6);
+    function __ServiceConsumer_init() public virtual onlyInitializing {
+        __Ownable_init(msg.sender);
     }
 
     modifier onlyMaster {
         IDSTrustService trustManager = getTrustService();
-        require(this.contractOwner() == msg.sender || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
+        require(owner() == msg.sender || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
         _;
     }
 
@@ -111,12 +107,12 @@ abstract contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsume
     modifier onlyMasterOrTBEOmnibus {
         IDSTrustService trustManager = getTrustService();
         require(msg.sender == address(getOmnibusTBEController()) ||
-        this.contractOwner() == msg.sender || trustManager.getRole(msg.sender) == ROLE_MASTER, "Not authorized");
+        owner() == msg.sender || trustManager.getRole(msg.sender) == ROLE_MASTER, "Not authorized");
         _;
     }
 
     modifier onlyOwnerOrIssuerOrAbove {
-        if(!isOwner()) {
+        if(owner() != msg.sender) {
             IDSTrustService trustManager = getTrustService();
             require(trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
         }
@@ -163,10 +159,6 @@ abstract contract ServiceConsumer is IDSServiceConsumer, Ownable, ServiceConsume
 
     function getPartitionsManager() internal view returns (IDSPartitionsManager) {
         return IDSPartitionsManager(getDSService(PARTITIONS_MANAGER));
-    }
-
-    function getTokenPartitioned() internal view returns (IDSTokenPartitioned) {
-        return IDSTokenPartitioned(getDSService(DS_TOKEN));
     }
 
     function getComplianceConfigurationService() internal view returns (IDSComplianceConfigurationService) {

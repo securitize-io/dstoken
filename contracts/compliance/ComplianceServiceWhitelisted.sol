@@ -1,18 +1,17 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "./ComplianceService.sol";
-import "../registry/IDSRegistryService.sol";
 
 /**
 *   @title Concrete compliance service for tokens with whitelisted wallets.
 *
 *   This simple compliance service is meant to be used for tokens that only need to be validated against an investor registry.
 */
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract ComplianceServiceWhitelisted is ComplianceService {
-    function initialize() public virtual override initializer forceInitializeFromProxy {
+
+    function initialize() public virtual override onlyProxy initializer {
         ComplianceService.initialize();
-        VERSIONS.push(5);
     }
     function newPreTransferCheck(
         address _from,

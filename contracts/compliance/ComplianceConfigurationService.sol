@@ -1,16 +1,14 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "./IDSComplianceConfigurationService.sol";
 import "../data-stores/ComplianceConfigurationDataStore.sol";
-import "../service/ServiceConsumer.sol";
-import "../utils/ProxyTarget.sol";
+import "../utils/BaseDSContract.sol";
 
-//SPDX-License-Identifier: UNLICENSED
-contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurationService, ServiceConsumer, ComplianceConfigurationDataStore {
-    function initialize() public override(IDSComplianceConfigurationService, ServiceConsumer) initializer forceInitializeFromProxy {
-        IDSComplianceConfigurationService.initialize();
-        ServiceConsumer.initialize();
-        VERSIONS.push(8);
+//SPDX-License-Identifier: GPL-3.0
+contract ComplianceConfigurationService is IDSComplianceConfigurationService, ComplianceConfigurationDataStore, BaseDSContract {
+
+    function initialize() public override onlyProxy initializer {
+        __BaseDSContract_init();
     }
 
     function setCountriesCompliance(string[] memory _countries, uint256[] memory _values) public override onlyTransferAgentOrAbove {

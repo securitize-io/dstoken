@@ -1,11 +1,10 @@
-image: node:16.18.0
+image: node:18.20.0
 
 pipelines:
   default:
     - step:
-        caches:
-          - node
         script:
-          - npm install
+          - npm ci
+          - npx hardhat clean
           - npm run compile
           - npm test

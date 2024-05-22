@@ -1,8 +1,8 @@
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "./BaseLockManagerDataStore.sol";
 
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: GPL-3.0
 contract InvestorLockManagerDataStore is BaseLockManagerDataStore {
     mapping(string => mapping(uint256 => Lock)) internal investorsLocks;
     mapping(string => uint256) internal investorsLocksCounts;
