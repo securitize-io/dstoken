@@ -21,8 +21,7 @@ abstract contract IDSComplianceService is Initializable, VersionedContract {
     string internal constant WALLET_NOT_IN_REGISTRY_SERVICE = "Wallet not in registry Service";
     string internal constant DESTINATION_RESTRICTED = "Destination restricted";
     string internal constant VALID = "Valid";
-    string internal constant HOLD_UP = "Hold-up";
-    string internal constant HOLD_UP_1Y = "Hold-up 1y";
+    string internal constant HOLD_UP = "Under lock-up";
     string internal constant ONLY_FULL_TRANSFER = "Only Full Transfer";
     string internal constant FLOWBACK = "Flowback";
     string internal constant MAX_INVESTORS_IN_CATEGORY = "Max Investors in category";

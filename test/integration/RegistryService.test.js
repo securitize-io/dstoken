@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const deployContracts = require('../utils').deployContracts;
-const { expectRevert } = require('@openzeppelin/test-helpers');
+const { expectRevert, expectEvent } = require('@openzeppelin/test-helpers');
 const globals = require('../../utils/globals');
 const roles = globals.roles;
 const complianceType = globals.complianceType;
@@ -47,6 +47,8 @@ contract('RegistryService', async function ([
   wallet1,
   wallet2,
   wallet3,
+  wallet4,
+  unknownWallet,
   exchangeWallet,
   additionalWallet,
   omnibusWallet,
@@ -446,6 +448,28 @@ contract('RegistryService', async function ([
               ),
             );
           });
+        });
+      });
+
+      describe('Wallet By Investor', function () {
+        it(`Trying to add the wallet ${wallet3} by Investor ${generatedInvestorId} with wallet ${wallet2}`, async function () {
+          const receipt = await this.registryService.addWalletByInvestor(wallet3, { from: wallet2 });
+          expectEvent(receipt, 'DSRegistryServiceWalletAdded', {
+            investorId: generatedInvestorId,
+            wallet: wallet3,
+            sender: wallet2,
+          });
+
+          const investorId = await this.registryService.getInvestor(wallet3);
+          assert.equal(investorId, generatedInvestorId);
+        });
+
+        it(`Trying to add the wallet ${wallet3} by Investor ${generatedInvestorId} with wallet ${wallet2} - Wallet already exists`, async function () {
+          await expectRevert(this.registryService.addWalletByInvestor(wallet3, { from: wallet2 }), 'Wallet already exists');
+        });
+
+        it(`Trying to add the wallet ${wallet4} by Investor ${generatedInvestorId} with wallet ${unknownWallet} - Unknown investor`, async function () {
+          await expectRevert(this.registryService.addWalletByInvestor(wallet4, { from: unknownWallet }), 'Unknown investor');
         });
       });
 

@@ -1,16 +1,17 @@
-const argv = require('minimist')(process.argv.slice(2), { string: ['omnibus_wallet', 'redemption_wallet'] });
+const argv = require('minimist')(process.argv.slice(2), { string: ['omnibus_wallet', 'redemption_wallet','proxyDeploymentUtils'] });
 
 const MAINNET_CHAIN_ID = 1;
 
 class ConfigurationManager {
   constructor () {
     this.proxiesAddresses = {};
+    this.standAloneAddresses ={}
+    this.proxyDeploymentUtils = argv.proxyDeploymentUtils || '';
   }
 
   setConfiguration () {
     const decimals = parseInt(argv.decimals);
-    console.log(argv);
-
+    
     if (
       argv.help ||
       !argv.name ||
@@ -157,6 +158,14 @@ class ConfigurationManager {
 
   getProxyAddressForContractName (contractName) {
     return this.proxiesAddresses[contractName];
+  }
+
+  setStandAloneAddressForContractName (contractName, address) {
+    this.standAloneAddresses[contractName] = address;
+  }
+
+  getStandAloneAddressForContractName (contractName) {
+    return this.standAloneAddresses[contractName];
   }
 
   isTestMode () {

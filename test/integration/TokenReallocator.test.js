@@ -65,13 +65,13 @@ contract('TokenReallocator', function ([
         'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, false, { from: exchangeWallet }));
     });
 
-    it('Should NOT allow to reallocate tokens using an issuer wallet', async function () {
+    it('Should allow to reallocate tokens using an issuer wallet', async function () {
       // Fund the Omnibus TBE wallet
       await this.omnibusTBEController.bulkIssuance(500, 1, 0, 0, 0, 0, 0,
         [], []);
-      await expectRevert.unspecified(this.reallocator.reallocateTokens(investorId.GENERAL_INVESTOR_ID_1,
+      await this.reallocator.reallocateTokens(investorId.GENERAL_INVESTOR_ID_1,
         wallet, investorId.GENERAL_INVESTOR_ID_1,
-        'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, false, { from: issuerWallet }));
+        'US', [1, 2, 4], [1, 1, 1], [1, 1, 1], 200, false, { from: issuerWallet });
     });
 
     it('Should allow to reallocate tokens to a non-master but transfer agent wallet', async function () {

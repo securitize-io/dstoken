@@ -21,7 +21,7 @@ contract TokenReallocator is ProxyTarget, Initializable, ServiceConsumer, IDSTok
         uint256[] memory _attributeExpirations,
         uint256 _value,
         bool isAffiliate
-    ) public override onlyTransferAgentOrAbove returns (bool) {
+    ) public override onlyIssuerOrTransferAgentOrAbove returns (bool) {
         require(_attributeValues.length == _attributeIds.length, "Wrong length of parameters");
         require(_attributeIds.length == _attributeExpirations.length, "Wrong length of parameters");
         IDSRegistryService registryService = getRegistryService();

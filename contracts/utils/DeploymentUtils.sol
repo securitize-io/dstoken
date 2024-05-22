@@ -1,6 +1,8 @@
 pragma solidity ^0.8.13;
 
 import "./Proxy.sol";
+import "../utils/CommonUtils.sol";
+import "../utils/ProxyTarget.sol";
 import "./Ownable.sol";
 import "../trust/IDSTrustService.sol";
 import "../registry/IDSRegistryService.sol";
@@ -18,9 +20,11 @@ import "../omnibus/IDSOmnibusTBEController.sol";
 import "../omnibus/IDSTokenReallocator.sol";
 import "../swap/BaseSecuritizeSwap.sol";
 import "../utils/TransactionRelayer.sol";
+import "../bulk/IBulkOperator.sol";
+
 
 //SPDX-License-Identifier: UNLICENSED
-contract DeploymentUtils {
+contract DeploymentUtils is ProxyTarget, Initializable {
     uint8 public constant TRUST_SERVICE = 0;
     uint8 public constant REGISTRY_SERVICE = 1;
     uint8 public constant COMPLIANCE_SERVICE_REGULATED = 2;
@@ -42,6 +46,8 @@ contract DeploymentUtils {
     uint8 public constant TRANSACTION_RELAYER = 18;
     uint8 public constant TOKEN_REALLOCATOR = 19;
     uint8 public constant SECURITIZE_SWAP = 20;
+    uint8 public constant BULK_OPERATOR = 21;
+    
 
     address public owner;
     mapping(uint8 => address) public implementationAddresses;
@@ -50,7 +56,7 @@ contract DeploymentUtils {
     event ProxyContractDeployed(address proxyAddress);
     event ContractDeployed(address contractAddress);
 
-    constructor() {
+    function initialize() public initializer forceInitializeFromProxy {
         owner = msg.sender;
     }
 
@@ -76,6 +82,14 @@ contract DeploymentUtils {
 
     function getImplementationAddress(uint8 service) public view returns (address) {
         return implementationAddresses[service];
+    }
+
+    function copyImplementationContracts(address _oldDeploymentUtils) public restricted {
+        DeploymentUtils oldDeploymentUtils = DeploymentUtils(_oldDeploymentUtils);
+        for (uint8 i = 0; i <= 20; i++) {
+            address oldImplementation = oldDeploymentUtils.getImplementationAddress(i);
+            setImplementationAddress(i, oldImplementation);
+        }
     }
 
     function deployTrustService() public restricted {
@@ -182,6 +196,12 @@ contract DeploymentUtils {
         emit ProxyContractDeployed(proxyAddress);
     }
 
+    function deployBulkOperator(address dsToken) public restricted {
+        address proxyAddress = _deployProxy(implementationAddresses[BULK_OPERATOR]);
+        IBulkOperator(proxyAddress).initialize(dsToken);
+        emit ProxyContractDeployed(proxyAddress);
+    }
+
     function setRoles(address proxyTrustService, address[] memory addressesToSet, uint8[] memory roles) public restricted {
         IDSTrustService(proxyTrustService).setRoles(addressesToSet, roles);
     }
@@ -253,4 +273,5 @@ contract DeploymentUtils {
         IDSOmnibusTBEController(proxyAddress).initialize(omnibusWallet, isPartitionedToken);
         emit ProxyContractDeployed(proxyAddress);
     }
+
 }
