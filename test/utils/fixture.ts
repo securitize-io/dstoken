@@ -1,28 +1,33 @@
 import hre from 'hardhat';
 import { DSConstants } from '../../utils/globals';
-console.log = function() {}
+
+console.log = function() {
+};
 hre.upgrades.silenceWarnings();
 export const TBE = '0x7C1ab56B369DdB0ee7A5F85a9d0A569370cF9B87';
 
-export const deployDSTokenRegulated = () => {
+export const deployDSTokenRegulated = async () => {
   const name = 'Token Example 1';
   const symbol = 'TX1';
-  return hre.run('deploy-all', { name, symbol, tbe: TBE });
-}
+  const contracts = await hre.run('deploy-all', { name, symbol, tbe: TBE });
+  const [owner1, owner2, owner3] = await hre.ethers.getSigners();
+  const multisig = await hre.ethers.deployContract('MultiSigWallet', [[owner1, owner2, owner3], 3]);
+  return { ...contracts, multisig };
+};
 
 export const deployDSTokenWhitelisted = () => {
   const name = 'Token Example 1';
   const symbol = 'TX1';
-  const compliance = 'WHITELISTED'
+  const compliance = 'WHITELISTED';
   return hre.run('deploy-all', { name, symbol, tbe: TBE, compliance });
-}
+};
 
 export const deployDSTokenPartitioned = () => {
   const name = 'Token Example 1';
   const symbol = 'TX1';
-  const compliance = 'PARTITIONED'
+  const compliance = 'PARTITIONED';
   return hre.run('deploy-all', { name, symbol, tbe: TBE, compliance });
-}
+};
 
 export const MINUTES = 60;
 export const HOURS = 60 * MINUTES;
@@ -34,12 +39,12 @@ export const attributeTypes = [
   DSConstants.attributeType.KYC_APPROVED,
   DSConstants.attributeType.ACCREDITED,
   DSConstants.attributeType.QUALIFIED,
-  DSConstants.attributeType.PROFESSIONAL,
+  DSConstants.attributeType.PROFESSIONAL
 ];
 export const attributeStatuses = [
   DSConstants.attributeStatus.PENDING,
   DSConstants.attributeStatus.APPROVED,
-  DSConstants.attributeStatus.REJECTED,
+  DSConstants.attributeStatus.REJECTED
 ];
 
 export const INVESTORS = {
@@ -66,7 +71,7 @@ export const INVESTORS = {
     ISRAEL_INVESTOR_COLLISION_HASH: 'israelInvestorCollisionHash',
     OMNIBUS_WALLET_INVESTOR_ID_1: 'omnibusWalletInvestorId1',
     OMNIBUS_WALLET_INVESTOR_ID_2: 'omnibusWalletInvestorId2',
-    INVESTOR_TO_BE_ISSUED_WHEN_PAUSED: 'investorToBeIssuedWhileTokenPaused',
+    INVESTOR_TO_BE_ISSUED_WHEN_PAUSED: 'investorToBeIssuedWhileTokenPaused'
   },
   Country: {
     FRANCE: 'france',
@@ -75,35 +80,35 @@ export const INVESTORS = {
     GERMANY: 'germany',
     CHINA: 'china',
     ISRAEL: 'israel',
-    JAPAN: 'japan',
+    JAPAN: 'japan'
   },
   Compliance: {
     NONE: 0,
     US: 1,
     EU: 2,
     FORBIDDEN: 4,
-    JP: 8,
+    JP: 8
   },
   Address: {
-    ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
+    ZERO_ADDRESS: '0x0000000000000000000000000000000000000000'
   },
   Time: {
     MINUTES,
     HOURS,
     DAYS,
     WEEKS,
-    YEARS,
+    YEARS
   },
   AssetTrackingMode: {
     BENEFICIARY: 0,
-    HOLDER_OF_RECORD: 1,
+    HOLDER_OF_RECORD: 1
   },
   Counters: {
     totalInvestorsCount: 0,
     accreditedInvestorsCount: 0,
     usTotalInvestorsCount: 0,
     usAccreditedInvestorsCount: 0,
-    jpTotalInvestorsCount: 0,
-  },
+    jpTotalInvestorsCount: 0
+  }
 };
 
