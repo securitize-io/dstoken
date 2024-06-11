@@ -107,11 +107,11 @@ library ComplianceServiceLibrary {
         bool _isPlatformWalletFrom
     ) internal view returns (bool) {
         ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
-        uint64 lockPeriod;
+        uint256 lockPeriod;
         if (_isUSLockPeriod) {
-            lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSLockPeriod());
+            lockPeriod = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSLockPeriod();
         } else {
-            lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUSLockPeriod());
+            lockPeriod = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUSLockPeriod();
         }
 
         return
@@ -658,7 +658,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     function getComplianceTransferableTokens(
         address _who,
         uint256 _time,
-        uint64 _lockTime
+        uint256 _lockTime
     ) public view returns (uint256) {
         require(_time != 0, "Time must be greater than zero");
         string memory investor = getRegistryService().getInvestor(_who);

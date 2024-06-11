@@ -5,6 +5,7 @@ import "../compliance/ComplianceServiceRegulated.sol";
 import "../compliance/ComplianceConfigurationService.sol";
 import "../token/IDSTokenPartitioned.sol";
 import "../utils/BaseDSContract.sol";
+import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 //SPDX-License-Identifier: GPL-3.0
 contract OmnibusTBEController is IDSOmnibusTBEController, OmnibusTBEControllerDataStore, BaseDSContract {
@@ -34,12 +35,12 @@ contract OmnibusTBEController is IDSOmnibusTBEController, OmnibusTBEControllerDa
         uint256[] memory euRetailCountryCounts) public override onlyTransferAgentOrAbove {
         require(euRetailCountries.length == euRetailCountryCounts.length, 'EU Retail countries arrays do not match');
 
-        if(isPartitionedToken) {
+        if (isPartitionedToken) {
             IDSTokenPartitioned token = IDSTokenPartitioned(getDSService(DS_TOKEN));
             uint256 pendingBurn = value;
             uint256 currentPartitionBalance;
             bytes32 partition;
-            while(pendingBurn > 0) {
+            while (pendingBurn > 0) {
                 require(token.partitionCountOf(omnibusWallet) > 0, 'Not enough tokens in partitions to burn the required value');
                 partition = token.partitionOf(omnibusWallet, 0);
                 currentPartitionBalance = token.balanceOfByPartition(omnibusWallet, partition);
@@ -77,11 +78,11 @@ contract OmnibusTBEController is IDSOmnibusTBEController, OmnibusTBEControllerDa
         require(euRetailCountries.length == euRetailCountryDeltas.length, 'Array lengths do not match');
 
         addToCounters(
-            totalDelta > 0 ? uint256(totalDelta) : 0,
-            accreditedDelta > 0 ? uint256(accreditedDelta) : 0,
-            usAccreditedDelta > 0 ? uint256(usAccreditedDelta) : 0,
-            usTotalDelta > 0 ? uint256(usTotalDelta) : 0,
-            jpTotalDelta > 0 ? uint256(jpTotalDelta) : 0,
+            totalDelta > 0 ? SafeCast.toUint256(totalDelta) : 0,
+            accreditedDelta > 0 ? SafeCast.toUint256(accreditedDelta) : 0,
+            usAccreditedDelta > 0 ? SafeCast.toUint256(usAccreditedDelta) : 0,
+            usTotalDelta > 0 ? SafeCast.toUint256(usTotalDelta) : 0,
+            jpTotalDelta > 0 ? SafeCast.toUint256(jpTotalDelta) : 0,
             euRetailCountries,
             getUintEuCountriesDeltas(euRetailCountryDeltas, true),
             true
@@ -102,13 +103,13 @@ contract OmnibusTBEController is IDSOmnibusTBEController, OmnibusTBEControllerDa
 
     function addToCounters(uint256 _totalInvestors, uint256 _accreditedInvestors,
         uint256 _usAccreditedInvestors, uint256 _usTotalInvestors, uint256 _jpTotalInvestors, bytes32[] memory _euRetailCountries,
-        uint256[] memory _euRetailCountryCounts,  bool _increase) internal returns (bool) {
-        if(_increase) {
+        uint256[] memory _euRetailCountryCounts, bool _increase) internal returns (bool) {
+        if (_increase) {
             ComplianceServiceRegulated cs = ComplianceServiceRegulated(getDSService(COMPLIANCE_SERVICE));
             IDSComplianceConfigurationService ccs = IDSComplianceConfigurationService(getDSService(COMPLIANCE_CONFIGURATION_SERVICE));
 
             require(ccs.getNonAccreditedInvestorsLimit() == 0 || (cs.getTotalInvestorsCount() - cs.getAccreditedInvestorsCount()
-             + _totalInvestors - _accreditedInvestors <= ccs.getNonAccreditedInvestorsLimit()), MAX_INVESTORS_IN_CATEGORY);
+            + _totalInvestors - _accreditedInvestors <= ccs.getNonAccreditedInvestorsLimit()), MAX_INVESTORS_IN_CATEGORY);
 
             cs.setTotalInvestorsCount(increaseCounter(cs.getTotalInvestorsCount(), ccs.getTotalInvestorsLimit(), _totalInvestors));
             cs.setAccreditedInvestorsCount(increaseCounter(cs.getAccreditedInvestorsCount(), ccs.getTotalInvestorsLimit(), _accreditedInvestors));
@@ -120,10 +121,10 @@ contract OmnibusTBEController is IDSOmnibusTBEController, OmnibusTBEControllerDa
                 cs.setEURetailInvestorsCount(
                     countryCode,
                     increaseCounter(
-                            cs.getEURetailInvestorsCount(countryCode),
-                            ccs.getEURetailInvestorsLimit(),
-                            _euRetailCountryCounts[i]
-                   )
+                        cs.getEURetailInvestorsCount(countryCode),
+                        ccs.getEURetailInvestorsLimit(),
+                        _euRetailCountryCounts[i]
+                    )
                 );
             }
         }
@@ -135,22 +136,22 @@ contract OmnibusTBEController is IDSOmnibusTBEController, OmnibusTBEControllerDa
         uint256 _usAccreditedInvestors, uint256 _usTotalInvestors, uint256 _jpTotalInvestors, bool /* _increase */) internal {
         getToken().emitOmnibusTBEEvent(
             omnibusWallet,
-            int256(_totalInvestors),
-            int256(_accreditedInvestors),
-            int256(_usAccreditedInvestors),
-            int256(_usTotalInvestors),
-            int256(_jpTotalInvestors)
+            SafeCast.toInt256(_totalInvestors),
+            SafeCast.toInt256(_accreditedInvestors),
+            SafeCast.toInt256(_usAccreditedInvestors),
+            SafeCast.toInt256(_usTotalInvestors),
+            SafeCast.toInt256(_jpTotalInvestors)
         );
     }
 
-    function getUintEuCountriesDeltas(int256[] memory euCountryDeltas,  bool increase) internal pure returns (uint256[] memory) {
+    function getUintEuCountriesDeltas(int256[] memory euCountryDeltas, bool increase) internal pure returns (uint256[] memory) {
         uint256[] memory result = new uint256[](euCountryDeltas.length);
 
         for (uint i = 0; i < euCountryDeltas.length; i++) {
             if (increase) {
                 result[i] = euCountryDeltas[i] > 0 ? uint256(euCountryDeltas[i]) : 0;
             } else {
-                result[i] = euCountryDeltas[i] < 0 ? uint256(euCountryDeltas[i] * -1) : 0;
+                result[i] = euCountryDeltas[i] < 0 ? uint256(euCountryDeltas[i] * - 1) : 0;
             }
         }
         return result;
@@ -164,7 +165,7 @@ contract OmnibusTBEController is IDSOmnibusTBEController, OmnibusTBEControllerDa
 
     function bytes32ToString(bytes32 _bytes32) internal pure returns (string memory) {
         uint8 i = 0;
-        while(i < 32 && _bytes32[i] != 0) {
+        while (i < 32 && _bytes32[i] != 0) {
             i++;
         }
         bytes memory bytesArray = new bytes(i);

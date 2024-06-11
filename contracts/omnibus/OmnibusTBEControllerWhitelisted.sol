@@ -2,6 +2,7 @@ pragma solidity ^0.8.20;
 
 import "../data-stores/OmnibusTBEControllerDataStore.sol";
 import "../utils/BaseDSContract.sol";
+import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 //SPDX-License-Identifier: GPL-3.0
 contract OmnibusTBEControllerWhitelisted is IDSOmnibusTBEController, OmnibusTBEControllerDataStore, BaseDSContract {
@@ -66,11 +67,11 @@ contract OmnibusTBEControllerWhitelisted is IDSOmnibusTBEController, OmnibusTBEC
         uint256 _usAccreditedInvestors, uint256 _usTotalInvestors, uint256 _jpTotalInvestors, bool /*_increase*/) internal {
         getToken().emitOmnibusTBEEvent(
             omnibusWallet,
-            int256(_totalInvestors),
-            int256(_accreditedInvestors),
-            int256(_usAccreditedInvestors),
-            int256(_usTotalInvestors),
-            int256(_jpTotalInvestors)
+            SafeCast.toInt256(_totalInvestors),
+            SafeCast.toInt256(_accreditedInvestors),
+            SafeCast.toInt256(_usAccreditedInvestors),
+            SafeCast.toInt256(_usTotalInvestors),
+            SafeCast.toInt256(_jpTotalInvestors)
         );
     }
 }
