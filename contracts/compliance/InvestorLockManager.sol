@@ -18,7 +18,7 @@ contract InvestorLockManager is InvestorLockManagerBase {
         investorsLocks[_investor][_lockIndex] = Lock(_valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
 
-    function createLockForInvestor(string memory _investor, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime)
+    function createLockForInvestor(string memory _investor, uint256 _valueLocked, uint256 _reasonCode, string calldata _reasonString, uint256 _releaseTime)
         public
         override
         validLock(_valueLocked, _releaseTime)
@@ -34,12 +34,12 @@ contract InvestorLockManager is InvestorLockManagerBase {
         emit HolderLocked(_investor, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
 
-    function createLock(address _to, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime) internal {
+    function createLock(address _to, uint256 _valueLocked, uint256 _reasonCode, string calldata _reasonString, uint256 _releaseTime) internal {
         createLockForInvestor(getRegistryService().getInvestor(_to), _valueLocked, _reasonCode, _reasonString, _releaseTime);
         emit Locked(_to, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
 
-    function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime) public override onlyTransferAgentOrAboveOrToken {
+    function addManualLockRecord(address _to, uint256 _valueLocked, string calldata _reason, uint256 _releaseTime) public override onlyTransferAgentOrAboveOrToken {
         require(_to != address(0), "Invalid address");
         createLock(_to, _valueLocked, 0, _reason, _releaseTime);
     }

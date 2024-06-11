@@ -139,7 +139,7 @@ library ComplianceServiceLibrary {
     }
 
     function newPreTransferCheck(
-        address[] memory _services,
+        address[] calldata _services,
         address _from,
         address _to,
         uint256 _value,
@@ -151,7 +151,7 @@ library ComplianceServiceLibrary {
     }
 
     function preTransferCheck(
-        address[] memory _services,
+        address[] calldata _services,
         address _from,
         address _to,
         uint256 _value
@@ -399,7 +399,7 @@ library ComplianceServiceLibrary {
 
 
     function preIssuanceCheck(
-        address[] memory _services,
+        address[] calldata _services,
         address _to,
         uint256 _value
     ) public view returns (uint256 code, string memory reason) {
@@ -707,7 +707,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return accreditedInvestorsCount;
     }
 
-    function getEURetailInvestorsCount(string memory _country) public view returns (uint256) {
+    function getEURetailInvestorsCount(string calldata _country) public view returns (uint256) {
         return euRetailInvestorsCount[_country];
     }
 
@@ -739,7 +739,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return true;
     }
 
-    function setEURetailInvestorsCount(string memory _country, uint256 _value) public onlyMasterOrTBEOmnibus returns (bool) {
+    function setEURetailInvestorsCount(string calldata _country, uint256 _value) public onlyMasterOrTBEOmnibus returns (bool) {
         euRetailInvestorsCount[_country] = _value;
 
         return true;

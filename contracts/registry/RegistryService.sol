@@ -11,7 +11,7 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
         __BaseDSContract_init();
     }
 
-    function registerInvestor(string memory _id, string memory _collisionHash) public override onlyExchangeOrAbove newInvestor(_id) returns (bool) {
+    function registerInvestor(string calldata _id, string calldata _collisionHash) public override onlyExchangeOrAbove newInvestor(_id) returns (bool) {
         investors[_id] = Investor(_id, _collisionHash, msg.sender, msg.sender, "", 0);
 
         emit DSRegistryServiceInvestorAdded(_id, msg.sender);
@@ -19,7 +19,7 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
         return true;
     }
 
-    function removeInvestor(string memory _id) public override onlyExchangeOrAbove investorExists(_id) returns (bool) {
+    function removeInvestor(string calldata _id) public override onlyExchangeOrAbove investorExists(_id) returns (bool) {
         require(getTrustService().getRole(msg.sender) != EXCHANGE || investors[_id].creator == msg.sender, "Insufficient permissions");
         require(investors[_id].walletCount == 0, "Investor has wallets");
 
@@ -35,8 +35,8 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
     }
 
     function updateInvestor(
-        string memory _id,
-        string memory _collisionHash,
+        string calldata _id,
+        string calldata _collisionHash,
         string memory _country,
         address[] memory _wallets,
         uint8[] memory _attributeIds,
@@ -87,7 +87,7 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
         return (country, attributeValues, attributeExpiries, attributeProofHashes[0], attributeProofHashes[1], attributeProofHashes[2], attributeProofHashes[3]);
     }
 
-    function setCountry(string memory _id, string memory _country) public override onlyExchangeOrAbove investorExists(_id) returns (bool) {
+    function setCountry(string calldata _id, string memory _country) public override onlyExchangeOrAbove investorExists(_id) returns (bool) {
         string memory prevCountry = getCountry(_id);
 
         getComplianceService().adjustInvestorCountsAfterCountryChange(_id, _country, prevCountry);
@@ -104,11 +104,11 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
         return investors[_id].country;
     }
 
-    function getCollisionHash(string memory _id) public view override returns (string memory) {
+    function getCollisionHash(string calldata _id) public view override returns (string memory) {
         return investors[_id].collisionHash;
     }
 
-    function setAttribute(string memory _id, uint8 _attributeId, uint256 _value, uint256 _expiry, string memory _proofHash)
+    function setAttribute(string calldata _id, uint8 _attributeId, uint256 _value, uint256 _expiry, string memory _proofHash)
         public
         override
         onlyExchangeOrAbove

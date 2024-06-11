@@ -11,10 +11,10 @@ abstract contract IDSComplianceConfigurationService {
 
     function getCountryCompliance(string memory _country) public view virtual returns (uint256);
 
-    function setCountriesCompliance(string[] memory _countries, uint256[] memory _values) public virtual;
+    function setCountriesCompliance(string[] calldata _countries, uint256[] calldata _values) public virtual;
 
     function setCountryCompliance(
-        string memory _country,
+        string calldata _country,
         uint256 _value /*onlyTransferAgentOrAbove*/
     ) public virtual;
 
@@ -145,8 +145,8 @@ abstract contract IDSComplianceConfigurationService {
     ) public virtual;
 
     function setAll(
-        uint256[] memory _uint_values,
-        bool[] memory _bool_values /*onlyTransferAgentOrAbove*/
+        uint256[] calldata _uint_values,
+        bool[] calldata _bool_values /*onlyTransferAgentOrAbove*/
     ) public virtual;
 
     function getAll() public view virtual returns (uint256[] memory, bool[] memory);

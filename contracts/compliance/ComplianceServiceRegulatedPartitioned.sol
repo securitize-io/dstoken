@@ -122,7 +122,7 @@ library ComplianceServicePartitionedLibrary {
         (isAccredited(_services, _from) || _fromInvestorBalance > _value);
     }
 
-    function newPreTransferCheck(address[] memory _services, address _from, address _to, uint256 _value, uint256 _balanceFrom, bool _paused)
+    function newPreTransferCheck(address[] calldata _services, address _from, address _to, uint256 _value, uint256 _balanceFrom, bool _paused)
     public
     view
     returns (uint256 code, string memory reason)
@@ -130,7 +130,7 @@ library ComplianceServicePartitionedLibrary {
         return doPreTransferCheckPartitioned(_services, _from, _to, _value, _balanceFrom, _paused);
     }
 
-    function preTransferCheck(address[] memory _services, address _from, address _to, uint256 _value)
+    function preTransferCheck(address[] calldata _services, address _from, address _to, uint256 _value)
     public
     view
     returns (uint256 code, string memory reason)
@@ -393,7 +393,7 @@ contract ComplianceServiceRegulatedPartitioned is IDSComplianceServicePartitione
         return ComplianceServicePartitionedLibrary.preTransferCheck(getServices(), _from, _to, _value);
     }
 
-    function newPreTransferCheck(address _from, address _to, uint256 _value, uint256 _balanceFrom, bool _paused) public view override returns (uint256 code, string memory reason) {
+    function newPreTransferCheck(address _from, address _to, uint256 _value, uint256 _balanceFrom, bool _paused) public view override(IDSComplianceService, ComplianceServiceRegulated) returns (uint256 code, string memory reason) {
         return ComplianceServicePartitionedLibrary.newPreTransferCheck(getServices(), _from, _to, _value, _balanceFrom, _paused);
     }
 

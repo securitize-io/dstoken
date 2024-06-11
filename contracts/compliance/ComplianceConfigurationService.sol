@@ -11,7 +11,7 @@ contract ComplianceConfigurationService is IDSComplianceConfigurationService, Co
         __BaseDSContract_init();
     }
 
-    function setCountriesCompliance(string[] memory _countries, uint256[] memory _values) public override onlyTransferAgentOrAbove {
+    function setCountriesCompliance(string[] calldata _countries, uint256[] calldata _values) public override onlyTransferAgentOrAbove {
         require(_countries.length <= 35, "Exceeded the maximum number of countries");
         require(_countries.length == _values.length, "Wrong length of parameters");
         for (uint i = 0; i < _countries.length; i++) {
@@ -19,7 +19,7 @@ contract ComplianceConfigurationService is IDSComplianceConfigurationService, Co
         }
     }
 
-    function setCountryCompliance(string memory _country, uint256 _value) public override onlyTransferAgentOrAbove {
+    function setCountryCompliance(string calldata _country, uint256 _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceStringToUIntMapRuleSet("countryCompliance", _country, countriesCompliances[_country], _value);
         countriesCompliances[_country] = _value;
     }
@@ -217,7 +217,7 @@ contract ComplianceConfigurationService is IDSComplianceConfigurationService, Co
         disallowBackDating = _value;
     }
 
-    function setAll(uint256[] memory _uint_values, bool[] memory _bool_values) public override onlyTransferAgentOrAbove {
+    function setAll(uint256[] calldata _uint_values, bool[] calldata _bool_values) public override onlyTransferAgentOrAbove {
         require(_uint_values.length == 16, "Wrong length of parameters");
         require(_bool_values.length == 5, "Wrong length of parameters");
         setTotalInvestorsLimit(_uint_values[0]);

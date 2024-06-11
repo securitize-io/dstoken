@@ -149,7 +149,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
     function addManualLockRecord(
         address, /*_to*/
         uint256, /*_valueLocked*/
-        string memory, /*_reason*/
+        string calldata, /*_reason*/
         uint256 /*_releaseTime*/
     ) public pure override {
         revertedFunction();
@@ -189,7 +189,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         string memory, /*_investor*/
         uint256, /*_valueLocked*/
         uint256, /*_reasonCode*/
-        string memory, /*_reasonString*/
+        string calldata, /*_reasonString*/
         uint256 /*_releaseTime*/
     ) public pure override {
         revertedFunction();

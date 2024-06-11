@@ -7,8 +7,8 @@ abstract contract IDSWalletRegistrar {
 
     function registerWallet(
         string memory _id,
-        address[] memory _wallets,
-        string memory _collisionHash,
+        address[] calldata _wallets,
+        string calldata _collisionHash,
         string memory _country,
         uint8[] memory _attributeIds,
         uint256[] memory _attributeValues,

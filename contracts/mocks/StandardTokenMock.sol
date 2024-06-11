@@ -6,7 +6,7 @@ import "../token/StandardToken.sol";
 //SPDX-License-Identifier: GPL-3.0
 contract StandardTokenMock is StandardToken {
 
-    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public virtual override onlyProxy initializer {
+    function initialize(string calldata _name, string calldata _symbol, uint8 _decimals) public virtual override onlyProxy initializer {
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
@@ -16,7 +16,7 @@ contract StandardTokenMock is StandardToken {
         revertFunction();
     }
 
-    function burn(address, uint256, string memory) public pure override {
+    function burn(address, uint256, string calldata) public pure override {
         revertFunction();
     }
 
@@ -52,11 +52,11 @@ contract StandardTokenMock is StandardToken {
         revertFunction();
     }
 
-    function omnibusBurn(address, address, uint256, string memory) public pure override {
+    function omnibusBurn(address, address, uint256, string calldata) public pure override {
         revertFunction();
     }
 
-    function omnibusSeize(address, address, address, uint256, string memory) public pure override {
+    function omnibusSeize(address, address, address, uint256, string calldata) public pure override {
         revertFunction();
     }
 
@@ -64,7 +64,7 @@ contract StandardTokenMock is StandardToken {
         revertFunction();
     }
 
-    function seize(address, address, uint256, string memory) public pure override {
+    function seize(address, address, uint256, string calldata) public pure override {
         revertFunction();
     }
 
