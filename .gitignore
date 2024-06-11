@@ -38,6 +38,9 @@ cache/
 typechain-types/
 ignition/deployments/
 
+# OZ
+.openzeppelin/
+
 # lol macs
 .DS_Store/
 
