@@ -6,9 +6,12 @@ import "../compliance/ComplianceConfigurationService.sol";
 import "../token/IDSTokenPartitioned.sol";
 import "../utils/BaseDSContract.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 //SPDX-License-Identifier: GPL-3.0
 contract OmnibusTBEController is IDSOmnibusTBEController, OmnibusTBEControllerDataStore, BaseDSContract {
+
+    using SafeERC20 for IDSToken;
 
     string internal constant MAX_INVESTORS_IN_CATEGORY = "Max investors in category";
 
@@ -61,7 +64,7 @@ contract OmnibusTBEController is IDSOmnibusTBEController, OmnibusTBEControllerDa
     function bulkTransfer(address[] memory wallets, uint256[] memory values) public override onlyIssuerOrTransferAgentOrAbove {
         require(wallets.length == values.length, 'Wallets and values lengths do not match');
         for (uint i = 0; i < wallets.length; i++) {
-            getToken().transferFrom(omnibusWallet, wallets[i], values[i]);
+            getToken().safeTransferFrom(omnibusWallet, wallets[i], values[i]);
         }
     }
 

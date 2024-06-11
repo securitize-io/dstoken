@@ -3,9 +3,12 @@ pragma solidity ^0.8.20;
 import "../data-stores/OmnibusTBEControllerDataStore.sol";
 import "../utils/BaseDSContract.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 //SPDX-License-Identifier: GPL-3.0
 contract OmnibusTBEControllerWhitelisted is IDSOmnibusTBEController, OmnibusTBEControllerDataStore, BaseDSContract {
+
+    using SafeERC20 for IDSToken;
 
     function initialize(address _omnibusWallet, bool _isPartitionedToken) public override onlyProxy initializer {
         require(_omnibusWallet != address(0), "Omnibus wallet can not be zero address");
@@ -36,7 +39,7 @@ contract OmnibusTBEControllerWhitelisted is IDSOmnibusTBEController, OmnibusTBEC
     function bulkTransfer(address[] memory wallets, uint256[] memory values) public override onlyIssuerOrAbove {
         require(wallets.length == values.length, 'Wallets and values lengths do not match');
         for (uint i = 0; i < wallets.length; i++) {
-            getToken().transferFrom(omnibusWallet, wallets[i], values[i]);
+            getToken().safeTransferFrom(omnibusWallet, wallets[i], values[i]);
         }
     }
 
