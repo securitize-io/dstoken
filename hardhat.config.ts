@@ -2,6 +2,7 @@ import { HardhatUserConfig } from "hardhat/config";
 import '@nomicfoundation/hardhat-toolbox';
 import '@openzeppelin/hardhat-upgrades';
 import './tasks/tasks.index';
+import 'dotenv/config'
 
 const config: HardhatUserConfig = {
   mocha: {

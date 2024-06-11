@@ -60,8 +60,6 @@
     "eslint": "^8.26.0",
     "eslint-config-standard": "^17.0.0",
     "eslint-plugin-promise": "^6.1.1",
-    "eth-lightwallet": "^4.0.0",
-    "ethereumjs-util": "^7.1.5",
     "ethers": "^6.12.0",
     "hardhat": "^2.22.2",
     "hardhat-gas-reporter": "^1.0.10",
