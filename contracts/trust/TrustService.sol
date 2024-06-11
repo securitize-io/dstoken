@@ -179,6 +179,7 @@ contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable
    * @return A boolean that indicates if the operation was successful.
    */
     function setServiceOwner(address _address) public override onlyMaster returns (bool) {
+        require(_address != address(0), "Owner can not be zero address");
         setRoleImpl(owner, NONE);
         owner = _address;
         setRoleImpl(_address, MASTER);

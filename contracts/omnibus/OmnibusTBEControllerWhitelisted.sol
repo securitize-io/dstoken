@@ -8,7 +8,9 @@ import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 contract OmnibusTBEControllerWhitelisted is IDSOmnibusTBEController, OmnibusTBEControllerDataStore, BaseDSContract {
 
     function initialize(address _omnibusWallet, bool _isPartitionedToken) public override onlyProxy initializer {
+        require(_omnibusWallet != address(0), "Omnibus wallet can not be zero address");
         __BaseDSContract_init();
+
         omnibusWallet = _omnibusWallet;
         isPartitionedToken = _isPartitionedToken;
     }
