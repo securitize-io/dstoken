@@ -18,7 +18,7 @@ import "../utils/BaseDSContract.sol";
 //SPDX-License-Identifier: GPL-3.0
 abstract contract ComplianceService is IDSComplianceService, ComplianceServiceDataStore, BaseDSContract {
 
-    function initialize() public virtual override onlyProxy initializer {
+    function initialize() public virtual override onlyProxy onlyInitializing {
         __BaseDSContract_init();
     }
 
