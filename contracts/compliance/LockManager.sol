@@ -13,7 +13,7 @@ import "../utils/BaseDSContract.sol";
 contract LockManager is IDSLockManager, LockManagerDataStore, BaseDSContract {
 
     /*************** Legacy functions ***************/
-    function createLockForHolder(string memory _holder, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime)
+    function createLockForHolder(string calldata _holder, uint256 _valueLocked, uint256 _reasonCode, string calldata _reasonString, uint256 _releaseTime)
         public
         view
         onlyTransferAgentOrAboveOrToken
@@ -21,15 +21,15 @@ contract LockManager is IDSLockManager, LockManagerDataStore, BaseDSContract {
         createLockForInvestor(_holder, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
 
-    function removeLockRecordForHolder(string memory _holderId, uint256 _lockIndex) public view onlyTransferAgentOrAbove returns (bool) {
+    function removeLockRecordForHolder(string calldata _holderId, uint256 _lockIndex) public view onlyTransferAgentOrAbove returns (bool) {
         return removeLockRecordForInvestor(_holderId, _lockIndex);
     }
 
-    function lockCountForHolder(string memory _holderId) public pure returns (uint256) {
+    function lockCountForHolder(string calldata _holderId) public pure returns (uint256) {
         return lockCountForInvestor(_holderId);
     }
 
-    function lockInfoForHolder(string memory _holderId, uint256 _lockIndex)
+    function lockInfoForHolder(string calldata _holderId, uint256 _lockIndex)
         public
         pure
         returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime)
@@ -37,7 +37,7 @@ contract LockManager is IDSLockManager, LockManagerDataStore, BaseDSContract {
         return lockInfoForInvestor(_holderId, _lockIndex);
     }
 
-    function getTransferableTokensForHolder(string memory _holderId, uint64 _time) public pure returns (uint256) {
+    function getTransferableTokensForHolder(string calldata _holderId, uint64 _time) public pure returns (uint256) {
         return getTransferableTokensForInvestor(_holderId, _time);
     }
 
@@ -69,7 +69,7 @@ contract LockManager is IDSLockManager, LockManagerDataStore, BaseDSContract {
         emit Locked(_to, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
 
-    function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime)
+    function addManualLockRecord(address _to, uint256 _valueLocked, string calldata _reason, uint256 _releaseTime)
         public
         override
         onlyTransferAgentOrAboveOrToken
@@ -186,7 +186,7 @@ contract LockManager is IDSLockManager, LockManagerDataStore, BaseDSContract {
         return 0;
     }
 
-    function createLockForInvestor(string memory, uint256, uint256, string memory, uint256) public view override onlyTransferAgentOrAboveOrToken {
+    function createLockForInvestor(string memory, uint256, uint256, string calldata, uint256) public view override onlyTransferAgentOrAboveOrToken {
         revertInvestorLevelMethod();
     }
 

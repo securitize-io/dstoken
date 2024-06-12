@@ -20,7 +20,7 @@ abstract contract IDSTokenPartitioned {
     function burnByPartition(
         address _who,
         uint256 _value,
-        string memory _reason,
+        string calldata _reason,
         bytes32 _partition /*onlyIssuerOrAbove*/
     ) public virtual;
 
@@ -28,7 +28,7 @@ abstract contract IDSTokenPartitioned {
         address _from,
         address _to,
         uint256 _value,
-        string memory _reason,
+        string calldata _reason,
         bytes32 _partition /*onlyIssuerOrAbove*/
     ) public virtual;
 

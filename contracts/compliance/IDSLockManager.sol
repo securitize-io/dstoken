@@ -28,7 +28,7 @@ abstract contract IDSLockManager {
     function addManualLockRecord(
         address _to,
         uint256 _valueLocked,
-        string memory _reason,
+        string calldata _reason,
         uint256 _releaseTime /*issuerOrAboveOrToken*/
     ) public virtual;
 
@@ -46,7 +46,7 @@ abstract contract IDSLockManager {
         string memory _investor,
         uint256 _valueLocked,
         uint256 _reasonCode,
-        string memory _reasonString,
+        string calldata _reasonString,
         uint256 _releaseTime /*onlyIssuerOrAboveOrToken*/
     ) public virtual;
 

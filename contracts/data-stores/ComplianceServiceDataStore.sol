@@ -13,4 +13,11 @@ contract ComplianceServiceDataStore is ServiceConsumerDataStore {
     mapping(string => uint256) internal issuancesCounters;
     mapping(string => mapping(uint256 => uint256)) issuancesValues;
     mapping(string => mapping(uint256 => uint256)) issuancesTimestamps;
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[41] private __gap;
 }

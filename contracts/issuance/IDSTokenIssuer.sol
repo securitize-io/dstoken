@@ -15,7 +15,7 @@ abstract contract IDSTokenIssuer {
         string memory _id,
         address _to,
         uint256[] memory _issuanceValues,
-        string memory _reason,
+        string calldata _reason,
         uint256[] memory _locksValues,
         uint64[] memory _lockReleaseTimes,
         string memory _collisionHash,

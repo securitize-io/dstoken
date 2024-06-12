@@ -24,7 +24,7 @@ contract MultiSigWallet {
     bytes32 constant SALT = 0xb37745e66c38577667d690143f874b67afebdda0d4baa8b47e7ec4f32a43ff12;
 
     uint256 public nonce; // (only) mutable state
-    uint256 public threshold; // immutable state
+    uint256 public immutable threshold; // immutable state
     mapping(address => bool) isOwner; // immutable state
     address[] public ownersArr; // immutable state
 

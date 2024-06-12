@@ -22,7 +22,7 @@ abstract contract IDSToken is IERC20, Initializable {
     event WalletAdded(address wallet);
     event WalletRemoved(address wallet);
 
-    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public virtual;
+    function initialize(string calldata _name, string calldata _symbol, uint8 _decimals) public virtual;
 
     /******************************
        CONFIGURATION
@@ -90,14 +90,14 @@ abstract contract IDSToken is IERC20, Initializable {
     function burn(
         address _who,
         uint256 _value,
-        string memory _reason /*onlyIssuerOrAbove*/
+        string calldata _reason /*onlyIssuerOrAbove*/
     ) public virtual;
 
     function omnibusBurn(
         address _omnibusWallet,
         address _who,
         uint256 _value,
-        string memory _reason /*onlyIssuerOrAbove*/
+        string calldata _reason /*onlyIssuerOrAbove*/
     ) public virtual;
 
     //*********************
@@ -108,7 +108,7 @@ abstract contract IDSToken is IERC20, Initializable {
         address _from,
         address _to,
         uint256 _value,
-        string memory _reason /*onlyIssuerOrAbove*/
+        string calldata _reason /*onlyIssuerOrAbove*/
     ) public virtual;
 
     function omnibusSeize(
@@ -116,7 +116,7 @@ abstract contract IDSToken is IERC20, Initializable {
         address _from,
         address _to,
         uint256 _value,
-        string memory _reason
+        string calldata
         /*onlyIssuerOrAbove*/
     ) public virtual;
 

@@ -179,6 +179,7 @@ contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable
    * @return A boolean that indicates if the operation was successful.
    */
     function setServiceOwner(address _address) public override onlyMaster returns (bool) {
+        require(_address != address(0), "Owner can not be zero address");
         setRoleImpl(owner, NONE);
         owner = _address;
         setRoleImpl(_address, MASTER);
@@ -193,7 +194,7 @@ contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable
    * @param _roles The array of role to be set. Length and order must match wit _addresss
    * @return A boolean that indicates if the operation was successful.
    */
-    function setRoles(address[] memory _addresses, uint8[] memory _roles) public override onlyMasterOrIssuerOrTransferAgent returns (bool) {
+    function setRoles(address[] calldata _addresses, uint8[] calldata _roles) public override onlyMasterOrIssuerOrTransferAgent returns (bool) {
         require(_addresses.length <= 30, "Exceeded the maximum number of addresses");
         require(_addresses.length == _roles.length, "Wrong length of parameters");
         for (uint i = 0; i < _addresses.length; i++) {
@@ -241,30 +242,30 @@ contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable
         return roles[_address];
     }
 
-    function addEntity(string memory _name, address _owner) public override onlyMasterOrIssuer onlyNewEntity(_name) onlyNewEntityOwner(_owner) {
+    function addEntity(string calldata _name, address _owner) public override onlyMasterOrIssuer onlyNewEntity(_name) onlyNewEntityOwner(_owner) {
         entitiesOwners[_name] = _owner;
         ownersEntities[_owner] = _name;
     }
 
-    function changeEntityOwner(string memory _name, address _oldOwner, address _newOwner) public override onlyMasterOrIssuer onlyExistingEntityOwner(_name, _oldOwner) {
+    function changeEntityOwner(string calldata _name, address _oldOwner, address _newOwner) public override onlyMasterOrIssuer onlyExistingEntityOwner(_name, _oldOwner) {
         delete ownersEntities[_oldOwner];
         ownersEntities[_newOwner] = _name;
         entitiesOwners[_name] = _newOwner;
     }
 
-    function addOperator(string memory _name, address _operator) public override onlyEntityOwnerOrAbove(_name) onlyNewOperator(_operator) {
+    function addOperator(string calldata _name, address _operator) public override onlyEntityOwnerOrAbove(_name) onlyNewOperator(_operator) {
         operatorsEntities[_operator] = _name;
     }
 
-    function removeOperator(string memory _name, address _operator) public override onlyEntityOwnerOrAbove(_name) onlyExistingOperator(_name, _operator) {
+    function removeOperator(string calldata _name, address _operator) public override onlyEntityOwnerOrAbove(_name) onlyExistingOperator(_name, _operator) {
         delete operatorsEntities[_operator];
     }
 
-    function addResource(string memory _name, address _resource) public override onlyMasterOrIssuer onlyExistingEntity(_name) onlyNewResource(_resource) {
+    function addResource(string calldata _name, address _resource) public override onlyMasterOrIssuer onlyExistingEntity(_name) onlyNewResource(_resource) {
         resourcesEntities[_resource] = _name;
     }
 
-    function removeResource(string memory _name, address _resource) public override onlyMasterOrIssuer onlyExistingResource(_name, _resource) {
+    function removeResource(string calldata _name, address _resource) public override onlyMasterOrIssuer onlyExistingResource(_name, _resource) {
         delete resourcesEntities[_resource];
     }
 

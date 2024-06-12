@@ -9,8 +9,8 @@ contract DSToken is StandardToken {
     using TokenLibrary for TokenLibrary.SupportedFeatures;
     uint256 internal constant OMNIBUS_NO_ACTION = 0;
 
-    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public virtual override onlyProxy initializer {
-        __ServiceConsumer_init();
+    function initialize(string calldata _name, string calldata _symbol, uint8 _decimals) public virtual override onlyProxy initializer {
+        __StandardToken_init();
 
         name = _name;
         symbol = _symbol;
@@ -112,14 +112,14 @@ contract DSToken is StandardToken {
     // TOKEN BURNING
     //*********************
 
-    function burn(address _who, uint256 _value, string memory _reason) public virtual override onlyIssuerOrTransferAgentOrAbove {
+    function burn(address _who, uint256 _value, string calldata _reason) public virtual override onlyIssuerOrTransferAgentOrAbove {
         TokenLibrary.burn(tokenData, getCommonServices(), _who, _value);
         emit Burn(_who, _value, _reason);
         emit Transfer(_who, address(0), _value);
         checkWalletsForList(_who, address(0));
     }
 
-    function omnibusBurn(address _omnibusWallet, address _who, uint256 _value, string memory _reason) public override onlyTransferAgentOrAbove {
+    function omnibusBurn(address _omnibusWallet, address _who, uint256 _value, string calldata _reason) public override onlyTransferAgentOrAbove {
         require(_value <= tokenData.walletsBalances[_omnibusWallet]);
         TokenLibrary.omnibusBurn(tokenData, getCommonServices(), _omnibusWallet, _who, _value);
         emit OmnibusBurn(_omnibusWallet, _who, _value, _reason, getAssetTrackingMode(_omnibusWallet));
@@ -132,14 +132,14 @@ contract DSToken is StandardToken {
     // TOKEN SEIZING
     //*********************
 
-    function seize(address _from, address _to, uint256 _value, string memory _reason) public virtual override onlyTransferAgentOrAbove {
+    function seize(address _from, address _to, uint256 _value, string calldata _reason) public virtual override onlyTransferAgentOrAbove {
         TokenLibrary.seize(tokenData, getCommonServices(), _from, _to, _value);
         emit Seize(_from, _to, _value, _reason);
         emit Transfer(_from, _to, _value);
         checkWalletsForList(_from, _to);
     }
 
-    function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string memory _reason) public override onlyTransferAgentOrAbove {
+    function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string calldata _reason) public override onlyTransferAgentOrAbove {
         TokenLibrary.omnibusSeize(tokenData, getCommonServices(), _omnibusWallet, _from, _to, _value);
         emit OmnibusSeize(_omnibusWallet, _from, _value, _reason, getAssetTrackingMode(_omnibusWallet));
         emit Seize(_omnibusWallet, _to, _value, _reason);

@@ -33,4 +33,11 @@ contract RegistryServiceDataStore is ServiceConsumerDataStore {
     mapping(address => Wallet) internal investorsWallets;
     mapping(address => IDSOmnibusWalletController) internal omnibusWalletsControllers;
     mapping(string => mapping(uint8 => Attribute)) public attributes;
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[34] private __gap;
 }

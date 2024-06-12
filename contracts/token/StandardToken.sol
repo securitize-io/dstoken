@@ -18,6 +18,10 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
         _;
     }
 
+    function __StandardToken_init() public onlyProxy onlyInitializing {
+        __BaseDSContract_init();
+    }
+
     function pause() public onlyTransferAgentOrAbove whenNotPaused {
         paused = true;
         emit Pause();

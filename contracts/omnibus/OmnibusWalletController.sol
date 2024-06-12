@@ -25,7 +25,9 @@ contract OmnibusWalletController is IDSOmnibusWalletController, OmnibusControlle
     }
 
     function initialize(address _omnibusWallet) public override initializer onlyProxy {
+        require(_omnibusWallet != address(0), "Omnibus wallet can not be zero address");
         __BaseDSContract_init();
+
         omnibusWallet = _omnibusWallet;
     }
 

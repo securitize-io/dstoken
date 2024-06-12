@@ -66,13 +66,13 @@ abstract contract IDSRegistryService {
     }
 
     function registerInvestor(
-        string memory _id,
-        string memory _collision_hash /*onlyExchangeOrAbove newInvestor(_id)*/
+        string calldata _id,
+        string calldata _collision_hash /*onlyExchangeOrAbove newInvestor(_id)*/
     ) public virtual returns (bool);
 
     function updateInvestor(
-        string memory _id,
-        string memory _collisionHash,
+        string calldata _id,
+        string calldata _collisionHash,
         string memory _country,
         address[] memory _wallets,
         uint8[] memory _attributeIds,
@@ -81,20 +81,20 @@ abstract contract IDSRegistryService {
     ) public virtual returns (bool);
 
     function removeInvestor(
-        string memory _id /*onlyExchangeOrAbove investorExists(_id)*/
+        string calldata _id /*onlyExchangeOrAbove investorExists(_id)*/
     ) public virtual returns (bool);
 
     function setCountry(
-        string memory _id,
+        string calldata _id,
         string memory _country /*onlyExchangeOrAbove investorExists(_id)*/
     ) public virtual returns (bool);
 
     function getCountry(string memory _id) public view virtual returns (string memory);
 
-    function getCollisionHash(string memory _id) public view virtual returns (string memory);
+    function getCollisionHash(string calldata _id) public view virtual returns (string memory);
 
     function setAttribute(
-        string memory _id,
+        string calldata _id,
         uint8 _attributeId,
         uint256 _value,
         uint256 _expiry,

@@ -82,6 +82,14 @@ abstract contract IDSComplianceService {
         uint256 _value
     ) public view virtual returns (uint256 code, string memory reason);
 
+    function newPreTransferCheck(
+        address _from,
+        address _to,
+        uint256 _value,
+        uint256 _balanceFrom,
+        bool _pausedToken
+    ) public view virtual returns (uint256 code, string memory reason);
+
     function preInternalTransferCheck(
         address _from,
         address _to,

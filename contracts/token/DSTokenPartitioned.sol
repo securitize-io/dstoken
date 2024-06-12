@@ -10,7 +10,7 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
 
     using TokenPartitionsLibrary for TokenPartitionsLibrary.TokenPartitions;
 
-    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public override onlyProxy initializer {
+    function initialize(string calldata _name, string calldata _symbol, uint8 _decimals) public override onlyProxy initializer {
         DSToken.initialize(_name, _symbol, _decimals);
     }
 
@@ -87,21 +87,21 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
         return DSToken.transferFrom(_from, _to, _value) && partitionsManagement.transferPartitions(getCommonServices(), _from, _to, _value, _partitions, _values);
     }
 
-    function burn(address, uint256, string memory) public pure override {
+    function burn(address, uint256, string calldata) public pure override {
         require(false, "Partitioned Token");
     }
 
-    function burnByPartition(address _who, uint256 _value, string memory _reason, bytes32 _partition) public override onlyIssuerOrTransferAgentOrAbove {
+    function burnByPartition(address _who, uint256 _value, string calldata _reason, bytes32 _partition) public override onlyIssuerOrTransferAgentOrAbove {
         DSToken.burn(_who, _value, _reason);
         emit BurnByPartition(_who, _value, _reason, _partition);
         partitionsManagement.transferPartition(getRegistryService(), _who, address(0), _value, _partition);
     }
 
-    function seize(address, address, uint256, string memory) public pure override {
+    function seize(address, address, uint256, string calldata) public pure override {
         require(false, "Partitioned Token");
     }
 
-    function seizeByPartition(address _from, address _to, uint256 _value, string memory _reason, bytes32 _partition) public override onlyTransferAgentOrAbove {
+    function seizeByPartition(address _from, address _to, uint256 _value, string calldata _reason, bytes32 _partition) public override onlyTransferAgentOrAbove {
         DSToken.seize(_from, _to, _value, _reason);
         emit SeizeByPartition(_from, _to, _value, _reason, _partition);
         partitionsManagement.transferPartition(getRegistryService(), _from, _to, _value, _partition);

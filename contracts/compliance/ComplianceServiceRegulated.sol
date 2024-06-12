@@ -107,11 +107,11 @@ library ComplianceServiceLibrary {
         bool _isPlatformWalletFrom
     ) internal view returns (bool) {
         ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
-        uint64 lockPeriod;
+        uint256 lockPeriod;
         if (_isUSLockPeriod) {
-            lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSLockPeriod());
+            lockPeriod = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSLockPeriod();
         } else {
-            lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUSLockPeriod());
+            lockPeriod = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUSLockPeriod();
         }
 
         return
@@ -139,7 +139,7 @@ library ComplianceServiceLibrary {
     }
 
     function newPreTransferCheck(
-        address[] memory _services,
+        address[] calldata _services,
         address _from,
         address _to,
         uint256 _value,
@@ -151,7 +151,7 @@ library ComplianceServiceLibrary {
     }
 
     function preTransferCheck(
-        address[] memory _services,
+        address[] calldata _services,
         address _from,
         address _to,
         uint256 _value
@@ -399,7 +399,7 @@ library ComplianceServiceLibrary {
 
 
     function preIssuanceCheck(
-        address[] memory _services,
+        address[] calldata _services,
         address _to,
         uint256 _value
     ) public view returns (uint256 code, string memory reason) {
@@ -658,7 +658,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     function getComplianceTransferableTokens(
         address _who,
         uint256 _time,
-        uint64 _lockTime
+        uint256 _lockTime
     ) public view returns (uint256) {
         require(_time != 0, "Time must be greater than zero");
         string memory investor = getRegistryService().getInvestor(_who);
@@ -707,7 +707,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return accreditedInvestorsCount;
     }
 
-    function getEURetailInvestorsCount(string memory _country) public view returns (uint256) {
+    function getEURetailInvestorsCount(string calldata _country) public view returns (uint256) {
         return euRetailInvestorsCount[_country];
     }
 
@@ -739,7 +739,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return true;
     }
 
-    function setEURetailInvestorsCount(string memory _country, uint256 _value) public onlyMasterOrTBEOmnibus returns (bool) {
+    function setEURetailInvestorsCount(string calldata _country, uint256 _value) public onlyMasterOrTBEOmnibus returns (bool) {
         euRetailInvestorsCount[_country] = _value;
 
         return true;

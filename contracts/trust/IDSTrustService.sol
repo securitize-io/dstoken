@@ -41,7 +41,7 @@ abstract contract IDSTrustService {
      * @param _roles The array of role to be set. The length and order must match with _addresses
      * @return A boolean that indicates if the operation was successful.
      */
-    function setRoles(address[] memory _addresses, uint8[] memory _roles) public virtual returns (bool);
+    function setRoles(address[] calldata _addresses, uint8[] calldata _roles) public virtual returns (bool);
 
     /**
      * @dev Sets a role for a wallet.
@@ -73,33 +73,33 @@ abstract contract IDSTrustService {
     function getRole(address _address) public view virtual returns (uint8);
 
     function addEntity(
-        string memory _name,
+        string calldata _name,
         address _owner /*onlyMasterOrIssuer onlyNewEntity onlyNewEntityOwner*/
     ) public virtual;
 
     function changeEntityOwner(
-        string memory _name,
+        string calldata _name,
         address _oldOwner,
         address _newOwner /*onlyMasterOrIssuer onlyExistingEntityOwner*/
     ) public virtual;
 
     function addOperator(
-        string memory _name,
+        string calldata _name,
         address _operator /*onlyEntityOwnerOrAbove onlyNewOperator*/
     ) public virtual;
 
     function removeOperator(
-        string memory _name,
+        string calldata _name,
         address _operator /*onlyEntityOwnerOrAbove onlyExistingOperator*/
     ) public virtual;
 
     function addResource(
-        string memory _name,
+        string calldata _name,
         address _resource /*onlyMasterOrIssuer onlyExistingEntity onlyNewResource*/
     ) public virtual;
 
     function removeResource(
-        string memory _name,
+        string calldata _name,
         address _resource /*onlyMasterOrIssuer onlyExistingResource*/
     ) public virtual;
 

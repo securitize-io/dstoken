@@ -13,6 +13,7 @@ contract ComplianceServiceWhitelisted is ComplianceService {
     function initialize() public virtual override onlyProxy initializer {
         ComplianceService.initialize();
     }
+
     function newPreTransferCheck(
         address _from,
         address _to,
