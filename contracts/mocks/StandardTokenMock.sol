@@ -6,7 +6,7 @@ import "../token/StandardToken.sol";
 //SPDX-License-Identifier: GPL-3.0
 contract StandardTokenMock is StandardToken {
 
-    function initialize(string calldata _name, string calldata _symbol, uint8 _decimals) public virtual override onlyProxy initializer {
+    function initialize(string calldata _name, string calldata _symbol, uint8 _decimals) public virtual onlyProxy initializer {
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
