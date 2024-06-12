@@ -18,7 +18,7 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
         _;
     }
 
-    function initialize() public override onlyProxy onlyInitializing {
+    function __StandardToken_init() public onlyProxy onlyInitializing {
         __BaseDSContract_init();
     }
 

@@ -9,8 +9,8 @@ contract DSToken is StandardToken {
     using TokenLibrary for TokenLibrary.SupportedFeatures;
     uint256 internal constant OMNIBUS_NO_ACTION = 0;
 
-    function initialize(string calldata _name, string calldata _symbol, uint8 _decimals) public virtual onlyProxy initializer {
-        StandardToken.initialize();
+    function initialize(string calldata _name, string calldata _symbol, uint8 _decimals) public virtual override onlyProxy initializer {
+        __StandardToken_init();
 
         name = _name;
         symbol = _symbol;

@@ -22,7 +22,7 @@ abstract contract IDSToken is IERC20, Initializable {
     event WalletAdded(address wallet);
     event WalletRemoved(address wallet);
 
-    function initialize() public virtual;
+    function initialize(string calldata _name, string calldata _symbol, uint8 _decimals) public virtual;
 
     /******************************
        CONFIGURATION
