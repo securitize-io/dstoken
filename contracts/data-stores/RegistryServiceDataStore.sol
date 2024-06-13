@@ -39,5 +39,5 @@ contract RegistryServiceDataStore is ServiceConsumerDataStore {
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint256[34] private __gap;
+    uint256[46] private __gap;
 }
