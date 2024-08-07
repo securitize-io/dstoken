@@ -1,5 +1,6 @@
 import { task, types } from 'hardhat/config';
 
+
 task('deploy-all', 'Deploy DS Protocol')
   .addParam('name', 'DS Token name', 'Token Example', types.string)
   .addParam('symbol', 'DS Token symbol', 'EXA', types.string)
@@ -8,6 +9,8 @@ task('deploy-all', 'Deploy DS Protocol')
   .addParam('tbe', 'Omnibus TBE address', undefined, types.string, false)
   .setAction(async (args, { run }) => {
     await run('compile');
+    const [owner, wallet] = await hre.ethers.getSigners();
+
     const dsToken = await run('deploy-token', args);
     const trustService = await run('deploy-trust-service');
     const registryService = await run('deploy-registry-service');
@@ -23,7 +26,22 @@ task('deploy-all', 'Deploy DS Protocol')
     const tokenReallocator = await run('deploy-token-reallocator');
     const issuerMulticall = await run('deploy-issuer-multicall');
     const bulkOperator = await run('deploy-bulk-operator', { dsToken: dsToken.target });
+    const navProviderMock = await hre.ethers.deployContract('SecuritizeInternalNavProviderMock', [1]);
+    const usdcMock = await run('deploy-erc20',
+      {
+        name: 'USDC',
+        symbol: 'USDC',
+        initialSupply: '100000000000000000000000000000',
+        decimals: 6,
+      });
 
+      const swap = await run('deploy-securitze-swap',
+        {
+          dsToken: dsToken.target,
+          stableCoin: usdcMock.target,
+          navProvider: navProviderMock.target,
+          issuerWallet: wallet.address,
+        });
     const dsContracts = {
       dsToken,
       trustService,
@@ -39,7 +57,10 @@ task('deploy-all', 'Deploy DS Protocol')
       transactionRelayer,
       tokenReallocator,
       issuerMulticall,
-      bulkOperator
+      bulkOperator,
+      usdcMock,
+      swap,
+      navProviderMock
     };
 
     await run('set-roles', { dsContracts });

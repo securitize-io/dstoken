@@ -16,3 +16,5 @@ export * from './deploy-issuer-multicall';
 export * from './set-roles';
 export * from './set-services';
 export * from './deploy-bulk-operator';
+export * from './deploy-erc20';
+export * from './deploy-securitize-swap';

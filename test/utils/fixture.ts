@@ -1,8 +1,8 @@
 import hre from 'hardhat';
 import { DSConstants } from '../../utils/globals';
 
-console.log = function() {
-};
+// console.log = function() {
+// };
 hre.upgrades.silenceWarnings();
 export const TBE = '0x7C1ab56B369DdB0ee7A5F85a9d0A569370cF9B87';
 
