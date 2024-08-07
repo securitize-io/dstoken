@@ -22,6 +22,7 @@ task('deploy-all', 'Deploy DS Protocol')
     const transactionRelayer = await run('deploy-transaction-relayer');
     const tokenReallocator = await run('deploy-token-reallocator');
     const issuerMulticall = await run('deploy-issuer-multicall');
+    const bulkOperator = await run('deploy-bulk-operator', { dsToken: dsToken.target });
 
     const dsContracts = {
       dsToken,
@@ -37,7 +38,8 @@ task('deploy-all', 'Deploy DS Protocol')
       omnibusTBEController,
       transactionRelayer,
       tokenReallocator,
-      issuerMulticall
+      issuerMulticall,
+      bulkOperator
     };
 
     await run('set-roles', { dsContracts });

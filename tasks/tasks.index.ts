@@ -15,3 +15,4 @@ export * from './deploy-token-reallocator';
 export * from './deploy-issuer-multicall';
 export * from './set-roles';
 export * from './set-services';
+export * from './deploy-bulk-operator';
