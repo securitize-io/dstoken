@@ -69,7 +69,7 @@ describe("Securitize Swap test", () => {
     });
   });
   describe("Buy", () => {
-    const ratesToMap = [1];
+    const ratesToMap = [1, 4, 0.25];
     ratesToMap.forEach((rateToTest) => {
       describe(`Buy method with DSToken with Nav Rate ${rateToTest}`, () => {
         describe("[Buy Method] Interaction with Securitize Swap", () => {
@@ -349,6 +349,7 @@ describe("Securitize Swap test", () => {
     let dsToken: DSToken;
     let registryService: RegistryService;
     let trustService: TrustService;
+    let complianceService: ComplianceService;
     let navProviderMock: SecuritizeInternalNavProviderMock;
     let wallet: HardhatEthersSigner;
     let investor01: HardhatEthersSigner;
@@ -360,6 +361,7 @@ describe("Securitize Swap test", () => {
     let signature: { v: any; r: any; s: any };
     let swapAddress: string;
     let chainId: number;
+    let blockNumber: number;
     beforeEach(async () => {
       ({
         swap,
@@ -368,29 +370,14 @@ describe("Securitize Swap test", () => {
         registryService,
         navProviderMock,
         trustService,
+        complianceService,
       } = await loadFixture(deployDSTokenRegulated));
-      [, wallet, investor01, investor02, fakeAddress] = await hre.ethers.getSigners();
+      [, wallet, investor01, investor02, fakeAddress] =
+        await hre.ethers.getSigners();
       await usdcMock.transfer(investor01.address, AMOUNT_TO_BUY);
       await usdcMock.transfer(investor02.address, AMOUNT_TO_BUY);
-      await registryService.registerInvestor(
-        INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
-        INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1
-      );
-      await registryService.registerInvestor(
-        INVESTORS.INVESTOR_ID.INVESTOR_ID_2,
-        INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_2
-      );
-      await registryService.addWallet(
-        investor01.address,
-        INVESTORS.INVESTOR_ID.INVESTOR_ID_1
-      );
-      await registryService.addWallet(
-        investor02.address,
-        INVESTORS.INVESTOR_ID.INVESTOR_ID_2
-      );
-
       nonce = await swap.nonceByInvestor(BLOCKCHAIN_ID_INVESTOR_01);
-      const blockNumber = await hre.ethers.provider.getBlockNumber();
+      blockNumber = await hre.ethers.provider.getBlockNumber();
 
       data = [
         BLOCKCHAIN_ID_INVESTOR_01,
@@ -564,7 +551,9 @@ describe("Securitize Swap test", () => {
         ).to.be.revertedWith("Incorrect params length");
       });
       it("SHOULD fail - Transaction too old", async () => {
-        const blockNumber = await hre.ethers.provider.getBlockNumber();
+        //mine 256 blocks
+        await hre.network.provider.send("hardhat_mine", ["0x100"]);
+        blockNumber = await hre.ethers.provider.getBlockNumber();
         await trustService.setRole(hsmAddress, DSConstants.roles.ISSUER);
         data = [
           BLOCKCHAIN_ID_INVESTOR_01,
@@ -797,13 +786,140 @@ describe("Securitize Swap test", () => {
         expect(await registryService.isInvestor(BLOCKCHAIN_ID_INVESTOR_01)).to
           .be.true;
         expect(await registryService.isWallet(fakeAddress.address)).to.be.true;
-        expect(await registryService.getCountry(BLOCKCHAIN_ID_INVESTOR_01)).to.be.equal(INVESTOR_COUNTRY);
-        expect(await registryService.getAttributeValue(BLOCKCHAIN_ID_INVESTOR_01,KYC)).to.be.equal(1);
-        expect(await registryService.getAttributeValue(BLOCKCHAIN_ID_INVESTOR_01,ACCREDITED)).to.be.equal(1);
-        expect(await registryService.getAttributeValue(BLOCKCHAIN_ID_INVESTOR_01,QUALIFIED)).to.be.equal(1);
+        expect(
+          await registryService.getCountry(BLOCKCHAIN_ID_INVESTOR_01)
+        ).to.be.equal(INVESTOR_COUNTRY);
+        expect(
+          await registryService.getAttributeValue(
+            BLOCKCHAIN_ID_INVESTOR_01,
+            KYC
+          )
+        ).to.be.equal(1);
+        expect(
+          await registryService.getAttributeValue(
+            BLOCKCHAIN_ID_INVESTOR_01,
+            ACCREDITED
+          )
+        ).to.be.equal(1);
+        expect(
+          await registryService.getAttributeValue(
+            BLOCKCHAIN_ID_INVESTOR_01,
+            QUALIFIED
+          )
+        ).to.be.equal(1);
         expect(await usdcMock.balanceOf(wallet)).to.be.equal(USDC_TO_SWAP);
         expect(await usdcMock.balanceOf(fakeAddress.address)).to.be.equal(0);
-        expect(await dsToken.balanceOf(fakeAddress)).to.be.equal(DSTOKEN_TO_SWAP);  
+        expect(await dsToken.balanceOf(fakeAddress)).to.be.equal(
+          DSTOKEN_TO_SWAP
+        );
+      });
+      it("SHOULD process the swap with existing investor and issuanceTime in one year", async () => {
+        await registryService.registerInvestor(BLOCKCHAIN_ID_INVESTOR_01, HASH);
+        expect(await registryService.isInvestor(BLOCKCHAIN_ID_INVESTOR_01)).to.be.true;
+        await usdcMock.transfer(fakeAddress.address, USDC_TO_SWAP);
+        await usdcMock.connect(fakeAddress).approve(swapAddress, USDC_TO_SWAP);
+        await trustService.setRole(hsmAddress, DSConstants.roles.ISSUER);
+        const blockNumber = await hre.ethers.provider.getBlockNumber();
+        data = [
+          BLOCKCHAIN_ID_INVESTOR_01,
+          fakeAddress.address,
+          INVESTOR_COUNTRY,
+          [KYC, ACCREDITED, QUALIFIED],
+          [1, 1, 1],
+          [0, 0, 0],
+          DSTOKEN_TO_SWAP,
+          USDC_TO_SWAP,
+          blockNumber + 100,
+          (await time.latest()) + PERIOD,
+          HASH,
+        ];
+        functionData = swap.interface.encodeFunctionData("swap", data);
+        const nonce = await swap.nonceByInvestor(BLOCKCHAIN_ID_INVESTOR_01);
+        const signature = await sign(
+          swapAddress,
+          Number(nonce),
+          swapAddress,
+          BLOCKCHAIN_ID_INVESTOR_01,
+          functionData,
+          fakeAddress.address,
+          chainId,
+          hsmPrivateKey,
+          GAS_LIMIT,
+          VALUE
+        );
+        await swap
+          .connect(investor01)
+          .executePreApprovedTransaction(
+            signature.v,
+            signature.r,
+            signature.s,
+            BLOCKCHAIN_ID_INVESTOR_01,
+            swapAddress,
+            fakeAddress.address,
+            functionData,
+            [VALUE, GAS_LIMIT]
+          );
+        expect(await usdcMock.balanceOf(wallet)).to.be.equal(USDC_TO_SWAP);
+        expect(await usdcMock.balanceOf(fakeAddress.address)).to.be.equal(0);
+        expect(await dsToken.balanceOf(fakeAddress)).to.be.equal(
+          DSTOKEN_TO_SWAP
+        );
+        const balanceTokens = await dsToken.balanceOf(fakeAddress.address);
+        expect(await complianceService.getComplianceTransferableTokens(fakeAddress,await time.latest(), 0)).to.be.equal(0);
+        expect(await complianceService.getComplianceTransferableTokens(fakeAddress,await time.latest() + PERIOD, 0)).to.be.equal(balanceTokens);
+      });
+      it('SHOULD fail - Process the swap with existing investor and a wallet from another investor', async () => {
+        await registryService.registerInvestor(BLOCKCHAIN_ID_INVESTOR_01, HASH);
+        expect(await registryService.isInvestor(BLOCKCHAIN_ID_INVESTOR_01)).to.be.true;
+        await registryService.registerInvestor(BLOCKCHAIN_ID_INVESTOR_02, HASH);
+        expect(await registryService.isInvestor(BLOCKCHAIN_ID_INVESTOR_02)).to.be.true;
+        
+        await usdcMock.transfer(investor02.address, USDC_TO_SWAP);
+        await usdcMock.connect(investor02).approve(swapAddress, USDC_TO_SWAP);
+        
+        await registryService.addWallet(investor02.address, BLOCKCHAIN_ID_INVESTOR_02);
+
+        await trustService.setRole(hsmAddress, DSConstants.roles.ISSUER);
+        const blockNumber = await hre.ethers.provider.getBlockNumber();
+        const data_investor2 = [
+          BLOCKCHAIN_ID_INVESTOR_01,
+          investor02.address,
+          INVESTOR_COUNTRY,
+          [KYC, ACCREDITED, QUALIFIED],
+          [1, 1, 1],
+          [0, 0, 0],
+          DSTOKEN_TO_SWAP,
+          USDC_TO_SWAP,
+          blockNumber + 100,
+          await time.latest(),
+          HASH,
+        ];
+        const functionData_investor2 = swap.interface.encodeFunctionData("swap", data_investor2);
+        const nonce = await swap.nonceByInvestor(BLOCKCHAIN_ID_INVESTOR_01);
+        const signature = await sign(
+          swapAddress,
+          Number(nonce),
+          swapAddress,
+          BLOCKCHAIN_ID_INVESTOR_01,
+          functionData_investor2,
+          investor02.address,
+          chainId,
+          hsmPrivateKey,
+          GAS_LIMIT,
+          VALUE
+        );
+        await expect(swap
+          .connect(investor01)
+          .executePreApprovedTransaction(
+            signature.v,
+            signature.r,
+            signature.s,
+            BLOCKCHAIN_ID_INVESTOR_01,
+            swapAddress,
+            investor02.address,
+            functionData_investor2,
+            [VALUE, GAS_LIMIT]
+          )).to.be.revertedWith("Wallet does not belong to investor");
       });
     });
   });
