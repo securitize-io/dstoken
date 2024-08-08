@@ -1,5 +1,5 @@
 {
-  "name": "Digital_Securities",
+  "name": "@securitize/digital_securities",
   "version": "3.1.0",
   "description": "Digital Securities Reference Implementation",
   "scripts": {
@@ -7,7 +7,9 @@
     "test:unitests": "cross-env TEST_MODE=TRUE ./scripts/test.sh test2/unitests/**",
     "test:integration": "cross-env TEST_MODE=TRUE ./scripts/test.sh test2/integration/**",
     "compile": "hardhat compile",
-    "coverage": "hardhat coverage"
+    "coverage": "hardhat coverage",
+    "changeset": "changeset",
+    "publish:snapshot": "changeset publish --no-git-tag --snapshot --tag snapshot"
   },
   "contributors": [
     {
@@ -69,6 +71,10 @@
     "solium": "^0.5.5",
     "ts-node": "^10.9.2",
     "typechain": "^8.3.2",
-    "typescript": "^5.4.4"
+    "typescript": "^5.4.4",
+    "@changesets/cli": "^2.22.0"
+
+  },
+  "dependencies": {
   }
 }
