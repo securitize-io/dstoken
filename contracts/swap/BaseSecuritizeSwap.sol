@@ -11,8 +11,8 @@ abstract contract BaseSecuritizeSwap is BaseDSContract, PausableUpgradeable {
     IDSToken public dsToken;
     IERC20 public stableCoinToken;
     ISecuritizeNavProvider public navProvider;
-
     address public issuerWallet;
+    uint256[46] __gap;
 
     function initialize(
         address _dsToken,
