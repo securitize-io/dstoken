@@ -20,7 +20,9 @@ subtask('set-services', 'Set DS Services')
         omnibusTBEController,
         transactionRelayer,
         tokenReallocator,
-        issuerMulticall
+        issuerMulticall,
+        bulkOperator,
+        swap
       } = dsContracts;
 
       // Token
@@ -139,6 +141,12 @@ subtask('set-services', 'Set DS Services')
       console.log('Connecting token reallocator to lock manager');
       await tokenReallocator.setDSService(DSConstants.services.LOCK_MANAGER, lockManager.getAddress());
 
+      // Bulk Operator
+      console.log('Connecting Bulk Operator to Trust Service');
+      await bulkOperator.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
+      await bulkOperator.setDSService(DSConstants.services.TOKEN_ISSUER, tokenIssuer.getAddress());
+      
+
       // Transaction Relayer
       console.log('Connecting transaction relayer to trust service');
       await transactionRelayer.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
@@ -146,6 +154,14 @@ subtask('set-services', 'Set DS Services')
       // Issuer Multi Call
       console.log('Connecting issuer multi call to trust service');
       await issuerMulticall.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
+
+      // Swap
+      console.log('Connecting swap to trust service');
+      await swap.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
+      console.log('Connecting swap to wallet manager');
+      await walletManager.addIssuerWallet(swap.target);
+      console.log('Connecting Swap with Registry Service');
+      await swap.setDSService(DSConstants.services.REGISTRY_SERVICE, registryService.getAddress());
 
       // Partitions Manager
       if (partitionsManager) {
