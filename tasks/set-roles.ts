@@ -19,5 +19,9 @@ subtask('set-roles', 'Set roles')
       await dsContracts.trustService.setRole(await dsContracts.tokenReallocator.getAddress(), DSConstants.roles.TRANSFER_AGENT);
       console.log(`Granting issuer permissions to Issuer Multi Call`);
       await dsContracts.trustService.setRole(await dsContracts.issuerMulticall.getAddress(), DSConstants.roles.ISSUER);
+      console.log(`Granting issuer permissions to Bulk Operator`);
+      await dsContracts.trustService.setRole(await dsContracts.bulkOperator.getAddress(), DSConstants.roles.ISSUER);
+      console.log('Setting Swap Issuer role');
+      await dsContracts.trustService.setRole(dsContracts.swap.target, DSConstants.roles.ISSUER);
     }
   );
