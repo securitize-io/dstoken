@@ -11,7 +11,6 @@ import {
   transactionRelayerPreApproval
 } from './utils/test-helper';
 
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 const GAS_LIMIT = 200000000;
 
 describe('Transaction Relayer Unit Tests', function() {
@@ -47,7 +46,7 @@ describe('Transaction Relayer Unit Tests', function() {
 
       const issueTokensData = dsToken.interface.encodeFunctionData('issueTokens', [investor.address, 100]);
       const block = await hre.ethers.provider.getBlock('latest');
-      const blockLimit = block?.number + 5;
+      const blockLimit = (block?.number ?? 0) + 5;
       const nonce = await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
 
       const message = {
@@ -55,7 +54,7 @@ describe('Transaction Relayer Unit Tests', function() {
         value: 0,
         data: issueTokensData,
         nonce: nonce,
-        executor: ZERO_ADDRESS,
+        executor: hre.ethers.ZeroAddress,
         gasLimit: GAS_LIMIT,
         investorId: INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
         blockLimit
@@ -69,7 +68,7 @@ describe('Transaction Relayer Unit Tests', function() {
         signature.s,
         INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
         await dsToken.getAddress(),
-        ZERO_ADDRESS,
+        hre.ethers.ZeroAddress,
         issueTokensData,
         [0, GAS_LIMIT, blockLimit]
       );
@@ -92,7 +91,7 @@ describe('Transaction Relayer Unit Tests', function() {
 
       const issueTokensData = dsToken.interface.encodeFunctionData('issueTokens', [investor.address, 100]);
       const block = await hre.ethers.provider.getBlock('latest');
-      const blockLimit = block?.number + 5;
+      const blockLimit = (block?.number ?? 0) + 5;
       const nonce = await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
 
       const message = {
@@ -100,7 +99,7 @@ describe('Transaction Relayer Unit Tests', function() {
         value: 0,
         data: issueTokensData,
         nonce: nonce,
-        executor: ZERO_ADDRESS,
+        executor: hre.ethers.ZeroAddress,
         gasLimit: GAS_LIMIT,
         investorId: INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
         blockLimit
@@ -114,7 +113,7 @@ describe('Transaction Relayer Unit Tests', function() {
         signature.s,
         INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
         await dsToken.getAddress(),
-        ZERO_ADDRESS,
+        hre.ethers.ZeroAddress,
         issueTokensData,
         [0, GAS_LIMIT, blockLimit, blockLimit]
       )).revertedWith('Incorrect params length');
@@ -134,7 +133,7 @@ describe('Transaction Relayer Unit Tests', function() {
 
       const issueTokensData = dsToken.interface.encodeFunctionData('issueTokens', [investor.address, 100]);
       const block = await hre.ethers.provider.getBlock('latest');
-      const blockLimit = block?.number - 5;
+      const blockLimit = (block?.number ?? 0) - 5;
       const nonce = await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
 
       const message = {
@@ -142,7 +141,7 @@ describe('Transaction Relayer Unit Tests', function() {
         value: 0,
         data: issueTokensData,
         nonce: nonce,
-        executor: ZERO_ADDRESS,
+        executor: hre.ethers.ZeroAddress,
         gasLimit: GAS_LIMIT,
         investorId: INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
         blockLimit
@@ -156,7 +155,7 @@ describe('Transaction Relayer Unit Tests', function() {
         signature.s,
         INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
         await dsToken.getAddress(),
-        ZERO_ADDRESS,
+        hre.ethers.ZeroAddress,
         issueTokensData,
         [0, GAS_LIMIT, blockLimit]
       )).revertedWith('Transaction too old');
@@ -176,7 +175,7 @@ describe('Transaction Relayer Unit Tests', function() {
 
       const issueTokensData = dsToken.interface.encodeFunctionData('issueTokens', [investor.address, 100]);
       const block = await hre.ethers.provider.getBlock('latest');
-      const blockLimit = block?.number + 5;
+      const blockLimit = (block?.number ?? 0) + 5;
       const nonce = await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
 
       const message = {
@@ -184,7 +183,7 @@ describe('Transaction Relayer Unit Tests', function() {
         value: 0,
         data: issueTokensData,
         nonce: nonce,
-        executor: ZERO_ADDRESS,
+        executor: hre.ethers.ZeroAddress,
         gasLimit: GAS_LIMIT,
         investorId: INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
         blockLimit
@@ -205,7 +204,7 @@ describe('Transaction Relayer Unit Tests', function() {
         signature.s,
         INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
         await dsToken.getAddress(),
-        ZERO_ADDRESS,
+        hre.ethers.ZeroAddress,
         issueTokensData,
         [0, GAS_LIMIT, blockLimit]
       )).revertedWith('Invalid signature');
@@ -225,7 +224,7 @@ describe('Transaction Relayer Unit Tests', function() {
         signature.s,
         INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
         await dsToken.getAddress(),
-        ZERO_ADDRESS,
+        hre.ethers.ZeroAddress,
         issueTokensData,
         [0, GAS_LIMIT, blockLimit]
       )).revertedWith('Invalid signature');
