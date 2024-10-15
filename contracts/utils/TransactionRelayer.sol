@@ -9,25 +9,23 @@ import "./BaseDSContract.sol";
 contract TransactionRelayer is BaseDSContract {
     // EIP712 Precomputed hashes:
     // keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract,bytes32 salt)")
-    bytes32 constant EIP712DOMAINTYPE_HASH = 0xd87cd6ef79d4e2b95e15ce8abf732db51ec771f1ca2edccf22a46c729ac56472;
+    bytes32 constant public EIP712DOMAINTYPE_HASH = 0xd87cd6ef79d4e2b95e15ce8abf732db51ec771f1ca2edccf22a46c729ac56472;
 
     // keccak256("Securitize Transaction Relayer for pre-approved transactions")
-    bytes32 constant NAME_HASH = 0x378460f4f89643d76dadb1d55fed95ff69d3c2e4b34cc81a5b565a797b10ce30;
+    bytes32 constant public NAME_HASH = 0x378460f4f89643d76dadb1d55fed95ff69d3c2e4b34cc81a5b565a797b10ce30;
 
     // keccak256("5")
-    bytes32 constant VERSION_HASH = 0xceebf77a833b30520287ddd9478ff51abbdffa30aa90a8d655dba0e8a79ce0c1;
+    bytes32 constant public VERSION_HASH = 0xceebf77a833b30520287ddd9478ff51abbdffa30aa90a8d655dba0e8a79ce0c1;
 
     // keccak256("TransactionRelayer(address destination,uint256 value,bytes data,uint256 nonce,address executor,uint256 gasLimit,string investorId,uint256 blockLimit)")
-    bytes32 constant TXTYPE_HASH = 0xe6d21e84f71e7221d45242249466f859d08c5b2820de017dfd5e28a588c401a9;
+    bytes32 constant public TXTYPE_HASH = 0xe6d21e84f71e7221d45242249466f859d08c5b2820de017dfd5e28a588c401a9;
 
     // keccak256("Securitize Transaction Relayer SALT")
-    bytes32 constant SALT = 0x6e31104f5170e59a0a98ebdeb5ba99f8b32ef7b56786b1722f81a5fa19dd1629;
+    bytes32 public constant SALT = 0x6e31104f5170e59a0a98ebdeb5ba99f8b32ef7b56786b1722f81a5fa19dd1629;
 
-    uint256 public nonce; // (only) mutable state
+    bytes32 public DOMAIN_SEPARATOR; // hash for EIP712, computed from contract address
 
-    bytes32 DOMAIN_SEPARATOR; // hash for EIP712, computed from contract address
-
-    uint256 public constant CONTRACT_VERSION = 4;
+    uint256 public constant CONTRACT_VERSION = 5;
 
     mapping(bytes32 => uint256) internal noncePerInvestor;
 
