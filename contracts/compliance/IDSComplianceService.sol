@@ -97,4 +97,10 @@ abstract contract IDSComplianceService {
     ) public view virtual returns (uint256 code, string memory reason);
 
     function validateIssuanceTime(uint256 _issuanceTime) public view virtual returns (uint256 issuanceTime);
+
+    function getComplianceTransferableTokens(
+        address _who,
+        uint256 _time,
+        uint256 _lockTime
+    ) public view virtual returns (uint256);
 }
