@@ -89,4 +89,13 @@ contract ComplianceServiceWhitelisted is ComplianceService {
 
         return checkTransfer(_from, _to, _value);
     }
+
+    function getComplianceTransferableTokens(
+        address _who,
+        uint256 _time,
+        uint256 /*_lockTime*/
+    ) public view virtual override returns (uint256) {
+        require(_time > 0, "Time must be greater than zero");
+        return getLockManager().getTransferableTokens(_who, _time);
+    }
 }
