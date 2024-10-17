@@ -659,7 +659,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         address _who,
         uint256 _time,
         uint256 _lockTime
-    ) public view returns (uint256) {
+    ) public view override returns (uint256) {
         require(_time != 0, "Time must be greater than zero");
         string memory investor = getRegistryService().getInvestor(_who);
 
