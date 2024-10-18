@@ -116,7 +116,7 @@ library ComplianceServiceLibrary {
 
         return
         !_isPlatformWalletFrom &&
-        complianceService.getComplianceTransferableTokens(_from, block.timestamp, lockPeriod) < _value;
+        complianceService.getComplianceTransferableTokens(_from, block.timestamp, uint64(lockPeriod)) < _value;
     }
 
     function maxInvestorsInCategoryForNonAccredited(
@@ -658,7 +658,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     function getComplianceTransferableTokens(
         address _who,
         uint256 _time,
-        uint256 _lockTime
+        uint64 _lockTime
     ) public view override returns (uint256) {
         require(_time != 0, "Time must be greater than zero");
         string memory investor = getRegistryService().getInvestor(_who);
@@ -676,7 +676,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         for (uint256 i = 0; i < investorIssuancesCount; i++) {
             uint256 issuanceTimestamp = issuancesTimestamps[investor][i];
 
-            if (_lockTime > _time || issuanceTimestamp > (_time - _lockTime)) {
+            if (uint256(_lockTime) > _time || issuanceTimestamp > (_time - uint256(_lockTime))) {
                 totalLockedTokens = totalLockedTokens + issuancesValues[investor][i];
             }
         }
