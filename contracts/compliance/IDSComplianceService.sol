@@ -101,6 +101,6 @@ abstract contract IDSComplianceService {
     function getComplianceTransferableTokens(
         address _who,
         uint256 _time,
-        uint256 _lockTime
+        uint64 _lockTime
     ) public view virtual returns (uint256);
 }
