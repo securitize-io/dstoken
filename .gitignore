@@ -48,3 +48,10 @@ ignition/deployments/
 .idea/
 
 .vscode/
+
+#zk
+artifacts-zk/
+cache-zk/
+.zksolc-libraries-cache/
+deployments-zk/
+
