@@ -17,19 +17,19 @@ task('deploy-libraries', 'Deploy DS Protocol libraries')
         'ComplianceServicePartitionedLibrary',
       );
       const complianceServicePartitionedLibrary = await ComplianceServicePartitionedLibrary.deploy();
-      console.log(`ComplianceServiceLibrary deployed at: ${complianceServicePartitionedLibrary.target}`);
+      console.log(`ComplianceServicePartitionedLibrary deployed at: ${complianceServicePartitionedLibrary.target}`);
 
       console.log('TokenLibrary...');
       const TokenLibrary = await hre.ethers.getContractFactory(
         'TokenLibrary',
       );
       const tokenLibrary = await TokenLibrary.deploy();
-      console.log(`ComplianceServiceLibrary deployed at: ${tokenLibrary.target}`);
+      console.log(`TokenLibrary deployed at: ${tokenLibrary.target}`);
 
       console.log('TokenPartitionsLibrary...');
       const TokenPartitionsLibrary = await hre.ethers.getContractFactory(
         'TokenPartitionsLibrary',
       );
       const tokenPartitionsLibrary = await TokenPartitionsLibrary.deploy();
-      console.log(`ComplianceServiceLibrary deployed at: ${tokenPartitionsLibrary.target}`);
+      console.log(`TokenPartitionsLibrary deployed at: ${tokenPartitionsLibrary.target}`);
     });
