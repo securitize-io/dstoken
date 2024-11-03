@@ -55,3 +55,4 @@ cache-zk/
 .zksolc-libraries-cache/
 deployments-zk/
 
+exported-abi-bytecodes/
