@@ -1,14 +1,30 @@
-pragma solidity ^0.8.13;
+/**
+ * Copyright 2024 Securitize Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import "./VersionedContract.sol";
+pragma solidity ^0.8.20;
 
 /**
  @title MultiSigWallet
  @notice An off-chain multisig wallet implementation
  @dev Based on SimpleWallet (https://github.com/christianlundkvist/simple-multisig) and uses EIP-712 standard validate a signature
 */
-//SPDX-License-Identifier: UNLICENSED
-contract MultiSigWallet is VersionedContract {
+
+contract MultiSigWallet {
     // EIP712 Precomputed hashes:
     // keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract,bytes32 salt)")
     bytes32 constant EIP712DOMAINTYPE_HASH = 0xd87cd6ef79d4e2b95e15ce8abf732db51ec771f1ca2edccf22a46c729ac56472;
@@ -26,14 +42,14 @@ contract MultiSigWallet is VersionedContract {
     bytes32 constant SALT = 0xb37745e66c38577667d690143f874b67afebdda0d4baa8b47e7ec4f32a43ff12;
 
     uint256 public nonce; // (only) mutable state
-    uint256 public threshold; // immutable state
+    uint256 public immutable threshold; // immutable state
     mapping(address => bool) isOwner; // immutable state
     address[] public ownersArr; // immutable state
 
     bytes32 DOMAIN_SEPARATOR; // hash for EIP712, computed from contract address
 
     // Note that owners_ must be strictly increasing, in order to prevent duplicates
-    constructor(address[] memory owners_, uint256 threshold_, uint256 chainId) {
+    constructor(address[] memory owners_, uint256 threshold_) {
         require(
             owners_.length <= 10 &&
             owners_.length > 1 &&
@@ -55,7 +71,7 @@ contract MultiSigWallet is VersionedContract {
                 EIP712DOMAINTYPE_HASH,
                 NAME_HASH,
                 VERSION_HASH,
-                chainId,
+                block.chainid,
                 this,
                 SALT
             )

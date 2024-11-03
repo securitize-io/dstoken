@@ -1,21 +1,35 @@
-pragma solidity ^0.8.13;
+/**
+ * Copyright 2024 Securitize Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+pragma solidity ^0.8.20;
 
 import "./IDSWalletRegistrar.sol";
-import "../service/ServiceConsumer.sol";
-import "../utils/ProxyTarget.sol";
+import "../utils/BaseDSContract.sol";
 
-//SPDX-License-Identifier: UNLICENSED
-contract WalletRegistrar is ProxyTarget, Initializable, IDSWalletRegistrar, ServiceConsumer {
-    function initialize() public override(IDSWalletRegistrar, ServiceConsumer) initializer forceInitializeFromProxy {
-        IDSWalletRegistrar.initialize();
-        ServiceConsumer.initialize();
-        VERSIONS.push(4);
+contract WalletRegistrar is IDSWalletRegistrar, BaseDSContract {
+    function initialize() public override onlyProxy initializer {
+        __BaseDSContract_init();
     }
 
     function registerWallet(
         string memory _id,
-        address[] memory _wallets,
-        string memory _collisionHash,
+        address[] calldata _wallets,
+        string calldata _collisionHash,
         string memory _country,
         uint8[] memory _attributeIds,
         uint256[] memory _attributeValues,

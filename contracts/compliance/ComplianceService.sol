@@ -1,9 +1,27 @@
-pragma solidity ^0.8.13;
+/**
+ * Copyright 2024 Securitize Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import "../utils/ProxyTarget.sol";
+pragma solidity ^0.8.20;
+
 import "./IDSComplianceService.sol";
-import "../service/ServiceConsumer.sol";
+import "../utils/CommonUtils.sol";
 import "../data-stores/ComplianceServiceDataStore.sol";
+import "../utils/BaseDSContract.sol";
 
 /**
  *   @title Compliance service main implementation.
@@ -15,12 +33,11 @@ import "../data-stores/ComplianceServiceDataStore.sol";
  *   and implement the five functions - recordIssuance,checkTransfer,recordTransfer,recordBurn and recordSeize.
  *   The rest of the functions should only be overridden in rare circumstances.
  */
-//SPDX-License-Identifier: UNLICENSED
-abstract contract ComplianceService is ProxyTarget, Initializable, IDSComplianceService, ServiceConsumer, ComplianceServiceDataStore {
-    function initialize() public virtual override(IDSComplianceService, ServiceConsumer) forceInitializeFromProxy {
-        IDSComplianceService.initialize();
-        ServiceConsumer.initialize();
-        VERSIONS.push(7);
+
+abstract contract ComplianceService is IDSComplianceService, ComplianceServiceDataStore, BaseDSContract {
+
+    function initialize() public virtual override onlyProxy onlyInitializing {
+        __BaseDSContract_init();
     }
 
     function validateTransfer(
@@ -119,7 +136,7 @@ abstract contract ComplianceService is ProxyTarget, Initializable, IDSCompliance
         uint256 _value,
         uint256 _balanceFrom,
         bool _pausedToken
-    ) public view virtual returns (uint256 code, string memory reason) {
+    ) public view virtual override returns (uint256 code, string memory reason) {
         if (_pausedToken) {
             return (10, TOKEN_PAUSED);
         }

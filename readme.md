@@ -34,23 +34,15 @@ npm install
 
 # or if using yarn: yarn install
 
-npm run migrate -- --name <token name> --symbol <token symbol> --decimals <token decimals>
---reset - re-deploys the contracts
---no_registry - skip registry service
---compliance TYPE - compliance service type (NOT_REGULATED,WHITELIST,NORMAL) - if omitted, NORMAL is selected
---lock_manager TYPE - lock manager type (WALLET,INVESTOR) - if omitted, INVESTOR is selected
---owners - a space seperated string of owner addresses that own the multisig wallet
---required_confirmations - the number of required confirmations to execute a multisig wallet transaction
---chain_id - Used to create and sign EIP-712 messages. Used to deploy TransactionRelayer and MultiSig contracts. 1 (Ethereum Mainnet) by default.
---no_omnibus_wallet - skip omnibus wallet
---omnibus_wallet - the address of the omnibus wallet in the registry
---partitioned - add partitions support
+npm npx hardhat deploy-all --name <token name> --symbol <token symbol> --decimals <token decimals>
+--compliance TYPE - compliance service type (REGULATED, PARTITIONED, WHITELISTED) - if omitted, REGULATED is selected
+--tbe - the address of the omnibus wallet in the registry
 ```
 
 For example, to install a standard DSToken (with default compliance manager and lock manager), run:
 
 ```
-npm run migrate -- --network development --name ExampleToken --symbol EXM --decimals 18 --owners "0x648fC6c064d96ca6671a627D7a62C11C6CEff594 0xB640F84605Fa887653b0752FF937AB2E64FB2715" --required_confirmations 2 --omnibus_wallet '648fC6c064d96ca6671a627D7a62C11C6CEff594'
+npx hardhat deploy-all --network localhost --name ExampleToken --symbol EXM --decimals 18 --tbe '648fC6c064d96ca6671a627D7a62C11C6CEff594'
 
 ```
 
@@ -60,12 +52,6 @@ To run tests, run:
 
 ```
 npm test
-```
-
-to run integration tests, run:
-
-```
-npm run integration
 ```
 
 Tests run on a local Ganache server. A Ganache instance is launched if no instance is running when starting the test.

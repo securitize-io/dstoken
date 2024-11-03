@@ -32,6 +32,15 @@ npm-debug.log
 # truffle build directory
 build/
 
+# hardhat build directory
+artifacts/
+cache/
+typechain-types/
+ignition/deployments/
+
+# OZ
+.openzeppelin/
+
 # lol macs
 .DS_Store/
 
@@ -39,3 +48,11 @@ build/
 .idea/
 
 .vscode/
+
+#zk
+artifacts-zk/
+cache-zk/
+.zksolc-libraries-cache/
+deployments-zk/
+
+exported-abi-bytecodes/

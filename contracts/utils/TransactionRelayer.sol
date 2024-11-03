@@ -1,54 +1,64 @@
-pragma solidity ^0.8.13;
+/**
+ * Copyright 2024 Securitize Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import "./VersionedContract.sol";
-import "../service/ServiceConsumer.sol";
-import "../utils/ProxyTarget.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+pragma solidity ^0.8.20;
+
+import "./BaseDSContract.sol";
 
 /**
  @dev Based on SimpleWallet (https://github.com/christianlundkvist/simple-multisig) and uses EIP-712 standard validate a signature
 */
-//SPDX-License-Identifier: UNLICENSED
-contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
+
+contract TransactionRelayer is BaseDSContract {
     // EIP712 Precomputed hashes:
     // keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract,bytes32 salt)")
-    bytes32 constant EIP712DOMAINTYPE_HASH = 0xd87cd6ef79d4e2b95e15ce8abf732db51ec771f1ca2edccf22a46c729ac56472;
+    bytes32 constant public EIP712DOMAINTYPE_HASH = 0xd87cd6ef79d4e2b95e15ce8abf732db51ec771f1ca2edccf22a46c729ac56472;
 
     // keccak256("Securitize Transaction Relayer for pre-approved transactions")
-    bytes32 constant NAME_HASH = 0x378460f4f89643d76dadb1d55fed95ff69d3c2e4b34cc81a5b565a797b10ce30;
+    bytes32 constant public NAME_HASH = 0x378460f4f89643d76dadb1d55fed95ff69d3c2e4b34cc81a5b565a797b10ce30;
 
-    // keccak256("4")
-    bytes32 constant VERSION_HASH = 0x13600b294191fc92924bb3ce4b969c1e7e2bab8f4c93c3fc6d0a51733df3c060;
+    // keccak256("5")
+    bytes32 constant public VERSION_HASH = 0xceebf77a833b30520287ddd9478ff51abbdffa30aa90a8d655dba0e8a79ce0c1;
 
-    // keccak256("TransactionRelayer(address destination,uint256 value,bytes data,uint256 nonce,address executor,uint256 gasLimit)")
-    bytes32 constant TXTYPE_HASH = 0x18352269123822ee0d5f7ae54168e303ddfc22d7bd1afb2feb38c21fffe27ea7;
+    // keccak256("TransactionRelayer(address destination,uint256 value,bytes data,uint256 nonce,address executor,uint256 gasLimit,string investorId,uint256 blockLimit)")
+    bytes32 constant public TXTYPE_HASH = 0xe6d21e84f71e7221d45242249466f859d08c5b2820de017dfd5e28a588c401a9;
 
     // keccak256("Securitize Transaction Relayer SALT")
-    bytes32 constant SALT = 0x6e31104f5170e59a0a98ebdeb5ba99f8b32ef7b56786b1722f81a5fa19dd1629;
+    bytes32 public constant SALT = 0x6e31104f5170e59a0a98ebdeb5ba99f8b32ef7b56786b1722f81a5fa19dd1629;
 
-    uint256 public nonce; // (only) mutable state
+    bytes32 public DOMAIN_SEPARATOR; // hash for EIP712, computed from contract address
 
-    bytes32 DOMAIN_SEPARATOR; // hash for EIP712, computed from contract address
-
-    uint256 public constant CONTRACT_VERSION = 4;
+    uint256 public constant CONTRACT_VERSION = 5;
 
     mapping(bytes32 => uint256) internal noncePerInvestor;
-
-    using SafeMath for uint256;
 
     event InvestorNonceUpdated(string investorId, uint256 newNonce);
     event DomainSeparatorUpdated(uint256 chainId);
 
-    function initialize(uint256 chainId) public initializer forceInitializeFromProxy {
-        ServiceConsumer.initialize();
-        VERSIONS.push(CONTRACT_VERSION);
+    function initialize() public onlyProxy initializer {
+        __BaseDSContract_init();
 
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
                 EIP712DOMAINTYPE_HASH,
                 NAME_HASH,
                 VERSION_HASH,
-                chainId,
+                block.chainid,
                 this,
                 SALT
             )
@@ -151,21 +161,25 @@ contract TransactionRelayer is ProxyTarget, Initializable, ServiceConsumer{
         uint256[] memory params
     ) private {
         // EIP712 scheme: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md
-        bytes32 txInputHash = keccak256(
-            abi.encode(
-                TXTYPE_HASH,
-                destination,
-                params[0],
-                keccak256(data),
-                noncePerInvestor[toBytes32(senderInvestor)],
-                executor,
-                params[1],
-                keccak256(abi.encodePacked(senderInvestor)),
-                params[2]
-            )
-        );
+        // hash typed data
         bytes32 totalHash = keccak256(
-            abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, txInputHash)
+            abi.encodePacked(
+                "\x19\x01", // backslash is needed to escape the character
+                DOMAIN_SEPARATOR,
+                keccak256(
+                    abi.encode(
+                        TXTYPE_HASH,
+                        destination,
+                        params[0],
+                        keccak256(data),
+                        noncePerInvestor[toBytes32(senderInvestor)],
+                        executor,
+                        params[1],
+                        keccak256(abi.encodePacked(senderInvestor)),
+                        params[2]
+                    )
+                )
+            )
         );
 
         address recovered = ecrecover(totalHash, sigV, sigR, sigS);

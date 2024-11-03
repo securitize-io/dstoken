@@ -1,22 +1,58 @@
-pragma solidity ^0.8.13;
+/**
+ * Copyright 2024 Securitize Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+pragma solidity ^0.8.20;
 
 import "../utils/CommonUtils.sol";
-import "../utils/ProxyTarget.sol";
 import "./IDSTrustService.sol";
 import "../data-stores/TrustServiceDataStore.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 /**
  * @title TrustService
  * @dev A trust service which allows role-based access control for other contracts.
  * @dev Implements IDSTrustService.
  */
-//SPDX-License-Identifier: UNLICENSED
-contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServiceDataStore {
-    function initialize() public override initializer forceInitializeFromProxy {
-        IDSTrustService.initialize();
-        VERSIONS.push(4);
+
+contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable {
+
+    function initialize() public override onlyProxy initializer {
         owner = msg.sender;
         roles[msg.sender] = MASTER;
+    }
+
+    /**
+     * @dev required by the OZ UUPS module
+     */
+    function _authorizeUpgrade(address) internal override onlyMaster {}
+
+    /**
+     * @dev returns proxy ERC1967 implementation address
+     */
+    function getImplementationAddress() external view returns (address) {
+        return ERC1967Utils.getImplementation();
+    }
+
+    /**
+     * @dev Returns the highest version that has been initialized. See {reinitializer}.
+     */
+    function getInitializedVersion() external view returns (uint64) {
+        return _getInitializedVersion();
     }
 
     /**
@@ -161,6 +197,7 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
    * @return A boolean that indicates if the operation was successful.
    */
     function setServiceOwner(address _address) public override onlyMaster returns (bool) {
+        require(_address != address(0), "Owner can not be zero address");
         setRoleImpl(owner, NONE);
         owner = _address;
         setRoleImpl(_address, MASTER);
@@ -175,7 +212,7 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
    * @param _roles The array of role to be set. Length and order must match wit _addresss
    * @return A boolean that indicates if the operation was successful.
    */
-    function setRoles(address[] memory _addresses, uint8[] memory _roles) public override onlyMasterOrIssuerOrTransferAgent returns (bool) {
+    function setRoles(address[] calldata _addresses, uint8[] calldata _roles) public override onlyMasterOrIssuerOrTransferAgent returns (bool) {
         require(_addresses.length <= 30, "Exceeded the maximum number of addresses");
         require(_addresses.length == _roles.length, "Wrong length of parameters");
         for (uint i = 0; i < _addresses.length; i++) {
@@ -223,30 +260,30 @@ contract TrustService is ProxyTarget, Initializable, IDSTrustService, TrustServi
         return roles[_address];
     }
 
-    function addEntity(string memory _name, address _owner) public override onlyMasterOrIssuer onlyNewEntity(_name) onlyNewEntityOwner(_owner) {
+    function addEntity(string calldata _name, address _owner) public override onlyMasterOrIssuer onlyNewEntity(_name) onlyNewEntityOwner(_owner) {
         entitiesOwners[_name] = _owner;
         ownersEntities[_owner] = _name;
     }
 
-    function changeEntityOwner(string memory _name, address _oldOwner, address _newOwner) public override onlyMasterOrIssuer onlyExistingEntityOwner(_name, _oldOwner) {
+    function changeEntityOwner(string calldata _name, address _oldOwner, address _newOwner) public override onlyMasterOrIssuer onlyExistingEntityOwner(_name, _oldOwner) {
         delete ownersEntities[_oldOwner];
         ownersEntities[_newOwner] = _name;
         entitiesOwners[_name] = _newOwner;
     }
 
-    function addOperator(string memory _name, address _operator) public override onlyEntityOwnerOrAbove(_name) onlyNewOperator(_operator) {
+    function addOperator(string calldata _name, address _operator) public override onlyEntityOwnerOrAbove(_name) onlyNewOperator(_operator) {
         operatorsEntities[_operator] = _name;
     }
 
-    function removeOperator(string memory _name, address _operator) public override onlyEntityOwnerOrAbove(_name) onlyExistingOperator(_name, _operator) {
+    function removeOperator(string calldata _name, address _operator) public override onlyEntityOwnerOrAbove(_name) onlyExistingOperator(_name, _operator) {
         delete operatorsEntities[_operator];
     }
 
-    function addResource(string memory _name, address _resource) public override onlyMasterOrIssuer onlyExistingEntity(_name) onlyNewResource(_resource) {
+    function addResource(string calldata _name, address _resource) public override onlyMasterOrIssuer onlyExistingEntity(_name) onlyNewResource(_resource) {
         resourcesEntities[_resource] = _name;
     }
 
-    function removeResource(string memory _name, address _resource) public override onlyMasterOrIssuer onlyExistingResource(_name, _resource) {
+    function removeResource(string calldata _name, address _resource) public override onlyMasterOrIssuer onlyExistingResource(_name, _resource) {
         delete resourcesEntities[_resource];
     }
 

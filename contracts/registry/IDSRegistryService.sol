@@ -1,16 +1,29 @@
-pragma solidity ^0.8.13;
+/**
+ * Copyright 2024 Securitize Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+pragma solidity ^0.8.20;
 
 import "../utils/CommonUtils.sol";
-import "../utils/VersionedContract.sol";
-import "../utils/Initializable.sol";
 import "../omnibus/IDSOmnibusWalletController.sol";
 
-//SPDX-License-Identifier: UNLICENSED
-abstract contract IDSRegistryService is Initializable, VersionedContract {
+abstract contract IDSRegistryService {
 
-    function initialize() public virtual {
-        VERSIONS.push(6);
-    }
+    function initialize() public virtual;
 
     event DSRegistryServiceInvestorAdded(string investorId, address sender);
     event DSRegistryServiceInvestorRemoved(string investorId, address sender);
@@ -70,13 +83,13 @@ abstract contract IDSRegistryService is Initializable, VersionedContract {
     }
 
     function registerInvestor(
-        string memory _id,
-        string memory _collision_hash /*onlyExchangeOrAbove newInvestor(_id)*/
+        string calldata _id,
+        string calldata _collision_hash /*onlyExchangeOrAbove newInvestor(_id)*/
     ) public virtual returns (bool);
 
     function updateInvestor(
-        string memory _id,
-        string memory _collisionHash,
+        string calldata _id,
+        string calldata _collisionHash,
         string memory _country,
         address[] memory _wallets,
         uint8[] memory _attributeIds,
@@ -85,20 +98,20 @@ abstract contract IDSRegistryService is Initializable, VersionedContract {
     ) public virtual returns (bool);
 
     function removeInvestor(
-        string memory _id /*onlyExchangeOrAbove investorExists(_id)*/
+        string calldata _id /*onlyExchangeOrAbove investorExists(_id)*/
     ) public virtual returns (bool);
 
     function setCountry(
-        string memory _id,
+        string calldata _id,
         string memory _country /*onlyExchangeOrAbove investorExists(_id)*/
     ) public virtual returns (bool);
 
     function getCountry(string memory _id) public view virtual returns (string memory);
 
-    function getCollisionHash(string memory _id) public view virtual returns (string memory);
+    function getCollisionHash(string calldata _id) public view virtual returns (string memory);
 
     function setAttribute(
-        string memory _id,
+        string calldata _id,
         uint8 _attributeId,
         uint256 _value,
         uint256 _expiry,

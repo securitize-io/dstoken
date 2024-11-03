@@ -1,57 +1,111 @@
-pragma solidity ^0.8.13;
+/**
+ * Copyright 2024 Securitize Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import "../service/ServiceConsumer.sol";
-import "../utils/ProxyTarget.sol";
+pragma solidity ^0.8.20;
+
 import "../data-stores/OmnibusTBEControllerDataStore.sol";
-import "../compliance/ComplianceServiceRegulated.sol";
-import "../compliance/ComplianceConfigurationService.sol";
+import "../utils/BaseDSContract.sol";
+import "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-//SPDX-License-Identifier: UNLICENSED
-contract OmnibusTBEControllerWhitelisted is ProxyTarget, Initializable, IDSOmnibusTBEController, ServiceConsumer, OmnibusTBEControllerDataStore {
-    function initialize(address _omnibusWallet, bool _isPartitionedToken) public override initializer forceInitializeFromProxy {
-        VERSIONS.push(2);
-        ServiceConsumer.initialize();
+contract OmnibusTBEControllerWhitelisted is IDSOmnibusTBEController, OmnibusTBEControllerDataStore, BaseDSContract {
+
+    using SafeERC20 for IDSToken;
+
+    function initialize(address _omnibusWallet, bool _isPartitionedToken) public override onlyProxy initializer {
+        require(_omnibusWallet != address(0), "Omnibus wallet can not be zero address");
+        __BaseDSContract_init();
+
         omnibusWallet = _omnibusWallet;
         isPartitionedToken = _isPartitionedToken;
-        isPartitionedToken = false;
     }
 
-    function bulkIssuance(uint256 value, uint256 issuanceTime, uint256 totalInvestors, uint256 accreditedInvestors,
-        uint256 usAccreditedInvestors, uint256 usTotalInvestors, uint256 jpTotalInvestors, bytes32[] memory euRetailCountries,
-        uint256[] memory euRetailCountryCounts) public override onlyIssuerOrAbove {
+    function bulkIssuance(
+        uint256 value,
+        uint256 issuanceTime,
+        uint256 totalInvestors,
+        uint256 accreditedInvestors,
+        uint256 usAccreditedInvestors,
+        uint256 usTotalInvestors,
+        uint256 jpTotalInvestors,
+        bytes32[] calldata euRetailCountries,
+        uint256[] calldata euRetailCountryCounts
+    ) public override onlyIssuerOrAbove {
         require(euRetailCountries.length == euRetailCountryCounts.length, 'EU Retail countries arrays do not match');
         // Issue tokens
         getToken().issueTokensCustom(omnibusWallet, value, issuanceTime, 0, '', 0);
         emitTBEOperationEvent(totalInvestors, accreditedInvestors, usAccreditedInvestors, usTotalInvestors, jpTotalInvestors, true);
     }
 
-    function bulkBurn(uint256 value, uint256 totalInvestors, uint256 accreditedInvestors,
-        uint256 usAccreditedInvestors, uint256 usTotalInvestors, uint256 jpTotalInvestors, bytes32[] memory euRetailCountries,
-        uint256[] memory euRetailCountryCounts) public override onlyTransferAgentOrAbove {
+    function bulkBurn(
+        uint256 value,
+        uint256 totalInvestors,
+        uint256 accreditedInvestors,
+        uint256 usAccreditedInvestors,
+        uint256 usTotalInvestors,
+        uint256 jpTotalInvestors,
+        bytes32[] calldata euRetailCountries,
+        uint256[] calldata euRetailCountryCounts
+    ) public override onlyTransferAgentOrAbove {
         require(euRetailCountries.length == euRetailCountryCounts.length, 'EU Retail countries arrays do not match');
         // Burn tokens
         getToken().burn(omnibusWallet, value, 'Omnibus');
         emitTBEOperationEvent(totalInvestors, accreditedInvestors, usAccreditedInvestors, usTotalInvestors, jpTotalInvestors, false);
     }
 
-    function bulkTransfer(address[] memory wallets, uint256[] memory values) public override onlyIssuerOrAbove {
+    function bulkTransfer(address[] calldata wallets, uint256[] calldata values) public override onlyIssuerOrAbove {
         require(wallets.length == values.length, 'Wallets and values lengths do not match');
         for (uint i = 0; i < wallets.length; i++) {
-            getToken().transferFrom(omnibusWallet, wallets[i], values[i]);
+            getToken().safeTransferFrom(omnibusWallet, wallets[i], values[i]);
         }
     }
 
-    function internalTBETransfer(string memory externalId, int256 totalDelta, int256 accreditedDelta,
-        int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta, bytes32[] memory euRetailCountries,
-        int256[] memory euRetailCountryDeltas) public onlyIssuerOrAbove {
-        adjustCounters(totalDelta, accreditedDelta, usAccreditedDelta, usTotalDelta, jpTotalDelta,
-            euRetailCountries, euRetailCountryDeltas);
+    function internalTBETransfer(
+        string memory externalId,
+        int256 totalDelta,
+        int256 accreditedDelta,
+        int256 usAccreditedDelta,
+        int256 usTotalDelta,
+        int256 jpTotalDelta,
+        bytes32[] calldata euRetailCountries,
+        int256[] calldata euRetailCountryDeltas
+    ) public onlyIssuerOrAbove {
+        adjustCounters(
+            totalDelta,
+            accreditedDelta,
+            usAccreditedDelta,
+            usTotalDelta,
+            jpTotalDelta,
+            euRetailCountries,
+            euRetailCountryDeltas
+        );
         getToken().emitOmnibusTBETransferEvent(omnibusWallet, externalId);
     }
 
-    function adjustCounters(int256 totalDelta, int256 accreditedDelta,
-        int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta, bytes32[] memory euRetailCountries,
-        int256[] memory euRetailCountryDeltas) public override onlyIssuerOrAbove {
+    function adjustCounters(
+        int256 totalDelta,
+        int256 accreditedDelta,
+        int256 usAccreditedDelta,
+        int256 usTotalDelta,
+        int256 jpTotalDelta,
+        bytes32[] calldata euRetailCountries,
+        int256[] calldata euRetailCountryDeltas
+    ) public override onlyIssuerOrAbove {
         require(euRetailCountries.length == euRetailCountryDeltas.length, 'Array lengths do not match');
         getToken().emitOmnibusTBEEvent(
             omnibusWallet,
@@ -62,8 +116,6 @@ contract OmnibusTBEControllerWhitelisted is ProxyTarget, Initializable, IDSOmnib
             jpTotalDelta);
     }
 
-
-
     function getOmnibusWallet() public view override returns (address) {
         return omnibusWallet;
     }
@@ -72,11 +124,11 @@ contract OmnibusTBEControllerWhitelisted is ProxyTarget, Initializable, IDSOmnib
         uint256 _usAccreditedInvestors, uint256 _usTotalInvestors, uint256 _jpTotalInvestors, bool /*_increase*/) internal {
         getToken().emitOmnibusTBEEvent(
             omnibusWallet,
-            int256(_totalInvestors),
-            int256(_accreditedInvestors),
-            int256(_usAccreditedInvestors),
-            int256(_usTotalInvestors),
-            int256(_jpTotalInvestors)
+            SafeCast.toInt256(_totalInvestors),
+            SafeCast.toInt256(_accreditedInvestors),
+            SafeCast.toInt256(_usAccreditedInvestors),
+            SafeCast.toInt256(_usTotalInvestors),
+            SafeCast.toInt256(_jpTotalInvestors)
         );
     }
 }
