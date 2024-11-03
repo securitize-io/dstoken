@@ -1,19 +1,34 @@
-pragma solidity ^0.8.13;
+/**
+ * Copyright 2024 Securitize Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+pragma solidity ^0.8.20;
 
 import "./IDSComplianceConfigurationService.sol";
 import "../data-stores/ComplianceConfigurationDataStore.sol";
-import "../service/ServiceConsumer.sol";
-import "../utils/ProxyTarget.sol";
+import "../utils/BaseDSContract.sol";
 
-//SPDX-License-Identifier: UNLICENSED
-contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurationService, ServiceConsumer, ComplianceConfigurationDataStore {
-    function initialize() public override(IDSComplianceConfigurationService, ServiceConsumer) initializer forceInitializeFromProxy {
-        IDSComplianceConfigurationService.initialize();
-        ServiceConsumer.initialize();
-        VERSIONS.push(8);
+contract ComplianceConfigurationService is IDSComplianceConfigurationService, ComplianceConfigurationDataStore, BaseDSContract {
+
+    function initialize() public override onlyProxy initializer {
+        __BaseDSContract_init();
     }
 
-    function setCountriesCompliance(string[] memory _countries, uint256[] memory _values) public override onlyTransferAgentOrAbove {
+    function setCountriesCompliance(string[] calldata _countries, uint256[] calldata _values) public override onlyTransferAgentOrAbove {
         require(_countries.length <= 35, "Exceeded the maximum number of countries");
         require(_countries.length == _values.length, "Wrong length of parameters");
         for (uint i = 0; i < _countries.length; i++) {
@@ -21,7 +36,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         }
     }
 
-    function setCountryCompliance(string memory _country, uint256 _value) public override onlyTransferAgentOrAbove {
+    function setCountryCompliance(string calldata _country, uint256 _value) public override onlyTransferAgentOrAbove {
         emit DSComplianceStringToUIntMapRuleSet("countryCompliance", _country, countriesCompliances[_country], _value);
         countriesCompliances[_country] = _value;
     }
@@ -219,7 +234,7 @@ contract ComplianceConfigurationService is ProxyTarget, IDSComplianceConfigurati
         disallowBackDating = _value;
     }
 
-    function setAll(uint256[] memory _uint_values, bool[] memory _bool_values) public override onlyTransferAgentOrAbove {
+    function setAll(uint256[] calldata _uint_values, bool[] calldata _bool_values) public override onlyTransferAgentOrAbove {
         require(_uint_values.length == 16, "Wrong length of parameters");
         require(_bool_values.length == 5, "Wrong length of parameters");
         setTotalInvestorsLimit(_uint_values[0]);

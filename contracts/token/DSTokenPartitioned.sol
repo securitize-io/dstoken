@@ -1,18 +1,34 @@
-pragma solidity ^0.8.13;
+/**
+ * Copyright 2024 Securitize Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+pragma solidity ^0.8.20;
 
 import "./DSToken.sol";
 import "./IDSTokenPartitioned.sol";
 import "../compliance/IDSPartitionsManager.sol";
 import "./TokenPartitionsLibrary.sol";
 
-//SPDX-License-Identifier: UNLICENSED
 contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
 
     using TokenPartitionsLibrary for TokenPartitionsLibrary.TokenPartitions;
 
-    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public override initializer forceInitializeFromProxy {
+    function initialize(string calldata _name, string calldata _symbol, uint8 _decimals) public override onlyProxy initializer {
         DSToken.initialize(_name, _symbol, _decimals);
-        VERSIONS.push(3);
     }
 
     function issueTokensWithMultipleLocks(
@@ -88,21 +104,21 @@ contract DSTokenPartitioned is DSToken, IDSTokenPartitioned {
         return DSToken.transferFrom(_from, _to, _value) && partitionsManagement.transferPartitions(getCommonServices(), _from, _to, _value, _partitions, _values);
     }
 
-    function burn(address, uint256, string memory) public pure override {
+    function burn(address, uint256, string calldata) public pure override {
         require(false, "Partitioned Token");
     }
 
-    function burnByPartition(address _who, uint256 _value, string memory _reason, bytes32 _partition) public override onlyIssuerOrTransferAgentOrAbove {
+    function burnByPartition(address _who, uint256 _value, string calldata _reason, bytes32 _partition) public override onlyIssuerOrTransferAgentOrAbove {
         DSToken.burn(_who, _value, _reason);
         emit BurnByPartition(_who, _value, _reason, _partition);
         partitionsManagement.transferPartition(getRegistryService(), _who, address(0), _value, _partition);
     }
 
-    function seize(address, address, uint256, string memory) public pure override {
+    function seize(address, address, uint256, string calldata) public pure override {
         require(false, "Partitioned Token");
     }
 
-    function seizeByPartition(address _from, address _to, uint256 _value, string memory _reason, bytes32 _partition) public override onlyTransferAgentOrAbove {
+    function seizeByPartition(address _from, address _to, uint256 _value, string calldata _reason, bytes32 _partition) public override onlyTransferAgentOrAbove {
         DSToken.seize(_from, _to, _value, _reason);
         emit SeizeByPartition(_from, _to, _value, _reason, _partition);
         partitionsManagement.transferPartition(getRegistryService(), _from, _to, _value, _partition);

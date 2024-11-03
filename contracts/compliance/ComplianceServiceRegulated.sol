@@ -1,7 +1,24 @@
-pragma solidity ^0.8.13;
+/**
+ * Copyright 2024 Securitize Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+pragma solidity ^0.8.20;
 
 import "./ComplianceServiceWhitelisted.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
 library ComplianceServiceLibrary {
@@ -41,8 +58,6 @@ library ComplianceServiceLibrary {
         uint256 fromRegion;
         bool isPlatformWalletTo;
     }
-
-    using SafeMath for uint256;
 
     function isRetail(address[] memory _services, address _wallet) internal view returns (bool) {
         IDSRegistryService registry = IDSRegistryService(_services[REGISTRY_SERVICE]);
@@ -89,13 +104,13 @@ library ComplianceServiceLibrary {
         }
 
         if (compConfService.getUSInvestorsLimit() == 0) {
-            return compConfService.getMaxUSInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100);
+            return compConfService.getMaxUSInvestorsPercentage() * (complianceService.getTotalInvestorsCount()) / 100;
         }
 
-        return Math.min(compConfService.getUSInvestorsLimit(), compConfService.getMaxUSInvestorsPercentage().mul(complianceService.getTotalInvestorsCount()).div(100));
+        return Math.min(compConfService.getUSInvestorsLimit(), compConfService.getMaxUSInvestorsPercentage() * (complianceService.getTotalInvestorsCount()) / 100);
     }
 
-    function isOmnibusTBE(IDSOmnibusTBEController _omnibusTBE, address _from) public view returns (bool) {
+    function isOmnibusTBE(IDSOmnibusTBEController _omnibusTBE, address _from) internal view returns (bool) {
         if (address(_omnibusTBE) != address(0)) {
             return _omnibusTBE.getOmnibusWallet() == _from;
         }
@@ -110,16 +125,16 @@ library ComplianceServiceLibrary {
         bool _isPlatformWalletFrom
     ) internal view returns (bool) {
         ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
-        uint64 lockPeriod;
+        uint256 lockPeriod;
         if (_isUSLockPeriod) {
-            lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSLockPeriod());
+            lockPeriod = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSLockPeriod();
         } else {
-            lockPeriod = uint64(IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUSLockPeriod());
+            lockPeriod = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUSLockPeriod();
         }
 
         return
         !_isPlatformWalletFrom &&
-        complianceService.getComplianceTransferableTokens(_from, block.timestamp, lockPeriod) < _value;
+        complianceService.getComplianceTransferableTokens(_from, block.timestamp, uint64(lockPeriod)) < _value;
     }
 
     function maxInvestorsInCategoryForNonAccredited(
@@ -142,7 +157,7 @@ library ComplianceServiceLibrary {
     }
 
     function newPreTransferCheck(
-        address[] memory _services,
+        address[] calldata _services,
         address _from,
         address _to,
         uint256 _value,
@@ -154,7 +169,7 @@ library ComplianceServiceLibrary {
     }
 
     function preTransferCheck(
-        address[] memory _services,
+        address[] calldata _services,
         address _from,
         address _to,
         uint256 _value
@@ -402,7 +417,7 @@ library ComplianceServiceLibrary {
 
 
     function preIssuanceCheck(
-        address[] memory _services,
+        address[] calldata _services,
         address _to,
         uint256 _value
     ) public view returns (uint256 code, string memory reason) {
@@ -497,11 +512,11 @@ library ComplianceServiceLibrary {
  *   @title Concrete compliance service for tokens with regulation
  *
  */
-//SPDX-License-Identifier: UNLICENSED
+
 contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
-    function initialize() public virtual override initializer forceInitializeFromProxy {
+
+    function initialize() public virtual override onlyProxy initializer {
         super.initialize();
-        VERSIONS.push(13);
     }
 
     function compareInvestorBalance(
@@ -662,7 +677,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         address _who,
         uint256 _time,
         uint64 _lockTime
-    ) public view returns (uint256) {
+    ) public view override returns (uint256) {
         require(_time != 0, "Time must be greater than zero");
         string memory investor = getRegistryService().getInvestor(_who);
 
@@ -679,13 +694,13 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         for (uint256 i = 0; i < investorIssuancesCount; i++) {
             uint256 issuanceTimestamp = issuancesTimestamps[investor][i];
 
-            if (_lockTime > _time || issuanceTimestamp > SafeMath.sub(_time, _lockTime)) {
+            if (uint256(_lockTime) > _time || issuanceTimestamp > (_time - uint256(_lockTime))) {
                 totalLockedTokens = totalLockedTokens + issuancesValues[investor][i];
             }
         }
 
         //there may be more locked tokens than actual tokens, so the minimum between the two
-        uint256 transferable = SafeMath.sub(balanceOfInvestor, Math.min(totalLockedTokens, balanceOfInvestor));
+        uint256 transferable = balanceOfInvestor - Math.min(totalLockedTokens, balanceOfInvestor);
 
         return transferable;
     }
@@ -710,7 +725,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return accreditedInvestorsCount;
     }
 
-    function getEURetailInvestorsCount(string memory _country) public view returns (uint256) {
+    function getEURetailInvestorsCount(string calldata _country) public view returns (uint256) {
         return euRetailInvestorsCount[_country];
     }
 
@@ -742,7 +757,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return true;
     }
 
-    function setEURetailInvestorsCount(string memory _country, uint256 _value) public onlyMasterOrTBEOmnibus returns (bool) {
+    function setEURetailInvestorsCount(string calldata _country, uint256 _value) public onlyMasterOrTBEOmnibus returns (bool) {
         euRetailInvestorsCount[_country] = _value;
 
         return true;

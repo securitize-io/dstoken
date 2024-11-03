@@ -1,19 +1,35 @@
-pragma solidity ^0.8.13;
+/**
+ * Copyright 2024 Securitize Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+pragma solidity ^0.8.20;
 
 import "./IDSLockManagerPartitioned.sol";
 import "./InvestorLockManagerBase.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "../token/IDSTokenPartitioned.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
 // import "../data-stores/LockManagerPartitionedDataStore.sol";
 
-//SPDX-License-Identifier: UNLICENSED
 contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLockManagerBase {
     uint256 constant MAX_LOCKS_PER_INVESTOR_PARTITION = 30;
 
-    function initialize() public override initializer forceInitializeFromProxy {
-        InvestorLockManagerBase.initialize();
-        VERSIONS.push(3);
+    function initialize() public override onlyProxy initializer {
+        __BaseDSContract_init();
     }
 
     function createLockForInvestor(string memory _investorId, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime, bytes32 _partition)
@@ -122,7 +138,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
             return 0;
         }
 
-        uint256 balanceOfHolderByPartition = getTokenPartitioned().balanceOfInvestorByPartition(_investorId, _partition);
+        uint256 balanceOfHolderByPartition = IDSTokenPartitioned(getDSService(DS_TOKEN)).balanceOfInvestorByPartition(_investorId, _partition);
 
         if (investorsPartitionsLocksCounts[_investorId][_partition] == 0) {
             return balanceOfHolderByPartition;
@@ -136,21 +152,21 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
             }
         }
         //there may be more locked tokens than actual tokens, so the minimum between the two
-        return SafeMath.sub(balanceOfHolderByPartition, Math.min(totalLockedTokens, balanceOfHolderByPartition));
+        return balanceOfHolderByPartition - Math.min(totalLockedTokens, balanceOfHolderByPartition);
     }
 
     function getTransferableTokens(address _who, uint256 _time) public view override returns (uint256 transferable) {
         require(_time > 0, "Time must be greater than zero");
-        uint256 countOfPartitions = getTokenPartitioned().partitionCountOf(_who);
+        uint256 countOfPartitions = IDSTokenPartitioned(getDSService(DS_TOKEN)).partitionCountOf(_who);
         for (uint256 index = 0; index < countOfPartitions; ++index) {
-            transferable = SafeMath.add(transferable, getTransferableTokens(_who, _time, getTokenPartitioned().partitionOf(_who, index)));
+            transferable = transferable + getTransferableTokens(_who, _time, IDSTokenPartitioned(getDSService(DS_TOKEN)).partitionOf(_who, index));
         }
     }
 
     function addManualLockRecord(
         address, /*_to*/
         uint256, /*_valueLocked*/
-        string memory, /*_reason*/
+        string calldata, /*_reason*/
         uint256 /*_releaseTime*/
     ) public pure override {
         revertedFunction();
@@ -190,7 +206,7 @@ contract InvestorLockManagerPartitioned is IDSLockManagerPartitioned, InvestorLo
         string memory, /*_investor*/
         uint256, /*_valueLocked*/
         uint256, /*_reasonCode*/
-        string memory, /*_reasonString*/
+        string calldata, /*_reasonString*/
         uint256 /*_releaseTime*/
     ) public pure override {
         revertedFunction();

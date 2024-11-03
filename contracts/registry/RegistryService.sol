@@ -1,20 +1,34 @@
-pragma solidity ^0.8.13;
+/**
+ * Copyright 2024 Securitize Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+pragma solidity ^0.8.20;
+
 import "./IDSRegistryService.sol";
-import "../service/ServiceConsumer.sol";
 import "../data-stores/RegistryServiceDataStore.sol";
-import "../utils/ProxyTarget.sol";
+import "../utils/BaseDSContract.sol";
 
-//SPDX-License-Identifier: UNLICENSED
-contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, ServiceConsumer, RegistryServiceDataStore {
-    function initialize() public override(IDSRegistryService, ServiceConsumer) initializer forceInitializeFromProxy {
-        IDSRegistryService.initialize();
-        ServiceConsumer.initialize();
-        VERSIONS.push(6);
+contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDSContract {
+
+    function initialize() public override onlyProxy initializer {
+        __BaseDSContract_init();
     }
 
-    function registerInvestor(string memory _id, string memory _collisionHash) public override onlyExchangeOrAbove newInvestor(_id) returns (bool) {
+    function registerInvestor(string calldata _id, string calldata _collisionHash) public override onlyExchangeOrAbove newInvestor(_id) returns (bool) {
         investors[_id] = Investor(_id, _collisionHash, msg.sender, msg.sender, "", 0);
 
         emit DSRegistryServiceInvestorAdded(_id, msg.sender);
@@ -22,7 +36,7 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
         return true;
     }
 
-    function removeInvestor(string memory _id) public override onlyExchangeOrAbove investorExists(_id) returns (bool) {
+    function removeInvestor(string calldata _id) public override onlyExchangeOrAbove investorExists(_id) returns (bool) {
         require(getTrustService().getRole(msg.sender) != EXCHANGE || investors[_id].creator == msg.sender, "Insufficient permissions");
         require(investors[_id].walletCount == 0, "Investor has wallets");
 
@@ -38,8 +52,8 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
     }
 
     function updateInvestor(
-        string memory _id,
-        string memory _collisionHash,
+        string calldata _id,
+        string calldata _collisionHash,
         string memory _country,
         address[] memory _wallets,
         uint8[] memory _attributeIds,
@@ -90,7 +104,7 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
         return (country, attributeValues, attributeExpiries, attributeProofHashes[0], attributeProofHashes[1], attributeProofHashes[2], attributeProofHashes[3]);
     }
 
-    function setCountry(string memory _id, string memory _country) public override onlyExchangeOrAbove investorExists(_id) returns (bool) {
+    function setCountry(string calldata _id, string memory _country) public override onlyExchangeOrAbove investorExists(_id) returns (bool) {
         string memory prevCountry = getCountry(_id);
 
         getComplianceService().adjustInvestorCountsAfterCountryChange(_id, _country, prevCountry);
@@ -107,11 +121,11 @@ contract RegistryService is ProxyTarget, Initializable, IDSRegistryService, Serv
         return investors[_id].country;
     }
 
-    function getCollisionHash(string memory _id) public view override returns (string memory) {
+    function getCollisionHash(string calldata _id) public view override returns (string memory) {
         return investors[_id].collisionHash;
     }
 
-    function setAttribute(string memory _id, uint8 _attributeId, uint256 _value, uint256 _expiry, string memory _proofHash)
+    function setAttribute(string calldata _id, uint8 _attributeId, uint256 _value, uint256 _expiry, string memory _proofHash)
         public
         override
         onlyExchangeOrAbove

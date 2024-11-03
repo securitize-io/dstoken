@@ -1,14 +1,26 @@
-pragma solidity ^0.8.13;
+/**
+ * Copyright 2024 Securitize Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import "../utils/VersionedContract.sol";
-import "../utils/Initializable.sol";
+pragma solidity ^0.8.20;
 
-//SPDX-License-Identifier: UNLICENSED
-abstract contract IDSComplianceConfigurationService is Initializable, VersionedContract {
+abstract contract IDSComplianceConfigurationService {
 
-    function initialize() public virtual {
-        VERSIONS.push(7);
-    }
+    function initialize() public virtual;
 
     event DSComplianceUIntRuleSet(string ruleName, uint256 prevValue, uint256 newValue);
     event DSComplianceBoolRuleSet(string ruleName, bool prevValue, bool newValue);
@@ -16,10 +28,10 @@ abstract contract IDSComplianceConfigurationService is Initializable, VersionedC
 
     function getCountryCompliance(string memory _country) public view virtual returns (uint256);
 
-    function setCountriesCompliance(string[] memory _countries, uint256[] memory _values) public virtual;
+    function setCountriesCompliance(string[] calldata _countries, uint256[] calldata _values) public virtual;
 
     function setCountryCompliance(
-        string memory _country,
+        string calldata _country,
         uint256 _value /*onlyTransferAgentOrAbove*/
     ) public virtual;
 
@@ -150,8 +162,8 @@ abstract contract IDSComplianceConfigurationService is Initializable, VersionedC
     ) public virtual;
 
     function setAll(
-        uint256[] memory _uint_values,
-        bool[] memory _bool_values /*onlyTransferAgentOrAbove*/
+        uint256[] calldata _uint_values,
+        bool[] calldata _bool_values /*onlyTransferAgentOrAbove*/
     ) public virtual;
 
     function getAll() public view virtual returns (uint256[] memory, bool[] memory);

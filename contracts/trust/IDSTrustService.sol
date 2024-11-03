@@ -1,19 +1,31 @@
-pragma solidity ^0.8.13;
+/**
+ * Copyright 2024 Securitize Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import "../utils/VersionedContract.sol";
-import "../utils/Initializable.sol";
-
+pragma solidity ^0.8.20;
 
 /**
  * @title IDSTrustService
  * @dev An interface for a trust service which allows role-based access control for other contracts.
  */
-//SPDX-License-Identifier: UNLICENSED
-abstract contract IDSTrustService is Initializable, VersionedContract {
 
-    function initialize() public virtual {
-        VERSIONS.push(4);
-    }
+abstract contract IDSTrustService {
+
+    function initialize() public virtual;
 
     /**
      * @dev Should be emitted when a role is set for a user.
@@ -44,10 +56,10 @@ abstract contract IDSTrustService is Initializable, VersionedContract {
      * @dev Sets a role for an array of wallets.
      * @dev Should not be used for setting MASTER (use setServiceOwner) or role removal (use removeRole).
      * @param _addresses The array of wallet whose role needs to be set.
-     * @param _roles The array of role to be set. The lenght and order must match with _addresses
+     * @param _roles The array of role to be set. The length and order must match with _addresses
      * @return A boolean that indicates if the operation was successful.
      */
-    function setRoles(address[] memory _addresses, uint8[] memory _roles) public virtual returns (bool);
+    function setRoles(address[] calldata _addresses, uint8[] calldata _roles) public virtual returns (bool);
 
     /**
      * @dev Sets a role for a wallet.
@@ -79,33 +91,33 @@ abstract contract IDSTrustService is Initializable, VersionedContract {
     function getRole(address _address) public view virtual returns (uint8);
 
     function addEntity(
-        string memory _name,
+        string calldata _name,
         address _owner /*onlyMasterOrIssuer onlyNewEntity onlyNewEntityOwner*/
     ) public virtual;
 
     function changeEntityOwner(
-        string memory _name,
+        string calldata _name,
         address _oldOwner,
         address _newOwner /*onlyMasterOrIssuer onlyExistingEntityOwner*/
     ) public virtual;
 
     function addOperator(
-        string memory _name,
+        string calldata _name,
         address _operator /*onlyEntityOwnerOrAbove onlyNewOperator*/
     ) public virtual;
 
     function removeOperator(
-        string memory _name,
+        string calldata _name,
         address _operator /*onlyEntityOwnerOrAbove onlyExistingOperator*/
     ) public virtual;
 
     function addResource(
-        string memory _name,
+        string calldata _name,
         address _resource /*onlyMasterOrIssuer onlyExistingEntity onlyNewResource*/
     ) public virtual;
 
     function removeResource(
-        string memory _name,
+        string calldata _name,
         address _resource /*onlyMasterOrIssuer onlyExistingResource*/
     ) public virtual;
 

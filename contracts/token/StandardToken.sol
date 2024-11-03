@@ -1,19 +1,29 @@
-pragma solidity ^0.8.13;
+/**
+ * Copyright 2024 Securitize Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import "../service/ServiceConsumer.sol";
+pragma solidity ^0.8.20;
+
 import "../data-stores/TokenDataStore.sol";
 import "../omnibus/OmnibusTBEController.sol";
 
-//SPDX-License-Identifier: UNLICENSED
-abstract contract StandardToken is IDSToken, ServiceConsumer, TokenDataStore {
+abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
     event Pause();
     event Unpause();
-
-    function initialize() public virtual override(IDSToken, ServiceConsumer) {
-        IDSToken.initialize();
-        ServiceConsumer.initialize();
-        VERSIONS.push(5);
-    }
 
     modifier whenNotPaused() {
         require(!paused, "Contract is paused");
@@ -23,6 +33,10 @@ abstract contract StandardToken is IDSToken, ServiceConsumer, TokenDataStore {
     modifier whenPaused() {
         require(paused, "Contract is not paused");
         _;
+    }
+
+    function __StandardToken_init() public onlyProxy onlyInitializing {
+        __BaseDSContract_init();
     }
 
     function pause() public onlyTransferAgentOrAbove whenNotPaused {

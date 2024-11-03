@@ -1,19 +1,34 @@
-pragma solidity ^0.8.13;
+/**
+ * Copyright 2024 Securitize Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+pragma solidity ^0.8.20;
 
 import "./IDSToken.sol";
-import "../utils/ProxyTarget.sol";
 import "./StandardToken.sol";
 
-//SPDX-License-Identifier: UNLICENSED
-contract DSToken is ProxyTarget, Initializable, StandardToken {
+contract DSToken is StandardToken {
     // using FeaturesLibrary for SupportedFeatures;
     using TokenLibrary for TokenLibrary.SupportedFeatures;
     uint256 internal constant OMNIBUS_NO_ACTION = 0;
 
-    function initialize(string memory _name, string memory _symbol, uint8 _decimals) public virtual initializer forceInitializeFromProxy {
-        StandardToken.initialize();
+    function initialize(string calldata _name, string calldata _symbol, uint8 _decimals) public virtual override onlyProxy initializer {
+        __StandardToken_init();
 
-        VERSIONS.push(5);
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
@@ -114,14 +129,14 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
     // TOKEN BURNING
     //*********************
 
-    function burn(address _who, uint256 _value, string memory _reason) public virtual override onlyIssuerOrTransferAgentOrAbove {
+    function burn(address _who, uint256 _value, string calldata _reason) public virtual override onlyIssuerOrTransferAgentOrAbove {
         TokenLibrary.burn(tokenData, getCommonServices(), _who, _value);
         emit Burn(_who, _value, _reason);
         emit Transfer(_who, address(0), _value);
         checkWalletsForList(_who, address(0));
     }
 
-    function omnibusBurn(address _omnibusWallet, address _who, uint256 _value, string memory _reason) public override onlyTransferAgentOrAbove {
+    function omnibusBurn(address _omnibusWallet, address _who, uint256 _value, string calldata _reason) public override onlyTransferAgentOrAbove {
         require(_value <= tokenData.walletsBalances[_omnibusWallet]);
         TokenLibrary.omnibusBurn(tokenData, getCommonServices(), _omnibusWallet, _who, _value);
         emit OmnibusBurn(_omnibusWallet, _who, _value, _reason, getAssetTrackingMode(_omnibusWallet));
@@ -134,14 +149,14 @@ contract DSToken is ProxyTarget, Initializable, StandardToken {
     // TOKEN SEIZING
     //*********************
 
-    function seize(address _from, address _to, uint256 _value, string memory _reason) public virtual override onlyTransferAgentOrAbove {
+    function seize(address _from, address _to, uint256 _value, string calldata _reason) public virtual override onlyTransferAgentOrAbove {
         TokenLibrary.seize(tokenData, getCommonServices(), _from, _to, _value);
         emit Seize(_from, _to, _value, _reason);
         emit Transfer(_from, _to, _value);
         checkWalletsForList(_from, _to);
     }
 
-    function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string memory _reason) public override onlyTransferAgentOrAbove {
+    function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string calldata _reason) public override onlyTransferAgentOrAbove {
         TokenLibrary.omnibusSeize(tokenData, getCommonServices(), _omnibusWallet, _from, _to, _value);
         emit OmnibusSeize(_omnibusWallet, _from, _value, _reason, getAssetTrackingMode(_omnibusWallet));
         emit Seize(_omnibusWallet, _to, _value, _reason);

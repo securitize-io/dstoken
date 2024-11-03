@@ -1,28 +1,41 @@
-pragma solidity ^0.8.13;
+/**
+ * Copyright 2024 Securitize Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+pragma solidity ^0.8.20;
 
 import "./IDSLockManager.sol";
 import "./InvestorLockManagerBase.sol";
 import "../data-stores/InvestorLockManagerDataStore.sol";
-import "../utils/ProxyTarget.sol";
-import "../service/ServiceConsumer.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "../utils/BaseDSContract.sol";
 
-//SPDX-License-Identifier: UNLICENSED
 contract InvestorLockManager is InvestorLockManagerBase {
     uint256 constant MAX_LOCKS_PER_INVESTOR = 30;
 
-    function initialize() public override initializer forceInitializeFromProxy {
-        InvestorLockManagerBase.initialize();
-
-        VERSIONS.push(3);
+    function initialize() public override onlyProxy initializer {
+        __BaseDSContract_init();
     }
 
     function setLockInfoImpl(string memory _investor, uint256 _lockIndex, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime) internal {
         investorsLocks[_investor][_lockIndex] = Lock(_valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
 
-    function createLockForInvestor(string memory _investor, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime)
+    function createLockForInvestor(string memory _investor, uint256 _valueLocked, uint256 _reasonCode, string calldata _reasonString, uint256 _releaseTime)
         public
         override
         validLock(_valueLocked, _releaseTime)
@@ -38,12 +51,12 @@ contract InvestorLockManager is InvestorLockManagerBase {
         emit HolderLocked(_investor, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
 
-    function createLock(address _to, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime) internal {
+    function createLock(address _to, uint256 _valueLocked, uint256 _reasonCode, string calldata _reasonString, uint256 _releaseTime) internal {
         createLockForInvestor(getRegistryService().getInvestor(_to), _valueLocked, _reasonCode, _reasonString, _releaseTime);
         emit Locked(_to, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
 
-    function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime) public override onlyTransferAgentOrAboveOrToken {
+    function addManualLockRecord(address _to, uint256 _valueLocked, string calldata _reason, uint256 _releaseTime) public override onlyTransferAgentOrAboveOrToken {
         require(_to != address(0), "Invalid address");
         createLock(_to, _valueLocked, 0, _reason, _releaseTime);
     }
@@ -184,7 +197,7 @@ contract InvestorLockManager is InvestorLockManagerBase {
         }
 
         //there may be more locked tokens than actual tokens, so the minimum between the two
-        uint256 transferable = SafeMath.sub(balanceOfInvestor, Math.min(totalLockedTokens, balanceOfInvestor));
+        uint256 transferable = balanceOfInvestor - Math.min(totalLockedTokens, balanceOfInvestor);
 
         return transferable;
     }

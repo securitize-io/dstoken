@@ -1,22 +1,37 @@
-pragma solidity ^0.8.13;
+/**
+ * Copyright 2024 Securitize Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import "../service/ServiceConsumer.sol";
+pragma solidity ^0.8.20;
+
 import "./IDSLockManager.sol";
-import "../utils/ProxyTarget.sol";
 import "../data-stores/LockManagerDataStore.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "../utils/BaseDSContract.sol";
 
 /**
  * @title LockManager
  * @dev An interface for controlling and getting information about locked funds in a compliance manager
  */
-//SPDX-License-Identifier: UNLICENSED
-contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsumer, LockManagerDataStore {
-    using SafeMath for uint256;
+
+contract LockManager is IDSLockManager, LockManagerDataStore, BaseDSContract {
 
     /*************** Legacy functions ***************/
-    function createLockForHolder(string memory _holder, uint256 _valueLocked, uint256 _reasonCode, string memory _reasonString, uint256 _releaseTime)
+    function createLockForHolder(string calldata _holder, uint256 _valueLocked, uint256 _reasonCode, string calldata _reasonString, uint256 _releaseTime)
         public
         view
         onlyTransferAgentOrAboveOrToken
@@ -24,15 +39,15 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         createLockForInvestor(_holder, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
 
-    function removeLockRecordForHolder(string memory _holderId, uint256 _lockIndex) public view onlyTransferAgentOrAbove returns (bool) {
+    function removeLockRecordForHolder(string calldata _holderId, uint256 _lockIndex) public view onlyTransferAgentOrAbove returns (bool) {
         return removeLockRecordForInvestor(_holderId, _lockIndex);
     }
 
-    function lockCountForHolder(string memory _holderId) public pure returns (uint256) {
+    function lockCountForHolder(string calldata _holderId) public pure returns (uint256) {
         return lockCountForInvestor(_holderId);
     }
 
-    function lockInfoForHolder(string memory _holderId, uint256 _lockIndex)
+    function lockInfoForHolder(string calldata _holderId, uint256 _lockIndex)
         public
         pure
         returns (uint256 reasonCode, string memory reasonString, uint256 value, uint256 autoReleaseTime)
@@ -40,15 +55,14 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         return lockInfoForInvestor(_holderId, _lockIndex);
     }
 
-    function getTransferableTokensForHolder(string memory _holderId, uint64 _time) public pure returns (uint256) {
+    function getTransferableTokensForHolder(string calldata _holderId, uint64 _time) public pure returns (uint256) {
         return getTransferableTokensForInvestor(_holderId, _time);
     }
 
     /******************************/
 
-    function initialize() public override(IDSLockManager, ServiceConsumer) initializer forceInitializeFromProxy {
-        ServiceConsumer.initialize();
-        VERSIONS.push(3);
+    function initialize() public override onlyProxy initializer {
+        __BaseDSContract_init();
     }
 
     uint256 constant MAX_LOCKS_PER_ADDRESS = 30;
@@ -73,7 +87,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         emit Locked(_to, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
 
-    function addManualLockRecord(address _to, uint256 _valueLocked, string memory _reason, uint256 _releaseTime)
+    function addManualLockRecord(address _to, uint256 _valueLocked, string calldata _reason, uint256 _releaseTime)
         public
         override
         onlyTransferAgentOrAboveOrToken
@@ -173,7 +187,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         }
 
         //there may be more locked tokens than actual tokens, so the minimum between the two
-        uint256 transferable = SafeMath.sub(balanceOfInvestor, Math.min(totalLockedTokens, balanceOfInvestor));
+        uint256 transferable = balanceOfInvestor - Math.min(totalLockedTokens, balanceOfInvestor);
 
         return transferable;
     }
@@ -190,7 +204,7 @@ contract LockManager is ProxyTarget, Initializable, IDSLockManager, ServiceConsu
         return 0;
     }
 
-    function createLockForInvestor(string memory, uint256, uint256, string memory, uint256) public view override onlyTransferAgentOrAboveOrToken {
+    function createLockForInvestor(string memory, uint256, uint256, string calldata, uint256) public view override onlyTransferAgentOrAboveOrToken {
         revertInvestorLevelMethod();
     }
 
