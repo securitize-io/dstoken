@@ -18,3 +18,4 @@ export * from './set-services';
 export * from './deploy-bulk-operator';
 export * from './deploy-erc20';
 export * from './deploy-securitize-swap';
+export * from './deploy-libraries';
