@@ -34,7 +34,7 @@ npm install
 
 # or if using yarn: yarn install
 
-npm npx hardhat deploy-all --name <token name> --symbol <token symbol> --decimals <token decimals>
+npx hardhat deploy-all --name <token name> --symbol <token symbol> --decimals <token decimals>
 --compliance TYPE - compliance service type (REGULATED, PARTITIONED, WHITELISTED) - if omitted, REGULATED is selected
 --tbe - the address of the omnibus wallet in the registry
 ```
@@ -52,6 +52,12 @@ To run tests, run:
 
 ```
 npm test
+```
+
+To verify dsToken, run:
+
+```
+npx hardhat verify-all --network {network} --token {dsTokenAddress}
 ```
 
 Tests run on a local Ganache server. A Ganache instance is launched if no instance is running when starting the test.
