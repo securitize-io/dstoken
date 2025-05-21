@@ -95,9 +95,8 @@ abstract contract BaseSecuritizeSwap is BaseDSContract, PausableUpgradeable {
      * @dev It does a swap between a Stable Coin ERC-20 token and DSToken.
      * @param _dsTokenAmount the amount of DSTokens to mint to investor's new wallet
      * @param _maxStableCoinAmount maximum expected amount of stable coin to be paid by the investor
-     * @param _issuanceTime time in seconds to issue tokens.
      */
-    function buy(uint256 _dsTokenAmount, uint256 _maxStableCoinAmount, uint256 _issuanceTime) external virtual;
+    function buy(uint256 _dsTokenAmount, uint256 _maxStableCoinAmount) external virtual;
 
     /**
      * @dev Validates off-chain EIP-712 message signature and executes encoded transaction data.

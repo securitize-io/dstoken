@@ -125,7 +125,7 @@ contract SecuritizeSwap is BaseSecuritizeSwap {
         emit Swap(msg.sender, _valueDsToken, _valueStableCoin, _newInvestorWallet);
     }
 
-    function buy(uint256 _dsTokenAmount, uint256 _maxStableCoinAmount, uint256 _issuanceTime) public override whenNotPaused {
+    function buy(uint256 _dsTokenAmount, uint256 _maxStableCoinAmount) public override whenNotPaused {
         require(IDSRegistryService(getDSService(REGISTRY_SERVICE)).isWallet(msg.sender), "Investor not registered");
         require(_dsTokenAmount > 0, "DSToken amount must be greater than 0");
         require(navProvider.rate() > 0, "NAV Rate must be greater than 0");
@@ -135,7 +135,7 @@ contract SecuritizeSwap is BaseSecuritizeSwap {
         require(stableCoinToken.balanceOf(msg.sender) >= stableCoinAmount, "Not enough stable coin balance");
         stableCoinToken.transferFrom(msg.sender, issuerWallet, stableCoinAmount);
 
-        dsToken.issueTokensCustom(msg.sender, _dsTokenAmount, _issuanceTime, 0, "", 0);
+        dsToken.issueTokensCustom(msg.sender, _dsTokenAmount, block.timestamp, 0, "", 0);
 
         emit Buy(msg.sender, _dsTokenAmount, stableCoinAmount, navProvider.rate());
     }
