@@ -46,7 +46,7 @@ const KYC = 1;
 const ACCREDITED = 2;
 const QUALIFIED = 4;
 
-describe.only("Securitize Swap test", () => {
+describe("Securitize Swap test", () => {
   describe("Deploy", () => {
     it("SHOULD swap contract be initialized and initialized version to be 1", async () => {
       const { swap } = await loadFixture(deployDSTokenRegulated);
