@@ -1,4 +1,3 @@
-import { IERC20 } from "./../typechain-types/@openzeppelin/contracts/token/ERC20/IERC20";
 import { expect } from "chai";
 import {
   loadFixture,
@@ -19,8 +18,6 @@ import {
   TrustService,
 } from "../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-import exp from "node:constants";
-import { erc20 } from "../typechain-types/@openzeppelin/contracts/token";
 
 const BLOCKCHAIN_ID_INVESTOR_01 = "investor_01";
 const BLOCKCHAIN_ID_INVESTOR_02 = "investor_02";
@@ -90,7 +87,6 @@ describe("Securitize Swap test", () => {
                   .buy(
                     AMOUNT_TO_BUY.toString(),
                     maxExpectedStableCoin,
-                    await time.latestBlock()
                   )
               ).to.be.revertedWith("Investor not registered");
             });
@@ -110,7 +106,6 @@ describe("Securitize Swap test", () => {
                 swap.buy(
                   AMOUNT_TO_BUY.toString(),
                   maxExpectedStableCoin,
-                  await time.latestBlock()
                 )
               ).to.be.revertedWithCustomError(swap, "EnforcedPause");
             });
@@ -160,7 +155,7 @@ describe("Securitize Swap test", () => {
               await expect(
                 swap
                   .connect(investor1)
-                  .buy(0, maxExpectedStableCoin, await time.latestBlock())
+                  .buy(0, maxExpectedStableCoin)
               ).to.revertedWith("DSToken amount must be greater than 0");
             });
             it("SHOULD fail when trying to buy and NAV rate is 0", async () => {
@@ -171,7 +166,6 @@ describe("Securitize Swap test", () => {
                   .buy(
                     AMOUNT_TO_BUY.toString(),
                     maxExpectedStableCoin,
-                    await time.latestBlock()
                   )
               ).to.revertedWith("NAV Rate must be greater than 0");
             });
@@ -185,7 +179,6 @@ describe("Securitize Swap test", () => {
                   .buy(
                     AMOUNT_TO_BUY,
                     maxExpectedStableCoin,
-                    await time.latestBlock()
                   )
               ).to.revertedWith("Not enough stable coin balance");
             });
@@ -199,7 +192,6 @@ describe("Securitize Swap test", () => {
                   .buy(
                     AMOUNT_TO_BUY * 200n,
                     maxExpectedStableCoin,
-                    await time.latestBlock()
                   )
               ).to.revertedWith(
                 "The amount of stable coins is bigger than max expected"
@@ -217,8 +209,7 @@ describe("Securitize Swap test", () => {
                 .connect(investor1)
                 .buy(
                   AMOUNT_TO_BUY,
-                  maxExpectedStableCoin,
-                  await time.latestBlock()
+                  maxExpectedStableCoin
                 );
               expect(await usdcMock.balanceOf(wallet.address)).to.be.equal(
                 securitizeUSDCBalance + maxExpectedStableCoin
@@ -244,8 +235,7 @@ describe("Securitize Swap test", () => {
                     .connect(investor1)
                     .buy(
                       AMOUNT_TO_BUY,
-                      maxExpectedStableCoin,
-                      await time.latestBlock()
+                      maxExpectedStableCoin
                     )
                 ).to.revertedWith(
                   "The amount of stable coins is bigger than max expected"
@@ -268,7 +258,6 @@ describe("Securitize Swap test", () => {
                     .buy(
                       AMOUNT_TO_BUY,
                       maxExpectedStableCoin,
-                      await time.latestBlock()
                     )
                 ).to.revertedWith(
                   "The amount of stable coins is bigger than max expected"
@@ -284,8 +273,7 @@ describe("Securitize Swap test", () => {
                   .connect(investor1)
                   .buy(
                     AMOUNT_TO_BUY,
-                    maxExpectedStableCoin,
-                    await time.latestBlock()
+                    maxExpectedStableCoin
                   )
               ).to.revertedWith(
                 "The amount of stable coins is bigger than max expected"
@@ -314,7 +302,7 @@ describe("Securitize Swap test", () => {
               );
               await swap
                 .connect(investor1)
-                .buy(AMOUNT_TO_BUY, maxExpectedStableCoin, await time.latest());
+                .buy(AMOUNT_TO_BUY, maxExpectedStableCoin);
               const balanceSecuritize = await usdcMock.balanceOf(
                 wallet.address
               );
@@ -873,10 +861,10 @@ describe("Securitize Swap test", () => {
         expect(await registryService.isInvestor(BLOCKCHAIN_ID_INVESTOR_01)).to.be.true;
         await registryService.registerInvestor(BLOCKCHAIN_ID_INVESTOR_02, HASH);
         expect(await registryService.isInvestor(BLOCKCHAIN_ID_INVESTOR_02)).to.be.true;
-        
+
         await usdcMock.transfer(investor02.address, USDC_TO_SWAP);
         await usdcMock.connect(investor02).approve(swapAddress, USDC_TO_SWAP);
-        
+
         await registryService.addWallet(investor02.address, BLOCKCHAIN_ID_INVESTOR_02);
 
         await trustService.setRole(hsmAddress, DSConstants.roles.ISSUER);
