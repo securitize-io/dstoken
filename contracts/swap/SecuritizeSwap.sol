@@ -49,9 +49,9 @@ contract SecuritizeSwap is BaseSecuritizeSwap {
         address _navProvider,
         address _issuerWallet,
         uint8 _bridgeChainId,
-        address _USDCbridge
+        address _USDCBridge
     ) public override initializer onlyProxy {
-        BaseSecuritizeSwap.initialize(_dsToken, _stableCoin, _navProvider, _issuerWallet, _bridgeChainId, _USDCbridge);
+        BaseSecuritizeSwap.initialize(_dsToken, _stableCoin, _navProvider, _issuerWallet, _bridgeChainId, _USDCBridge);
         __BaseDSContract_init();
 
         DOMAIN_SEPARATOR = keccak256(

@@ -51,14 +51,14 @@ abstract contract BaseSecuritizeSwap is BaseDSContract, PausableUpgradeable {
         address _navProvider,
         address _issuerWallet,
         uint8 _bridgeChainId,
-        address _USDCbridge
+        address _USDCBridge
     ) public virtual {
         dsToken = IDSToken(_dsToken);
         stableCoinToken = IERC20(_stableCoin);
         issuerWallet = _issuerWallet;
         navProvider = ISecuritizeNavProvider(_navProvider);
         bridgeChainId = _bridgeChainId;
-        USDCBridge = IUSDCBridge(_USDCbridge);
+        USDCBridge = IUSDCBridge(_USDCBridge);
     }
 
     event Swap(
