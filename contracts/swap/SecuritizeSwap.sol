@@ -119,11 +119,9 @@ contract SecuritizeSwap is BaseSecuritizeSwap {
             require(CommonUtils.isEqualString(_senderInvestorId, investorWithNewWallet), "Wallet does not belong to investor");
         }
 
-        stableCoinToken.transferFrom(_newInvestorWallet, issuerWallet, _valueStableCoin);
+        executeUSDCTransfer(_valueStableCoin);
 
         dsToken.issueTokensCustom(_newInvestorWallet, _valueDsToken, _issuanceTime, 0, "", 0);
-
-        executeUSDCBridge(_valueStableCoin);
 
         emit DocumentSigned (_newInvestorWallet, _agreementHash);
         emit Swap(msg.sender, _valueDsToken, _valueStableCoin, _newInvestorWallet);
@@ -137,11 +135,8 @@ contract SecuritizeSwap is BaseSecuritizeSwap {
         uint256 stableCoinAmount = calculateStableCoinAmount(_dsTokenAmount);
         require(stableCoinAmount <= _maxStableCoinAmount, "The amount of stable coins is bigger than max expected");
         require(stableCoinToken.balanceOf(msg.sender) >= stableCoinAmount, "Not enough stable coin balance");
-        stableCoinToken.transferFrom(msg.sender, issuerWallet, stableCoinAmount);
 
         dsToken.issueTokensCustom(msg.sender, _dsTokenAmount, block.timestamp, 0, "", 0);
-
-        executeUSDCBridge(stableCoinAmount);
 
         emit Buy(msg.sender, _dsTokenAmount, stableCoinAmount, navProvider.rate());
     }
@@ -245,9 +240,13 @@ contract SecuritizeSwap is BaseSecuritizeSwap {
         return _dsTokenAmount * navProvider.rate() / (10 ** ERC20(address(dsToken)).decimals());
     }
 
-    function executeUSDCBridge(uint256 value) private {
+    function executeUSDCTransfer(uint256 value) private {
         if (bridgeChainId != 0 && address(USDCBridge) != address(0)) {
+            stableCoinToken.transferFrom(msg.sender, address(this), value);
+            stableCoinToken.approve(address(USDCBridge), value);
             USDCBridge.sendUSDCCrossChainDeposit(bridgeChainId, issuerWallet, value);
+        } else {
+            stableCoinToken.transferFrom(msg.sender, issuerWallet, value);
         }
     }
 }
