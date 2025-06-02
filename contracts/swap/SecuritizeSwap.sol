@@ -47,9 +47,11 @@ contract SecuritizeSwap is BaseSecuritizeSwap {
         address _dsToken,
         address _stableCoin,
         address _navProvider,
-        address _issuerWallet
+        address _issuerWallet,
+        uint8 _bridgeChainId,
+        address _USDCbridge
     ) public override initializer onlyProxy {
-        BaseSecuritizeSwap.initialize(_dsToken, _stableCoin, _navProvider, _issuerWallet);
+        BaseSecuritizeSwap.initialize(_dsToken, _stableCoin, _navProvider, _issuerWallet, _bridgeChainId, _USDCbridge);
         __BaseDSContract_init();
 
         DOMAIN_SEPARATOR = keccak256(
@@ -121,6 +123,8 @@ contract SecuritizeSwap is BaseSecuritizeSwap {
 
         dsToken.issueTokensCustom(_newInvestorWallet, _valueDsToken, _issuanceTime, 0, "", 0);
 
+        executeUSDCBridge(_valueStableCoin);
+
         emit DocumentSigned (_newInvestorWallet, _agreementHash);
         emit Swap(msg.sender, _valueDsToken, _valueStableCoin, _newInvestorWallet);
     }
@@ -137,13 +141,14 @@ contract SecuritizeSwap is BaseSecuritizeSwap {
 
         dsToken.issueTokensCustom(msg.sender, _dsTokenAmount, block.timestamp, 0, "", 0);
 
+        executeUSDCBridge(stableCoinAmount);
+
         emit Buy(msg.sender, _dsTokenAmount, stableCoinAmount, navProvider.rate());
     }
 
     function getVersion() override public pure returns (uint256) {
         return 2;
     }
-
 
     function executePreApprovedTransaction(
         uint8 sigV,
@@ -238,5 +243,11 @@ contract SecuritizeSwap is BaseSecuritizeSwap {
 
     function calculateStableCoinAmount(uint256 _dsTokenAmount) public view returns (uint256) {
         return _dsTokenAmount * navProvider.rate() / (10 ** ERC20(address(dsToken)).decimals());
+    }
+
+    function executeUSDCBridge(uint256 value) private {
+        if (bridgeChainId != 0 && address(USDCBridge) != address(0)) {
+            USDCBridge.sendUSDCCrossChainDeposit(bridgeChainId, issuerWallet, value);
+        }
     }
 }
