@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-pragma solidity 0.8.20;
+pragma solidity ^0.8.20;
 
 import "../registry/IDSRegistryService.sol";
 import "../token/IDSToken.sol";
@@ -42,7 +42,7 @@ abstract contract BaseSecuritizeSwap is BaseDSContract, PausableUpgradeable {
     ISecuritizeNavProvider public navProvider;
     address public issuerWallet;
     IUSDCBridge public USDCBridge;
-    uint8 public bridgeChainId;
+    uint16 public bridgeChainId;
     uint256[44] private __gap;
 
     function initialize(
@@ -50,9 +50,10 @@ abstract contract BaseSecuritizeSwap is BaseDSContract, PausableUpgradeable {
         address _stableCoin,
         address _navProvider,
         address _issuerWallet,
-        uint8 _bridgeChainId,
+        uint16 _bridgeChainId,
         address _USDCBridge
     ) public virtual {
+        __BaseDSContract_init();
         dsToken = IDSToken(_dsToken);
         stableCoinToken = IERC20(_stableCoin);
         issuerWallet = _issuerWallet;
