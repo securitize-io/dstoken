@@ -9,7 +9,7 @@ const config: HardhatUserConfig = {
     parallel: false,
   },
   solidity: {
-    version: '0.8.20',
+    version: '0.8.22',
     settings: {
       optimizer: {
         enabled: true,
