@@ -118,7 +118,7 @@ contract SecuritizeSwap is BaseSecuritizeSwap {
             require(CommonUtils.isEqualString(_senderInvestorId, investorWithNewWallet), "Wallet does not belong to investor");
         }
 
-        executeUSDCTransfer(_newInvestorWallet, _valueStableCoin);
+        executeStableCoinTransfer(_newInvestorWallet, _valueStableCoin);
 
         dsToken.issueTokensCustom(_newInvestorWallet, _valueDsToken, _issuanceTime, 0, "", 0);
 
@@ -135,7 +135,7 @@ contract SecuritizeSwap is BaseSecuritizeSwap {
         require(stableCoinAmount <= _maxStableCoinAmount, "The amount of stable coins is bigger than max expected");
         require(stableCoinToken.balanceOf(msg.sender) >= stableCoinAmount, "Not enough stable coin balance");
 
-        executeUSDCTransfer(msg.sender, stableCoinAmount);
+        executeStableCoinTransfer(msg.sender, stableCoinAmount);
         dsToken.issueTokensCustom(msg.sender, _dsTokenAmount, block.timestamp, 0, "", 0);
 
         emit Buy(msg.sender, _dsTokenAmount, stableCoinAmount, navProvider.rate());
@@ -240,7 +240,7 @@ contract SecuritizeSwap is BaseSecuritizeSwap {
         return _dsTokenAmount * navProvider.rate() / (10 ** ERC20(address(dsToken)).decimals());
     }
 
-    function executeUSDCTransfer(address from, uint256 value) private {
+    function executeStableCoinTransfer(address from, uint256 value) private {
         if (bridgeChainId != 0 && address(USDCBridge) != address(0)) {
             stableCoinToken.transferFrom(from, address(this), value);
             stableCoinToken.approve(address(USDCBridge), value);
