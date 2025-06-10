@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-pragma solidity 0.8.20;
+pragma solidity ^0.8.20;
 
 import "./BaseSecuritizeSwap.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -47,10 +47,11 @@ contract SecuritizeSwap is BaseSecuritizeSwap {
         address _dsToken,
         address _stableCoin,
         address _navProvider,
-        address _issuerWallet
+        address _issuerWallet,
+        uint16 _bridgeChainId,
+        address _USDCBridge
     ) public override initializer onlyProxy {
-        BaseSecuritizeSwap.initialize(_dsToken, _stableCoin, _navProvider, _issuerWallet);
-        __BaseDSContract_init();
+        BaseSecuritizeSwap.initialize(_dsToken, _stableCoin, _navProvider, _issuerWallet, _bridgeChainId, _USDCBridge);
 
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
@@ -117,7 +118,7 @@ contract SecuritizeSwap is BaseSecuritizeSwap {
             require(CommonUtils.isEqualString(_senderInvestorId, investorWithNewWallet), "Wallet does not belong to investor");
         }
 
-        stableCoinToken.transferFrom(_newInvestorWallet, issuerWallet, _valueStableCoin);
+        executeStableCoinTransfer(_newInvestorWallet, _valueStableCoin);
 
         dsToken.issueTokensCustom(_newInvestorWallet, _valueDsToken, _issuanceTime, 0, "", 0);
 
@@ -133,8 +134,8 @@ contract SecuritizeSwap is BaseSecuritizeSwap {
         uint256 stableCoinAmount = calculateStableCoinAmount(_dsTokenAmount);
         require(stableCoinAmount <= _maxStableCoinAmount, "The amount of stable coins is bigger than max expected");
         require(stableCoinToken.balanceOf(msg.sender) >= stableCoinAmount, "Not enough stable coin balance");
-        stableCoinToken.transferFrom(msg.sender, issuerWallet, stableCoinAmount);
 
+        executeStableCoinTransfer(msg.sender, stableCoinAmount);
         dsToken.issueTokensCustom(msg.sender, _dsTokenAmount, block.timestamp, 0, "", 0);
 
         emit Buy(msg.sender, _dsTokenAmount, stableCoinAmount, navProvider.rate());
@@ -143,7 +144,6 @@ contract SecuritizeSwap is BaseSecuritizeSwap {
     function getVersion() override public pure returns (uint256) {
         return 2;
     }
-
 
     function executePreApprovedTransaction(
         uint8 sigV,
@@ -238,5 +238,15 @@ contract SecuritizeSwap is BaseSecuritizeSwap {
 
     function calculateStableCoinAmount(uint256 _dsTokenAmount) public view returns (uint256) {
         return _dsTokenAmount * navProvider.rate() / (10 ** ERC20(address(dsToken)).decimals());
+    }
+
+    function executeStableCoinTransfer(address from, uint256 value) private {
+        if (bridgeChainId != 0 && address(USDCBridge) != address(0)) {
+            stableCoinToken.transferFrom(from, address(this), value);
+            stableCoinToken.approve(address(USDCBridge), value);
+            USDCBridge.sendUSDCCrossChainDeposit(bridgeChainId, issuerWallet, value);
+        } else {
+            stableCoinToken.transferFrom(from, issuerWallet, value);
+        }
     }
 }
