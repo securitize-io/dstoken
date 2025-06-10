@@ -1,5 +1,6 @@
 import { subtask, types } from 'hardhat/config';
 import { printContractAddresses } from './utils/task.helper';
+import { ethers } from 'ethers';
 
 subtask('deploy-securitze-swap', 'Deploy Securitize Swap')
   .addParam('dsToken', 'DS Token Address', '', types.string)
@@ -10,7 +11,7 @@ subtask('deploy-securitze-swap', 'Deploy Securitize Swap')
     async (args, hre, run) => {
       const Service = await hre.ethers.getContractFactory('SecuritizeSwap');
       const service = await hre.upgrades.deployProxy(Service,
-        [args.dsToken, args.stableCoin, args.navProvider, args.issuerWallet]);
+        [args.dsToken, args.stableCoin, args.navProvider, args.issuerWallet, 0, ethers.ZeroAddress]);
 
       await service.waitForDeployment();
       await printContractAddresses('Securitize Swap', service, hre);
