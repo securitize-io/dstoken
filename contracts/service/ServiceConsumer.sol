@@ -30,7 +30,9 @@ import "../compliance/IDSComplianceConfigurationService.sol";
 import "../registry/IDSRegistryService.sol";
 import "../omnibus/IDSOmnibusTBEController.sol";
 import "../trust/IDSTrustService.sol";
+import "../rebasing/ISecuritizeRebasingProvider.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+
 
 
 abstract contract ServiceConsumer is IDSServiceConsumer, ServiceConsumerDataStore, OwnableUpgradeable {
@@ -185,4 +187,9 @@ abstract contract ServiceConsumer is IDSServiceConsumer, ServiceConsumerDataStor
     function getOmnibusTBEController() internal view returns (IDSOmnibusTBEController) {
         return IDSOmnibusTBEController(getDSService(OMNIBUS_TBE_CONTROLLER));
     }
+
+    function getRebasingProvider() internal view returns (ISecuritizeRebasingProvider) {
+        return ISecuritizeRebasingProvider(getDSService(REBASING_PROVIDER));
+    }
+
 }

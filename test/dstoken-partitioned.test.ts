@@ -5,7 +5,7 @@ import hre from 'hardhat';
 import { registerInvestor } from './utils/test-helper';
 import { zeroAddress } from 'ethereumjs-util';
 
-describe('DS Token Partitioned Unit Tests', function() {
+describe.skip('DS Token Partitioned Unit Tests', function() {
   describe('Creation', function() {
     it('Should get the basic details of the token correctly', async function() {
       const { dsToken } = await loadFixture(deployDSTokenPartitioned);

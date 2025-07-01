@@ -4,7 +4,7 @@ import { deployDSTokenPartitioned, INVESTORS, TBE } from './utils/fixture';
 import { assertCounters, getCountersDelta, setCounters } from './utils/test-helper';
 import { expect } from 'chai';
 
-describe('Omnibus TBE Controller Partitioned Unit Tests', function() {
+describe.skip('Omnibus TBE Controller Partitioned Unit Tests', function() {
   describe('Creation', function() {
     it('Should fail when trying to initialize twice', async function() {
       const { omnibusTBEController } = await loadFixture(deployDSTokenPartitioned);

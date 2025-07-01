@@ -22,7 +22,8 @@ subtask('set-services', 'Set DS Services')
         tokenReallocator,
         issuerMulticall,
         bulkOperator,
-        swap
+        swap,
+        rebasingProvider
       } = dsContracts;
 
       // Token
@@ -52,6 +53,8 @@ subtask('set-services', 'Set DS Services')
         console.log('Connecting token to partitions manager');
         await dsToken.setDSService(DSConstants.services.PARTITIONS_MANAGER, partitionsManager.getAddress());
       }
+      console.log('Connecting token to rebasing provider');
+      await dsToken.setDSService(DSConstants.services.REBASING_PROVIDER, rebasingProvider.getAddress());
 
       // Registry Service
       console.log('Connecting registry service to trust service');
@@ -86,6 +89,8 @@ subtask('set-services', 'Set DS Services')
         console.log('Connecting compliance service to partitions manager');
         await complianceService.setDSService(DSConstants.services.PARTITIONS_MANAGER, partitionsManager.getAddress());
       }
+      console.log('Connecting compliance service to rebasing provider');
+      await complianceService.setDSService(DSConstants.services.REBASING_PROVIDER, rebasingProvider.getAddress());
 
       // Omnibus TBE Controller
       console.log('Connecting omnibus TBE controller to trust service');

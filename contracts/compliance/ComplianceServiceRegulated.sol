@@ -20,6 +20,8 @@ pragma solidity ^0.8.20;
 
 import "./ComplianceServiceWhitelisted.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "../rebasing/RebasingLibrary.sol";
 
 library ComplianceServiceLibrary {
     uint256 internal constant DS_TOKEN = 0;
@@ -172,7 +174,7 @@ library ComplianceServiceLibrary {
         address[] calldata _services,
         address _from,
         address _to,
-        uint256 _value
+        uint256 _value 
     ) public view returns (uint256 code, string memory reason) {
         return doPreTransferCheckRegulated(_services, _from, _to, _value, IDSToken(_services[DS_TOKEN]).balanceOf(_from), IDSToken(_services[DS_TOKEN]).isPaused());
     }
@@ -190,7 +192,7 @@ library ComplianceServiceLibrary {
             return (15, NOT_ENOUGH_TOKENS);
         }
 
-        uint256 fromInvestorBalance = balanceOfInvestor(_services, _from);
+        uint256 fromInvestorBalance = balanceOfInvestor(_services, _from); // tokens
         uint256 fromRegion = getCountryCompliance(_services, _from);
         bool isPlatformWalletTo = IDSWalletManager(_services[WALLET_MANAGER]).isPlatformWallet(_to);
         if (isPlatformWalletTo) {
@@ -488,6 +490,7 @@ library ComplianceServiceLibrary {
         ) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
+        // remains in tokens because maximun holdings per investor is set in tokens
         if (isMaximumHoldingsPerInvestorOk(
                 complianceConfigurationService.getMaximumHoldingsPerInvestor(),
                 balanceOfInvestorTo,
@@ -557,8 +560,9 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         if (compareInvestorBalance(_to, _value, 0)) {
             adjustTotalInvestorsCounts(_to, CommonUtils.IncDec.Increase);
         }
+        uint256 shares = getRebasingProvider().convertTokensToShares(_value);
 
-        return createIssuanceInformation(getRegistryService().getInvestor(_to), _value, _issuanceTime);
+        return createIssuanceInformation(getRegistryService().getInvestor(_to), shares, _issuanceTime);
     }
 
     function recordBurn(address /*_who*/, uint256 /*_value*/) internal pure override returns (bool) {
@@ -635,12 +639,12 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
     function createIssuanceInformation(
         string memory _investor,
-        uint256 _value,
+        uint256 _shares,
         uint256 _issuanceTime
     ) internal returns (bool) {
         uint256 issuancesCount = issuancesCounters[_investor];
 
-        issuancesValues[_investor][issuancesCount] = _value;
+        issuancesValues[_investor][issuancesCount] = _shares;
         issuancesTimestamps[_investor][issuancesCount] = _issuanceTime;
         issuancesCounters[_investor] = issuancesCount + 1;
 
@@ -691,11 +695,13 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         }
 
         uint256 totalLockedTokens = 0;
+        
         for (uint256 i = 0; i < investorIssuancesCount; i++) {
             uint256 issuanceTimestamp = issuancesTimestamps[investor][i];
 
             if (uint256(_lockTime) > _time || issuanceTimestamp > (_time - uint256(_lockTime))) {
-                totalLockedTokens = totalLockedTokens + issuancesValues[investor][i];
+                uint256 tokens = getRebasingProvider().convertSharesToTokens(issuancesValues[investor][i]);
+                totalLockedTokens = totalLockedTokens + tokens;
             }
         }
 

@@ -16,6 +16,7 @@ export const DSConstants = {
     ISSUER_MULTICALL: 8194,
     TA_MULTICALL: 8195,
     SECURITIZE_SWAP: 16384,
+    REBASING_PROVIDER: 8196,
   },
   roles: {
     NONE: 0,

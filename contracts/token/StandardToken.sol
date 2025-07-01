@@ -20,6 +20,8 @@ pragma solidity ^0.8.20;
 
 import "../data-stores/TokenDataStore.sol";
 import "../omnibus/OmnibusTBEController.sol";
+import "../rebasing/ISecuritizeRebasingProvider.sol";
+import "../rebasing/RebasingLibrary.sol";
 
 abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
     event Pause();
@@ -59,11 +61,20 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
      * @return An uint256 representing the amount owned by the passed address.
      */
     function balanceOf(address _owner) public view returns (uint256) {
-        return tokenData.walletsBalances[_owner];
+        ISecuritizeRebasingProvider rebasingProvider = ISecuritizeRebasingProvider(getDSService(REBASING_PROVIDER));
+        uint256 shares = tokenData.walletsBalances[_owner];
+
+        uint256 tokens = rebasingProvider.convertSharesToTokens(shares);
+
+        return tokens;
     }
 
     function totalSupply() public view returns (uint256) {
-        return tokenData.totalSupply;
+        ISecuritizeRebasingProvider rebasingProvider = ISecuritizeRebasingProvider(getDSService(REBASING_PROVIDER));
+
+        uint256 totalSupplyTokens = rebasingProvider.convertSharesToTokens(tokenData.totalSupply);
+
+        return totalSupplyTokens;
     }
 
     /**
@@ -85,6 +96,7 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
             require(_value <= allowances[_from][msg.sender], "Not enough allowance");
             allowances[_from][msg.sender] -= _value;
         }
+
         return transferImpl(_from, _to, _value);
     }
 
@@ -94,13 +106,17 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
         uint256 _value
     ) internal returns (bool) {
         require(_to != address(0));
-        require(_value <= tokenData.walletsBalances[_from]);
+        ISecuritizeRebasingProvider rebasingProvider = ISecuritizeRebasingProvider(getDSService(REBASING_PROVIDER));
 
-        tokenData.walletsBalances[_from] -= _value;
-        tokenData.walletsBalances[_to] += _value;
+        uint256 _shares = rebasingProvider.convertTokensToShares(_value);
+
+        require(_shares <= tokenData.walletsBalances[_from]);
+
+        tokenData.walletsBalances[_from] -= _shares;
+        tokenData.walletsBalances[_to] += _shares;
 
         emit Transfer(_from, _to, _value);
-
+        emit TxShares(_from, _to, _shares, rebasingProvider.multiplier());
         return true;
     }
 
