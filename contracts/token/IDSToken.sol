@@ -25,6 +25,7 @@ import "../omnibus/IDSOmnibusWalletController.sol";
 
 abstract contract IDSToken is IERC20, Initializable {
     event Issue(address indexed to, uint256 value, uint256 valueLocked);
+    event TxShares(address indexed from, address indexed to, uint256 shares, uint256 multiplier);
     event Burn(address indexed burner, uint256 value, string reason);
     event Seize(address indexed from, address indexed to, uint256 value, string reason);
     event OmnibusDeposit(address indexed omnibusWallet, address to, uint256 value, uint8 assetTrackingMode);
@@ -175,4 +176,5 @@ abstract contract IDSToken is IERC20, Initializable {
     function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal virtual returns (bool);
 
     function preTransferCheck(address _from, address _to, uint256 _value) public view virtual returns (uint256 code, string memory reason);
+
 }

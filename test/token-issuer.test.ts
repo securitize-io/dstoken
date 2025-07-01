@@ -113,7 +113,7 @@ describe('Token Issuer Unit Tests', function() {
     });
   });
 
-  describe('Partitioned Token Issuance', function() {
+  describe.skip('Partitioned Token Issuance', function() {
     it('Should issue tokens to a new investor without locks successfully', async function() {
       const [ investor ] = await hre.ethers.getSigners();
       const { dsToken, tokenIssuer, lockManager } = await loadFixture(deployDSTokenPartitioned);

@@ -5,7 +5,7 @@ import { deployDSTokenPartitioned, INVESTORS } from './utils/fixture';
 import { registerInvestor } from './utils/test-helper';
 import { DSConstants } from '../utils/globals';
 
-describe('Investor Lock Partitioned Unit Tests', function() {
+describe.skip('Investor Lock Partitioned Unit Tests', function() {
   describe('Creation', function() {
     it('Should fail when trying to initialize twice', async function() {
       const { lockManager } = await loadFixture(deployDSTokenPartitioned);

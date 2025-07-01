@@ -7,6 +7,7 @@ task('deploy-all', 'Deploy DS Protocol')
   .addParam('decimals', 'DS Token decimals', 2, types.int)
   .addParam('compliance', 'Compliance Type', 'REGULATED', types.string)
   .addParam('tbe', 'Omnibus TBE address', undefined, types.string, false)
+  .addOptionalParam('multiplier', 'Rebasing Multiplier', '1000000000000000000', types.string)
   .setAction(async (args, { run }) => {
     await run('compile');
     const [owner, wallet] = await hre.ethers.getSigners();
@@ -27,6 +28,7 @@ task('deploy-all', 'Deploy DS Protocol')
     const issuerMulticall = await run('deploy-issuer-multicall');
     const bulkOperator = await run('deploy-bulk-operator', { dsToken: dsToken.target });
     const navProviderMock = await hre.ethers.deployContract('SecuritizeInternalNavProviderMock', [1]);
+    const rebasingProvider = await run('deploy-rebasing-provider', { multiplier: args.multiplier, decimals: args.decimals });
     const usdcMock = await run('deploy-erc20',
       {
         name: 'USDC',
@@ -60,7 +62,8 @@ task('deploy-all', 'Deploy DS Protocol')
       bulkOperator,
       usdcMock,
       swap,
-      navProviderMock
+      navProviderMock,
+      rebasingProvider
     };
 
     await run('set-roles', { dsContracts });
