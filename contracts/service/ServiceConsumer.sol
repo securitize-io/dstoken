@@ -30,7 +30,7 @@ import "../compliance/IDSComplianceConfigurationService.sol";
 import "../registry/IDSRegistryService.sol";
 import "../omnibus/IDSOmnibusTBEController.sol";
 import "../trust/IDSTrustService.sol";
-import "../rebasing/ISecuritizeRebasingProvider.sol";
+import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 

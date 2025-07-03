@@ -20,7 +20,7 @@ pragma solidity ^0.8.20;
 
 import "../data-stores/TokenDataStore.sol";
 import "../omnibus/OmnibusTBEController.sol";
-import "../rebasing/ISecuritizeRebasingProvider.sol";
+import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
 import "../rebasing/RebasingLibrary.sol";
 
 abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
