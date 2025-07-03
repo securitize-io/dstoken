@@ -19,7 +19,7 @@
 pragma solidity ^0.8.20;
 
 import "../service/ServiceConsumer.sol";
-import "../rebasing/ISecuritizeRebasingProvider.sol";
+import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
 import "../rebasing/RebasingLibrary.sol";
 
 
@@ -54,7 +54,6 @@ library TokenLibrary {
         string _reason;
         uint256 _cap;
         ISecuritizeRebasingProvider _rebasingProvider;
-        uint8 _tokenDecimals;
     }
 
     function setFeature(SupportedFeatures storage supportedFeatures, uint8 featureIndex, bool enable) public {
@@ -80,8 +79,7 @@ library TokenLibrary {
         require(_params._value > 0, "Value is zero");
         require(_params._valuesLocked.length == _params._releaseTimes.length, "Wrong length of parameters");
 
-        uint256 multiplier = _params._rebasingProvider.multiplier();
-        uint256 totalIssuedTokens = RebasingLibrary.convertSharesToTokens(_tokenData.totalIssued, multiplier, _params._tokenDecimals);
+        uint256 totalIssuedTokens = _params._rebasingProvider.convertSharesToTokens(_tokenData.totalIssued);
 
         //Make sure we are not hitting the cap
         require(_params._cap == 0 || totalIssuedTokens + _params._value <= _params._cap, "Token Cap Hit");
@@ -89,8 +87,7 @@ library TokenLibrary {
         //Check issuance is allowed (and inform the compliance manager, possibly adding locks)
         IDSComplianceService(_services[COMPLIANCE_SERVICE]).validateIssuance(_params._to, _params._value, _params._issuanceTime);
         
-
-        uint256 shares = RebasingLibrary.convertTokensToShares(_params._value, multiplier, _params._tokenDecimals);
+        uint256 shares =  _params._rebasingProvider.convertTokensToShares(_params._value);
 
         _tokenData.totalSupply += shares;
         _tokenData.totalIssued += shares;
@@ -115,12 +112,9 @@ library TokenLibrary {
         uint256 _value,
         uint256 _issuanceTime,
         uint256 _cap,
-        ISecuritizeRebasingProvider _rebasingProvider,
-        uint8 _tokenDecimals   
+        ISecuritizeRebasingProvider _rebasingProvider 
     ) public returns (uint256) {
-
-        uint256 multiplier = _rebasingProvider.multiplier();
-        uint256 totalIssuedTokens = RebasingLibrary.convertSharesToTokens(_tokenData.totalIssued, multiplier, _tokenDecimals);
+        uint256 totalIssuedTokens = _rebasingProvider.convertSharesToTokens(_tokenData.totalIssued);
 
         //Make sure we are not hitting the cap. Cap in visible tokens
         require(_cap == 0 || totalIssuedTokens + _value <= _cap, "Token Cap Hit");
@@ -128,9 +122,8 @@ library TokenLibrary {
         //Check and inform issuance is allowed
         IDSComplianceService(_services[COMPLIANCE_SERVICE]).validateIssuanceWithNoCompliance(_to, _value, _issuanceTime);
 
-        uint256 shares = RebasingLibrary.convertTokensToShares(_value, multiplier, _tokenDecimals);
+        uint256 shares = _rebasingProvider.convertTokensToShares(_value);
 
-        // Almacenamos internamente en shares
         _tokenData.totalSupply += shares;
         _tokenData.totalIssued += shares;
         _tokenData.walletsBalances[_to] += shares;
@@ -160,11 +153,9 @@ library TokenLibrary {
         address[] memory _services, 
         address _who, 
         uint256 _value, 
-        ISecuritizeRebasingProvider _rebasingProvider, 
-        uint8 _tokenDecimals
+        ISecuritizeRebasingProvider _rebasingProvider
     ) public returns (uint256) {
-        uint256 multiplier = _rebasingProvider.multiplier();
-        uint256 sharesToBurn = RebasingLibrary.convertTokensToShares(_value, multiplier, _tokenDecimals);   
+        uint256 sharesToBurn = _rebasingProvider.convertTokensToShares(_value);
         
         require(sharesToBurn <= _tokenData.walletsBalances[_who], "Not enough balance");
         // no need to require value <= totalSupply, since that would imply the
@@ -214,17 +205,12 @@ library TokenLibrary {
         address _omnibusWallet, 
         address _who, 
         uint256 _value, 
-        ISecuritizeRebasingProvider _rebasingProvider, 
-        uint8 _tokenDecimals
+        ISecuritizeRebasingProvider _rebasingProvider
     ) public {
         IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
         IDSOmnibusWalletController omnibusController = IDSRegistryService(_services[REGISTRY_SERVICE]).getOmnibusWalletController(_omnibusWallet);
 
-        uint256 multiplier = _rebasingProvider.multiplier();
-        require(multiplier > 0, "Invalid rebasing multiplier");
-
-        uint256 sharesToBurn = RebasingLibrary.convertTokensToShares(_value, multiplier, _tokenDecimals);
-        require(sharesToBurn <= _tokenData.walletsBalances[_omnibusWallet], "Not enough balance");
+        uint256 sharesToBurn = _rebasingProvider.convertTokensToShares(_value);
 
         _tokenData.walletsBalances[_omnibusWallet] -= sharesToBurn;
         _tokenData.totalSupply -= sharesToBurn;

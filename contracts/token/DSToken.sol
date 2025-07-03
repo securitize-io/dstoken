@@ -20,7 +20,7 @@ pragma solidity ^0.8.20;
 
 import "./IDSToken.sol";
 import "./StandardToken.sol";
-import "../rebasing/ISecuritizeRebasingProvider.sol";
+import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
 import "../rebasing/RebasingLibrary.sol";
 
 contract DSToken is StandardToken {
@@ -129,8 +129,7 @@ contract DSToken is StandardToken {
             _releaseTimes: _releaseTimes,
             _reason: _reason,
             _cap: cap,
-            _rebasingProvider: rebasingProvider,
-            _tokenDecimals: decimals
+            _rebasingProvider: rebasingProvider
         });
         uint256 shares = TokenLibrary.issueTokensCustom(
             tokenData, 
@@ -156,8 +155,7 @@ contract DSToken is StandardToken {
             _value, 
             block.timestamp, 
             cap, 
-            rebasingProvider, 
-            decimals
+            rebasingProvider
         );
         emit Transfer(address(0), _to, _value);
         emit TxShares(address(0), _to, shares, rebasingProvider.multiplier());
@@ -169,7 +167,7 @@ contract DSToken is StandardToken {
 
     function burn(address _who, uint256 _value, string calldata _reason) public virtual override onlyIssuerOrTransferAgentOrAbove {
         ISecuritizeRebasingProvider rebasingProvider = getRebasingProvider();
-        uint256 shares = TokenLibrary.burn(tokenData, getCommonServices(), _who, _value, rebasingProvider, decimals);
+        uint256 shares = TokenLibrary.burn(tokenData, getCommonServices(), _who, _value, rebasingProvider);
         emit Burn(_who, _value, _reason);
         emit Transfer(_who, address(0), _value);
         emit TxShares(_who, address(0), shares, rebasingProvider.multiplier());
@@ -181,7 +179,7 @@ contract DSToken is StandardToken {
      */
     function omnibusBurn(address _omnibusWallet, address _who, uint256 _value, string calldata _reason) public override onlyTransferAgentOrAbove {
         ISecuritizeRebasingProvider rebasingProvider = getRebasingProvider();
-        TokenLibrary.omnibusBurn(tokenData, getCommonServices(), _omnibusWallet, _who, _value, rebasingProvider, decimals);
+        TokenLibrary.omnibusBurn(tokenData, getCommonServices(), _omnibusWallet, _who, _value, rebasingProvider);
         emit OmnibusBurn(_omnibusWallet, _who, _value, _reason, getAssetTrackingMode(_omnibusWallet));
         emit Burn(_omnibusWallet, _value, _reason);
         emit Transfer(_omnibusWallet, address(0), _value);

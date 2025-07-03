@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-pragma solidity 0.8.20;
+pragma solidity ^0.8.20;
 
-import "../rebasing/ISecuritizeRebasingProvider.sol";
+import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
 import "../service/ServiceConsumer.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "../utils/BaseDSContract.sol";
@@ -27,9 +27,16 @@ import "./RebasingLibrary.sol";
 contract SecuritizeRebasingProvider is BaseDSContract, ISecuritizeRebasingProvider {
     uint256 public multiplier; // Multiplier is fixed to 18 decimals
     uint8 public tokenDecimals;
+    
+    error InvalidMultiplier(uint256 providedMultiplier);
 
     function initialize(uint256 _multiplier, uint8 _tokenDecimals) public onlyProxy initializer override {
         __BaseDSContract_init();
+        
+        if (_multiplier == 0) {
+            revert InvalidMultiplier(_multiplier);
+        }
+        
         multiplier = _multiplier;
         tokenDecimals = _tokenDecimals;
     }
@@ -38,6 +45,10 @@ contract SecuritizeRebasingProvider is BaseDSContract, ISecuritizeRebasingProvid
      * @param _multiplier The new multiplier value, fixed to 18 decimals
      */
     function setMultiplier(uint256 _multiplier) external override onlyMaster {
+        if (_multiplier == 0) {
+            revert InvalidMultiplier(_multiplier);
+        }
+        
         uint256 old = multiplier;
         multiplier = _multiplier;
         emit RebasingRateUpdated(old, _multiplier);
