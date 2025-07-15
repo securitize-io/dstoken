@@ -91,12 +91,6 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
         address _to,
         uint256 _value
     ) public virtual returns (bool) {
-        IDSOmnibusTBEController tbeController = getOmnibusTBEController();
-        if (!(msg.sender == address(tbeController) && _from == tbeController.getOmnibusWallet())) {
-            require(_value <= allowances[_from][msg.sender], "Not enough allowance");
-            allowances[_from][msg.sender] -= _value;
-        }
-
         return transferImpl(_from, _to, _value);
     }
 

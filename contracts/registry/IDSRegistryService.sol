@@ -19,7 +19,6 @@
 pragma solidity ^0.8.20;
 
 import "../utils/CommonUtils.sol";
-import "../omnibus/IDSOmnibusWalletController.sol";
 
 abstract contract IDSRegistryService {
 
@@ -31,8 +30,6 @@ abstract contract IDSRegistryService {
     event DSRegistryServiceInvestorAttributeChanged(string investorId, uint256 attributeId, uint256 value, uint256 expiry, string proofHash, address sender);
     event DSRegistryServiceWalletAdded(address wallet, string investorId, address sender);
     event DSRegistryServiceWalletRemoved(address wallet, string investorId, address sender);
-    event DSRegistryServiceOmnibusWalletAdded(address omnibusWallet, string investorId, IDSOmnibusWalletController omnibusWalletController);
-    event DSRegistryServiceOmnibusWalletRemoved(address omnibusWallet, string investorId);
 
     uint8 public constant NONE = 0;
     uint8 public constant KYC_APPROVED = 1;
@@ -64,16 +61,6 @@ abstract contract IDSRegistryService {
 
     modifier newWallet(address _address) {
         require(!isWallet(_address), "Wallet already exists");
-        _;
-    }
-
-    modifier newOmnibusWallet(address _omnibusWallet) {
-        require(!isOmnibusWallet(_omnibusWallet), "Omnibus wallet already exists");
-        _;
-    }
-
-    modifier omnibusWalletExists(address _omnibusWallet) {
-        require(isOmnibusWallet(_omnibusWallet), "Unknown omnibus wallet");
         _;
     }
 
@@ -135,21 +122,6 @@ abstract contract IDSRegistryService {
         address _address,
         string memory _id /*onlyExchangeOrAbove walletExists walletBelongsToInvestor(_address, _id)*/
     ) public virtual returns (bool);
-
-    function addOmnibusWallet(
-        string memory _id,
-        address _omnibusWallet,
-        IDSOmnibusWalletController _omnibusWalletController /*onlyIssuerOrAbove newOmnibusWallet*/
-    ) public virtual;
-
-    function removeOmnibusWallet(
-        string memory _id,
-        address _omnibusWallet /*onlyIssuerOrAbove omnibusWalletControllerExists*/
-    ) public virtual;
-
-    function getOmnibusWalletController(address _omnibusWallet) public view virtual returns (IDSOmnibusWalletController);
-
-    function isOmnibusWallet(address _omnibusWallet) public view virtual returns (bool);
 
     function getInvestor(address _address) public view virtual returns (string memory);
 

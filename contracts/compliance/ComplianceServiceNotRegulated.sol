@@ -36,7 +36,7 @@ contract ComplianceServiceNotRegulated is ComplianceService {
         return true;
     }
 
-    function recordTransfer(address, address, uint256) internal pure override returns (bool) {
+    function recordTransfer(address, uint256) internal pure override returns (bool) {
         return true;
     }
 

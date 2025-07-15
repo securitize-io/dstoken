@@ -24,14 +24,13 @@ import "../compliance/IDSLockManagerPartitioned.sol";
 import "../registry/IDSRegistryService.sol";
 import "../compliance/IDSComplianceConfigurationService.sol";
 import "../compliance/IDSPartitionsManager.sol";
-import "../omnibus/IDSOmnibusTBEController.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
 library TokenPartitionsLibrary {
 
     uint256 internal constant COMPLIANCE_SERVICE = 0;
     uint256 internal constant REGISTRY_SERVICE = 1;
-    uint256 internal constant OMNIBUS_TBE_CONTROLLER = 2;
+    uint256 internal constant DEPRECATED_OMNIBUS_TBE_CONTROLLER = 2; // Deprecated, keep for backwards compatibility
 
     event IssueByPartition(address indexed to, uint256 value, bytes32 indexed partition);
     event TransferByPartition(address indexed from, address indexed to, uint256 value, bytes32 indexed partition);
@@ -139,8 +138,7 @@ library TokenPartitionsLibrary {
     function transferPartitions(TokenPartitions storage self, address[] memory _services, address _from, address _to, uint256 _value) public returns (bool) {
         uint256 partitionCount = partitionCountOf(self, _from);
         uint256 index = 0;
-        bool skipComplianceCheck = shouldSkipComplianceCheck(IDSRegistryService(_services[REGISTRY_SERVICE]),
-            IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]), _from, _to);
+        bool skipComplianceCheck = shouldSkipComplianceCheck(IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to);
         while (_value > 0 && index < partitionCount) {
             bytes32 partition = partitionOf(self, _from, index);
             uint256 transferableInPartition = skipComplianceCheck
@@ -177,8 +175,7 @@ library TokenPartitionsLibrary {
         uint256[] memory _values
     ) public returns (bool) {
         require(_partitions.length == _values.length);
-        bool skipComplianceCheck = shouldSkipComplianceCheck(IDSRegistryService(_services[REGISTRY_SERVICE]),
-            IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]), _from, _to);
+        bool skipComplianceCheck = shouldSkipComplianceCheck(IDSRegistryService(_services[REGISTRY_SERVICE]), _from, _to);
         for (uint256 index = 0; index < _partitions.length; ++index) {
             if (!skipComplianceCheck) {
                 require(_values[index] <= IDSComplianceServicePartitioned(_services[COMPLIANCE_SERVICE]).getComplianceTransferableTokens(_from, block.timestamp, _to, _partitions[index]));
@@ -224,9 +221,7 @@ library TokenPartitionsLibrary {
         return true;
     }
 
-    function shouldSkipComplianceCheck(IDSRegistryService _registry, IDSOmnibusTBEController _omnibusTBEController, address _from, address _to) internal view returns (bool) {
-        return CommonUtils.isEqualString(_registry.getInvestor(_from), _registry.getInvestor(_to)) ||
-            (address(_omnibusTBEController) != address(0) && (_omnibusTBEController.getOmnibusWallet() == _from ||
-                _omnibusTBEController.getOmnibusWallet() == _to));
+    function shouldSkipComplianceCheck(IDSRegistryService _registry, address _from, address _to) internal view returns (bool) {
+        return CommonUtils.isEqualString(_registry.getInvestor(_from), _registry.getInvestor(_to));
     }
 }
