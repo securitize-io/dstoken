@@ -35,7 +35,7 @@ library ComplianceServicePartitionedLibrary {
     uint256 internal constant COMPLIANCE_CONFIGURATION_SERVICE = 3;
     uint256 internal constant LOCK_MANAGER = 4;
     uint256 internal constant COMPLIANCE_SERVICE = 5;
-    uint256 internal constant OMNIBUS_TBE_CONTROLLER = 6;
+    uint256 internal constant DEPRECATED_OMNIBUS_TBE_CONTROLLER = 6; // Deprecated, keep for backward compatibility
     string internal constant TOKEN_PAUSED = "Token paused";
     string internal constant NOT_ENOUGH_TOKENS = "Not enough tokens";
     string internal constant VALID = "Valid";
@@ -80,10 +80,8 @@ library ComplianceServicePartitionedLibrary {
         return token.balanceOfInvestor(registry.getInvestor(_wallet));
     }
 
-    function isNewInvestor(address[] memory _services, address _wallet, uint256 _balanceOfInvestor) internal view returns (bool) {
-        IDSOmnibusTBEController omnibusTBEController = IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]);
-
-        return _balanceOfInvestor == 0 && !isOmnibusTBE(omnibusTBEController, _wallet);
+    function isNewInvestor(uint256 _balanceOfInvestor) internal pure returns (bool) {
+        return _balanceOfInvestor == 0;
     }
 
     function getCountry(address[] memory _services, address _wallet) internal view returns (string memory) {
@@ -96,12 +94,7 @@ library ComplianceServicePartitionedLibrary {
         return IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getCountryCompliance(getCountry(_services, _wallet));
     }
 
-    function isOmnibusTBE(IDSOmnibusTBEController _omnibusTBE, address _from) internal view returns (bool) {
-        if (address(_omnibusTBE) != address(0)) {
-            return _omnibusTBE.getOmnibusWallet() == _from;
-        }
-        return false;
-    }
+
 
     function getUSInvestorsLimit(address[] memory _services) internal view returns (uint256) {
         ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
@@ -125,7 +118,7 @@ library ComplianceServicePartitionedLibrary {
         complianceService.getComplianceTransferableTokens(_from, block.timestamp, false) < _value;
     }
 
-    function maxInvestorsInCategoryForNonAccredited(address[] memory _services, address _from, address _to, uint256 _value, uint256 _fromInvestorBalance, uint256 _toInvestorBalance)
+    function maxInvestorsInCategoryForNonAccredited(address[] memory _services, address _from, uint256 _value, uint256 _fromInvestorBalance, uint256 _toInvestorBalance)
     internal
     view
     returns (bool)
@@ -136,7 +129,7 @@ library ComplianceServicePartitionedLibrary {
             ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).getAccreditedInvestorsCount()
          >=
         IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit() &&
-        isNewInvestor(_services, _to, _toInvestorBalance) &&
+        isNewInvestor(_toInvestorBalance) &&
         (isAccredited(_services, _from) || _fromInvestorBalance > _value);
     }
 
@@ -180,7 +173,7 @@ library ComplianceServicePartitionedLibrary {
             return (0, VALID);
         }
 
-        if (_paused && !(isOmnibusTBE(IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]), _from))) {
+        if (_paused) {
             return (10, TOKEN_PAUSED);
         }
 
@@ -203,10 +196,6 @@ library ComplianceServicePartitionedLibrary {
         uint256 toRegion = getCountryCompliance(_services, _args.to);
         if (toRegion == FORBIDDEN) {
             return (26, DESTINATION_RESTRICTED);
-        }
-
-        if (isOmnibusTBE(IDSOmnibusTBEController(_services[OMNIBUS_TBE_CONTROLLER]), _args.from)) {
-            return(0, VALID);
         }
 
         bool isPlatformWalletFrom = IDSWalletManager(_services[WALLET_MANAGER]).isPlatformWallet(_args.from);
@@ -271,7 +260,7 @@ library ComplianceServicePartitionedLibrary {
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getJPInvestorsLimit() != 0 &&
                 ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getJPInvestorsCount() >=
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getJPInvestorsLimit() &&
-                isNewInvestor(_services, _args.to, toInvestorBalance) &&
+                isNewInvestor(toInvestorBalance) &&
                 (!CommonUtils.isEqualString(getCountry(_services, _args.from), toCountry) || (_args.fromInvestorBalance > _args.value))
             ) {
                 return (40, MAX_INVESTORS_IN_CATEGORY);
@@ -281,7 +270,7 @@ library ComplianceServicePartitionedLibrary {
                 isRetail(_services, _args.to) &&
                 ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).getEURetailInvestorsCount(toCountry) >=
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getEURetailInvestorsLimit() &&
-                isNewInvestor(_services, _args.to, toInvestorBalance) &&
+                isNewInvestor(toInvestorBalance) &&
                 (!CommonUtils.isEqualString(getCountry(_services, _args.from), toCountry) ||
                 (_args.fromInvestorBalance > _args.value && isRetail(_services, _args.from)))
             ) {
@@ -305,7 +294,7 @@ library ComplianceServicePartitionedLibrary {
                 usInvestorsLimit != 0 &&
                 _args.fromInvestorBalance > _args.value &&
                 ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).getUSInvestorsCount() >= usInvestorsLimit &&
-                isNewInvestor(_services, _args.to, toInvestorBalance)
+                isNewInvestor(toInvestorBalance)
             ) {
                 return (41, ONLY_FULL_TRANSFER);
             }
@@ -315,7 +304,7 @@ library ComplianceServicePartitionedLibrary {
                 isAccreditedTo &&
                 ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).getUSAccreditedInvestorsCount() >=
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSAccreditedInvestorsLimit() &&
-                isNewInvestor(_services, _args.to, toInvestorBalance) &&
+                isNewInvestor(toInvestorBalance) &&
                 (_args.fromRegion != US || !isAccredited(_services, _args.from) || _args.fromInvestorBalance > _args.value)
             ) {
                 return (40, MAX_INVESTORS_IN_CATEGORY);
@@ -329,7 +318,7 @@ library ComplianceServicePartitionedLibrary {
         }
 
         if (!isAccreditedTo) {
-            if (maxInvestorsInCategoryForNonAccredited(_services, _args.from, _args.to, _args.value, _args.fromInvestorBalance, toInvestorBalance)) {
+            if (maxInvestorsInCategoryForNonAccredited(_services, _args.from, _args.value, _args.fromInvestorBalance, toInvestorBalance)) {
                 return (40, MAX_INVESTORS_IN_CATEGORY);
             }
         }
@@ -339,7 +328,7 @@ library ComplianceServicePartitionedLibrary {
             _args.fromInvestorBalance > _args.value &&
             ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).getTotalInvestorsCount() >=
             IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getTotalInvestorsLimit() &&
-            isNewInvestor(_services, _args.to, toInvestorBalance)
+            isNewInvestor(toInvestorBalance)
         ) {
             return (41, ONLY_FULL_TRANSFER);
         }
@@ -347,7 +336,7 @@ library ComplianceServicePartitionedLibrary {
         if (
             isNotBeneficiaryOrHolderOfRecord &&
             _args.fromInvestorBalance == _args.value &&
-            !isNewInvestor(_services, _args.to, toInvestorBalance) &&
+            !isNewInvestor(toInvestorBalance) &&
             ComplianceServiceRegulatedPartitioned(_services[COMPLIANCE_SERVICE]).getTotalInvestorsCount() <=
             IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getMinimumTotalInvestors()
         ) {

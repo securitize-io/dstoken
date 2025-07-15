@@ -1,4 +1,4 @@
-import { task, types } from 'hardhat/config';
+import { task, types } from "hardhat/config";
 
 
 task('deploy-all', 'Deploy DS Protocol')
@@ -6,10 +6,9 @@ task('deploy-all', 'Deploy DS Protocol')
   .addParam('symbol', 'DS Token symbol', 'EXA', types.string)
   .addParam('decimals', 'DS Token decimals', 2, types.int)
   .addParam('compliance', 'Compliance Type', 'REGULATED', types.string)
-  .addParam('tbe', 'Omnibus TBE address', undefined, types.string, false)
   .addOptionalParam('multiplier', 'Rebasing Multiplier', '1000000000000000000', types.string)
   .setAction(async (args, { run }) => {
-    await run('compile');
+    await run("compile");
     const [owner, wallet] = await hre.ethers.getSigners();
 
     const dsToken = await run('deploy-token', args);
@@ -22,9 +21,7 @@ task('deploy-all', 'Deploy DS Protocol')
     const complianceConfigurationService = await run('deploy-compliance-configuration-service');
     const tokenIssuer = await run('deploy-token-issuer');
     const walletRegistrar = await run('deploy-wallet-registrar');
-    const omnibusTBEController = await run('deploy-omnibus-tbe-controller', args);
     const transactionRelayer = await run('deploy-transaction-relayer');
-    const tokenReallocator = await run('deploy-token-reallocator');
     const issuerMulticall = await run('deploy-issuer-multicall');
     const bulkOperator = await run('deploy-bulk-operator', { dsToken: dsToken.target });
     const navProviderMock = await hre.ethers.deployContract('SecuritizeInternalNavProviderMock', [1]);
@@ -37,13 +34,12 @@ task('deploy-all', 'Deploy DS Protocol')
         decimals: 6,
       });
 
-      const swap = await run('deploy-securitze-swap',
-        {
-          dsToken: dsToken.target,
-          stableCoin: usdcMock.target,
-          navProvider: navProviderMock.target,
-          issuerWallet: wallet.address,
-        });
+    const swap = await run("deploy-securitize-swap", {
+      dsToken: dsToken.target,
+      stableCoin: usdcMock.target,
+      navProvider: navProviderMock.target,
+      issuerWallet: wallet.address,
+    });
     const dsContracts = {
       dsToken,
       trustService,
@@ -55,9 +51,7 @@ task('deploy-all', 'Deploy DS Protocol')
       complianceConfigurationService,
       tokenIssuer,
       walletRegistrar,
-      omnibusTBEController,
       transactionRelayer,
-      tokenReallocator,
       issuerMulticall,
       bulkOperator,
       usdcMock,
@@ -66,8 +60,8 @@ task('deploy-all', 'Deploy DS Protocol')
       rebasingProvider
     };
 
-    await run('set-roles', { dsContracts });
-    await run('set-services', { dsContracts });
+    await run("set-roles", { dsContracts });
+    await run("set-services", { dsContracts });
 
     return dsContracts;
   });

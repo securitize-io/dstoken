@@ -24,15 +24,13 @@ import "../rebasing/RebasingLibrary.sol";
 
 
 library TokenLibrary {
-    event OmnibusDeposit(address indexed omnibusWallet, address to, uint256 value, uint8 assetTrackingMode);
-    event OmnibusWithdraw(address indexed omnibusWallet, address from, uint256 value, uint8 assetTrackingMode);
     event Issue(address indexed to, uint256 value, uint256 valueLocked);
 
     uint256 internal constant COMPLIANCE_SERVICE = 0;
     uint256 internal constant REGISTRY_SERVICE = 1;
-    uint256 internal constant OMNIBUS_NO_ACTION = 0;
-    uint256 internal constant OMNIBUS_DEPOSIT = 1;
-    uint256 internal constant OMNIBUS_WITHDRAW = 2;
+    uint256 internal constant DEPRECATED_OMNIBUS_NO_ACTION = 0; // Deprecated, keep for backwards compatibility
+    uint256 internal constant DEPRECATED_OMNIBUS_DEPOSIT = 1; // Deprecated, keep for backwards compatibility
+    uint256 internal constant DEPRECATED_OMNIBUS_WITHDRAW = 2; // Deprecated, keep for backwards compatibility
 
     struct TokenData {
         mapping(address => uint256) walletsBalances;
@@ -149,14 +147,14 @@ library TokenLibrary {
     }
 
     function burn(
-        TokenData storage _tokenData, 
-        address[] memory _services, 
-        address _who, 
-        uint256 _value, 
+        TokenData storage _tokenData,
+        address[] memory _services,
+        address _who,
+        uint256 _value,
         ISecuritizeRebasingProvider _rebasingProvider
     ) public returns (uint256) {
         uint256 sharesToBurn = _rebasingProvider.convertTokensToShares(_value);
-        
+
         require(sharesToBurn <= _tokenData.walletsBalances[_who], "Not enough balance");
         // no need to require value <= totalSupply, since that would imply the
         // sender's balance is greater than the totalSupply, which *should* be an assertion failure
@@ -194,95 +192,6 @@ library TokenLibrary {
         _tokenData.walletsBalances[_to] += _shares;
         updateInvestorBalance(_tokenData, registryService, _from, _shares, CommonUtils.IncDec.Decrease);
         updateInvestorBalance(_tokenData, registryService, _to, _shares, CommonUtils.IncDec.Increase);
-    }
-
-    /**
-     * Deprecated
-     */
-    function omnibusBurn(
-        TokenData storage _tokenData, 
-        address[] memory _services, 
-        address _omnibusWallet, 
-        address _who, 
-        uint256 _value, 
-        ISecuritizeRebasingProvider _rebasingProvider
-    ) public {
-        IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
-        IDSOmnibusWalletController omnibusController = IDSRegistryService(_services[REGISTRY_SERVICE]).getOmnibusWalletController(_omnibusWallet);
-
-        uint256 sharesToBurn = _rebasingProvider.convertTokensToShares(_value);
-
-        _tokenData.walletsBalances[_omnibusWallet] -= sharesToBurn;
-        _tokenData.totalSupply -= sharesToBurn;
-
-        omnibusController.burn(_who, _value); // visible tokens
-        decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_tokenData, registryService, omnibusController, _omnibusWallet, _who, sharesToBurn);
-    }
-
-    /**
-     * Deprecated
-     */
-    function omnibusSeize(TokenData storage _tokenData, address[] memory _services, address _omnibusWallet, address _from, address _to, uint256 _value)
-    public
-    validSeizeParameters(_tokenData, _omnibusWallet, _to, _value)
-    {
-        IDSRegistryService registryService = IDSRegistryService(_services[REGISTRY_SERVICE]);
-        IDSOmnibusWalletController omnibusController = registryService.getOmnibusWalletController(_omnibusWallet);
-
-        _tokenData.walletsBalances[_omnibusWallet] -= _value;
-        _tokenData.walletsBalances[_to] += _value;
-        omnibusController.seize(_from, _value);
-        decreaseInvestorBalanceOnOmnibusSeizeOrBurn(_tokenData, registryService, omnibusController, _omnibusWallet, _from, _value);
-        updateInvestorBalance(_tokenData, registryService, _to, _value, CommonUtils.IncDec.Increase);
-    }
-
-    /**
-     * Deprecated
-     */
-    function decreaseInvestorBalanceOnOmnibusSeizeOrBurn(
-        TokenData storage _tokenData,
-        IDSRegistryService _registryService,
-        IDSOmnibusWalletController _omnibusController,
-        address _omnibusWallet,
-        address _from,
-        uint256 _value
-    ) internal {
-        if (_omnibusController.isHolderOfRecord()) {
-            updateInvestorBalance(_tokenData, _registryService, _omnibusWallet, _value, CommonUtils.IncDec.Decrease);
-        } else {
-            updateInvestorBalance(_tokenData, _registryService, _from, _value, CommonUtils.IncDec.Decrease);
-        }
-    }
-    
-    /**
-     * Deprecated
-     */
-    function applyOmnibusBalanceUpdatesOnTransfer(TokenData storage _tokenData, IDSRegistryService _registryService, address _from, address _to, uint256 _value)
-    public
-    returns (uint256)
-    {
-        if (_registryService.isOmnibusWallet(_to)) {
-            IDSOmnibusWalletController omnibusWalletController = _registryService.getOmnibusWalletController(_to);
-            omnibusWalletController.deposit(_from, _value);
-            emit OmnibusDeposit(_to, _from, _value, omnibusWalletController.getAssetTrackingMode());
-
-            if (omnibusWalletController.isHolderOfRecord()) {
-                updateInvestorBalance(_tokenData, _registryService, _from, _value, CommonUtils.IncDec.Decrease);
-                updateInvestorBalance(_tokenData, _registryService, _to, _value, CommonUtils.IncDec.Increase);
-            }
-            return OMNIBUS_DEPOSIT;
-        } else if (_registryService.isOmnibusWallet(_from)) {
-            IDSOmnibusWalletController omnibusWalletController = _registryService.getOmnibusWalletController(_from);
-            omnibusWalletController.withdraw(_to, _value);
-            emit OmnibusWithdraw(_from, _to, _value, omnibusWalletController.getAssetTrackingMode());
-
-            if (omnibusWalletController.isHolderOfRecord()) {
-                updateInvestorBalance(_tokenData, _registryService, _from, _value, CommonUtils.IncDec.Decrease);
-                updateInvestorBalance(_tokenData, _registryService, _to, _value, CommonUtils.IncDec.Increase);
-            }
-            return OMNIBUS_WITHDRAW;
-        }
-        return OMNIBUS_NO_ACTION;
     }
 
     function updateInvestorBalance(TokenData storage _tokenData, IDSRegistryService _registryService, address _wallet, uint256 _shares, CommonUtils.IncDec _increase) internal returns (bool) {

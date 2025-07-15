@@ -54,7 +54,7 @@ abstract contract ComplianceService is IDSComplianceService, ComplianceServiceDa
         (code, reason) = preTransferCheck(_from, _to, _value);
         require(code == 0, reason);
 
-        return recordTransfer(_from, _to, _value);
+        return recordTransfer(_to, _value);
     }
 
     function validateTransfer(
@@ -70,7 +70,7 @@ abstract contract ComplianceService is IDSComplianceService, ComplianceServiceDa
         (code, reason) = newPreTransferCheck(_from, _to, _value, _balanceFrom, _paused);
         require(code == 0, reason);
 
-        return recordTransfer(_from, _to, _value);
+        return recordTransfer(_to, _value);
     }
 
     function validateIssuance(
@@ -214,7 +214,6 @@ abstract contract ComplianceService is IDSComplianceService, ComplianceServiceDa
     ) internal virtual returns (bool);
 
     function recordTransfer(
-        address _from,
         address _to,
         uint256 _value
     ) internal virtual returns (bool);
