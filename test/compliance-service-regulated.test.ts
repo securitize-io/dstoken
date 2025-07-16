@@ -6,7 +6,7 @@ import { registerInvestor } from './utils/test-helper';
 import { DSConstants } from '../utils/globals';
 
 describe('Compliance Service Regulated Unit Tests', function() {
-  describe.only('Investor Liquidate Only', function () {
+  describe('Investor Liquidate Only', function () {
     it('should prevent issuance to an investor in liquidate only mode', async function () {
       const [wallet, transferAgent] = await hre.ethers.getSigners();
       const { dsToken, registryService, lockManager, trustService } = await loadFixture(deployDSTokenRegulated);
