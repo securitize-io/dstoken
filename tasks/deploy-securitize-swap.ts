@@ -2,7 +2,7 @@ import { subtask, types } from 'hardhat/config';
 import { printContractAddresses } from './utils/task.helper';
 import { ethers } from 'ethers';
 
-subtask('deploy-securitze-swap', 'Deploy Securitize Swap')
+subtask('deploy-securitize-swap', 'Deploy Securitize Swap')
   .addParam('dsToken', 'DS Token Address', '', types.string)
   .addParam('stableCoin', 'Stable coin', '', types.string)
   .addParam('navProvider', 'NAV price provides', '', types.string, true)

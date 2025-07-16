@@ -19,8 +19,8 @@
 pragma solidity ^0.8.20;
 
 import "../data-stores/TokenDataStore.sol";
-import "../omnibus/OmnibusTBEController.sol";
 import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
 import "../rebasing/RebasingLibrary.sol";
 
 abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
@@ -91,12 +91,6 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
         address _to,
         uint256 _value
     ) public virtual returns (bool) {
-        IDSOmnibusTBEController tbeController = getOmnibusTBEController();
-        if (!(msg.sender == address(tbeController) && _from == tbeController.getOmnibusWallet())) {
-            require(_value <= allowances[_from][msg.sender], "Not enough allowance");
-            allowances[_from][msg.sender] -= _value;
-        }
-
         return transferImpl(_from, _to, _value);
     }
 

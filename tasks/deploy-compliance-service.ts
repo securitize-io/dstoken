@@ -5,8 +5,7 @@ subtask('deploy-compliance-service', 'Deploy Compliance Service')
   .addParam('compliance', 'Compliance Type', 'REGULATED', types.string)
   .setAction(
     async (args, hre, run) => {
-      const libraries = {};
-
+      const libraries: Record<string, any> = {};
       if (args.compliance !== 'WHITELISTED') {
         const ComplianceLib = await hre.ethers.getContractFactory('ComplianceServiceLibrary');
         const complianceLib = await ComplianceLib.deploy();

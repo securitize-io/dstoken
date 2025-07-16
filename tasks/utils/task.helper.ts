@@ -1,7 +1,7 @@
 import { Contract } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 
-export const printContractAddresses = async (name: string, contract: Contract, hre: HardhatRuntimeEnvironment): Promise<string> => {
+export const printContractAddresses = async (name: string, contract: Contract, hre: HardhatRuntimeEnvironment) => {
   const contractAddress = await contract.getAddress();
   console.log(`${name} Proxy address: ${contractAddress}`);
 
@@ -35,15 +35,6 @@ export const getLockManagerContractName = (complianceType: string): string => {
       return 'InvestorLockManagerPartitioned';
     default:
       return 'InvestorLockManager';
-  }
-}
-
-export const getTBEControllerContractName = (complianceType: string): string => {
-  switch (complianceType) {
-    case 'WHITELISTED':
-      return 'OmnibusTBEControllerWhitelisted';
-    default:
-      return 'OmnibusTBEController';
   }
 }
 

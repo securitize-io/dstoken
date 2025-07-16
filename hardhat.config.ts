@@ -20,6 +20,7 @@ const config: HardhatUserConfig = {
   networks: {
     sepolia: {
       chainId: 11155111,
+      gas: 'auto',
       url: process.env.SEPOLIA_RPC_URL ?? '',
       accounts: [process.env.DEPLOYER_PRIV_KEY!].filter((x) => x)
     },

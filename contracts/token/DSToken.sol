@@ -26,7 +26,7 @@ import "../rebasing/RebasingLibrary.sol";
 contract DSToken is StandardToken {
     // using FeaturesLibrary for SupportedFeatures;
     using TokenLibrary for TokenLibrary.SupportedFeatures;
-    uint256 internal constant OMNIBUS_NO_ACTION = 0;
+    uint256 internal constant DEPRECATED_OMNIBUS_NO_ACTION = 0;  // Deprecated, kept for backward compatibility
 
     function initialize(
         string calldata _name,
@@ -174,18 +174,6 @@ contract DSToken is StandardToken {
         checkWalletsForList(_who, address(0));
     }
 
-    /**
-     * Deprecated
-     */
-    function omnibusBurn(address _omnibusWallet, address _who, uint256 _value, string calldata _reason) public override onlyTransferAgentOrAbove {
-        ISecuritizeRebasingProvider rebasingProvider = getRebasingProvider();
-        TokenLibrary.omnibusBurn(tokenData, getCommonServices(), _omnibusWallet, _who, _value, rebasingProvider);
-        emit OmnibusBurn(_omnibusWallet, _who, _value, _reason, getAssetTrackingMode(_omnibusWallet));
-        emit Burn(_omnibusWallet, _value, _reason);
-        emit Transfer(_omnibusWallet, address(0), _value);
-        checkWalletsForList(_omnibusWallet, address(0));
-    }
-
     //*********************
     // TOKEN SEIZING
     //*********************
@@ -200,17 +188,6 @@ contract DSToken is StandardToken {
         emit Transfer(_from, _to, _value);
         emit TxShares(address(0), _to, shares, rebasingProvider.multiplier());
         checkWalletsForList(_from, _to);
-    }
-
-    /**
-     * Deprecated
-     */
-    function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string calldata _reason) public override onlyTransferAgentOrAbove {
-        TokenLibrary.omnibusSeize(tokenData, getCommonServices(), _omnibusWallet, _from, _to, _value);    
-        emit OmnibusSeize(_omnibusWallet, _from, _value, _reason, getAssetTrackingMode(_omnibusWallet));
-        emit Seize(_omnibusWallet, _to, _value, _reason);
-        emit Transfer(_omnibusWallet, _to, _value);
-        checkWalletsForList(_omnibusWallet, _to);
     }
 
     //*********************
@@ -322,42 +299,10 @@ contract DSToken is StandardToken {
         return tokens;
     }
 
-    function getAssetTrackingMode(address _omnibusWallet) internal view returns (uint8) {
-        return getRegistryService().getOmnibusWalletController(_omnibusWallet).getAssetTrackingMode();
-    }
-
-    function updateOmnibusInvestorBalance(address _omnibusWallet, address _wallet, uint256 _value, CommonUtils.IncDec _increase)
-    public
-    override
-    onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
-    returns (bool)
-    {
-        return updateInvestorBalance(_wallet, _value, _increase);
-    }
-
-    function emitOmnibusTransferEvent(address _omnibusWallet, address _from, address _to, uint256 _value)
-    public
-    override
-    onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
-    {
-        emit OmnibusTransfer(_omnibusWallet, _from, _to, _value, getAssetTrackingMode(_omnibusWallet));
-    }
-
-    function emitOmnibusTBEEvent(address omnibusWallet, int256 totalDelta, int256 accreditedDelta,
-        int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta) public override onlyTBEOmnibus {
-        emit OmnibusTBEOperation(omnibusWallet, totalDelta, accreditedDelta, usAccreditedDelta, usTotalDelta, jpTotalDelta);
-    }
-
-    function emitOmnibusTBETransferEvent(address omnibusWallet, string memory externalId) public override onlyTBEOmnibus {
-        emit OmnibusTBETransfer(omnibusWallet, externalId);
-    }
 
     function updateInvestorsBalancesOnTransfer(address _from, address _to, uint256 _value) internal {
-        uint256 omnibusEvent = TokenLibrary.applyOmnibusBalanceUpdatesOnTransfer(tokenData, getRegistryService(), _from, _to, _value);
-        if (omnibusEvent == OMNIBUS_NO_ACTION) {
-            updateInvestorBalance(_from, _value, CommonUtils.IncDec.Decrease);
-            updateInvestorBalance(_to, _value, CommonUtils.IncDec.Increase);
-        }
+        updateInvestorBalance(_from, _value, CommonUtils.IncDec.Decrease);
+        updateInvestorBalance(_to, _value, CommonUtils.IncDec.Increase);
     }
 
     function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal override returns (bool) {
@@ -385,10 +330,9 @@ contract DSToken is StandardToken {
     }
 
     function getCommonServices() internal view returns (address[] memory) {
-        address[] memory services = new address[](3);
+        address[] memory services = new address[](2);
         services[0] = getDSService(COMPLIANCE_SERVICE);
         services[1] = getDSService(REGISTRY_SERVICE);
-        services[2] = getDSService(OMNIBUS_TBE_CONTROLLER);
         return services;
     }
 }

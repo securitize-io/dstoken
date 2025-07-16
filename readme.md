@@ -36,13 +36,13 @@ npm install
 
 npx hardhat deploy-all --name <token name> --symbol <token symbol> --decimals <token decimals>
 --compliance TYPE - compliance service type (REGULATED, PARTITIONED, WHITELISTED) - if omitted, REGULATED is selected
---tbe - the address of the omnibus wallet in the registry
+
 ```
 
 For example, to install a standard DSToken (with default compliance manager and lock manager), run:
 
 ```
-npx hardhat deploy-all --network localhost --name ExampleToken --symbol EXM --decimals 18 --tbe '648fC6c064d96ca6671a627D7a62C11C6CEff594'
+npx hardhat deploy-all --network localhost --name ExampleToken --symbol EXM --decimals 18
 
 ```
 
@@ -125,31 +125,32 @@ In addition to implementing the DS Protocol, the token also offers the following
 - **Enumeration** - The token supports the enumeration of all wallets containing it currently (and using the investor registry, all the investors holding it at a specific point in time).
 - **Trade pausing** - Trading of the token can be paused and resumed by the _Master_ role.
 
-### OmnibusTBE
-The OmnibusTBE allows issuing tokens to investors without a wallet registered in the system to a shared wallet while keeping track of ownership in the platform, and proper investor count in the blockchain.
-
 ### Deployment and migration
+
 We created factory contracts to reduce significantly gas cost. This allows us to reuse the implementations of contracts.
 
 ### Off-chain Integration (RFE Protocol)
+
 We provide a reference implementation of some aspects of the protocol dealing with off-chain transactions (for example, allow issuers to receive new investor data).
 
-### Token Issuance** 
+### Token Issuance\*\*
+
 We have developed a process for auto-deployment contracts.
 
 ### DSClient - Command-line utilities
+
 We provide a command-line tools and libraries to facilitate the interaction with the DS Protocol, like tools to add investors to investor registry or to simplify the off-chain generation of investor IDs from investor information.
 
 ### Other components
 
 - **Proxy** - The main token contract is deployed behind a proxy, using the proxy-delegate pattern. This allows for seamless upgrade of a deployed token in case a new protocol version is required or a problem is found.
-- **MultiSigWallet** - We have developed a MultiSig Wallet following this [implementation](https://github.com/christianlundkvist/simple-multisig). This allows us to offer higher level of security. 
- -**DeploymentUtils**  - This contract allows us to optimize the deployment process in conjunction with the **contract-deployments-service**. 
+- **MultiSigWallet** - We have developed a MultiSig Wallet following this [implementation](https://github.com/christianlundkvist/simple-multisig). This allows us to offer higher level of security. -**DeploymentUtils** - This contract allows us to optimize the deployment process in conjunction with the **contract-deployments-service**.
 
 #### DeploymentUtils
 
-There are 3 types of functions: 
-- settings: It is possible to update the addresses of the implementation contracts. 
+There are 3 types of functions:
+
+- settings: It is possible to update the addresses of the implementation contracts.
 - deployment: There are a set of methods to deploys proxy contracts, set implementation targets and calls initialize functions.
 - Token deployment settings: Sets a token calling functions like setRoles, setDSServices and setCountriesCompliance in bulk mode.
 
@@ -161,15 +162,20 @@ There are deployed tokens in different public networks.
 - Polygon mumbai Testnet: **0x78da8F43717E0fb583028D8F5E2D7D67274Cf65C** Deployment Account DEV **0xD8559dfEd9300775a2DeF456c7BDa65310Ad21E6**
 - Sepolia testnet: **0xC68DFf4D8557727778143a68C66d11430bd9474C** Deployment Account DEV **0xD8559dfEd9300775a2DeF456c7BDa65310Ad21E6**
 
-- First we have to set the address of implementation contracts. 
+- First we have to set the address of implementation contracts.
 
 - **Settings functions**
+
 ```solidity
-    function setImplementationAddress(uint8 service, address implementationAddress ) public restricted;
-    function setImplementationAddresses(uint8[] memory services, address[] memory addresses ) public restricted;
+function setImplementationAddress(
+  uint8 service,
+  address implementationAddress
+) public restricted;
+function setImplementationAddresses(
+  uint8[] memory services,
+  address[] memory addresses
+) public restricted;
 ```
-
-
 
 ## Roadmap and open issues
 
