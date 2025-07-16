@@ -428,8 +428,7 @@ library ComplianceServiceLibrary {
             return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
         }
 
-        string memory investorTo = IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to);
-        if (IDSLockManager(_services[LOCK_MANAGER]).isInvestorLiquidateOnly(investorTo)) {
+        if (IDSLockManager(_services[LOCK_MANAGER]).isInvestorLiquidateOnly(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to))) {
             return (90, INVESTOR_LIQUIDATE_ONLY);
         }
 
