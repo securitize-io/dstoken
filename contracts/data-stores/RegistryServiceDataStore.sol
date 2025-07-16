@@ -19,7 +19,6 @@
 pragma solidity ^0.8.20;
 
 import "./ServiceConsumerDataStore.sol";
-import "../omnibus/IDSOmnibusWalletController.sol";
 
 contract RegistryServiceDataStore is ServiceConsumerDataStore {
     struct Attribute {
@@ -48,7 +47,14 @@ contract RegistryServiceDataStore is ServiceConsumerDataStore {
 
     mapping(string => Investor) internal investors;
     mapping(address => Wallet) internal investorsWallets;
-    mapping(address => IDSOmnibusWalletController) internal omnibusWalletsControllers;
+
+    /**
+     * @dev DEPRECATED: This mapping is no longer used but must be kept for storage layout compatibility in the proxy.
+     * Do not use this mapping in new code. It will be removed in future non-proxy implementations.
+     * The interface type has been replaced with address to remove the interface dependency.
+     */
+    mapping(address => address) internal DEPRECATED_omnibusWalletsControllers;
+
     mapping(string => mapping(uint8 => Attribute)) public attributes;
 
     /**
