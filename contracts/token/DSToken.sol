@@ -299,10 +299,6 @@ contract DSToken is StandardToken {
         return tokens;
     }
 
-        uint256 tokens = rebasingProvider.convertSharesToTokens(tokenData.investorsBalances[_id]);
-
-        return tokens;
-    }
 
     function updateInvestorsBalancesOnTransfer(address _from, address _to, uint256 _value) internal {
         updateInvestorBalance(_from, _value, CommonUtils.IncDec.Decrease);
