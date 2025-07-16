@@ -6,6 +6,55 @@ import { registerInvestor } from './utils/test-helper';
 import { DSConstants } from '../utils/globals';
 
 describe('Compliance Service Regulated Unit Tests', function() {
+  describe.only('Investor Liquidate Only', function () {
+    it('should prevent issuance to an investor in liquidate only mode', async function () {
+      const [wallet, transferAgent] = await hre.ethers.getSigners();
+      const { dsToken, registryService, lockManager, trustService } = await loadFixture(deployDSTokenRegulated);
+      // Register investor and assign TRANSFER_AGENT role to transferAgent
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+      await trustService.setRole(transferAgent, DSConstants.roles.TRANSFER_AGENT);
+      // Set liquidate only
+      await lockManager.connect(transferAgent).setInvestorLiquidateOnly(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, true);
+      await dsToken.setCap(1000);
+      // Issuance should fail
+      await expect(dsToken.issueTokens(wallet, 100)).revertedWith('Investor liquidate only');
+    });
+
+    it('should prevent transfer to an investor in liquidate only mode', async function () {
+      const [wallet, wallet2, transferAgent] = await hre.ethers.getSigners();
+      const { dsToken, registryService, lockManager, trustService } = await loadFixture(deployDSTokenRegulated);
+      // Register both investors and assign TRANSFER_AGENT role
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
+      await trustService.setRole(transferAgent, DSConstants.roles.TRANSFER_AGENT);
+      // Set liquidate only for wallet2
+      await lockManager.connect(transferAgent).setInvestorLiquidateOnly(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, true);
+      await dsToken.setCap(1000);
+      await dsToken.issueTokens(wallet, 100);
+      // Transfer to wallet2 should fail
+      await expect(dsToken.transfer(wallet2, 10)).revertedWith('Investor liquidate only');
+    });
+
+    it('should allow an investor in liquidate only mode to transfer out', async function () {
+      const [wallet, wallet2, transferAgent] = await hre.ethers.getSigners();
+      const { dsToken, registryService, lockManager, trustService } = await loadFixture(deployDSTokenRegulated);
+      // Register both investors and assign TRANSFER_AGENT role
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
+      await trustService.setRole(transferAgent, DSConstants.roles.TRANSFER_AGENT);
+      // Issue tokens to wallet
+      await dsToken.setCap(1000);
+      await dsToken.issueTokens(wallet, 100);
+      // Set liquidate only for wallet
+      await lockManager.connect(transferAgent).setInvestorLiquidateOnly(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, true);
+      // wallet can transfer out
+      await dsToken.transfer(wallet2, 50);
+      expect(await dsToken.balanceOf(wallet)).to.equal(50);
+      expect(await dsToken.balanceOf(wallet2)).to.equal(50);
+      // wallet can't receive tokens
+      await expect(dsToken.connect(wallet2).transfer(wallet, 50)).revertedWith('Investor liquidate only');
+    });
+  });
 
   describe('Validate issuance(recordIssuance):', function() {
     describe('Creation', function() {
