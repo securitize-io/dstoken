@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 pragma solidity ^0.8.20;
 
 /**
@@ -31,20 +30,28 @@ interface ISecuritizeNavProvider {
     event RateUpdated(uint256 oldValue, uint256 newValue);
 
     /**
-     * @dev Proxy Initializer.
-     * @param _rate the initial rate value
-    */
-    function initialize(uint256 _rate) external;
-
+     * @dev Emitted when new rate updater is added.
+     * @param rateUpdater new rate updater
+     */
+    event RateUpdaterAdded(address indexed rateUpdater);
 
     /**
-     * @dev Set rate. It is expressed with the same decimal numbers as stable coin
+     * @dev Emitted when new rate updater is removed.
+     * @param rateUpdater removed rate updater
+     */
+    event RateUpdaterRemoved(address indexed rateUpdater);
+
+    /**
+     * @dev Set the NAV rate.
+     * @param _rate NAV rate value with the same number of decimals as the asset
      */
     function setRate(uint256 _rate) external;
 
     /**
-     * @dev The asset:liquidity rate.
-     * @return The asset:liquidity rate.
+     * @dev Returns the current NAV rate.
+     * The returned rate will have the same number of decimals as the asset,
+     * being automatically normalized if necessary.
+     * @return rate NAV rate value with the same number of decimals as the asset
      */
     function rate() external view returns (uint256);
 }
