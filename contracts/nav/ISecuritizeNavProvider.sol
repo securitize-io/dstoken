@@ -19,7 +19,7 @@ pragma solidity ^0.8.20;
 
 /**
  * @title ISecuritizeNavProvider
- * @dev Define a common interface to read and configure the NAV Rate (Native Asset Value) used for calculating the liquidity tokens in a redemption operation.
+ * @dev Defines a common interface to get NAV (Native Asset Value) Rate to
  */
 interface ISecuritizeNavProvider {
     /**
