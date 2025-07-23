@@ -31,7 +31,7 @@ contract SecuritizeInternalNavProviderMock is ISecuritizeNavProvider {
         rate = _rate;
     }
 
-    function initialize(uint256 _rate) public override {
+    function initialize(uint256 _rate) public {
         rate = _rate;
     }
 
