@@ -186,7 +186,7 @@ contract DSToken is StandardToken {
 
         emit Seize(_from, _to, _value, _reason);
         emit Transfer(_from, _to, _value);
-        emit TxShares(address(0), _to, shares, rebasingProvider.multiplier());
+        emit TxShares(_from, _to, shares, rebasingProvider.multiplier());
         checkWalletsForList(_from, _to);
     }
 
