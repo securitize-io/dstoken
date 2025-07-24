@@ -51,6 +51,7 @@ library ComplianceServiceLibrary {
     string internal constant ONLY_ACCREDITED = "Only accredited";
     string internal constant ONLY_US_ACCREDITED = "Only us accredited";
     string internal constant NOT_ENOUGH_INVESTORS = "Not enough investors";
+    string internal constant INVESTOR_LIQUIDATE_ONLY = "Investor liquidate only";
 
     struct CompletePreTransferCheckArgs {
         address from;
@@ -214,6 +215,10 @@ library ComplianceServiceLibrary {
             !CommonUtils.isEmptyString(investorFrom) && CommonUtils.isEqualString(investorFrom, investorTo)
         ) {
             return (0, VALID);
+        }
+
+        if (IDSLockManager(_services[LOCK_MANAGER]).isInvestorLiquidateOnly(investorTo)) {
+            return (90, INVESTOR_LIQUIDATE_ONLY);
         }
 
         if (!ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).checkWhitelisted(_args.to)) {
@@ -421,6 +426,10 @@ library ComplianceServiceLibrary {
 
         if (!complianceService.checkWhitelisted(_to)) {
             return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
+        }
+
+        if (IDSLockManager(_services[LOCK_MANAGER]).isInvestorLiquidateOnly(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to))) {
+            return (90, INVESTOR_LIQUIDATE_ONLY);
         }
 
         uint256 balanceOfInvestorTo = balanceOfInvestor(_services, _to);
