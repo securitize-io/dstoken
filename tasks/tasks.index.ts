@@ -5,7 +5,6 @@ export * from './deploy-registry-service';
 export * from './deploy-compliance-service';
 export * from './deploy-wallet-manager';
 export * from './deploy-lock-manager';
-export * from './deploy-partitions-manager';
 export * from './deploy-compliance-configuration-service';
 export * from './deploy-token-issuer';
 export * from './deploy-wallet-registrar';
