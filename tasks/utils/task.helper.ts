@@ -11,8 +11,6 @@ export const printContractAddresses = async (name: string, contract: Contract, h
 
 export const getTokenContractName = (complianceType: string): string => {
   switch (complianceType) {
-    case 'PARTITIONED':
-      return 'DSTokenPartitioned';
     default:
       return 'DSToken';
   }
@@ -22,8 +20,6 @@ export const getComplianceContractName = (complianceType: string): string => {
   switch (complianceType) {
     case 'WHITELISTED':
       return 'ComplianceServiceWhitelisted';
-    case 'PARTITIONED':
-      return 'ComplianceServiceRegulatedPartitioned';
     default:
       return 'ComplianceServiceRegulated';
   }
@@ -31,13 +27,7 @@ export const getComplianceContractName = (complianceType: string): string => {
 
 export const getLockManagerContractName = (complianceType: string): string => {
   switch (complianceType) {
-    case 'PARTITIONED':
-      return 'InvestorLockManagerPartitioned';
     default:
       return 'InvestorLockManager';
   }
-}
-
-export const isPartitioned = (complianceType: string): boolean => {
-  return complianceType === 'PARTITIONED';
 }
