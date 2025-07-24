@@ -17,7 +17,6 @@ task('deploy-all', 'Deploy DS Protocol')
     const complianceService = await run('deploy-compliance-service', args);
     const walletManager = await run('deploy-wallet-manager');
     const lockManager = await run('deploy-lock-manager', args);
-    const partitionsManager = await run('deploy-partitions-manager', args);
     const complianceConfigurationService = await run('deploy-compliance-configuration-service');
     const tokenIssuer = await run('deploy-token-issuer');
     const walletRegistrar = await run('deploy-wallet-registrar');
@@ -47,7 +46,6 @@ task('deploy-all', 'Deploy DS Protocol')
       complianceService,
       walletManager,
       lockManager,
-      partitionsManager,
       complianceConfigurationService,
       tokenIssuer,
       walletRegistrar,
