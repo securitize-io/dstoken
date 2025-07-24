@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.22;
 
 import "./ServiceConsumerDataStore.sol";
 import '../token/TokenPartitionsLibrary.sol';
