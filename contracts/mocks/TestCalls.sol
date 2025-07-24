@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.22;
 
 /// @title Contract for testing low-level calls issued from the multisig wallet
 contract TestCalls {
