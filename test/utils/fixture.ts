@@ -21,13 +21,6 @@ export const deployDSTokenWhitelisted = () => {
   return hre.run('deploy-all', { name, symbol, decimals: 2, compliance });
 };
 
-export const deployDSTokenPartitioned = () => {
-  const name = 'Token Example 1';
-  const symbol = 'TX1';
-  const compliance = 'PARTITIONED';
-  return hre.run('deploy-all', { name, symbol, decimals: 2, compliance });
-};
-
 export const deployDSTokenRegulatedWithRebasing = async () => {
   const name = 'Token Example 1';
   const symbol = 'TX1';
