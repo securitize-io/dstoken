@@ -13,12 +13,6 @@ subtask('deploy-compliance-service', 'Deploy Compliance Service')
         libraries.ComplianceServiceLibrary = complianceLib;
       }
 
-      if (args.compliance === 'PARTITIONED') {
-        const CompliancePartitionedLib = await hre.ethers.getContractFactory('ComplianceServicePartitionedLibrary');
-        const compliancePartitionedLib = await CompliancePartitionedLib.deploy();
-        libraries.ComplianceServicePartitionedLibrary = compliancePartitionedLib;
-      }
-
       const complianceContractName = getComplianceContractName(args.compliance);
 
       const Service = await hre.ethers.getContractFactory(complianceContractName, { libraries });
