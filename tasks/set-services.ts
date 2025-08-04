@@ -13,7 +13,6 @@ subtask('set-services', 'Set DS Services')
         complianceService,
         walletManager,
         lockManager,
-        partitionsManager,
         complianceConfigurationService,
         tokenIssuer,
         walletRegistrar,
@@ -42,11 +41,7 @@ subtask('set-services', 'Set DS Services')
       console.log('Connecting token to lock manager');
       await dsToken.setDSService(DSConstants.services.LOCK_MANAGER, lockManager.getAddress());
       console.log('Connecting token to transaction relayer');
-      await dsToken.setDSService(DSConstants.services.TRANSACTION_RELAYER, transactionRelayer.getAddress());
-      if (partitionsManager) {
-        console.log('Connecting token to partitions manager');
-        await dsToken.setDSService(DSConstants.services.PARTITIONS_MANAGER, partitionsManager.getAddress());
-      }
+      await dsToken.setDSService(DSConstants.services.TRANSACTION_RELAYER, transactionRelayer.getAddress())
       console.log('Connecting token to rebasing provider');
       await dsToken.setDSService(DSConstants.services.REBASING_PROVIDER, rebasingProvider.getAddress());
 
@@ -77,10 +72,6 @@ subtask('set-services', 'Set DS Services')
       await complianceService.setDSService(DSConstants.services.DS_TOKEN, dsToken.getAddress());
       console.log('Connecting compliance service to registry');
       await complianceService.setDSService(DSConstants.services.REGISTRY_SERVICE, registryService.getAddress());
-      if (partitionsManager) {
-        console.log('Connecting compliance service to partitions manager');
-        await complianceService.setDSService(DSConstants.services.PARTITIONS_MANAGER, partitionsManager.getAddress());
-      }
       console.log('Connecting compliance service to rebasing provider');
       await complianceService.setDSService(DSConstants.services.REBASING_PROVIDER, rebasingProvider.getAddress());
 
@@ -136,13 +127,5 @@ subtask('set-services', 'Set DS Services')
       await walletManager.addIssuerWallet(swap.target);
       console.log('Connecting Swap with Registry Service');
       await swap.setDSService(DSConstants.services.REGISTRY_SERVICE, registryService.getAddress());
-
-      // Partitions Manager
-      if (partitionsManager) {
-        console.log('Connecting partitions manager to trust service');
-        await partitionsManager.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
-        console.log('Connecting partitions manager to token');
-        await partitionsManager.setDSService(DSConstants.services.DS_TOKEN, dsToken.getAddress());
-      }
     }
   );

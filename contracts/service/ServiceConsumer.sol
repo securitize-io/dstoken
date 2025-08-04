@@ -23,9 +23,7 @@ import "../data-stores/ServiceConsumerDataStore.sol";
 import "../token/IDSToken.sol";
 import "../compliance/IDSWalletManager.sol";
 import "../compliance/IDSLockManager.sol";
-import "../compliance/IDSLockManagerPartitioned.sol";
 import "../compliance/IDSComplianceService.sol";
-import "../compliance/IDSPartitionsManager.sol";
 import "../compliance/IDSComplianceConfigurationService.sol";
 import "../registry/IDSRegistryService.sol";
 import "../trust/IDSTrustService.sol";
@@ -146,20 +144,12 @@ abstract contract ServiceConsumer is IDSServiceConsumer, ServiceConsumerDataStor
         return IDSLockManager(getDSService(LOCK_MANAGER));
     }
 
-    function getLockManagerPartitioned() internal view returns (IDSLockManagerPartitioned) {
-        return IDSLockManagerPartitioned(getDSService(LOCK_MANAGER));
-    }
-
     function getComplianceService() internal view returns (IDSComplianceService) {
         return IDSComplianceService(getDSService(COMPLIANCE_SERVICE));
     }
 
     function getRegistryService() internal view returns (IDSRegistryService) {
         return IDSRegistryService(getDSService(REGISTRY_SERVICE));
-    }
-
-    function getPartitionsManager() internal view returns (IDSPartitionsManager) {
-        return IDSPartitionsManager(getDSService(PARTITIONS_MANAGER));
     }
 
     function getComplianceConfigurationService() internal view returns (IDSComplianceConfigurationService) {
