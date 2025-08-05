@@ -537,12 +537,19 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         address _to,
         uint256 _value
     ) internal override returns (bool) {
-        if (compareInvestorBalance(_to, _value, 0)) {
-            adjustTransferCounts(_to, CommonUtils.IncDec.Increase);
+        IDSWalletManager walletManager = getWalletManager();
+        if (!walletManager.isSpecialWallet(_to)) {
+            if (compareInvestorBalance(_to, _value, 0)) {
+                adjustTransferCounts(_to, CommonUtils.IncDec.Increase);
+            }
         }
-        if (compareInvestorBalance(_from, _value, 0)) {
-            adjustTransferCounts(_from, CommonUtils.IncDec.Decrease);
+
+        if (!walletManager.isSpecialWallet(_from)) {
+            if (compareInvestorBalance(_from, _value, 0)) {
+                adjustTransferCounts(_from, CommonUtils.IncDec.Decrease);
+            }
         }
+
         return true;
     }
 
