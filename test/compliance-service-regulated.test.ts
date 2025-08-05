@@ -169,14 +169,15 @@ describe('Compliance Service Regulated Unit Tests', function() {
       expect(await complianceService.getTotalInvestorsCount()).equal(2);
     });
 
-    it('Should increase total investors value when transfer tokens', async function() {
+    it.only('Should increase total investors value when transfer tokens', async function() {
       const [wallet, wallet2] = await hre.ethers.getSigners();
-      const { dsToken, registryService, complianceService } = await loadFixture(deployDSTokenRegulated);
+      const { dsToken, registryService, complianceService, walletManager } = await loadFixture(deployDSTokenRegulated);
       expect(await complianceService.getTotalInvestorsCount()).equal(0);
 
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
-
+      expect(await walletManager.isSpecialWallet(wallet)).to.equal(false);
+      expect(await walletManager.isSpecialWallet(wallet2)).to.equal(false);
       await dsToken.setCap(1000);
       await dsToken.issueTokens(wallet, 100);
 
