@@ -541,8 +541,8 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
             adjustTransferCounts(_to, CommonUtils.IncDec.Increase);
         }
 
-        if (compareInvestorBalance(_from, _value, 0)) {
-            adjustTransferCounts(_from, CommonUtils.IncDec.Decrease);
+        if (isInvestorWithEmptyBalance(_from, _value)) {
+            adjustTotalInvestorsCounts(_from, CommonUtils.IncDec.Decrease);
         }
 
         return true;

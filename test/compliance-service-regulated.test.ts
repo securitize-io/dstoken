@@ -166,10 +166,10 @@ describe('Compliance Service Regulated Unit Tests', function() {
 
       expect(await complianceService.getTotalInvestorsCount()).equal(2);
       await dsToken.transfer(wallet2, 100);
-      expect(await complianceService.getTotalInvestorsCount()).equal(2);
+      expect(await complianceService.getTotalInvestorsCount()).equal(1);
     });
 
-    it('Should increase total investors value when transfer tokens between investors', async function() {
+    it('Should increase total investors value when transferring tokens between investors', async function() {
       const [wallet, wallet2] = await hre.ethers.getSigners();
       const { dsToken, registryService, complianceService, walletManager } = await loadFixture(deployDSTokenRegulated);
       expect(await complianceService.getTotalInvestorsCount()).equal(0);
@@ -182,26 +182,31 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await dsToken.issueTokens(wallet, 100);
 
       expect(await complianceService.getTotalInvestorsCount()).equal(1);
-      await dsToken.transfer(wallet2, 100);
+      await dsToken.transfer(wallet2, 50);
+      expect(await dsToken.balanceOf(wallet)).to.equal(50);
       expect(await complianceService.getTotalInvestorsCount()).equal(2);
+
+      await dsToken.transfer(wallet2, 50);
+      expect(await dsToken.balanceOf(wallet)).to.equal(0);
+      expect(await complianceService.getTotalInvestorsCount()).equal(1);
     });
 
-    it('Should increase total when sender is special wallet and receiver is special wallet', async function() {
-      const [wallet, wallet2] = await hre.ethers.getSigners();
+    it('Should increase total when sender is investor and receiver is special wallet', async function() {
+      const [wallet, platformWallet] = await hre.ethers.getSigners();
       const { dsToken, registryService, complianceService, walletManager } = await loadFixture(deployDSTokenRegulated);
       expect(await complianceService.getTotalInvestorsCount()).equal(0);
 
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
       expect(await walletManager.isSpecialWallet(wallet)).to.equal(false);
 
-      await walletManager.addPlatformWallet(wallet2);
-      expect(await walletManager.isSpecialWallet(wallet2)).to.equal(true);
+      await walletManager.addPlatformWallet(platformWallet);
+      expect(await walletManager.isSpecialWallet(platformWallet)).to.equal(true);
       await dsToken.setCap(1000);
       await dsToken.issueTokens(wallet, 100);
+      expect(await complianceService.getTotalInvestorsCount()).equal(1);
 
-      expect(await complianceService.getTotalInvestorsCount()).equal(1);
-      await dsToken.transfer(wallet2, 100);
-      expect(await complianceService.getTotalInvestorsCount()).equal(1);
+      await dsToken.transfer(platformWallet, 100);
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
     });
 
     it('Should increase total counters when sender is special wallet and target is an investor', async function() {
