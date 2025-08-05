@@ -525,11 +525,11 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_who)) == _compareTo);
     }
 
-    function hasInvestorPositiveBalance(
+    function isInvestorWithEmptyBalance(
         address _who,
         uint256 _value
     ) internal view returns (bool) {
-        return (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_who)) > 0);
+        return (getToken().balanceOfInvestor(getRegistryService().getInvestor(_who)) <= _value);
     }
 
     function recordTransfer(
@@ -569,7 +569,8 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function recordBurn(address _who, uint256 _value) internal override returns (bool) {
-        if (compareInvestorBalance(_who, _value, 0)) {
+
+        if (isInvestorWithEmptyBalance(_who, _value)) {
             adjustTotalInvestorsCounts(_who, CommonUtils.IncDec.Decrease);
         }
         return true;
