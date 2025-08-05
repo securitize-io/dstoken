@@ -169,7 +169,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       expect(await complianceService.getTotalInvestorsCount()).equal(2);
     });
 
-    it.only('Should increase total investors value when transfer tokens', async function() {
+    it.only('Should increase total investors value when transfer tokens between investors', async function() {
       const [wallet, wallet2] = await hre.ethers.getSigners();
       const { dsToken, registryService, complianceService, walletManager } = await loadFixture(deployDSTokenRegulated);
       expect(await complianceService.getTotalInvestorsCount()).equal(0);
@@ -185,6 +185,66 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await dsToken.transfer(wallet2, 100);
       expect(await complianceService.getTotalInvestorsCount()).equal(2);
     });
+
+    it.only('Should increase total when sender is special wallet and receiver is special wallet', async function() {
+      const [wallet, wallet2] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceService, walletManager } = await loadFixture(deployDSTokenRegulated);
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+      expect(await walletManager.isSpecialWallet(wallet)).to.equal(false);
+
+      await walletManager.addPlatformWallet(wallet2);
+      expect(await walletManager.isSpecialWallet(wallet2)).to.equal(true);
+      await dsToken.setCap(1000);
+      await dsToken.issueTokens(wallet, 100);
+
+      expect(await complianceService.getTotalInvestorsCount()).equal(1);
+      await dsToken.transfer(wallet2, 100);
+      expect(await complianceService.getTotalInvestorsCount()).equal(1);
+    });
+
+    it.only('Should increase total counters when sender is special wallet and target is an investor', async function() {
+      const [wallet, wallet2] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceService, walletManager } = await loadFixture(deployDSTokenRegulated);
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+
+
+      await walletManager.addPlatformWallet(wallet);
+      expect(await walletManager.isSpecialWallet(wallet)).to.equal(true);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
+      expect(await walletManager.isSpecialWallet(wallet2)).to.equal(false);
+      await dsToken.setCap(1000);
+      await dsToken.issueTokens(wallet, 100);
+
+      // The system has not investor because issuance was to a platform wallet
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+      await dsToken.transfer(wallet2, 100);
+      expect(await complianceService.getTotalInvestorsCount()).equal(1);
+    });
+
+    it.only('Should not increase total counters whe transferring between platform wallets', async function() {
+      const [wallet, wallet2] = await hre.ethers.getSigners();
+      const { dsToken, complianceService, walletManager } = await loadFixture(deployDSTokenRegulated);
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+
+
+      await walletManager.addPlatformWallet(wallet);
+      expect(await walletManager.isSpecialWallet(wallet)).to.equal(true);
+
+      await walletManager.addPlatformWallet(wallet2);
+      expect(await walletManager.isSpecialWallet(wallet2)).to.equal(true);
+      await dsToken.setCap(1000);
+      await dsToken.issueTokens(wallet, 100);
+
+      // The system hasn't investor because issuance was to a platform wallet
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+      await dsToken.transfer(wallet2, 100);
+      // The system hasn't investor because issuance was to a platform wallet
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+    });
+
 
     it('Should not be able to transfer tokens because of 1 year lock for US investors', async function() {
       const [wallet, wallet2] = await hre.ethers.getSigners();
