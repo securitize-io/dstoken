@@ -165,7 +165,7 @@ library ComplianceServiceLibrary {
         address[] calldata _services,
         address _from,
         address _to,
-        uint256 _value 
+        uint256 _value
     ) public view returns (uint256 code, string memory reason) {
         return doPreTransferCheckRegulated(_services, _from, _to, _value, IDSToken(_services[DS_TOKEN]).balanceOf(_from), IDSToken(_services[DS_TOKEN]).isPaused());
     }
@@ -525,14 +525,24 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_who)) == _compareTo);
     }
 
+    function hasInvestorPositiveBalance(
+        address _who,
+        uint256 _value
+    ) internal view returns (bool) {
+        return (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_who)) > 0);
+    }
+
     function recordTransfer(
+        address _from,
         address _to,
         uint256 _value
     ) internal override returns (bool) {
         if (compareInvestorBalance(_to, _value, 0)) {
             adjustTransferCounts(_to, CommonUtils.IncDec.Increase);
         }
-
+        if (compareInvestorBalance(_from, _value, 0)) {
+            adjustTransferCounts(_from, CommonUtils.IncDec.Decrease);
+        }
         return true;
     }
 
@@ -556,7 +566,10 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return createIssuanceInformation(getRegistryService().getInvestor(_to), shares, _issuanceTime);
     }
 
-    function recordBurn(address /*_who*/, uint256 /*_value*/) internal pure override returns (bool) {
+    function recordBurn(address _who, uint256 _value) internal override returns (bool) {
+        if (compareInvestorBalance(_who, _value, 0)) {
+            adjustTotalInvestorsCounts(_who, CommonUtils.IncDec.Decrease);
+        }
         return true;
     }
 
@@ -564,7 +577,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         address _from,
         address, /*_to*/
         uint256 _value
-    ) internal pure override returns (bool) {
+    ) internal override returns (bool) {
         return recordBurn(_from, _value);
     }
 
@@ -587,6 +600,9 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
             if (_increase == CommonUtils.IncDec.Increase) {
                 totalInvestors++;
             }
+            else {
+                totalInvestors--;
+            }
 
             string memory id = getRegistryService().getInvestor(_wallet);
             string memory country = getRegistryService().getCountry(id);
@@ -606,9 +622,16 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
             if(_increase == CommonUtils.IncDec.Increase) {
                 accreditedInvestorsCount++;
             }
+            else {
+                accreditedInvestorsCount--;
+            }
+
             if (countryCompliance == US) {
                 if(_increase == CommonUtils.IncDec.Increase) {
                     usAccreditedInvestorsCount++;
+                }
+                else {
+                    usAccreditedInvestorsCount--;
                 }
             }
         }
@@ -617,13 +640,22 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
             if(_increase == CommonUtils.IncDec.Increase) {
                 usInvestorsCount++;
             }
+            else {
+                usInvestorsCount--;
+            }
         } else if (countryCompliance == EU && !getRegistryService().isQualifiedInvestor(_id)) {
             if(_increase == CommonUtils.IncDec.Increase) {
                 euRetailInvestorsCount[_country]++;
             }
+            else {
+                euRetailInvestorsCount[_country]--;
+            }
         } else if (countryCompliance == JP) {
             if(_increase == CommonUtils.IncDec.Increase) {
                 jpInvestorsCount++;
+            }
+            else {
+                jpInvestorsCount--;
             }
         }
     }
@@ -686,7 +718,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         }
 
         uint256 totalLockedTokens = 0;
-        
+
         for (uint256 i = 0; i < investorIssuancesCount; i++) {
             uint256 issuanceTimestamp = issuancesTimestamps[investor][i];
 

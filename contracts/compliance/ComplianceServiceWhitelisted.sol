@@ -58,7 +58,7 @@ contract ComplianceServiceWhitelisted is ComplianceService {
         return true;
     }
 
-    function recordTransfer(address, uint256) internal virtual override returns (bool) {
+    function recordTransfer(address, address, uint256) internal virtual override returns (bool) {
         return true;
     }
 
