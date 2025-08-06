@@ -166,24 +166,90 @@ describe('Compliance Service Regulated Unit Tests', function() {
 
       expect(await complianceService.getTotalInvestorsCount()).equal(2);
       await dsToken.transfer(wallet2, 100);
-      expect(await complianceService.getTotalInvestorsCount()).equal(2);
+      expect(await complianceService.getTotalInvestorsCount()).equal(1);
     });
 
-    it('Should increase total investors value when transfer tokens', async function() {
+    it('Should increase total investors value when transferring tokens between investors', async function() {
       const [wallet, wallet2] = await hre.ethers.getSigners();
-      const { dsToken, registryService, complianceService } = await loadFixture(deployDSTokenRegulated);
+      const { dsToken, registryService, complianceService, walletManager } = await loadFixture(deployDSTokenRegulated);
       expect(await complianceService.getTotalInvestorsCount()).equal(0);
 
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
-
+      expect(await walletManager.isSpecialWallet(wallet)).to.equal(false);
+      expect(await walletManager.isSpecialWallet(wallet2)).to.equal(false);
       await dsToken.setCap(1000);
       await dsToken.issueTokens(wallet, 100);
 
       expect(await complianceService.getTotalInvestorsCount()).equal(1);
-      await dsToken.transfer(wallet2, 100);
+      await dsToken.transfer(wallet2, 50);
+      expect(await dsToken.balanceOf(wallet)).to.equal(50);
       expect(await complianceService.getTotalInvestorsCount()).equal(2);
+
+      await dsToken.transfer(wallet2, 50);
+      expect(await dsToken.balanceOf(wallet)).to.equal(0);
+      expect(await complianceService.getTotalInvestorsCount()).equal(1);
     });
+
+    it('Should increase total when sender is investor and receiver is special wallet', async function() {
+      const [wallet, platformWallet] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceService, walletManager } = await loadFixture(deployDSTokenRegulated);
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+      expect(await walletManager.isSpecialWallet(wallet)).to.equal(false);
+
+      await walletManager.addPlatformWallet(platformWallet);
+      expect(await walletManager.isSpecialWallet(platformWallet)).to.equal(true);
+      await dsToken.setCap(1000);
+      await dsToken.issueTokens(wallet, 100);
+      expect(await complianceService.getTotalInvestorsCount()).equal(1);
+
+      await dsToken.transfer(platformWallet, 100);
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+    });
+
+    it('Should increase total counters when sender is special wallet and target is an investor', async function() {
+      const [wallet, wallet2] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceService, walletManager } = await loadFixture(deployDSTokenRegulated);
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+
+
+      await walletManager.addPlatformWallet(wallet);
+      expect(await walletManager.isSpecialWallet(wallet)).to.equal(true);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
+      expect(await walletManager.isSpecialWallet(wallet2)).to.equal(false);
+      await dsToken.setCap(1000);
+      await dsToken.issueTokens(wallet, 100);
+
+      // The system has not investor because issuance was to a platform wallet
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+      await dsToken.transfer(wallet2, 100);
+      expect(await complianceService.getTotalInvestorsCount()).equal(1);
+    });
+
+    it('Should not increase total counters whe transferring between platform wallets', async function() {
+      const [wallet, wallet2] = await hre.ethers.getSigners();
+      const { dsToken, complianceService, walletManager } = await loadFixture(deployDSTokenRegulated);
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+
+
+      await walletManager.addPlatformWallet(wallet);
+      expect(await walletManager.isSpecialWallet(wallet)).to.equal(true);
+
+      await walletManager.addPlatformWallet(wallet2);
+      expect(await walletManager.isSpecialWallet(wallet2)).to.equal(true);
+      await dsToken.setCap(1000);
+      await dsToken.issueTokens(wallet, 100);
+
+      // The system hasn't investor because issuance was to a platform wallet
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+      await dsToken.transfer(wallet2, 100);
+      // The system hasn't investor because issuance was to a platform wallet
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+    });
+
 
     it('Should not be able to transfer tokens because of 1 year lock for US investors', async function() {
       const [wallet, wallet2] = await hre.ethers.getSigners();
@@ -281,7 +347,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
   describe('Validate burn', function() {
     it('Should revert due to trying burn tokens for account with NONE permissions', async function() {
       const [owner, unauthorized] = await hre.ethers.getSigners();
-      const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);
+      const { dsToken, registryService } = await loadFixture(deployDSTokenRegulated);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, owner, registryService);
       await dsToken.setCap(1000);
       await dsToken.issueTokens(owner, 100);
@@ -290,7 +356,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await expect(dsTokenFromUnauthorized.burn(owner, 100, 'test')).revertedWith('Insufficient trust level');
     });
 
-    it('Should not decrease total investors value when burn tokens', async function() {
+    it('Should decrease total investors value when burn tokens', async function() {
       const [wallet] = await hre.ethers.getSigners();
       const { dsToken, registryService, complianceService } = await loadFixture(deployDSTokenRegulated);
       expect(await complianceService.getTotalInvestorsCount()).equal(0);
@@ -301,10 +367,56 @@ describe('Compliance Service Regulated Unit Tests', function() {
       expect(await dsToken.balanceOf(wallet)).equal(100);
       expect(await complianceService.getTotalInvestorsCount()).equal(1);
       await dsToken.burn(wallet, 100, 'test');
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+      expect(await dsToken.balanceOf(wallet)).equal(0);
+    });
+    it('Should increase total investors value when investors has tokens', async function() {
+      const [wallet, wallet2] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceService } = await loadFixture(deployDSTokenRegulated);
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
+      await dsToken.setCap(1000);
+      await dsToken.issueTokens(wallet, 200);
       expect(await complianceService.getTotalInvestorsCount()).equal(1);
+      await dsToken.connect(wallet).transfer(wallet2, 50);
+      await dsToken.burn(wallet, 100, 'test');
+      expect(await dsToken.balanceOf(wallet)).to.equal(50);
+      expect(await dsToken.balanceOf(wallet2)).to.equal(50);
+      expect(await complianceService.getTotalInvestorsCount()).equal(2);
+    });
+    it(`Should not decrement the total counter until the investor's balance is 0`, async function() {
+      const [wallet] = await hre.ethers.getSigners();
+      const { dsToken, complianceService, registryService } = await loadFixture(deployDSTokenRegulated);
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+      await dsToken.setCap(1000);
+      await dsToken.issueTokens(wallet, 100);
+      expect(await dsToken.balanceOf(wallet)).equal(100);
+      expect(await complianceService.getTotalInvestorsCount()).equal(1);
+      await dsToken.burn(wallet, 10, 'test');
+      expect(await dsToken.balanceOf(wallet)).equal(90);
+      expect(await complianceService.getTotalInvestorsCount()).equal(1);
+      await dsToken.burn(wallet, 90, 'test');
+      expect(await dsToken.balanceOf(wallet)).equal(0);
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+    });
+    it('Should not decrease/increase total investor value when burning tokens with platform wallet', async function() {
+      const [wallet] = await hre.ethers.getSigners();
+      const { dsToken, complianceService, walletManager } = await loadFixture(deployDSTokenRegulated);
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+      await walletManager.addPlatformWallet(wallet);
+      await dsToken.setCap(1000);
+      await dsToken.issueTokens(wallet, 100);
+      expect(await dsToken.balanceOf(wallet)).equal(100);
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+      await dsToken.burn(wallet, 100, 'test');
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
       expect(await dsToken.balanceOf(wallet)).equal(0);
     });
   });
+});
 
   describe('Validate seize', function() {
     it('Should revert due to trying seize tokens for account with NONE permissions', async function() {
@@ -319,22 +431,37 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await expect(dsTokenFromUnauthorized.seize(owner, wallet, 100, 'test')).revertedWith('Insufficient trust level');
     });
 
-    it('Should not decrease total investors value when seizing tokens', async function() {
-      const [wallet, wallet2] = await hre.ethers.getSigners();
+    it('Should decrease total investors value when seizing all tokens of an investor wallet', async function() {
+      const [wallet, platformWallet] = await hre.ethers.getSigners();
       const { dsToken, registryService, complianceService, walletManager } = await loadFixture(deployDSTokenRegulated);
       expect(await complianceService.getTotalInvestorsCount()).equal(0);
 
+      await walletManager.addIssuerWallet(platformWallet);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
       await dsToken.setCap(1000);
       await dsToken.issueTokens(wallet, 100);
       expect(await dsToken.balanceOf(wallet)).equal(100);
       expect(await complianceService.getTotalInvestorsCount()).equal(1);
-
-      await walletManager.addIssuerWallet(wallet2);
-      await dsToken.seize(wallet, wallet2, 100, 'test');
-
-      expect(await complianceService.getTotalInvestorsCount()).equal(1);
+      await dsToken.seize(wallet, platformWallet, 100, 'test');
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
       expect(await dsToken.balanceOf(wallet)).equal(0);
+    });
+    it('Should not decrease total investors value when seizing all tokens of an platform wallet', async function() {
+      const [platformWallet, platformWallet2] = await hre.ethers.getSigners();
+      const { dsToken, complianceService, walletManager } = await loadFixture(deployDSTokenRegulated);
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+
+      await walletManager.addPlatformWallet(platformWallet2);
+      await dsToken.setCap(1000);
+      await dsToken.issueTokens(platformWallet2, 100);
+      expect(await dsToken.balanceOf(platformWallet2)).equal(100);
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+
+      await walletManager.addIssuerWallet(platformWallet);
+      await dsToken.seize(platformWallet2, platformWallet, 100, 'test');
+
+      expect(await complianceService.getTotalInvestorsCount()).equal(0);
+      expect(await dsToken.balanceOf(platformWallet2)).equal(0);
     });
   });
 
@@ -802,6 +929,4 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await dsToken.issueTokens(investor, 4000);
       await dsToken.issueTokens(investor, 400);
     });
-
-  });
 });
