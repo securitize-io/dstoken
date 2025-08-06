@@ -525,13 +525,6 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_who)) == _compareTo);
     }
 
-    function isInvestorWithEmptyBalance(
-        address _who,
-        uint256 _value
-    ) internal view returns (bool) {
-        return (getToken().balanceOfInvestor(getRegistryService().getInvestor(_who)) <= _value);
-    }
-
     function recordTransfer(
         address _from,
         address _to,
@@ -541,7 +534,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
             adjustTransferCounts(_to, CommonUtils.IncDec.Increase);
         }
 
-        if (isInvestorWithEmptyBalance(_from, _value)) {
+        if (compareInvestorBalance(_from, _value, _value)) {
             adjustTotalInvestorsCounts(_from, CommonUtils.IncDec.Decrease);
         }
 
@@ -570,7 +563,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
     function recordBurn(address _who, uint256 _value) internal override returns (bool) {
 
-        if (isInvestorWithEmptyBalance(_who, _value)) {
+        if (compareInvestorBalance(_who, _value, _value)) {
             adjustTotalInvestorsCounts(_who, CommonUtils.IncDec.Decrease);
         }
         return true;
