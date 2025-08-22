@@ -538,6 +538,8 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
             adjustTotalInvestorsCounts(_from, CommonUtils.IncDec.Decrease);
         }
 
+        cleanupInvestorIssuances(_from);
+        cleanupInvestorIssuances(_to);
         return true;
     }
 
@@ -792,6 +794,50 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         jpInvestorsCount = _value;
 
         return true;
+    }
+
+    function cleanupInvestorIssuances(address _who) internal {
+        string memory investor = getRegistryService().getInvestor(_who);
+        string memory country = getRegistryService().getCountry(investor);
+
+        uint256 region = getComplianceConfigurationService().getCountryCompliance(country);
+
+        uint256 lockTime;
+        if (region == ComplianceServiceLibrary.US) {
+            lockTime = getComplianceConfigurationService().getUSLockPeriod();
+        } else {
+            lockTime = getComplianceConfigurationService().getNonUSLockPeriod();
+        }
+
+        uint256 time = block.timestamp;
+
+        uint256 currentIssuancesCount = issuancesCounters[investor];
+        uint256 currentIndex = 0;
+
+        if (currentIssuancesCount == 0) {
+            return;
+        }
+
+        while (currentIndex < currentIssuancesCount) {
+            uint256 issuanceTimestamp = issuancesTimestamps[investor][currentIndex];
+
+            bool isNoLongerLocked = issuanceTimestamp <= (time - lockTime);
+
+            if (isNoLongerLocked) {
+                if (currentIndex != currentIssuancesCount - 1) {
+                    issuancesTimestamps[investor][currentIndex] = issuancesTimestamps[investor][currentIssuancesCount - 1];
+                    issuancesValues[investor][currentIndex] = issuancesValues[investor][currentIssuancesCount - 1];
+                }
+
+                delete issuancesTimestamps[investor][currentIssuancesCount - 1];
+                delete issuancesValues[investor][currentIssuancesCount - 1];
+
+                issuancesCounters[investor]--;
+                currentIssuancesCount = issuancesCounters[investor];
+            } else {
+                currentIndex++;
+            }
+        }
     }
 
     function getServices() internal view returns (address[] memory services) {
