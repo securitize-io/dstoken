@@ -22,6 +22,7 @@ import "../token/IDSToken.sol";
 
 
 library RebasingLibrary {
+    uint256 private constant DECIMALS_FACTOR = 1e18;
 
     function convertTokensToShares(
         uint256 _tokens,
@@ -34,13 +35,13 @@ library RebasingLibrary {
         // caused by Solidity's integer division which always rounds down.
         // This ensures more accurate conversion when working with fractional token values.
         if (_tokenDecimals == 18) {
-            return (_tokens * 1e18 + _rebasingMultiplier / 2) / _rebasingMultiplier;
+            return (_tokens * DECIMALS_FACTOR + _rebasingMultiplier / 2) / _rebasingMultiplier;
         } else if (_tokenDecimals < 18) {
             uint256 scale = 10**(18 - _tokenDecimals);
-            return (_tokens * scale * 1e18 + _rebasingMultiplier / 2) / _rebasingMultiplier;
+            return (_tokens * scale * DECIMALS_FACTOR + _rebasingMultiplier / 2) / _rebasingMultiplier;
         } else {
             uint256 scale = 10**(_tokenDecimals - 18);
-            return (_tokens * 1e18 + (_rebasingMultiplier * scale) / 2) / (_rebasingMultiplier * scale);
+            return (_tokens * DECIMALS_FACTOR + (_rebasingMultiplier * scale) / 2) / (_rebasingMultiplier * scale);
         }
     }
 
@@ -55,13 +56,13 @@ library RebasingLibrary {
         // caused by Solidity's integer division which always rounds down.
         // This ensures more accurate conversion when working with fractional token values.
         if (_tokenDecimals == 18) {
-            return (_shares * _rebasingMultiplier + 1e18 / 2) / 1e18;
+            return (_shares * _rebasingMultiplier + DECIMALS_FACTOR / 2) / DECIMALS_FACTOR;
         } else if (_tokenDecimals < 18) {
             uint256 scale = 10**(18 - _tokenDecimals);
-            return (((_shares * _rebasingMultiplier + 1e18 / 2) / 1e18) + scale / 2) / scale;
+            return (((_shares * _rebasingMultiplier + DECIMALS_FACTOR / 2) / DECIMALS_FACTOR) + scale / 2) / scale;
         } else {
             uint256 scale = 10**(_tokenDecimals - 18);
-            return (_shares * _rebasingMultiplier * scale + 1e18 / 2) / 1e18;
+            return (_shares * _rebasingMultiplier * scale + DECIMALS_FACTOR / 2) / DECIMALS_FACTOR;
         }
     }
 }
