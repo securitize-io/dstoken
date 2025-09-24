@@ -106,14 +106,14 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
 
     function setCountry(string calldata _id, string memory _country) public override onlyExchangeOrAbove investorExists(_id) returns (bool) {
         string memory prevCountry = getCountry(_id);
+        if (!CommonUtils.isEqualString(prevCountry, _country)) {
+            getComplianceService().adjustInvestorCountsAfterCountryChange(_id, _country, prevCountry);
 
-        getComplianceService().adjustInvestorCountsAfterCountryChange(_id, _country, prevCountry);
+            investors[_id].country = _country;
+            investors[_id].lastUpdatedBy = msg.sender;
 
-        investors[_id].country = _country;
-        investors[_id].lastUpdatedBy = msg.sender;
-
-        emit DSRegistryServiceInvestorCountryChanged(_id, _country, msg.sender);
-
+            emit DSRegistryServiceInvestorCountryChanged(_id, _country, msg.sender);
+        }
         return true;
     }
 
