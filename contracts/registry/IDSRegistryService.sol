@@ -116,7 +116,6 @@ abstract contract IDSRegistryService {
         string memory _id /*onlyExchangeOrAbove newWallet(_address)*/
     ) public virtual returns (bool);
 
-    function addWalletByInvestor(address _address) public virtual returns (bool);
 
     function removeWallet(
         address _address,
