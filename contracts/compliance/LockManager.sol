@@ -233,6 +233,10 @@ contract LockManager is IDSLockManager, LockManagerDataStore, BaseDSContract {
         revertInvestorLevelMethod();
     }
 
+    function setInvestorLiquidateOnly(string memory /*_investorId*/, bool /*_enabled*/) public pure override returns (bool) {
+        revertInvestorLevelMethod();
+    }
+
     function revertInvestorLevelMethod() internal pure {
         revert("lock manager supports only wallet locks");
     }
