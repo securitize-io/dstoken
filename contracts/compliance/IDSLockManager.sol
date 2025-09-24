@@ -182,6 +182,13 @@ abstract contract IDSLockManager {
     function isInvestorLocked(string memory _investorId) public view virtual returns (bool);
 
     /**
+     * @dev set investor to liquidate only mode
+     * @param _investorId investor id
+     * @param _enabled true to enable, false to disable
+     */
+    function setInvestorLiquidateOnly(string memory _investorId, bool _enabled) public virtual returns (bool);
+
+    /**
      * @dev Returns true if the investor is in liquidate only mode
      * @param _investorId investor id
      */

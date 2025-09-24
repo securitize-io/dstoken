@@ -46,8 +46,8 @@ abstract contract InvestorLockManagerBase is IDSLockManager, InvestorLockManager
         return investorsLocked[_investorId];
     }
 
-    function setInvestorLiquidateOnly(string memory _investorId, bool _enabled) public onlyTransferAgentOrAbove returns (bool) {
-        require(!investorsLiquidateOnly[_investorId], "Investor is already in liquidate only mode");
+    function setInvestorLiquidateOnly(string memory _investorId, bool _enabled) public override onlyTransferAgentOrAbove returns (bool) {
+        require(investorsLiquidateOnly[_investorId] != _enabled, "already in this state");
         investorsLiquidateOnly[_investorId] = _enabled;
         emit InvestorLiquidateOnlySet(_investorId, _enabled);
         return true;
