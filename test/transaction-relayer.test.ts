@@ -229,6 +229,65 @@ describe('Transaction Relayer Unit Tests', function() {
         txData
       )).revertedWith('Invalid signature');
     });
+
+    it('SHOULD revert when signing with wrong struct field types', async function() {
+      const [investor, hsm] = await hre.ethers.getSigners();
+      const {
+        dsToken,
+        transactionRelayer,
+        trustService,
+        registryService
+      } = await loadFixture(deployDSTokenRegulated);
+
+      await trustService.setRole(hsm, DSConstants.roles.ISSUER);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
+
+      const issueTokensData = dsToken.interface.encodeFunctionData('issueTokens', [investor.address, 100]);
+      const block = await hre.ethers.provider.getBlock('latest');
+      const blockLimit = (block?.number ?? 0) + 5;
+      const nonce = await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      const investorIdHash = hre.ethers.keccak256(hre.ethers.toUtf8Bytes(INVESTORS.INVESTOR_ID.INVESTOR_ID_1));
+      const investorId = INVESTORS.INVESTOR_ID.INVESTOR_ID_1;
+
+      const wrongTypes = {
+        ExecutePreApprovedTransaction: [
+          { name: 'destination', type: 'address' },
+          { name: 'data', type: 'bytes' },
+          { name: 'nonce', type: 'uint256' },
+          { name: 'senderInvestor', type: 'bytes32' },
+          { name: 'blockLimit', type: 'uint256' }
+        ]
+      };
+
+      const message = {
+        destination: await dsToken.getAddress(),
+        data: issueTokensData,
+        nonce: nonce,
+        senderInvestor: investorIdHash,
+        blockLimit
+      };
+
+      const signature = await transactionRelayerPreApproval(
+        hsm,
+        await transactionRelayer.getAddress(),
+        message,
+        undefined,
+        wrongTypes
+      );
+
+      const txData = {
+        destination: await dsToken.getAddress(),
+        data: issueTokensData,
+        senderInvestor: investorId,
+        nonce,
+        blockLimit
+      };
+
+      await expect(transactionRelayer.executePreApprovedTransaction(
+        signature.serialized,
+        txData
+      )).revertedWith('Invalid signature');
+    });
   });
 
 });

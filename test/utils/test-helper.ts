@@ -67,15 +67,20 @@ export const transactionRelayerPreApproval = async (
   hsm: HardhatEthersSigner,
   transactionRelayerAddress: string,
   message: any,
-  domainData: ethers.TypedDataDomain = TR_DOMAIN_DATA
+  domainData: ethers.TypedDataDomain = TR_DOMAIN_DATA,
+  typesOverride?: Record<string, { name: string; type: string }[]>
 ) => {
 
-  domainData.verifyingContract = transactionRelayerAddress;
-  if (domainData.chainId === undefined) {
-    domainData.chainId = (await hre.ethers.provider.getNetwork()).chainId;
+  const domain: ethers.TypedDataDomain = {
+    ...domainData,
+    verifyingContract: transactionRelayerAddress
+  };
+
+  if (domain.chainId === undefined) {
+    domain.chainId = (await hre.ethers.provider.getNetwork()).chainId;
   }
 
-  const types = {
+  const types = typesOverride ?? {
     ExecutePreApprovedTransaction: [
       { name: 'destination', type: 'address' },
       { name: 'data', type: 'bytes32' },
@@ -85,7 +90,7 @@ export const transactionRelayerPreApproval = async (
     ]
   };
 
-  const signatureRaw = await hsm.signTypedData(domainData, types, message);
+  const signatureRaw = await hsm.signTypedData(domain, types, message);
   return ethers.Signature.from(signatureRaw);
 };
 
