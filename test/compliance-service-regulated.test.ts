@@ -22,7 +22,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       const setState = await lockManager.isInvestorLiquidateOnly(INVESTORS.INVESTOR_ID.INVESTOR_ID_1)
       expect(setState).to.be.equal(true);
 
-      // Unset liquidate only for wallet
+      // Set liquidate only: false
       await expect(lockManager.connect(transferAgent).setInvestorLiquidateOnly(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, false)).to.be.not.reverted;
 
       // Check state is back to false
@@ -41,8 +41,10 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await expect(lockManager.connect(transferAgent).setInvestorLiquidateOnly(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, true))
         .to.be.revertedWith('already in this state');
 
-      // Try to set it to false, then false again - should revert
+      // Second set liquidate only to false successfully
       await lockManager.connect(transferAgent).setInvestorLiquidateOnly(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, false);
+
+      // Try to set it to false again - should revert
       await expect(lockManager.connect(transferAgent).setInvestorLiquidateOnly(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, false))
         .to.be.revertedWith('already in this state');
     });
