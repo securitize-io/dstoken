@@ -763,9 +763,55 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await complianceConfigurationService.setMinimumHoldingsPerInvestor(50);
 
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
-      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
+      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.CHINA, INVESTORS.Compliance.NONE);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.CHINA);
 
       await expect(dsToken.issueTokens(wallet, 10)).revertedWith('Amount of tokens under min');
+    });
+
+    it('should not issue tokens when force accredited is enabled', async function () {
+      const [wallet] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+      await complianceConfigurationService.setForceAccredited(true);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, wallet, registryService);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, INVESTORS.Country.USA);
+
+      await dsToken.setCap(1000);
+
+      await expect(dsToken.issueTokens(wallet, 100)).revertedWith('Only accredited');
+    });
+
+    it('should not issue tokens when US force accredited is enabled', async function () {
+      const [wallet] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+      await complianceConfigurationService.setForceAccreditedUS(true);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, wallet, registryService);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, INVESTORS.Country.USA);
+
+      await dsToken.setCap(1000);
+
+      await expect(dsToken.issueTokens(wallet, 100)).revertedWith('Only us accredited');
+    });
+
+    it('should enforce US minimum holdings requirement during issuance', async function () {
+      const [wallet] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+      await complianceConfigurationService.setMinUSTokens(200);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, wallet, registryService);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, INVESTORS.Country.USA);
+
+      await dsToken.setCap(1000);
+
+      await expect(dsToken.issueTokens(wallet, 150)).revertedWith('Amount of tokens under min');
     });
 
     it('should not issue tokens above the maximum holdings per investor', async function () {
