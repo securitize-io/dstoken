@@ -30,6 +30,11 @@ import "../utils/BaseDSContract.sol";
 
 contract LockManager is IDSLockManager, LockManagerDataStore, BaseDSContract {
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     /*************** Legacy functions ***************/
     function createLockForHolder(string calldata _holder, uint256 _valueLocked, uint256 _reasonCode, string calldata _reasonString, uint256 _releaseTime)
         public
