@@ -47,13 +47,11 @@ export const registerInvestor = async (investorId: string, wallet: string | Hard
   await registryService.addWallet(wallet, investorId);
 };
 
-export const EIP712_TR_NAME = 'Securitize Transaction Relayer for pre-approved transactions';
+export const EIP712_TR_NAME = 'TransactionRelayer';
 export const EIP712_TR_VERSION = '5';
-export const SALT_TR = '0x6e31104f5170e59a0a98ebdeb5ba99f8b32ef7b56786b1722f81a5fa19dd1629';
 export const TR_DOMAIN_DATA = {
   name: EIP712_TR_NAME,
-  version: EIP712_TR_VERSION,
-  salt: SALT_TR
+  version: EIP712_TR_VERSION
 };
 
 export const EIP712_MS_NAME = 'Securitize Off-Chain Multisig Wallet';
@@ -73,17 +71,16 @@ export const transactionRelayerPreApproval = async (
 ) => {
 
   domainData.verifyingContract = transactionRelayerAddress;
-  domainData.chainId = (await hre.ethers.provider.getNetwork()).chainId;
+  if (domainData.chainId === undefined) {
+    domainData.chainId = (await hre.ethers.provider.getNetwork()).chainId;
+  }
 
   const types = {
-    TransactionRelayer: [
+    ExecutePreApprovedTransaction: [
       { name: 'destination', type: 'address' },
-      { name: 'value', type: 'uint256' },
-      { name: 'data', type: 'bytes' },
+      { name: 'data', type: 'bytes32' },
       { name: 'nonce', type: 'uint256' },
-      { name: 'executor', type: 'address' },
-      { name: 'gasLimit', type: 'uint256' },
-      { name: 'investorId', type: 'string' },
+      { name: 'senderInvestor', type: 'bytes32' },
       { name: 'blockLimit', type: 'uint256' }
     ]
   };
@@ -100,7 +97,9 @@ export const multisigPreApproval = async (
 ): Promise<Signature[]> => {
 
   domainData.verifyingContract = multisigAddress;
-  domainData.chainId = (await hre.ethers.provider.getNetwork()).chainId;
+  if (domainData.chainId === undefined) {
+    domainData.chainId = (await hre.ethers.provider.getNetwork()).chainId;
+  }
 
   const types = {
     MultiSigTransaction: [
