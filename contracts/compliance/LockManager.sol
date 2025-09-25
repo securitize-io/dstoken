@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.22;
 
 import "./IDSLockManager.sol";
 import "../data-stores/LockManagerDataStore.sol";
@@ -223,6 +223,11 @@ contract LockManager is IDSLockManager, LockManagerDataStore, BaseDSContract {
         revertInvestorLevelMethod();
     }
     function isInvestorLocked(
+        string memory /*_investorId*/
+    ) public pure override returns (bool) {
+        revertInvestorLevelMethod();
+    }
+    function isInvestorLiquidateOnly(
         string memory /*_investorId*/
     ) public pure override returns (bool) {
         revertInvestorLevelMethod();

@@ -5,19 +5,12 @@ subtask('deploy-compliance-service', 'Deploy Compliance Service')
   .addParam('compliance', 'Compliance Type', 'REGULATED', types.string)
   .setAction(
     async (args, hre, run) => {
-      const libraries = {};
-
+      const libraries: Record<string, any> = {};
       if (args.compliance !== 'WHITELISTED') {
         const ComplianceLib = await hre.ethers.getContractFactory('ComplianceServiceLibrary');
         const complianceLib = await ComplianceLib.deploy();
 
         libraries.ComplianceServiceLibrary = complianceLib;
-      }
-
-      if (args.compliance === 'PARTITIONED') {
-        const CompliancePartitionedLib = await hre.ethers.getContractFactory('ComplianceServicePartitionedLibrary');
-        const compliancePartitionedLib = await CompliancePartitionedLib.deploy();
-        libraries.ComplianceServicePartitionedLibrary = compliancePartitionedLib;
       }
 
       const complianceContractName = getComplianceContractName(args.compliance);

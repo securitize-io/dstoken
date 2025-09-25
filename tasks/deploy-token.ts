@@ -13,12 +13,6 @@ subtask('deploy-token', 'Deploy DS Token')
 
       const libraries = { TokenLibrary: tokenLib};
 
-      if (args.compliance === 'PARTITIONED') {
-        const TokenPartitionsLibrary = await hre.ethers.getContractFactory('TokenPartitionsLibrary');
-        const tokenPartitionedLib = await TokenPartitionsLibrary.deploy();
-        libraries.TokenPartitionsLibrary = tokenPartitionedLib;
-      }
-
       const tokenContractName = getTokenContractName(args.compliance);
       const DSToken = await hre.ethers.getContractFactory(tokenContractName, { libraries });
 

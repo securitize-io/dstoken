@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-pragma solidity 0.8.20;
+pragma solidity 0.8.22;
 
 import "../nav/ISecuritizeNavProvider.sol";
 
@@ -31,7 +31,7 @@ contract SecuritizeInternalNavProviderMock is ISecuritizeNavProvider {
         rate = _rate;
     }
 
-    function initialize(uint256 _rate) public override {
+    function initialize(uint256 _rate) public {
         rate = _rate;
     }
 

@@ -16,10 +16,9 @@
  * limitations under the License.
  */
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.22;
 
 import "./ServiceConsumerDataStore.sol";
-import '../token/TokenPartitionsLibrary.sol';
 import '../token/TokenLibrary.sol';
 
 contract TokenDataStore is ServiceConsumerDataStore {
@@ -29,7 +28,9 @@ contract TokenDataStore is ServiceConsumerDataStore {
     mapping(uint256 => address) internal walletsList;
     uint256 internal walletsCount;
     mapping(address => uint256) internal walletsToIndexes;
-    TokenPartitionsLibrary.TokenPartitions internal partitionsManagement;
+    // These two variables replace the 2-slot TokenPartitions struct to preserve storage layout
+    address internal DEPRECATED_PARTITIONS_WALLETS;
+    address internal DEPRECATED_PARTITIONS_BALANCES;
     uint256 public cap;
     string public name;
     string public symbol;

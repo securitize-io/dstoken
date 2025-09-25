@@ -16,12 +16,15 @@
  * limitations under the License.
  */
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.22;
 
 import "./IDSComplianceService.sol";
 import "../utils/CommonUtils.sol";
 import "../data-stores/ComplianceServiceDataStore.sol";
 import "../utils/BaseDSContract.sol";
+import "../rebasing/RebasingLibrary.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+
 
 /**
  *   @title Compliance service main implementation.
@@ -51,7 +54,7 @@ abstract contract ComplianceService is IDSComplianceService, ComplianceServiceDa
         (code, reason) = preTransferCheck(_from, _to, _value);
         require(code == 0, reason);
 
-        return recordTransfer(_from, _to, _value);
+        return recordTransfer(_from,_to, _value);
     }
 
     function validateTransfer(
@@ -67,7 +70,7 @@ abstract contract ComplianceService is IDSComplianceService, ComplianceServiceDa
         (code, reason) = newPreTransferCheck(_from, _to, _value, _balanceFrom, _paused);
         require(code == 0, reason);
 
-        return recordTransfer(_from, _to, _value);
+        return recordTransfer(_from,_to, _value);
     }
 
     function validateIssuance(
@@ -80,7 +83,9 @@ abstract contract ComplianceService is IDSComplianceService, ComplianceServiceDa
 
         uint256 authorizedSecurities = getComplianceConfigurationService().getAuthorizedSecurities();
 
-        require(authorizedSecurities == 0 || getToken().totalSupply() + _value <= authorizedSecurities,
+        uint256 totalSupply = getToken().totalSupply();
+
+        require(authorizedSecurities == 0 || totalSupply + _value <= authorizedSecurities,
             MAX_AUTHORIZED_SECURITIES_EXCEEDED);
 
         (code, reason) = preIssuanceCheck(_to, _value);
@@ -97,7 +102,9 @@ abstract contract ComplianceService is IDSComplianceService, ComplianceServiceDa
     ) public override onlyToken returns (bool) {
         uint256 authorizedSecurities = getComplianceConfigurationService().getAuthorizedSecurities();
 
-        require(authorizedSecurities == 0 || getToken().totalSupply() + _value <= authorizedSecurities,
+        uint256 totalSupply = getToken().totalSupply();
+
+        require(authorizedSecurities == 0 || totalSupply + _value <= authorizedSecurities,
             MAX_AUTHORIZED_SECURITIES_EXCEEDED);
 
         uint256 issuanceTime = validateIssuanceTime(_issuanceTime);

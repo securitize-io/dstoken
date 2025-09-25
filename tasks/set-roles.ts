@@ -11,12 +11,8 @@ subtask('set-roles', 'Set roles')
       await dsContracts.trustService.setRole(await dsContracts.tokenIssuer.getAddress(), DSConstants.roles.ISSUER);
       console.log(`Granting issuer permissions to Wallet Registrar`);
       await dsContracts.trustService.setRole(await dsContracts.walletRegistrar.getAddress(), DSConstants.roles.ISSUER);
-      console.log(`Granting issuer permissions to Omnibus TBE Controller`);
-      await dsContracts.trustService.setRole(await dsContracts.omnibusTBEController.getAddress(), DSConstants.roles.ISSUER);
       console.log(`Granting issuer permissions to Transaction Relayer`);
       await dsContracts.trustService.setRole(await dsContracts.transactionRelayer.getAddress(), DSConstants.roles.ISSUER);
-      console.log(`Granting transfer agent permissions to Token Reallocator`);
-      await dsContracts.trustService.setRole(await dsContracts.tokenReallocator.getAddress(), DSConstants.roles.TRANSFER_AGENT);
       console.log(`Granting issuer permissions to Issuer Multi Call`);
       await dsContracts.trustService.setRole(await dsContracts.issuerMulticall.getAddress(), DSConstants.roles.ISSUER);
       console.log(`Granting issuer permissions to Bulk Operator`);

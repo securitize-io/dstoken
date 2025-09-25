@@ -4,12 +4,11 @@ import { DSConstants } from '../../utils/globals';
 console.log = function() {
 };
 hre.upgrades.silenceWarnings();
-export const TBE = '0x7C1ab56B369DdB0ee7A5F85a9d0A569370cF9B87';
 
 export const deployDSTokenRegulated = async () => {
   const name = 'Token Example 1';
   const symbol = 'TX1';
-  const contracts = await hre.run('deploy-all', { name, symbol, tbe: TBE });
+  const contracts = await hre.run('deploy-all', { name, symbol, decimals: 2 });
   const [owner1, owner2, owner3] = await hre.ethers.getSigners();
   const multisig = await hre.ethers.deployContract('MultiSigWallet', [[owner1, owner2, owner3], 3]);
   return { ...contracts, multisig };
@@ -19,14 +18,36 @@ export const deployDSTokenWhitelisted = () => {
   const name = 'Token Example 1';
   const symbol = 'TX1';
   const compliance = 'WHITELISTED';
-  return hre.run('deploy-all', { name, symbol, tbe: TBE, compliance });
+  return hre.run('deploy-all', { name, symbol, decimals: 2, compliance });
 };
 
-export const deployDSTokenPartitioned = () => {
+export const deployDSTokenRegulatedWithRebasing = async () => {
   const name = 'Token Example 1';
   const symbol = 'TX1';
-  const compliance = 'PARTITIONED';
-  return hre.run('deploy-all', { name, symbol, tbe: TBE, compliance });
+  const multiplier = '1500000000000000000';
+  const contracts = await hre.run('deploy-all', { name, symbol, decimals: 2, multiplier });
+  const [owner1, owner2, owner3] = await hre.ethers.getSigners();
+  const multisig = await hre.ethers.deployContract('MultiSigWallet', [[owner1, owner2, owner3], 3]);
+  return { ...contracts, multisig };
+};
+export const deployDSTokenRegulatedWithRebasingAndSixDecimal = async () => {
+  const name = 'Token Example 1';
+  const symbol = 'TX1';
+  const multiplier = '1730000000000000000';
+  const contracts = await hre.run('deploy-all', { name, symbol, decimals: 6, multiplier });
+  const [owner1, owner2, owner3] = await hre.ethers.getSigners();
+  const multisig = await hre.ethers.deployContract('MultiSigWallet', [[owner1, owner2, owner3], 3]);
+  return { ...contracts, multisig };
+};
+
+export const deployDSTokenRegulatedWithRebasingAndEighteenDecimal = async () => {
+  const name = 'Token Example 1';
+  const symbol = 'TX1';
+  const multiplier = '1250000000000000000';
+  const contracts = await hre.run('deploy-all', { name, symbol, decimals: 18, multiplier });
+  const [owner1, owner2, owner3] = await hre.ethers.getSigners();
+  const multisig = await hre.ethers.deployContract('MultiSigWallet', [[owner1, owner2, owner3], 3]);
+  return { ...contracts, multisig };
 };
 
 export const MINUTES = 60;
@@ -69,8 +90,6 @@ export const INVESTORS = {
     CHINA_INVESTOR_COLLISION_HASH: 'chinaInvestorCollisionHash',
     ISRAEL_INVESTOR_ID: 'israelInvestorId',
     ISRAEL_INVESTOR_COLLISION_HASH: 'israelInvestorCollisionHash',
-    OMNIBUS_WALLET_INVESTOR_ID_1: 'omnibusWalletInvestorId1',
-    OMNIBUS_WALLET_INVESTOR_ID_2: 'omnibusWalletInvestorId2',
     INVESTOR_TO_BE_ISSUED_WHEN_PAUSED: 'investorToBeIssuedWhileTokenPaused'
   },
   Country: {
@@ -111,4 +130,3 @@ export const INVESTORS = {
     jpTotalInvestorsCount: 0
   }
 };
-

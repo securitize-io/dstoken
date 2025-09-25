@@ -1,4 +1,6 @@
+
 <img src="https://s3.us-east-2.amazonaws.com/securitize-public-files/securitize_logo+medium.png" alt="Securitize" width="200px"/>
+
 # Digital Securities (DS) Protocol Token
 
 The DS Token is a reference implementation of Securitize's Digital Securities Protocol.
@@ -8,56 +10,22 @@ The Digital Securities (DS) Protocol aims to enable and simplify regulation comp
 > More information on Securitize and its Digital Securities protocol can be found at [https://www.securitize.io](https://www.securitize.io).
 
 The DS protocol is based on a set of components, or **services**, each implementing a different aspect required for the security environment.
-The services are accesible from web3 enabled applications. This allows their access by relevant actors, like exchanges, as well as Blockchain based applications, **DSApps**, that provide additional services such as dividend distribution or voting.
+The services are accessible from web3 enabled applications. This allows their access by relevant actors, like exchanges, Blockchain Web3 based applications, and platforms that 
+provide additional services such as instant minting, swap and redemption flows.  
 
-> More in-depth information about the structure of the DS Protocol can be found in its [Whitepaper](https://securitize.io/uploads/whitepapers/DS-Protocolv1.0.pdf).
+> More in-depth information about the structure of the DS Protocol can be found in its [Whitepaper](https://securitize.io/whitepapers).
 
 This repository contains a reference implementation of an ERC-20 compatible security token (a DSToken) and associated contracts, together providing a full installation of a Digital Securities Blockchain environment with all its required services.
 
 ## Getting started
 
-### Overview
+### Online articles
 
 An overview of the DS Token components and reference implementation can be found in the following articles
 
-- part 1
-- part 2
-- part 3
-- part 4
-
-### Installation
-
-To install a full DSToken environment, clone this repository, then run:
-
-```sh
-npm install
-
-# or if using yarn: yarn install
-
-npm npx hardhat deploy-all --name <token name> --symbol <token symbol> --decimals <token decimals>
---compliance TYPE - compliance service type (REGULATED, PARTITIONED, WHITELISTED) - if omitted, REGULATED is selected
---tbe - the address of the omnibus wallet in the registry
-```
-
-For example, to install a standard DSToken (with default compliance manager and lock manager), run:
-
-```
-npx hardhat deploy-all --network localhost --name ExampleToken --symbol EXM --decimals 18 --tbe '648fC6c064d96ca6671a627D7a62C11C6CEff594'
-
-```
-
-This will install a full DSToken environment ready to be tested (or traded)
-
-To run tests, run:
-
-```
-npm test
-```
-
-Tests run on a local Ganache server. A Ganache instance is launched if no instance is running when starting the test.
-
-The migration process requires a lot of gas, so we currently recommend running tests on local RPC instances.
-The full token can of course be deployed to mainnet or testnet.
+- [DS Protocol — The Basic Elements](https://medium.com/securitize/ds-protocol-the-basic-elements-23fabcb5c85f)
+- [DS Protocol — The Trust and Registry Services](https://medium.com/securitize/ds-protocol-the-trust-and-registry-services-91d1c4630f78)
+- [DS Protocol — The Compliance Service](https://medium.com/securitize/ds-protocol-the-compliance-service-b6fe472d625d)
 
 ## The Digitial Securities Token contracts
 
@@ -119,31 +87,65 @@ In addition to implementing the DS Protocol, the token also offers the following
 - **Enumeration** - The token supports the enumeration of all wallets containing it currently (and using the investor registry, all the investors holding it at a specific point in time).
 - **Trade pausing** - Trading of the token can be paused and resumed by the _Master_ role.
 
-### OmnibusTBE
-The OmnibusTBE allows issuing tokens to investors without a wallet registered in the system to a shared wallet while keeping track of ownership in the platform, and proper investor count in the blockchain.
+### Installation
+
+To install a full DSToken environment, clone this repository, then run:
+
+```sh
+npm install
+
+# or if using yarn: yarn install
+
+npx hardhat deploy-all --name <token name> --symbol <token symbol> --decimals <token decimals>
+--compliance TYPE - compliance service type (REGULATED, PARTITIONED, WHITELISTED) - if omitted, REGULATED is selected
+
+```
+
+For example, to install a standard DSToken (with default compliance manager and lock manager), run:
+
+```
+npx hardhat deploy-all --network localhost --name ExampleToken --symbol EXM --decimals 18
+
+```
+
+This will install a full DSToken environment ready to be tested (or traded)
+
+To run tests, run:
+
+```
+npm test
+```
+
+To verify dsToken, run:
+
+```
+npx hardhat verify-all --network {network} --token {dsTokenAddress}
+```
+
+Tests run on a local Ganache server. A Ganache instance is launched if no instance is running when starting the test.
+
+The migration process requires a lot of gas, so we currently recommend running tests on local RPC instances.
+The full token can of course be deployed to mainnet or testnet.
 
 ### Deployment and migration
+
 We created factory contracts to reduce significantly gas cost. This allows us to reuse the implementations of contracts.
 
-### Off-chain Integration (RFE Protocol)
-We provide a reference implementation of some aspects of the protocol dealing with off-chain transactions (for example, allow issuers to receive new investor data).
+### Token Issuance\*\*
 
-### Token Issuance** 
 We have developed a process for auto-deployment contracts.
 
-### DSClient - Command-line utilities
-We provide a command-line tools and libraries to facilitate the interaction with the DS Protocol, like tools to add investors to investor registry or to simplify the off-chain generation of investor IDs from investor information.
+## Other components
 
-### Other components
-
-- **Proxy** - The main token contract is deployed behind a proxy, using the proxy-delegate pattern. This allows for seamless upgrade of a deployed token in case a new protocol version is required or a problem is found.
-- **MultiSigWallet** - We have developed a MultiSig Wallet following this [implementation](https://github.com/christianlundkvist/simple-multisig). This allows us to offer higher level of security. 
- -**DeploymentUtils**  - This contract allows us to optimize the deployment process in conjunction with the **contract-deployments-service**. 
+- **Proxy** - The main token contract is deployed behind a proxy, OpenZeppelin's ERC1967 implementation. This allows for seamless upgrade of a deployed token in case a new protocol version is required or a problem is found.
+- **BulkOperator** - Operations can be sent in bulk (tokens issuances and wallet registrations) using the BulkOperator contract
+- **Rebasing provider** - One of the latest additions to the protocol is the Rebasing capability, allowing the token base to be changed uysing a multiplier or a formula. This allows use cases like splits, reverse splits or block-by-block dividend accrual.   
 
 #### DeploymentUtils
 
-There are 3 types of functions: 
-- settings: It is possible to update the addresses of the implementation contracts. 
+There are 3 types of functions:
+
+- settings: It is possible to update the addresses of the implementation contracts.
 - deployment: There are a set of methods to deploys proxy contracts, set implementation targets and calls initialize functions.
 - Token deployment settings: Sets a token calling functions like setRoles, setDSServices and setCountriesCompliance in bulk mode.
 
@@ -151,19 +153,24 @@ The owner of the DeploymentUtils contract must be the **deployment wallet**.
 
 There are deployed tokens in different public networks.
 
-- Avalanche Juji Testnet: **0x63705379db29D008d1EBdB0F8e60aD89216927AF** Deployment Account DEV **0xd40D720b1cdC8AeD2a75489F219cA02faF45587C**
-- Polygon mumbai Testnet: **0x78da8F43717E0fb583028D8F5E2D7D67274Cf65C** Deployment Account DEV **0xD8559dfEd9300775a2DeF456c7BDa65310Ad21E6**
+- Avalanche Fuji Testnet: **0x63705379db29D008d1EBdB0F8e60aD89216927AF** Deployment Account DEV **0xd40D720b1cdC8AeD2a75489F219cA02faF45587C**
+- Polygon Mumbai Testnet: **0x78da8F43717E0fb583028D8F5E2D7D67274Cf65C** Deployment Account DEV **0xD8559dfEd9300775a2DeF456c7BDa65310Ad21E6**
 - Sepolia testnet: **0xC68DFf4D8557727778143a68C66d11430bd9474C** Deployment Account DEV **0xD8559dfEd9300775a2DeF456c7BDa65310Ad21E6**
 
-- First we have to set the address of implementation contracts. 
+- First we have to set the address of implementation contracts.
 
 - **Settings functions**
+
 ```solidity
-    function setImplementationAddress(uint8 service, address implementationAddress ) public restricted;
-    function setImplementationAddresses(uint8[] memory services, address[] memory addresses ) public restricted;
+function setImplementationAddress(
+  uint8 service,
+  address implementationAddress
+) public restricted;
+function setImplementationAddresses(
+  uint8[] memory services,
+  address[] memory addresses
+) public restricted;
 ```
-
-
 
 ## Roadmap and open issues
 
@@ -178,9 +185,7 @@ The following items are currently being worked on as part of the reference imple
 
 ### Security audit
 
-An audit of the reference implementation was performed by [CoinFabrik](https://www.coinfabrik.com) and can be found [here]().
-
-An audit of the reference MultiSig Wallet implementation can be found [here](https://github.com/christianlundkvist/simple-multisig/blob/master/audit.pdf).
+An audit of the current implementation was performed by () and can be found (here).
 
 ### Issue Reporting
 
@@ -192,10 +197,8 @@ We would like to extend our thanks to all the wonderful people and projects whos
 
 The token code is heavily based on the wonderful base contracts done by the [Open Zeppelin](https://openzeppelin.org/) team (Thank you for that!).
 
-The final leg of our development process has been supported by the [Open Finance Network](https://www.openfinance.io) team, to ensure the validity of the DS Protocol in the context of trading operations via an exchange environment.
-
-Code and tests were done using the [Truffle](http://truffleframework.com/) framework.
+Code and tests were built using the [Hardhat](https://hardhat.org/) framework.
 
 ## License
 
-The DS Protocol and all of its contracts can be used under the MIT license terms.
+The DS Protocol and all of its contracts can be used under the [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0) license terms.
