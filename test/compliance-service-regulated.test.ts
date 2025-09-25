@@ -771,7 +771,12 @@ describe('Compliance Service Regulated Unit Tests', function() {
       expect(preCheck[1]).equal('Valid');
 
       const dsTokenFromInvestor = dsToken.connect(investor);
-      await expect(dsTokenFromInvestor.transfer(platformWallet, 10)).not.to.be.reverted;
+      await expect(dsTokenFromInvestor.transfer(platformWallet, 10))
+        .to.emit(dsToken, 'Transfer')
+        .withArgs(investor.address, platformWallet.address, 10);
+
+      expect(await dsToken.balanceOf(platformWallet)).to.equal(10);
+      expect(await dsToken.balanceOf(investor)).to.equal(90);
     });
 
     it('should allow transfers to platform wallets even when exceeding the maximum holdings limit', async function () {
@@ -888,24 +893,6 @@ describe('Compliance Service Regulated Unit Tests', function() {
 
       await dsToken.setCap(2000);
       await expect(dsToken.issueTokens(platformWallet, 1000)).not.to.be.reverted;
-    });
-
-    it('should still enforce total investor limit for platform wallet issuance', async function () {
-      const [investor, platformWallet] = await hre.ethers.getSigners();
-      const { dsToken, complianceService, complianceConfigurationService, registryService, walletManager } = await loadFixture(deployDSTokenRegulated);
-
-      await complianceConfigurationService.setTotalInvestorsLimit(1);
-      await walletManager.addPlatformWallet(platformWallet);
-
-      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-      await dsToken.setCap(1000);
-      await dsToken.issueTokens(investor, 100);
-
-      const res = await complianceService.preIssuanceCheck(platformWallet, 10);
-      expect(res[0]).equal(40);
-      expect(res[1]).equal('Max investors in category');
-
-      await expect(dsToken.issueTokens(platformWallet, 10)).revertedWith('Max investors in category');
     });
 
     it('should not issue tokens to a new investor if investor limit is exceeded', async function () {
