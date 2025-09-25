@@ -22,6 +22,11 @@ import "./IDSTokenIssuer.sol";
 import "../utils/BaseDSContract.sol";
 
 contract TokenIssuer is IDSTokenIssuer, BaseDSContract {
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize() public override onlyProxy initializer {
         __BaseDSContract_init();
     }

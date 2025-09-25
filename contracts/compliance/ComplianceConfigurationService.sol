@@ -24,6 +24,11 @@ import "../utils/BaseDSContract.sol";
 
 contract ComplianceConfigurationService is IDSComplianceConfigurationService, ComplianceConfigurationDataStore, BaseDSContract {
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize() public override onlyProxy initializer {
         __BaseDSContract_init();
     }

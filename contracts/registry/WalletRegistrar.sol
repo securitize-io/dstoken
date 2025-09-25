@@ -22,6 +22,11 @@ import "./IDSWalletRegistrar.sol";
 import "../utils/BaseDSContract.sol";
 
 contract WalletRegistrar is IDSWalletRegistrar, BaseDSContract {
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize() public override onlyProxy initializer {
         __BaseDSContract_init();
     }

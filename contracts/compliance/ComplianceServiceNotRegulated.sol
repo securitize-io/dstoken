@@ -28,6 +28,11 @@ import "./ComplianceService.sol";
 */
 
 contract ComplianceServiceNotRegulated is ComplianceService {
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize() public override onlyProxy initializer {
         ComplianceService.initialize();
     }

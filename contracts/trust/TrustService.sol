@@ -31,6 +31,11 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable {
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize() public override onlyProxy initializer {
         owner = msg.sender;
         roles[msg.sender] = MASTER;

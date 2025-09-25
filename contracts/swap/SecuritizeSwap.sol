@@ -29,6 +29,11 @@ contract SecuritizeSwap is BaseSecuritizeSwap {
     // keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract,bytes32 salt)")
     bytes32 constant EIP712_DOMAIN_TYPE_HASH = 0xd87cd6ef79d4e2b95e15ce8abf732db51ec771f1ca2edccf22a46c729ac56472;
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     // keccak256("SecuritizeSwap")
     bytes32 constant NAME_HASH = 0x5183e5178b4530d2fd10dfc0fff5d171f113e3becc98b45ca5513d6472888e3c;
 
