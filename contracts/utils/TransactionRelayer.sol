@@ -31,12 +31,11 @@ contract TransactionRelayer is BaseDSContract, EIP712Upgradeable {
     using Address for address;
 
     string public constant NAME = "TransactionRelayer";
-    string public constant VERSION = "5";
 
     // keccak256("ExecutePreApprovedTransaction(address destination,bytes32 data,uint256 nonce,bytes32 senderInvestor,uint256 blockLimit)")
     bytes32 public constant TXTYPE_HASH = 0x103eaa9a7f02c07fe1be89fcbaf6f0591b7ee351d8bef38fb2e3e71ce08a26c0;
 
-    uint256 public constant CONTRACT_VERSION = 5;
+    string public constant CONTRACT_VERSION = "5";
 
     mapping(bytes32 => uint256) internal noncePerInvestor;
 
@@ -51,7 +50,7 @@ contract TransactionRelayer is BaseDSContract, EIP712Upgradeable {
 
     function initialize() public onlyProxy initializer {
         __BaseDSContract_init();
-        __EIP712_init(NAME, VERSION);
+        __EIP712_init(NAME, CONTRACT_VERSION);
     }
 
     // Note that address recovered from signatures must be strictly increasing, in order to prevent duplicates
@@ -143,9 +142,19 @@ contract TransactionRelayer is BaseDSContract, EIP712Upgradeable {
 
         require(txData.nonce == currentNonce, "Invalid nonce");
 
+        bytes32 digest = _hashTx(txData);
+        address recovered = ECDSA.recover(digest, signature);
+        uint256 approverRole = getTrustService().getRole(recovered);
+        require(approverRole == ROLE_ISSUER || approverRole == ROLE_MASTER, 'Invalid signature');
+
+        noncePerInvestor[investorKey] = currentNonce + 1;
+        Address.functionCall(txData.destination, txData.data);
+    }
+
+    /// @dev Computes the digest to sign (EIP-712)
+    function _hashTx(ExecutePreApprovedTransaction calldata txData) private view returns (bytes32) {
         bytes32 dataHash = keccak256(txData.data);
         bytes32 senderInvestorHash = keccak256(bytes(txData.senderInvestor));
-
         bytes32 structHash = keccak256(
             abi.encode(
                 TXTYPE_HASH,
@@ -157,12 +166,6 @@ contract TransactionRelayer is BaseDSContract, EIP712Upgradeable {
             )
         );
 
-        bytes32 digest = _hashTypedDataV4(structHash);
-        address recovered = ECDSA.recover(digest, signature);
-        uint256 approverRole = getTrustService().getRole(recovered);
-        require(approverRole == ROLE_ISSUER || approverRole == ROLE_MASTER, 'Invalid signature');
-
-        noncePerInvestor[investorKey] = currentNonce + 1;
-        Address.functionCall(txData.destination, txData.data);
+        return _hashTypedDataV4(structHash);
     }
 }
