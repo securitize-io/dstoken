@@ -9,7 +9,6 @@ export * from './deploy-compliance-configuration-service';
 export * from './deploy-token-issuer';
 export * from './deploy-wallet-registrar';
 export * from './deploy-transaction-relayer';
-export * from './deploy-issuer-multicall';
 export * from './set-roles';
 export * from './set-services';
 export * from './deploy-bulk-operator';
