@@ -16,17 +16,23 @@
  * limitations under the License.
  */
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.22;
 
 import "./IDSToken.sol";
 import "./StandardToken.sol";
+import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
+import "../rebasing/RebasingLibrary.sol";
 
 contract DSToken is StandardToken {
     // using FeaturesLibrary for SupportedFeatures;
     using TokenLibrary for TokenLibrary.SupportedFeatures;
-    uint256 internal constant OMNIBUS_NO_ACTION = 0;
+    uint256 internal constant DEPRECATED_OMNIBUS_NO_ACTION = 0;  // Deprecated, kept for backward compatibility
 
-    function initialize(string calldata _name, string calldata _symbol, uint8 _decimals) public virtual override onlyProxy initializer {
+    function initialize(
+        string calldata _name,
+        string calldata _symbol,
+        uint8 _decimals
+        ) public virtual override onlyProxy initializer {
         __StandardToken_init();
 
         name = _name;
@@ -53,7 +59,9 @@ contract DSToken is StandardToken {
     }
 
     function totalIssued() public view returns (uint256) {
-        return tokenData.totalIssued;
+        ISecuritizeRebasingProvider rebasingProvider = getRebasingProvider();
+        uint256 tokens = rebasingProvider.convertSharesToTokens(tokenData.totalIssued);
+        return tokens;
     }
 
     /******************************
@@ -112,8 +120,26 @@ contract DSToken is StandardToken {
     onlyIssuerOrAbove
     returns (bool)
     {
-        TokenLibrary.issueTokensCustom(tokenData, getCommonServices(), getLockManager(), _to, _value, _issuanceTime, _valuesLocked, _releaseTimes, _reason, cap);
+        ISecuritizeRebasingProvider rebasingProvider = getRebasingProvider();
+        TokenLibrary.IssueParams memory params = TokenLibrary.IssueParams({
+            _to: _to,
+            _value: _value,
+            _issuanceTime: _issuanceTime,
+            _valuesLocked: _valuesLocked,
+            _releaseTimes: _releaseTimes,
+            _reason: _reason,
+            _cap: cap,
+            _rebasingProvider: rebasingProvider
+        });
+        uint256 shares = TokenLibrary.issueTokensCustom(
+            tokenData, 
+            getCommonServices(),
+            getLockManager(),
+            params
+            );
+
         emit Transfer(address(0), _to, _value);
+        emit TxShares(address(0), _to, shares, rebasingProvider.multiplier());
 
         checkWalletsForList(address(0), _to);
         return true;
@@ -121,8 +147,18 @@ contract DSToken is StandardToken {
 
     function issueTokensWithNoCompliance(address _to, uint256 _value) public virtual override onlyIssuerOrAbove {
         require(getRegistryService().isWallet(_to), "Unknown wallet");
-        TokenLibrary.issueTokensWithNoCompliance(tokenData, getCommonServices(), _to, _value, block.timestamp, cap);
+        ISecuritizeRebasingProvider rebasingProvider = getRebasingProvider();
+        uint256 shares =  TokenLibrary.issueTokensWithNoCompliance(
+            tokenData, 
+            getCommonServices(), 
+            _to, 
+            _value, 
+            block.timestamp, 
+            cap, 
+            rebasingProvider
+        );
         emit Transfer(address(0), _to, _value);
+        emit TxShares(address(0), _to, shares, rebasingProvider.multiplier());
     }
 
     //*********************
@@ -130,19 +166,12 @@ contract DSToken is StandardToken {
     //*********************
 
     function burn(address _who, uint256 _value, string calldata _reason) public virtual override onlyIssuerOrTransferAgentOrAbove {
-        TokenLibrary.burn(tokenData, getCommonServices(), _who, _value);
+        ISecuritizeRebasingProvider rebasingProvider = getRebasingProvider();
+        uint256 shares = TokenLibrary.burn(tokenData, getCommonServices(), _who, _value, rebasingProvider);
         emit Burn(_who, _value, _reason);
         emit Transfer(_who, address(0), _value);
+        emit TxShares(_who, address(0), shares, rebasingProvider.multiplier());
         checkWalletsForList(_who, address(0));
-    }
-
-    function omnibusBurn(address _omnibusWallet, address _who, uint256 _value, string calldata _reason) public override onlyTransferAgentOrAbove {
-        require(_value <= tokenData.walletsBalances[_omnibusWallet]);
-        TokenLibrary.omnibusBurn(tokenData, getCommonServices(), _omnibusWallet, _who, _value);
-        emit OmnibusBurn(_omnibusWallet, _who, _value, _reason, getAssetTrackingMode(_omnibusWallet));
-        emit Burn(_omnibusWallet, _value, _reason);
-        emit Transfer(_omnibusWallet, address(0), _value);
-        checkWalletsForList(_omnibusWallet, address(0));
     }
 
     //*********************
@@ -150,18 +179,15 @@ contract DSToken is StandardToken {
     //*********************
 
     function seize(address _from, address _to, uint256 _value, string calldata _reason) public virtual override onlyTransferAgentOrAbove {
-        TokenLibrary.seize(tokenData, getCommonServices(), _from, _to, _value);
+        ISecuritizeRebasingProvider rebasingProvider = getRebasingProvider();
+        uint256 shares = rebasingProvider.convertTokensToShares(_value);
+
+        TokenLibrary.seize(tokenData, getCommonServices(), _from, _to, _value, shares);
+
         emit Seize(_from, _to, _value, _reason);
         emit Transfer(_from, _to, _value);
+        emit TxShares(_from, _to, shares, rebasingProvider.multiplier());
         checkWalletsForList(_from, _to);
-    }
-
-    function omnibusSeize(address _omnibusWallet, address _from, address _to, uint256 _value, string calldata _reason) public override onlyTransferAgentOrAbove {
-        TokenLibrary.omnibusSeize(tokenData, getCommonServices(), _omnibusWallet, _from, _to, _value);
-        emit OmnibusSeize(_omnibusWallet, _from, _value, _reason, getAssetTrackingMode(_omnibusWallet));
-        emit Seize(_omnibusWallet, _to, _value, _reason);
-        emit Transfer(_omnibusWallet, _to, _value);
-        checkWalletsForList(_omnibusWallet, _to);
     }
 
     //*********************
@@ -266,45 +292,17 @@ contract DSToken is StandardToken {
     //**************************************
 
     function balanceOfInvestor(string memory _id) public view override returns (uint256) {
-        return tokenData.investorsBalances[_id];
+        ISecuritizeRebasingProvider rebasingProvider = getRebasingProvider();
+
+        uint256 tokens = rebasingProvider.convertSharesToTokens(tokenData.investorsBalances[_id]);
+
+        return tokens;
     }
 
-    function getAssetTrackingMode(address _omnibusWallet) internal view returns (uint8) {
-        return getRegistryService().getOmnibusWalletController(_omnibusWallet).getAssetTrackingMode();
-    }
-
-    function updateOmnibusInvestorBalance(address _omnibusWallet, address _wallet, uint256 _value, CommonUtils.IncDec _increase)
-    public
-    override
-    onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
-    returns (bool)
-    {
-        return updateInvestorBalance(_wallet, _value, _increase);
-    }
-
-    function emitOmnibusTransferEvent(address _omnibusWallet, address _from, address _to, uint256 _value)
-    public
-    override
-    onlyOmnibusWalletController(_omnibusWallet, IDSOmnibusWalletController(msg.sender))
-    {
-        emit OmnibusTransfer(_omnibusWallet, _from, _to, _value, getAssetTrackingMode(_omnibusWallet));
-    }
-
-    function emitOmnibusTBEEvent(address omnibusWallet, int256 totalDelta, int256 accreditedDelta,
-        int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta) public override onlyTBEOmnibus {
-        emit OmnibusTBEOperation(omnibusWallet, totalDelta, accreditedDelta, usAccreditedDelta, usTotalDelta, jpTotalDelta);
-    }
-
-    function emitOmnibusTBETransferEvent(address omnibusWallet, string memory externalId) public override onlyTBEOmnibus {
-        emit OmnibusTBETransfer(omnibusWallet, externalId);
-    }
 
     function updateInvestorsBalancesOnTransfer(address _from, address _to, uint256 _value) internal {
-        uint256 omnibusEvent = TokenLibrary.applyOmnibusBalanceUpdatesOnTransfer(tokenData, getRegistryService(), _from, _to, _value);
-        if (omnibusEvent == OMNIBUS_NO_ACTION) {
-            updateInvestorBalance(_from, _value, CommonUtils.IncDec.Decrease);
-            updateInvestorBalance(_to, _value, CommonUtils.IncDec.Increase);
-        }
+        updateInvestorBalance(_from, _value, CommonUtils.IncDec.Decrease);
+        updateInvestorBalance(_to, _value, CommonUtils.IncDec.Increase);
     }
 
     function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal override returns (bool) {
@@ -316,7 +314,12 @@ contract DSToken is StandardToken {
             } else {
                 balance -= _value;
             }
-            tokenData.investorsBalances[investor] = balance;
+
+            ISecuritizeRebasingProvider rebasingProvider = getRebasingProvider();
+
+            uint256 sharesBalance = rebasingProvider.convertTokensToShares(balance);
+
+            tokenData.investorsBalances[investor] = sharesBalance;
         }
 
         return true;
@@ -327,10 +330,9 @@ contract DSToken is StandardToken {
     }
 
     function getCommonServices() internal view returns (address[] memory) {
-        address[] memory services = new address[](3);
+        address[] memory services = new address[](2);
         services[0] = getDSService(COMPLIANCE_SERVICE);
         services[1] = getDSService(REGISTRY_SERVICE);
-        services[2] = getDSService(OMNIBUS_TBE_CONTROLLER);
         return services;
     }
 }

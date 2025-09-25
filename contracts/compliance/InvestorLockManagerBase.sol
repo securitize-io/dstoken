@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.22;
 
 import "../data-stores/InvestorLockManagerDataStore.sol";
 import "../utils/BaseDSContract.sol";
@@ -24,6 +24,7 @@ import "../utils/BaseDSContract.sol";
 abstract contract InvestorLockManagerBase is IDSLockManager, InvestorLockManagerDataStore, BaseDSContract {
     event InvestorFullyLocked(string investorId);
     event InvestorFullyUnlocked(string investorId);
+    event InvestorLiquidateOnlySet(string investorId, bool enabled);
 
     function initialize() public virtual override;
 
@@ -43,5 +44,16 @@ abstract contract InvestorLockManagerBase is IDSLockManager, InvestorLockManager
 
     function isInvestorLocked(string memory _investorId) public override view returns (bool) {
         return investorsLocked[_investorId];
+    }
+
+    function setInvestorLiquidateOnly(string memory _investorId, bool _enabled) public onlyTransferAgentOrAbove returns (bool) {
+        require(!investorsLiquidateOnly[_investorId], "Investor is already in liquidate only mode");
+        investorsLiquidateOnly[_investorId] = _enabled;
+        emit InvestorLiquidateOnlySet(_investorId, _enabled);
+        return true;
+    }
+
+    function isInvestorLiquidateOnly(string memory _investorId) public override view returns (bool) {
+        return investorsLiquidateOnly[_investorId];
     }
 }

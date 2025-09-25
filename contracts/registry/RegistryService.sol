@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.22;
 
 import "./IDSRegistryService.sol";
 import "../data-stores/RegistryServiceDataStore.sol";
@@ -196,31 +196,6 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
         emit DSRegistryServiceWalletRemoved(_address, _id, msg.sender);
 
         return true;
-    }
-
-    function addOmnibusWallet(string memory _id, address _omnibusWallet, IDSOmnibusWalletController _omnibusWalletController)
-        public
-        override
-        onlyIssuerOrAbove
-        newOmnibusWallet(_omnibusWallet)
-    {
-        addWallet(_omnibusWallet, _id);
-        omnibusWalletsControllers[_omnibusWallet] = _omnibusWalletController;
-        emit DSRegistryServiceOmnibusWalletAdded(_omnibusWallet, _id, _omnibusWalletController);
-    }
-
-    function removeOmnibusWallet(string memory _id, address _omnibusWallet) public override onlyIssuerOrAbove omnibusWalletExists(_omnibusWallet) {
-        removeWallet(_omnibusWallet, _id);
-        delete omnibusWalletsControllers[_omnibusWallet];
-        emit DSRegistryServiceOmnibusWalletRemoved(_omnibusWallet, _id);
-    }
-
-    function getOmnibusWalletController(address _omnibusWallet) public view override returns (IDSOmnibusWalletController) {
-        return omnibusWalletsControllers[_omnibusWallet];
-    }
-
-    function isOmnibusWallet(address _omnibusWallet) public view override returns (bool) {
-        return address(omnibusWalletsControllers[_omnibusWallet]) != address(0);
     }
 
     function getInvestor(address _address) public view override returns (string memory) {

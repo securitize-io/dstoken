@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.22;
 
 abstract contract IDSLockManager {
 
@@ -180,4 +180,10 @@ abstract contract IDSLockManager {
      * @param _investorId investor id
      */
     function isInvestorLocked(string memory _investorId) public view virtual returns (bool);
+
+    /**
+     * @dev Returns true if the investor is in liquidate only mode
+     * @param _investorId investor id
+     */
+    function isInvestorLiquidateOnly(string memory _investorId) public view virtual returns (bool);
 }

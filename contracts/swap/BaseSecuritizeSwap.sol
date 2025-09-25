@@ -15,8 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-pragma solidity 0.8.20;
+pragma solidity 0.8.22;
 
 import "../registry/IDSRegistryService.sol";
 import "../token/IDSToken.sol";
@@ -25,23 +24,42 @@ import "../nav/ISecuritizeNavProvider.sol";
 import "../utils/BaseDSContract.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
+interface IUSDCBridge {
+    /**
+    * @notice Bridge USDC between blockchain
+    * @dev chain Id is not EVM chain id, please refer to https://wormhole.com/docs/build/reference/chain-ids/
+    * @param targetChainId chain id
+    * @param recipient - Target address USDC recipient
+    * @param value - Amount to be bridged
+    */
+    function sendUSDCCrossChainDeposit(uint16 targetChainId, address recipient, uint256 value) external;
+}
+
+
 abstract contract BaseSecuritizeSwap is BaseDSContract, PausableUpgradeable {
     IDSToken public dsToken;
     IERC20 public stableCoinToken;
     ISecuritizeNavProvider public navProvider;
     address public issuerWallet;
-    uint256[46] __gap;
+    IUSDCBridge public USDCBridge;
+    uint16 public bridgeChainId;
+    uint256[44] private __gap;
 
     function initialize(
         address _dsToken,
         address _stableCoin,
         address _navProvider,
-        address _issuerWallet
+        address _issuerWallet,
+        uint16 _bridgeChainId,
+        address _USDCBridge
     ) public virtual {
+        __BaseDSContract_init();
         dsToken = IDSToken(_dsToken);
         stableCoinToken = IERC20(_stableCoin);
         issuerWallet = _issuerWallet;
         navProvider = ISecuritizeNavProvider(_navProvider);
+        bridgeChainId = _bridgeChainId;
+        USDCBridge = IUSDCBridge(_USDCBridge);
     }
 
     event Swap(
@@ -95,9 +113,8 @@ abstract contract BaseSecuritizeSwap is BaseDSContract, PausableUpgradeable {
      * @dev It does a swap between a Stable Coin ERC-20 token and DSToken.
      * @param _dsTokenAmount the amount of DSTokens to mint to investor's new wallet
      * @param _maxStableCoinAmount maximum expected amount of stable coin to be paid by the investor
-     * @param _issuanceTime time in seconds to issue tokens.
      */
-    function buy(uint256 _dsTokenAmount, uint256 _maxStableCoinAmount, uint256 _issuanceTime) external virtual;
+    function buy(uint256 _dsTokenAmount, uint256 _maxStableCoinAmount) external virtual;
 
     /**
      * @dev Validates off-chain EIP-712 message signature and executes encoded transaction data.

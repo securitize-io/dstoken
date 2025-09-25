@@ -4,7 +4,7 @@ import { DSConstants } from '../utils/globals';
 subtask('set-services', 'Set DS Services')
   .addParam('dsContracts', 'Json DS Contract Addresses', undefined, types.json, false)
   .setAction(
-    async (args, hre, run) => {
+    async (args) => {
       const { dsContracts } = args;
       const {
         dsToken,
@@ -13,16 +13,14 @@ subtask('set-services', 'Set DS Services')
         complianceService,
         walletManager,
         lockManager,
-        partitionsManager,
         complianceConfigurationService,
         tokenIssuer,
         walletRegistrar,
-        omnibusTBEController,
         transactionRelayer,
-        tokenReallocator,
         issuerMulticall,
         bulkOperator,
-        swap
+        swap,
+        rebasingProvider
       } = dsContracts;
 
       // Token
@@ -32,10 +30,6 @@ subtask('set-services', 'Set DS Services')
       await dsToken.setDSService(DSConstants.services.TOKEN_ISSUER, tokenIssuer.getAddress());
       console.log('Connecting token to wallet registrar');
       await dsToken.setDSService(DSConstants.services.WALLET_REGISTRAR, walletRegistrar.getAddress());
-      console.log('Connecting token to token reallocator');
-      await dsToken.setDSService(DSConstants.services.TOKEN_REALLOCATOR, tokenReallocator.getAddress());
-      console.log('Connecting token to omnibus TBE controller');
-      await dsToken.setDSService(DSConstants.services.OMNIBUS_TBE_CONTROLLER, omnibusTBEController.getAddress());
       console.log('Connecting token to trust service');
       await dsToken.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
       console.log('Connecting token to compliance service');
@@ -47,11 +41,9 @@ subtask('set-services', 'Set DS Services')
       console.log('Connecting token to lock manager');
       await dsToken.setDSService(DSConstants.services.LOCK_MANAGER, lockManager.getAddress());
       console.log('Connecting token to transaction relayer');
-      await dsToken.setDSService(DSConstants.services.TRANSACTION_RELAYER, transactionRelayer.getAddress());
-      if (partitionsManager) {
-        console.log('Connecting token to partitions manager');
-        await dsToken.setDSService(DSConstants.services.PARTITIONS_MANAGER, partitionsManager.getAddress());
-      }
+      await dsToken.setDSService(DSConstants.services.TRANSACTION_RELAYER, transactionRelayer.getAddress())
+      console.log('Connecting token to rebasing provider');
+      await dsToken.setDSService(DSConstants.services.REBASING_PROVIDER, rebasingProvider.getAddress());
 
       // Registry Service
       console.log('Connecting registry service to trust service');
@@ -80,22 +72,8 @@ subtask('set-services', 'Set DS Services')
       await complianceService.setDSService(DSConstants.services.DS_TOKEN, dsToken.getAddress());
       console.log('Connecting compliance service to registry');
       await complianceService.setDSService(DSConstants.services.REGISTRY_SERVICE, registryService.getAddress());
-      console.log('Connecting compliance service to omnibus TBE controller');
-      await complianceService.setDSService(DSConstants.services.OMNIBUS_TBE_CONTROLLER, omnibusTBEController.getAddress());
-      if (partitionsManager) {
-        console.log('Connecting compliance service to partitions manager');
-        await complianceService.setDSService(DSConstants.services.PARTITIONS_MANAGER, partitionsManager.getAddress());
-      }
-
-      // Omnibus TBE Controller
-      console.log('Connecting omnibus TBE controller to trust service');
-      await omnibusTBEController.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
-      console.log('Connecting omnibus TBE controller to token');
-      await omnibusTBEController.setDSService(DSConstants.services.DS_TOKEN, dsToken.getAddress());
-      console.log('Connecting omnibus TBE controller to compliance configuration service');
-      await omnibusTBEController.setDSService(DSConstants.services.COMPLIANCE_CONFIGURATION_SERVICE, complianceConfigurationService.getAddress());
-      console.log('Connecting omnibus TBE controller to compliance service');
-      await omnibusTBEController.setDSService(DSConstants.services.COMPLIANCE_SERVICE, complianceService.getAddress());
+      console.log('Connecting compliance service to rebasing provider');
+      await complianceService.setDSService(DSConstants.services.REBASING_PROVIDER, rebasingProvider.getAddress());
 
       // Lock Manager
       console.log('Connecting lock manager to trust service');
@@ -128,24 +106,11 @@ subtask('set-services', 'Set DS Services')
       await walletManager.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
       console.log('Connecting wallet registrar to registry service');
       await walletManager.setDSService(DSConstants.services.REGISTRY_SERVICE, registryService.getAddress());
-      const tbe = await omnibusTBEController.getOmnibusWallet();
-      await walletManager.addPlatformWallet(tbe);
-
-      // Token Reallocator
-      console.log('Connecting token reallocator to trust service');
-      await tokenReallocator.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
-      console.log('Connecting token reallocator to omnibus tbe controller');
-      await tokenReallocator.setDSService(DSConstants.services.OMNIBUS_TBE_CONTROLLER, omnibusTBEController.getAddress());
-      console.log('Connecting token reallocator to registry service');
-      await tokenReallocator.setDSService(DSConstants.services.REGISTRY_SERVICE, registryService.getAddress());
-      console.log('Connecting token reallocator to lock manager');
-      await tokenReallocator.setDSService(DSConstants.services.LOCK_MANAGER, lockManager.getAddress());
 
       // Bulk Operator
       console.log('Connecting Bulk Operator to Trust Service');
       await bulkOperator.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
       await bulkOperator.setDSService(DSConstants.services.TOKEN_ISSUER, tokenIssuer.getAddress());
-      
 
       // Transaction Relayer
       console.log('Connecting transaction relayer to trust service');
@@ -162,13 +127,5 @@ subtask('set-services', 'Set DS Services')
       await walletManager.addIssuerWallet(swap.target);
       console.log('Connecting Swap with Registry Service');
       await swap.setDSService(DSConstants.services.REGISTRY_SERVICE, registryService.getAddress());
-
-      // Partitions Manager
-      if (partitionsManager) {
-        console.log('Connecting partitions manager to trust service');
-        await partitionsManager.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
-        console.log('Connecting partitions manager to token');
-        await partitionsManager.setDSService(DSConstants.services.DS_TOKEN, dsToken.getAddress());
-      }
     }
   );

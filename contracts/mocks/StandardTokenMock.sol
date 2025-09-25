@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.22;
 
 import "../token/StandardToken.sol";
 
@@ -34,18 +34,6 @@ contract StandardTokenMock is StandardToken {
     }
 
     function burn(address, uint256, string calldata) public pure override {
-        revertFunction();
-    }
-
-    function emitOmnibusTBEEvent(address, int256, int256, int256, int256, int256) public pure override {
-        revertFunction();
-    }
-
-    function emitOmnibusTBETransferEvent(address, string memory) public pure override {
-        revertFunction();
-    }
-
-    function emitOmnibusTransferEvent(address, address, address, uint256) public pure override {
         revertFunction();
     }
 
@@ -69,14 +57,6 @@ contract StandardTokenMock is StandardToken {
         revertFunction();
     }
 
-    function omnibusBurn(address, address, uint256, string calldata) public pure override {
-        revertFunction();
-    }
-
-    function omnibusSeize(address, address, address, uint256, string calldata) public pure override {
-        revertFunction();
-    }
-
     function preTransferCheck(address, address, uint256) public pure override returns (uint256, string memory) {
         revertFunction();
     }
@@ -90,10 +70,6 @@ contract StandardTokenMock is StandardToken {
     }
 
     function updateInvestorBalance(address, uint256, CommonUtils.IncDec) internal pure override returns (bool) {
-        revertFunction();
-    }
-
-    function updateOmnibusInvestorBalance(address, address, uint256, CommonUtils.IncDec) public pure override returns (bool) {
         revertFunction();
     }
 
