@@ -20,7 +20,6 @@ task('deploy-all', 'Deploy DS Protocol')
     const tokenIssuer = await run('deploy-token-issuer');
     const walletRegistrar = await run('deploy-wallet-registrar');
     const transactionRelayer = await run('deploy-transaction-relayer');
-    const issuerMulticall = await run('deploy-issuer-multicall');
     const bulkOperator = await run('deploy-bulk-operator', { dsToken: dsToken.target });
     const navProviderMock = await hre.ethers.deployContract('SecuritizeInternalNavProviderMock', [1]);
     const rebasingProvider = await run('deploy-rebasing-provider', { multiplier: args.multiplier, decimals: args.decimals });
@@ -43,7 +42,6 @@ task('deploy-all', 'Deploy DS Protocol')
       tokenIssuer,
       walletRegistrar,
       transactionRelayer,
-      issuerMulticall,
       bulkOperator,
       usdcMock,
       navProviderMock,

@@ -17,7 +17,6 @@ subtask('set-services', 'Set DS Services')
         tokenIssuer,
         walletRegistrar,
         transactionRelayer,
-        issuerMulticall,
         bulkOperator,
         rebasingProvider,
       } = dsContracts;
@@ -114,9 +113,5 @@ subtask('set-services', 'Set DS Services')
       // Transaction Relayer
       console.log('Connecting transaction relayer to trust service');
       await transactionRelayer.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
-
-      // Issuer Multi Call
-      console.log('Connecting issuer multi call to trust service');
-      await issuerMulticall.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
     }
   );
