@@ -8,8 +8,7 @@ import {
   EIP712_MS_VERSION,
   multisigPreApproval,
   registerInvestor,
-  SALT_MS,
-  SALT_TR
+  SALT_MS
 } from './utils/test-helper';
 
 const THRESHOLD = 3;
@@ -468,7 +467,7 @@ describe('Multisig Unit Tests', function() {
       )).revertedWith('incorrect signature');
     });
 
-    it('SHOULD revert when signing with wrong salt', async () => {
+    it('SHOULD revert when signing with wrong domain data', async () => {
       const [owner1, owner2, owner3, investor] = await hre.ethers.getSigners();
       const owners = [owner1, owner2, owner3].sort((a, b) => {
         if (a.address < b.address) {
@@ -498,8 +497,8 @@ describe('Multisig Unit Tests', function() {
       const domainDataWrongName = {
         name: EIP712_MS_NAME,
         version: EIP712_MS_VERSION,
-        chainId: (await hre.ethers.provider.getNetwork()).chainId,
-        salt: SALT_TR
+        chainId: (await hre.ethers.provider.getNetwork()).chainId + 1n,
+        salt: SALT_MS
       };
 
       const signatures = await multisigPreApproval(owners, await multisig.getAddress(), message, domainDataWrongName);
