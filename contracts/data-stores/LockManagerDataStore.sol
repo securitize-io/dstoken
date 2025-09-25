@@ -18,7 +18,7 @@
 
 pragma solidity 0.8.22;
 
-import "./BaseLockManagerDataStore.sol";
+import {BaseLockManagerDataStore} from "./BaseLockManagerDataStore.sol";
 
 contract LockManagerDataStore is BaseLockManagerDataStore {
     mapping(address => uint256) internal locksCounts;

@@ -18,9 +18,9 @@
 
 pragma solidity 0.8.22;
 
-import "@openzeppelin/contracts/interfaces/IERC20.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "../utils/CommonUtils.sol";
+import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
 
 abstract contract IDSToken is IERC20, Initializable {
     event Issue(address indexed to, uint256 value, uint256 valueLocked);

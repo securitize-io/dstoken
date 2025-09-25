@@ -18,7 +18,7 @@
 
 pragma solidity 0.8.22;
 
-import "../nav/ISecuritizeNavProvider.sol";
+import {ISecuritizeNavProvider} from "../nav/ISecuritizeNavProvider.sol";
 
 
 contract SecuritizeInternalNavProviderMock is ISecuritizeNavProvider {

@@ -18,10 +18,14 @@
 
 pragma solidity 0.8.22;
 
-import "./ComplianceServiceWhitelisted.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "../rebasing/RebasingLibrary.sol";
+import {ComplianceServiceWhitelisted} from "./ComplianceServiceWhitelisted.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
+import {IDSRegistryService} from "../registry/IDSRegistryService.sol";
+import {IDSToken} from "../token/IDSToken.sol";
+import {IDSComplianceConfigurationService} from "./IDSComplianceConfigurationService.sol";
+import {IDSWalletManager} from "./IDSWalletManager.sol";
+import {IDSLockManager} from "./IDSLockManager.sol";
 
 library ComplianceServiceLibrary {
     uint256 internal constant DS_TOKEN = 0;

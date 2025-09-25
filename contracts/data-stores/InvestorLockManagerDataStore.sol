@@ -18,7 +18,7 @@
 
 pragma solidity 0.8.22;
 
-import "./BaseLockManagerDataStore.sol";
+import {BaseLockManagerDataStore} from "./BaseLockManagerDataStore.sol";
 
 contract InvestorLockManagerDataStore is BaseLockManagerDataStore {
     mapping(string => mapping(uint256 => Lock)) internal investorsLocks;

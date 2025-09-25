@@ -18,8 +18,9 @@
 
 pragma solidity 0.8.22;
 
-import "./IDSTokenIssuer.sol";
-import "../utils/BaseDSContract.sol";
+import {IDSTokenIssuer} from "./IDSTokenIssuer.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
 
 contract TokenIssuer is IDSTokenIssuer, BaseDSContract {
     function initialize() public override onlyProxy initializer {

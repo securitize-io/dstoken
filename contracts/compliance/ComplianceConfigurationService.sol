@@ -18,9 +18,9 @@
 
 pragma solidity 0.8.22;
 
-import "./IDSComplianceConfigurationService.sol";
-import "../data-stores/ComplianceConfigurationDataStore.sol";
-import "../utils/BaseDSContract.sol";
+import {IDSComplianceConfigurationService} from "./IDSComplianceConfigurationService.sol";
+import {ComplianceConfigurationDataStore} from "../data-stores/ComplianceConfigurationDataStore.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
 
 contract ComplianceConfigurationService is IDSComplianceConfigurationService, ComplianceConfigurationDataStore, BaseDSContract {
 

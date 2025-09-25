@@ -18,8 +18,8 @@
 
 pragma solidity 0.8.22;
 
-import "./ServiceConsumerDataStore.sol";
-import '../token/TokenLibrary.sol';
+import {ServiceConsumerDataStore} from "./ServiceConsumerDataStore.sol";
+import {TokenLibrary} from '../token/TokenLibrary.sol';
 
 contract TokenDataStore is ServiceConsumerDataStore {
 
