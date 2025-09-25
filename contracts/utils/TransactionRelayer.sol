@@ -18,7 +18,7 @@
 
 pragma solidity 0.8.22;
 
-import "./BaseDSContract.sol";
+import {BaseDSContract} from "./BaseDSContract.sol";
 
 /**
  @dev Based on SimpleWallet (https://github.com/christianlundkvist/simple-multisig) and uses EIP-712 standard validate a signature

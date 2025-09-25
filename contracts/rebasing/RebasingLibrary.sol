@@ -18,7 +18,7 @@
 
 pragma solidity 0.8.22;
 
-import "../token/IDSToken.sol";
+import {IDSToken} from "../token/IDSToken.sol";
 
 
 library RebasingLibrary {

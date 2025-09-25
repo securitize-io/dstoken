@@ -18,9 +18,10 @@
 
 pragma solidity 0.8.22;
 
-import "./IDSRegistryService.sol";
-import "../data-stores/RegistryServiceDataStore.sol";
-import "../utils/BaseDSContract.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
+import {IDSRegistryService} from "./IDSRegistryService.sol";
+import {RegistryServiceDataStore} from "../data-stores/RegistryServiceDataStore.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
 
 contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDSContract {
 

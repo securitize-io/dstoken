@@ -18,10 +18,11 @@
 
 pragma solidity 0.8.22;
 
-import "../data-stores/TokenDataStore.sol";
+import {TokenDataStore} from "../data-stores/TokenDataStore.sol";
 import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
 import {BaseDSContract} from "../utils/BaseDSContract.sol";
-import "../rebasing/RebasingLibrary.sol";
+import {RebasingLibrary} from "../rebasing/RebasingLibrary.sol";
+import {IDSToken} from "./IDSToken.sol";
 
 abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
     event Pause();

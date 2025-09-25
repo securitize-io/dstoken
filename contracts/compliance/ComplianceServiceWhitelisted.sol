@@ -18,7 +18,8 @@
 
 pragma solidity 0.8.22;
 
-import "./ComplianceService.sol";
+import {ComplianceService} from "./ComplianceService.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
 
 /**
 *   @title Concrete compliance service for tokens with whitelisted wallets.

@@ -18,9 +18,10 @@
 
 pragma solidity 0.8.22;
 
-import "./IDSWalletManager.sol";
-import "../data-stores/WalletManagerDataStore.sol";
-import "../utils/BaseDSContract.sol";
+import {IDSWalletManager} from "./IDSWalletManager.sol";
+import {WalletManagerDataStore} from "../data-stores/WalletManagerDataStore.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
 
 /**
  * @title WalletManager

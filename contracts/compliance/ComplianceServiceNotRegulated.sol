@@ -18,7 +18,7 @@
 
 pragma solidity 0.8.22;
 
-import "./ComplianceService.sol";
+import {ComplianceService} from "./ComplianceService.sol";
 
 /**
 *   @title Concrete compliance service for tokens with no regulation

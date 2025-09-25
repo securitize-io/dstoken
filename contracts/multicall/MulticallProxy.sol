@@ -18,7 +18,7 @@
 
 pragma solidity 0.8.22;
 
-import "../service/ServiceConsumer.sol";
+import {ServiceConsumer} from "../service/ServiceConsumer.sol";
 
     error MulticallFailed(uint256 index, string reason);
 

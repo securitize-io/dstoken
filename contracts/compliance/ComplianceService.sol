@@ -18,12 +18,12 @@
 
 pragma solidity 0.8.22;
 
-import "./IDSComplianceService.sol";
-import "../utils/CommonUtils.sol";
-import "../data-stores/ComplianceServiceDataStore.sol";
-import "../utils/BaseDSContract.sol";
-import "../rebasing/RebasingLibrary.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IDSComplianceService} from "./IDSComplianceService.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
+import {ComplianceServiceDataStore} from "../data-stores/ComplianceServiceDataStore.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
+import {RebasingLibrary} from "../rebasing/RebasingLibrary.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 
 /**

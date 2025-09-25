@@ -18,8 +18,9 @@
 
 pragma solidity 0.8.22;
 
-import "../data-stores/InvestorLockManagerDataStore.sol";
-import "../utils/BaseDSContract.sol";
+import {InvestorLockManagerDataStore} from "../data-stores/InvestorLockManagerDataStore.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
+import {IDSLockManager} from "./IDSLockManager.sol";
 
 abstract contract InvestorLockManagerBase is IDSLockManager, InvestorLockManagerDataStore, BaseDSContract {
     event InvestorFullyLocked(string investorId);

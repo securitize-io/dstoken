@@ -18,8 +18,9 @@
 
 pragma solidity 0.8.22;
 
-import "../service/ServiceConsumer.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {ServiceConsumer} from "../service/ServiceConsumer.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {ERC1967Utils} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 
 abstract contract BaseDSContract is UUPSUpgradeable, ServiceConsumer {
 

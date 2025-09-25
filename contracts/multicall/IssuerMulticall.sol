@@ -17,8 +17,8 @@
  */
 
 pragma solidity 0.8.22;
-import "./MulticallProxy.sol";
-import "../utils/BaseDSContract.sol";
+import {MulticallProxy} from "./MulticallProxy.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
 
 contract IssuerMulticall is MulticallProxy, BaseDSContract {
 

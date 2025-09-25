@@ -18,10 +18,12 @@
 
 pragma solidity 0.8.22;
 
-import "./IDSToken.sol";
-import "./StandardToken.sol";
+import {IDSToken} from "./IDSToken.sol";
+import {StandardToken} from "./StandardToken.sol";
 import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
-import "../rebasing/RebasingLibrary.sol";
+import {RebasingLibrary} from "../rebasing/RebasingLibrary.sol";
+import {TokenLibrary} from "./TokenLibrary.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
 
 contract DSToken is StandardToken {
     // using FeaturesLibrary for SupportedFeatures;

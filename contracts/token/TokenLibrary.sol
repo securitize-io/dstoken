@@ -18,9 +18,11 @@
 
 pragma solidity 0.8.22;
 
-import "../service/ServiceConsumer.sol";
 import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
-import "../rebasing/RebasingLibrary.sol";
+import {IDSLockManager} from "../compliance/IDSLockManager.sol";
+import {IDSComplianceService} from "../compliance/IDSComplianceService.sol";
+import {IDSRegistryService} from "../registry/IDSRegistryService.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
 
 
 library TokenLibrary {
