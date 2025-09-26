@@ -26,10 +26,10 @@ contract ComplianceServiceDataStore is ServiceConsumerDataStore {
     uint256 internal usAccreditedInvestorsCount;
     uint256 internal usInvestorsCount;
     uint256 internal jpInvestorsCount;
-    mapping(string => uint256) internal euRetailInvestorsCount;
-    mapping(string => uint256) internal issuancesCounters;
-    mapping(string => mapping(uint256 => uint256)) issuancesValues;
-    mapping(string => mapping(uint256 => uint256)) issuancesTimestamps;
+    mapping(string country => uint256 count) internal euRetailInvestorsCount;
+    mapping(string tokenId => uint256 count) internal issuancesCounters;
+    mapping(string tokenId => mapping(uint256 issuanceId => uint256 value)) issuancesValues;
+    mapping(string tokenId => mapping(uint256 issuanceId => uint256 timestamp)) issuancesTimestamps;
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new

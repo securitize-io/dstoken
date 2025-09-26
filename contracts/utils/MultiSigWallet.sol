@@ -43,7 +43,7 @@ contract MultiSigWallet {
 
     uint256 public nonce; // (only) mutable state
     uint256 public immutable threshold; // immutable state
-    mapping(address => bool) isOwner; // immutable state
+    mapping(address owner => bool isOwner) isOwner; // immutable state
     address[] public ownersArr; // immutable state
 
     bytes32 DOMAIN_SEPARATOR; // hash for EIP712, computed from contract address
