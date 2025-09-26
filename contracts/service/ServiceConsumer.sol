@@ -46,8 +46,7 @@ abstract contract ServiceConsumer is IDSServiceConsumer, ServiceConsumerDataStor
     }
 
     modifier onlyMaster {
-        IDSTrustService trustManager = getTrustService();
-        require(owner() == msg.sender || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
+        if(owner() != msg.sender) require(getTrustService().getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
         _;
     }
 
@@ -56,31 +55,29 @@ abstract contract ServiceConsumer is IDSServiceConsumer, ServiceConsumerDataStor
    */
     modifier onlyIssuerOrTransferAgentOrAbove() {
         IDSTrustService trustManager = getTrustService();
-        require(trustManager.getRole(msg.sender) == ROLE_TRANSFER_AGENT || trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
+        uint8 role = trustManager.getRole(msg.sender);
+        require(role == ROLE_TRANSFER_AGENT || role == ROLE_ISSUER || role == ROLE_MASTER, "Insufficient trust level");
         _;
     }
 
     modifier onlyIssuerOrAbove {
         IDSTrustService trustManager = getTrustService();
-        require(trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
+        uint8 role = trustManager.getRole(msg.sender);
+        require(role == ROLE_ISSUER || role == ROLE_MASTER, "Insufficient trust level");
         _;
     }
 
     modifier onlyTransferAgentOrAbove {
         IDSTrustService trustManager = getTrustService();
-        require(trustManager.getRole(msg.sender) == ROLE_TRANSFER_AGENT || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
+        uint8 role = trustManager.getRole(msg.sender);
+        require(role == ROLE_TRANSFER_AGENT || role == ROLE_MASTER, "Insufficient trust level");
         _;
     }
 
     modifier onlyExchangeOrAbove {
         IDSTrustService trustManager = getTrustService();
-        require(
-            trustManager.getRole(msg.sender) == ROLE_EXCHANGE
-            || trustManager.getRole(msg.sender) == ROLE_ISSUER
-            || trustManager.getRole(msg.sender) == ROLE_TRANSFER_AGENT
-            || trustManager.getRole(msg.sender) == ROLE_MASTER,
-            "Insufficient trust level"
-        );
+        uint8 role = trustManager.getRole(msg.sender);
+        require(role == ROLE_EXCHANGE || role == ROLE_ISSUER || role == ROLE_TRANSFER_AGENT || role == ROLE_MASTER, "Insufficient trust level");
         _;
     }
 
