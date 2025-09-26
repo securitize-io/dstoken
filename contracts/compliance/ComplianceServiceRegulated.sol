@@ -582,10 +582,14 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     function adjustInvestorCountsAfterCountryChange(
         string memory _id,
         string memory _country,
-        string memory /*_prevCountry*/
+        string memory _prevCountry
     ) public override onlyRegistry returns (bool) {
         if (getToken().balanceOfInvestor(_id) == 0) {
             return false;
+        }
+
+        if (bytes(_prevCountry).length > 0) {
+            adjustInvestorsCountsByCountry(_prevCountry, _id, CommonUtils.IncDec.Decrease);
         }
 
         adjustInvestorsCountsByCountry(_country, _id, CommonUtils.IncDec.Increase);
