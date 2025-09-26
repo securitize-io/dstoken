@@ -134,7 +134,7 @@ contract InvestorLockManager is InvestorLockManagerBase {
         return investorsLocksCounts[investor];
     }
 
-    function lockCountForInvestor(string memory _investorId) public view override returns (uint256) {
+    function lockCountForInvestor(string calldata _investorId) public view override returns (uint256) {
         return investorsLocksCounts[_investorId];
     }
 

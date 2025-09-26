@@ -29,32 +29,32 @@ abstract contract InvestorLockManagerBase is IDSLockManager, InvestorLockManager
 
     function initialize() public virtual override;
 
-    function lockInvestor(string memory _investorId) public override onlyTransferAgentOrAbove returns (bool) {
+    function lockInvestor(string calldata _investorId) public override onlyTransferAgentOrAbove returns (bool) {
         require(!investorsLocked[_investorId], "Investor is already locked");
         investorsLocked[_investorId] = true;
         emit InvestorFullyLocked(_investorId);
         return true;
     }
 
-    function unlockInvestor(string memory _investorId) public override onlyTransferAgentOrAbove returns (bool) {
+    function unlockInvestor(string calldata _investorId) public override onlyTransferAgentOrAbove returns (bool) {
         require(investorsLocked[_investorId], "Investor is not locked");
         delete investorsLocked[_investorId];
         emit InvestorFullyUnlocked(_investorId);
         return true;
     }
 
-    function isInvestorLocked(string memory _investorId) public override view returns (bool) {
+    function isInvestorLocked(string calldata _investorId) public override view returns (bool) {
         return investorsLocked[_investorId];
     }
 
-    function setInvestorLiquidateOnly(string memory _investorId, bool _enabled) public onlyTransferAgentOrAbove returns (bool) {
+    function setInvestorLiquidateOnly(string calldata _investorId, bool _enabled) public onlyTransferAgentOrAbove returns (bool) {
         require(!investorsLiquidateOnly[_investorId], "Investor is already in liquidate only mode");
         investorsLiquidateOnly[_investorId] = _enabled;
         emit InvestorLiquidateOnlySet(_investorId, _enabled);
         return true;
     }
 
-    function isInvestorLiquidateOnly(string memory _investorId) public override view returns (bool) {
+    function isInvestorLiquidateOnly(string calldata _investorId) public override view returns (bool) {
         return investorsLiquidateOnly[_investorId];
     }
 }
