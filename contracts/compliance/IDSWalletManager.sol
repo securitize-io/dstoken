@@ -87,7 +87,7 @@ abstract contract IDSWalletManager {
      * @param _wallets The address of the wallets.
      * @return A boolean that indicates if the operation was successful.
      */
-    function addIssuerWallets(address[] memory _wallets) public virtual returns (bool);
+    function addIssuerWallets(address[] calldata _wallets) public virtual returns (bool);
 
     /**
      * @dev Sets a wallet to be a platform wallet.
@@ -103,7 +103,7 @@ abstract contract IDSWalletManager {
      * @param _wallets The address of the wallets.
      * @return A boolean that indicates if the operation was successful.
      */
-    function addPlatformWallets(address[] memory _wallets) public virtual returns (bool);
+    function addPlatformWallets(address[] calldata _wallets) public virtual returns (bool);
 
     /**
      * @dev Sets a wallet to be an exchange wallet.
