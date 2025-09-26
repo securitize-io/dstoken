@@ -45,17 +45,17 @@ contract RegistryServiceDataStore is ServiceConsumerDataStore {
         // mapping(uint8 => Attribute) attributes;
     }
 
-    mapping(string => Investor) internal investors;
-    mapping(address => Wallet) internal investorsWallets;
+    mapping(string investorId => Investor investor) internal investors;
+    mapping(address walletAddress => Wallet wallet) internal investorsWallets;
 
     /**
      * @dev DEPRECATED: This mapping is no longer used but must be kept for storage layout compatibility in the proxy.
      * Do not use this mapping in new code. It will be removed in future non-proxy implementations.
      * The interface type has been replaced with address to remove the interface dependency.
      */
-    mapping(address => address) internal DEPRECATED_omnibusWalletsControllers;
+    mapping(address wallet => address controller) internal DEPRECATED_omnibusWalletsControllers;
 
-    mapping(string => mapping(uint8 => Attribute)) public attributes;
+    mapping(string investorId => mapping(uint8 attributeId => Attribute attribute)) public attributes;
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new

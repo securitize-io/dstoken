@@ -33,8 +33,8 @@ library TokenLibrary {
     uint256 internal constant DEPRECATED_OMNIBUS_WITHDRAW = 2; // Deprecated, keep for backwards compatibility
 
     struct TokenData {
-        mapping(address => uint256) walletsBalances;
-        mapping(string => uint256) investorsBalances;
+        mapping(address wallet => uint256 balance) walletsBalances;
+        mapping(string investor => uint256 balance) investorsBalances;
         uint256 totalSupply;
         uint256 totalIssued;
     }
