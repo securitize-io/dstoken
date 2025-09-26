@@ -28,7 +28,7 @@ contract TokenIssuer is IDSTokenIssuer, BaseDSContract {
     }
 
     function issueTokens(
-        string memory _id,
+        string calldata _id,
         address _to,
         uint256[] memory _issuanceValues,
         string calldata _reason,

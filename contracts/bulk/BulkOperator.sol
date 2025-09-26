@@ -48,7 +48,7 @@ contract BulkOperator is  IBulkOperator, BaseDSContract, PausableUpgradeable {
         return 2;
     }
 
-    function bulkIssuance(address[] memory addresses, uint256[] memory values, uint256 issuanceTime) whenNotPaused onlyIssuerOrAbove external {
+    function bulkIssuance(address[] calldata addresses, uint256[] calldata values, uint256 issuanceTime) whenNotPaused onlyIssuerOrAbove external {
         require(addresses.length == values.length, "Addresses and values length mismatch");
 
         for (uint256 i = 0; i < addresses.length; i++) {
@@ -56,25 +56,27 @@ contract BulkOperator is  IBulkOperator, BaseDSContract, PausableUpgradeable {
         }
     }
 
-    function bulkRegisterAndIssuance(BulkRegisterAndIssuance[] memory data) whenNotPaused onlyIssuerOrAbove external {
+    function bulkRegisterAndIssuance(BulkRegisterAndIssuance[] calldata data) whenNotPaused onlyIssuerOrAbove external {
         TokenIssuer tokenIssuer = TokenIssuer(getDSService(TOKEN_ISSUER));
         for (uint256 i = 0; i < data.length; i++) {
+            BulkRegisterAndIssuance memory currentBulkAndIssuance = data[i];
+
             tokenIssuer.issueTokens(
-                data[i].id,
-                data[i].to,
-                data[i].issuanceValues,
-                data[i].reason,
-                data[i].locksValues,
-                data[i].lockReleaseTimes,
+                currentBulkAndIssuance.id,
+                currentBulkAndIssuance.to,
+                currentBulkAndIssuance.issuanceValues,
+                currentBulkAndIssuance.reason,
+                currentBulkAndIssuance.locksValues,
+                currentBulkAndIssuance.lockReleaseTimes,
                 "",
-                data[i].country,
-                data[i].attributeValues,
-                data[i].attributeExpirations
+                currentBulkAndIssuance.country,
+                currentBulkAndIssuance.attributeValues,
+                currentBulkAndIssuance.attributeExpirations
             );
         }
     }
 
-    function bulkBurn(address[] memory addresses, uint256[] memory values) whenNotPaused onlyIssuerOrTransferAgentOrAbove external {
+    function bulkBurn(address[] calldata addresses, uint256[] memory values) whenNotPaused onlyIssuerOrTransferAgentOrAbove external {
         require(addresses.length == values.length, "Addresses and values length mismatch");
 
         for (uint256 i = 0; i < addresses.length; i++) {
