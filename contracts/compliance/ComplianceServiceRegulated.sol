@@ -175,7 +175,7 @@ library ComplianceServiceLibrary {
     }
 
     function doPreTransferCheckRegulated(
-        address[] memory _services,
+        address[] calldata _services,
         address _from,
         address _to,
         uint256 _value,
@@ -211,7 +211,7 @@ library ComplianceServiceLibrary {
     }
 
     function completeTransferCheck(
-        address[] memory _services,
+        address[] calldata _services,
         CompletePreTransferCheckArgs memory _args
     ) internal view returns (uint256 code, string memory reason) {
         (string memory investorFrom, string memory investorTo) = IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestors(_args.from, _args.to);
