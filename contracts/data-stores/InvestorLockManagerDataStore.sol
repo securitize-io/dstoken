@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,15 +18,15 @@
 
 pragma solidity 0.8.22;
 
-import "./BaseLockManagerDataStore.sol";
+import {BaseLockManagerDataStore} from "./BaseLockManagerDataStore.sol";
 
 contract InvestorLockManagerDataStore is BaseLockManagerDataStore {
-    mapping(string => mapping(uint256 => Lock)) internal investorsLocks;
-    mapping(string => uint256) internal investorsLocksCounts;
-    mapping(string => bool) internal investorsLocked;
-    mapping(string => mapping(bytes32 => mapping(uint256 => Lock))) internal investorsPartitionsLocks;
-    mapping(string => mapping(bytes32 => uint256)) internal investorsPartitionsLocksCounts;
-    mapping(string => bool) internal investorsLiquidateOnly;
+    mapping(string investorId => mapping(uint256 lockId => Lock lock)) internal investorsLocks;
+    mapping(string investorId => uint256 count) internal investorsLocksCounts;
+    mapping(string investorId => bool locked) internal investorsLocked;
+    mapping(string investorId => mapping(bytes32 partitionHash => mapping(uint256 lockId => Lock lock))) internal investorsPartitionsLocks;
+    mapping(string investorId => mapping(bytes32 partitionHash => uint256 count)) internal investorsPartitionsLocksCounts;
+    mapping(string investorId => bool liquidateOnly) internal investorsLiquidateOnly;
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
