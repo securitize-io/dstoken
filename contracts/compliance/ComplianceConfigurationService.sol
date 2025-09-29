@@ -41,7 +41,7 @@ contract ComplianceConfigurationService is IDSComplianceConfigurationService, Co
         countriesCompliances[_country] = _value;
     }
 
-    function getCountryCompliance(string memory _country) public view override returns (uint256) {
+    function getCountryCompliance(string calldata _country) public view override returns (uint256) {
         return countriesCompliances[_country];
     }
 
