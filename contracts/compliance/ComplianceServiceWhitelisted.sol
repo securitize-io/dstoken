@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,7 +18,8 @@
 
 pragma solidity 0.8.22;
 
-import "./ComplianceService.sol";
+import {ComplianceService} from "./ComplianceService.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
 
 /**
 *   @title Concrete compliance service for tokens with whitelisted wallets.

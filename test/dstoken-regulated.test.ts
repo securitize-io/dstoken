@@ -199,6 +199,52 @@ describe('DS Token Regulated Unit Tests', function() {
         .to.emit(dsToken, 'TxShares')
         .withArgs(investor.address, investor2.address, shares, multiplier);
     });
+
+    it('Investors can transfer tokens from other investors, just with previous allowance', async function () {
+      // setup 2 investors
+      const [investor, investor2] = await hre.ethers.getSigners();
+      const { dsToken, registryService, rebasingProvider } = await loadFixture(deployDSTokenRegulated);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
+
+      // give first investor some tokens
+      await dsToken.issueTokens(investor, 500);
+
+      const valueToTransfer = 100;
+      const shares = await rebasingProvider.convertTokensToShares(valueToTransfer);
+      const multiplier = await rebasingProvider.multiplier();
+
+      // connect as second investor
+      const dsTokenFromInvestor = await dsToken.connect(investor2);
+
+      // first investor approves second investor as a spender
+      await dsToken.connect(investor).approve(investor2, valueToTransfer);
+
+      await expect(dsTokenFromInvestor.transferFrom(investor, investor2, valueToTransfer))
+        .to.emit(dsToken, 'TxShares')
+        .withArgs(investor.address, investor2.address, shares, multiplier);
+    });
+
+    it('Investors can not steal tokens from other investors', async function () {
+      // setup 2 investors
+      const [investor, investor2] = await hre.ethers.getSigners();
+      const { dsToken, registryService } = await loadFixture(deployDSTokenRegulated);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
+
+      // give first investor some tokens
+      await dsToken.issueTokens(investor, 500);
+
+      const valueToTransfer = 100;
+
+      // connect as second investor
+      const dsTokenFromInvestor = await dsToken.connect(investor2);
+
+      // use `transferFrom` to steal tokens from first investor, even though
+      // first investor never approved second investor as a spender
+      await expect(dsTokenFromInvestor.transferFrom(investor, investor2, valueToTransfer))
+        .to.be.revertedWith('Not enough allowance');
+    });
   });
 
   describe('Locking', async function () {

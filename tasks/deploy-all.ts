@@ -9,7 +9,6 @@ task('deploy-all', 'Deploy DS Protocol')
   .addOptionalParam('multiplier', 'Rebasing Multiplier', '1000000000000000000', types.string)
   .setAction(async (args, { run }) => {
     await run("compile");
-    const [owner, wallet] = await hre.ethers.getSigners();
 
     const dsToken = await run('deploy-token', args);
     const trustService = await run('deploy-trust-service');
@@ -21,7 +20,6 @@ task('deploy-all', 'Deploy DS Protocol')
     const tokenIssuer = await run('deploy-token-issuer');
     const walletRegistrar = await run('deploy-wallet-registrar');
     const transactionRelayer = await run('deploy-transaction-relayer');
-    const issuerMulticall = await run('deploy-issuer-multicall');
     const bulkOperator = await run('deploy-bulk-operator', { dsToken: dsToken.target });
     const navProviderMock = await hre.ethers.deployContract('SecuritizeInternalNavProviderMock', [1]);
     const rebasingProvider = await run('deploy-rebasing-provider', { multiplier: args.multiplier, decimals: args.decimals });
@@ -33,12 +31,6 @@ task('deploy-all', 'Deploy DS Protocol')
         decimals: 6,
       });
 
-    const swap = await run("deploy-securitize-swap", {
-      dsToken: dsToken.target,
-      stableCoin: usdcMock.target,
-      navProvider: navProviderMock.target,
-      issuerWallet: wallet.address,
-    });
     const dsContracts = {
       dsToken,
       trustService,
@@ -50,10 +42,8 @@ task('deploy-all', 'Deploy DS Protocol')
       tokenIssuer,
       walletRegistrar,
       transactionRelayer,
-      issuerMulticall,
       bulkOperator,
       usdcMock,
-      swap,
       navProviderMock,
       rebasingProvider
     };

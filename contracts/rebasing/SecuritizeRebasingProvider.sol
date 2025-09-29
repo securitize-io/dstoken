@@ -19,10 +19,10 @@
 pragma solidity 0.8.22;
 
 import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
-import "../service/ServiceConsumer.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "../utils/BaseDSContract.sol";
-import "./RebasingLibrary.sol";
+import {ServiceConsumer} from "../service/ServiceConsumer.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
+import {RebasingLibrary} from "./RebasingLibrary.sol";
 
 contract SecuritizeRebasingProvider is BaseDSContract, ISecuritizeRebasingProvider {
     uint256 public multiplier; // Multiplier is fixed to 18 decimals
