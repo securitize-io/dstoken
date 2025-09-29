@@ -95,22 +95,6 @@ abstract contract ComplianceService is IDSComplianceService, ComplianceServiceDa
         return recordIssuance(_to, _value, issuanceTime);
     }
 
-    function validateIssuanceWithNoCompliance(
-        address _to,
-        uint256 _value,
-        uint256 _issuanceTime
-    ) public override onlyToken returns (bool) {
-        uint256 authorizedSecurities = getComplianceConfigurationService().getAuthorizedSecurities();
-
-        uint256 totalSupply = getToken().totalSupply();
-
-        require(authorizedSecurities == 0 || totalSupply + _value <= authorizedSecurities,
-            MAX_AUTHORIZED_SECURITIES_EXCEEDED);
-
-        uint256 issuanceTime = validateIssuanceTime(_issuanceTime);
-        return recordIssuance(_to, _value, issuanceTime);
-    }
-
     function validateBurn(address _who, uint256 _value) public virtual override onlyToken returns (bool) {
         return recordBurn(_who, _value);
     }
