@@ -291,4 +291,11 @@ describe("Token Issuer Unit Tests", function () {
         expect(await dsToken.balanceOf(investor2)).to.equal(0);
         expect(await dsToken.balanceOf(noneWallet)).to.equal(0);
     });
+
+    describe('Implementation Security', function() {
+        it('SHOULD fail when trying to initialize implementation contract directly', async () => {
+            const implementation = await hre.ethers.deployContract('IssuerMulticall');
+            await expect(implementation.initialize()).to.revertedWithCustomError(implementation, 'UUPSUnauthorizedCallContext');
+        });
+    });
 });

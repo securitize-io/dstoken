@@ -20,6 +20,11 @@ describe('Registry Service Unit Tests', function() {
       const { registryService } = await loadFixture(deployDSTokenRegulated);
       expect( await registryService.getImplementationAddress()).to.be.exist;
     });
+
+    it('SHOULD fail when trying to initialize implementation contract directly', async () => {
+      const implementation = await hre.ethers.deployContract('RegistryService');
+      await expect(implementation.initialize()).to.revertedWithCustomError(implementation, 'UUPSUnauthorizedCallContext');
+    });
   });
 
   describe('Register the new investor flow', function() {

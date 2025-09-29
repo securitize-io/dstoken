@@ -16,6 +16,7 @@ import {
   SecuritizeInternalNavProviderMock,
   DSToken,
   TrustService,
+  ComplianceService,
 } from "../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
@@ -63,6 +64,13 @@ describe("Securitize Swap test", () => {
       const { swap } = await loadFixture(deployDSTokenRegulated);
       const [owner] = await hre.ethers.getSigners();
       expect(await swap.owner()).to.be.equal(owner.address);
+    });
+
+    it('SHOULD fail when trying to initialize implementation contract directly', async () => {
+      const implementation = await hre.ethers.deployContract('SecuritizeSwap');
+      const zero = hre.ethers.ZeroAddress;
+      await expect(implementation.initialize(zero, zero, zero, zero, 0, zero))
+        .to.revertedWithCustomError(implementation, 'InvalidInitialization');
     });
   });
   describe("Buy", () => {

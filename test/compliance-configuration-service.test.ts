@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { loadFixture } from '@nomicfoundation/hardhat-toolbox/network-helpers';
 import { deployDSTokenRegulated, INVESTORS } from './utils/fixture';
+import hre from 'hardhat';
 
 describe('Compliance Configuration Service Unit Tests', function() {
   describe('Creation', function() {
@@ -17,6 +18,12 @@ describe('Compliance Configuration Service Unit Tests', function() {
     it('Should get implementation address correctly', async function() {
       const { complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);
       expect( await complianceConfigurationService.getImplementationAddress()).to.be.exist;
+    });
+
+    it('SHOULD fail when trying to initialize implementation contract directly', async () => {
+      const implementation = await hre.ethers.deployContract('ComplianceConfigurationService');
+      await expect(implementation.initialize())
+        .to.revertedWithCustomError(implementation, 'UUPSUnauthorizedCallContext');
     });
   });
 
