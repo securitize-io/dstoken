@@ -168,25 +168,6 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
         return true;
     }
 
-    /**
-     * @dev Add wallet by investor. This method should verify the new wallet to add,
-     * the sender should be an investor, and the new wallet will be added to the retrieved investor (msg.sender)
-     * @param _address - Wallet to be added
-     * @return bool
-     */
-    function addWalletByInvestor(address _address) public override newWallet(_address) returns (bool) {
-        require(!getWalletManager().isSpecialWallet(_address), "Wallet has special role");
-
-        string memory owner = getInvestor(msg.sender);
-        require(isInvestor(owner), "Unknown investor");
-
-        investorsWallets[_address] = Wallet(owner, msg.sender, msg.sender);
-        investors[owner].walletCount++;
-
-        emit DSRegistryServiceWalletAdded(_address, owner, msg.sender);
-
-        return true;
-    }
 
     function removeWallet(address _address, string memory _id) public override onlyExchangeOrAbove walletExists(_address) walletBelongsToInvestor(_address, _id) returns (bool) {
         require(getTrustService().getRole(msg.sender) != EXCHANGE || investorsWallets[_address].creator == msg.sender, "Insufficient permissions");
