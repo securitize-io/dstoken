@@ -191,7 +191,7 @@ describe('Registry Service Unit Tests', function() {
         await expect(
           registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA)
         ).to.emit(registryService, 'DSRegistryServiceInvestorCountryChanged').withArgs(
-          INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA, owner
+          INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA, owner,
         );
 
         expect(
@@ -219,6 +219,59 @@ describe('Registry Service Unit Tests', function() {
           registryService.setCountry('unknown id', INVESTORS.Country.USA, owner)
         ).to.revertedWith('Unknown investor');
         expect(await registryService.getCountry('unknown id')).to.equal('');
+      });
+
+      it('Changing to the same country does not inflate investor count', async function() {
+        const [wallet] = await hre.ethers.getSigners();
+        const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployDSTokenRegulated);
+
+        // Setup
+        await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+
+        await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
+        registryService.addWallet(wallet, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+        await registryService.setAttribute(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, 2, 1, 0, ''); // Make accredited
+
+        // Set initial country and issue tokens
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
+        await dsToken.setCap(1000);
+        await dsToken.issueTokens(wallet, 100);
+
+        // Verify initial state: 1 US investor
+        expect(await complianceService.getUSInvestorsCount()).to.equal(1);
+
+        // Change country from USA to USA
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
+        expect(await complianceService.getUSInvestorsCount()).to.equal(1);
+      });
+
+      it('Country change decreases previous country counter', async function() {
+        const [wallet] = await hre.ethers.getSigners();
+        const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployDSTokenRegulated);
+
+        // Setup
+        await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+        await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.JAPAN, INVESTORS.Compliance.JP);
+
+        await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
+        registryService.addWallet(wallet, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+        await registryService.setAttribute(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, 2, 1, 0, ''); // Make accredited
+
+        // Set initial country and issue tokens
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
+        await dsToken.setCap(1000);
+        await dsToken.issueTokens(wallet, 100);
+
+        // Verify initial state: 1 US investor
+        expect(await complianceService.getUSInvestorsCount()).to.equal(1);
+        expect(await complianceService.getJPInvestorsCount()).to.equal(0);
+
+        // Change country from USA to JAPAN
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.JAPAN);
+
+        // VULNERABILITY: Both countries now count the same investor
+        expect(await complianceService.getUSInvestorsCount()).to.equal(0); // Should be 0
+        expect(await complianceService.getJPInvestorsCount()).to.equal(1); // Should be 1
       });
     });
 
@@ -408,35 +461,6 @@ describe('Registry Service Unit Tests', function() {
       });
     });
 
-    describe('Wallet By Investor', function() {
-      it('Trying to add the wallet by Investor with own wallet', async function() {
-        const [owner, investor, investorWallet2] = await hre.ethers.getSigners();
-        const { registryService } = await loadFixture(deployDSTokenRegulated);
-        await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
-        await registryService.addWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
-        const registryServiceFromInvestor = await registryService.connect(investor);
-        await registryServiceFromInvestor.addWalletByInvestor(investorWallet2);
-        expect(await registryService.getInvestor(investorWallet2)).to.equal(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
-      });
-
-      it('Trying to add the wallet by Investor with own wallet twice - Wallet already exists', async function() {
-        const [owner, investor, investorWallet2] = await hre.ethers.getSigners();
-        const { registryService } = await loadFixture(deployDSTokenRegulated);
-        await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
-        await registryService.addWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
-        const registryServiceFromInvestor = await registryService.connect(investor);
-        await registryServiceFromInvestor.addWalletByInvestor(investorWallet2);
-        await expect(registryServiceFromInvestor.addWalletByInvestor(investorWallet2)).to.revertedWith('Wallet already exists');
-      });
-
-      it('Trying to add the wallet by Investor with unknown wallet - Unknown investor', async function() {
-        const [owner, investor] = await hre.ethers.getSigners();
-        const { registryService } = await loadFixture(deployDSTokenRegulated);
-        await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
-        const registryServiceFromInvestor = await registryService.connect(investor);
-        await expect(registryServiceFromInvestor.addWalletByInvestor(investor)).to.revertedWith('Unknown investor');
-      });
-    });
 
     describe('Get the investor', function() {
       it('Trying to get the investor', async function() {

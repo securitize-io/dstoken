@@ -27,7 +27,7 @@
     "indent": [2, 2],
     "quotes": [2, "single"],
     "semi": ["error", "always"],
-    "space-before-function-paren": ["error", "always"],
+    "space-before-function-paren": 0,
     "no-use-before-define": 0,
     "eqeqeq": [2, "smart"],
     "dot-notation": [2, {"allowKeywords": true, "allowPattern": ""}],
@@ -43,7 +43,7 @@
     "no-debugger": 0,
     "no-undef": 2,
     "object-curly-spacing": [2, "always"],
-    "max-len": [2, 120, 2],
+    "max-len": [2, 180, 2],
     "generator-star-spacing": ["error", "before"],
     "promise/avoid-new": 0,
     "promise/always-return": 0

@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,14 +18,14 @@
 
 pragma solidity 0.8.22;
 
-import "./IBulkOperator.sol";
-import "../token/IDSToken.sol";
-import "../trust/IDSTrustService.sol";
-import "../issuance/TokenIssuer.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "../utils/BaseDSContract.sol";
-import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import {IBulkOperator} from "./IBulkOperator.sol";
+import {IDSToken} from "../token/IDSToken.sol";
+import {IDSTrustService} from "../trust/IDSTrustService.sol";
+import {TokenIssuer} from "../issuance/TokenIssuer.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 contract BulkOperator is  IBulkOperator, BaseDSContract, PausableUpgradeable {
 
@@ -48,7 +48,7 @@ contract BulkOperator is  IBulkOperator, BaseDSContract, PausableUpgradeable {
         return 2;
     }
 
-    function bulkIssuance(address[] memory addresses, uint256[] memory values, uint256 issuanceTime) whenNotPaused onlyIssuerOrAbove external {
+    function bulkIssuance(address[] calldata addresses, uint256[] calldata values, uint256 issuanceTime) whenNotPaused onlyIssuerOrAbove external {
         require(addresses.length == values.length, "Addresses and values length mismatch");
 
         for (uint256 i = 0; i < addresses.length; i++) {
@@ -56,25 +56,27 @@ contract BulkOperator is  IBulkOperator, BaseDSContract, PausableUpgradeable {
         }
     }
 
-    function bulkRegisterAndIssuance(BulkRegisterAndIssuance[] memory data) whenNotPaused onlyIssuerOrAbove external {
+    function bulkRegisterAndIssuance(BulkRegisterAndIssuance[] calldata data) whenNotPaused onlyIssuerOrAbove external {
         TokenIssuer tokenIssuer = TokenIssuer(getDSService(TOKEN_ISSUER));
         for (uint256 i = 0; i < data.length; i++) {
+            BulkRegisterAndIssuance memory currentBulkAndIssuance = data[i];
+
             tokenIssuer.issueTokens(
-                data[i].id,
-                data[i].to,
-                data[i].issuanceValues,
-                data[i].reason,
-                data[i].locksValues,
-                data[i].lockReleaseTimes,
+                currentBulkAndIssuance.id,
+                currentBulkAndIssuance.to,
+                currentBulkAndIssuance.issuanceValues,
+                currentBulkAndIssuance.reason,
+                currentBulkAndIssuance.locksValues,
+                currentBulkAndIssuance.lockReleaseTimes,
                 "",
-                data[i].country,
-                data[i].attributeValues,
-                data[i].attributeExpirations
+                currentBulkAndIssuance.country,
+                currentBulkAndIssuance.attributeValues,
+                currentBulkAndIssuance.attributeExpirations
             );
         }
     }
 
-    function bulkBurn(address[] memory addresses, uint256[] memory values) whenNotPaused onlyIssuerOrTransferAgentOrAbove external {
+    function bulkBurn(address[] calldata addresses, uint256[] memory values) whenNotPaused onlyIssuerOrTransferAgentOrAbove external {
         require(addresses.length == values.length, "Addresses and values length mismatch");
 
         for (uint256 i = 0; i < addresses.length; i++) {
