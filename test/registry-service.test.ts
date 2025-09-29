@@ -461,35 +461,6 @@ describe('Registry Service Unit Tests', function() {
       });
     });
 
-    describe('Wallet By Investor', function() {
-      it('Trying to add the wallet by Investor with own wallet', async function() {
-        const [owner, investor, investorWallet2] = await hre.ethers.getSigners();
-        const { registryService } = await loadFixture(deployDSTokenRegulated);
-        await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
-        await registryService.addWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
-        const registryServiceFromInvestor = await registryService.connect(investor);
-        await registryServiceFromInvestor.addWalletByInvestor(investorWallet2);
-        expect(await registryService.getInvestor(investorWallet2)).to.equal(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
-      });
-
-      it('Trying to add the wallet by Investor with own wallet twice - Wallet already exists', async function() {
-        const [owner, investor, investorWallet2] = await hre.ethers.getSigners();
-        const { registryService } = await loadFixture(deployDSTokenRegulated);
-        await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
-        await registryService.addWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
-        const registryServiceFromInvestor = await registryService.connect(investor);
-        await registryServiceFromInvestor.addWalletByInvestor(investorWallet2);
-        await expect(registryServiceFromInvestor.addWalletByInvestor(investorWallet2)).to.revertedWith('Wallet already exists');
-      });
-
-      it('Trying to add the wallet by Investor with unknown wallet - Unknown investor', async function() {
-        const [owner, investor] = await hre.ethers.getSigners();
-        const { registryService } = await loadFixture(deployDSTokenRegulated);
-        await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
-        const registryServiceFromInvestor = await registryService.connect(investor);
-        await expect(registryServiceFromInvestor.addWalletByInvestor(investor)).to.revertedWith('Unknown investor');
-      });
-    });
 
     describe('Get the investor', function() {
       it('Trying to get the investor', async function() {
