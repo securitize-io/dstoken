@@ -19,6 +19,7 @@
 pragma solidity 0.8.22;
 
 import "./BaseDSContract.sol";
+import "./CommonUtils.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
@@ -113,7 +114,7 @@ contract TransactionRelayer is BaseDSContract, EIP712Upgradeable {
 
 
     function nonceByInvestor(string memory investorId) public view returns (uint256) {
-        return noncePerInvestor[toBytes32(investorId)];
+        return noncePerInvestor[CommonUtils.encodeString(investorId)];
     }
     /**
      * @dev Legacy entrypoint kept for ABI compatibility.
@@ -123,21 +124,18 @@ contract TransactionRelayer is BaseDSContract, EIP712Upgradeable {
     }
 
     function setInvestorNonce(string memory investorId, uint256 newNonce) public onlyMaster {
-        uint256 investorNonce = noncePerInvestor[toBytes32(investorId)];
+        bytes32 investorKey = CommonUtils.encodeString(investorId);
+        uint256 investorNonce = noncePerInvestor[investorKey];
         require(newNonce > investorNonce, "New nonce should be greater than old");
-        noncePerInvestor[toBytes32(investorId)] = newNonce;
+        noncePerInvestor[investorKey] = newNonce;
         emit InvestorNonceUpdated(investorId, newNonce);
-    }
-
-    function toBytes32(string memory str) private pure returns (bytes32) {
-        return keccak256(abi.encodePacked(str));
     }
 
     function _executePreApprovedTransaction(
         bytes memory signature,
         ExecutePreApprovedTransaction calldata txData
     ) private {
-        bytes32 investorKey = toBytes32(txData.senderInvestor);
+        bytes32 investorKey = CommonUtils.encodeString(txData.senderInvestor);
         uint256 currentNonce = noncePerInvestor[investorKey];
 
         require(txData.nonce == currentNonce, "Invalid nonce");

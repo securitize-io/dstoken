@@ -102,7 +102,7 @@ export const multisigPreApproval = async (
 ): Promise<Signature[]> => {
 
   domainData.verifyingContract = multisigAddress;
-  if (domainData.chainId === undefined) {
+  if (!domainData.chainId) {
     domainData.chainId = (await hre.ethers.provider.getNetwork()).chainId;
   }
 
