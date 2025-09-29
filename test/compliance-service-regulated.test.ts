@@ -7,6 +7,47 @@ import { DSConstants } from '../utils/globals';
 
 describe('Compliance Service Regulated Unit Tests', function() {
   describe('Investor Liquidate Only', function () {
+    it('should set and unset investor to liquidate only mode', async function () {
+      const [ transferAgent ] = await hre.ethers.getSigners();
+      const { lockManager } = await loadFixture(deployDSTokenRegulated);
+
+      // Initial state should be false by default
+      const initialState = await lockManager.isInvestorLiquidateOnly(INVESTORS.INVESTOR_ID.INVESTOR_ID_1)
+      expect(initialState).to.be.equal(false);
+
+      // Set liquidate only: true
+      await expect(lockManager.connect(transferAgent).setInvestorLiquidateOnly(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, true)).to.be.not.reverted;;
+
+      // Check state is set to true
+      const setState = await lockManager.isInvestorLiquidateOnly(INVESTORS.INVESTOR_ID.INVESTOR_ID_1)
+      expect(setState).to.be.equal(true);
+
+      // Set liquidate only: false
+      await expect(lockManager.connect(transferAgent).setInvestorLiquidateOnly(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, false)).to.be.not.reverted;
+
+      // Check state is back to false
+      const unsetState = await lockManager.isInvestorLiquidateOnly(INVESTORS.INVESTOR_ID.INVESTOR_ID_1)
+      expect(unsetState).to.be.equal(false);
+    });
+
+    it('should revert when setting liquidate only to the same state', async function () {
+      const [ transferAgent ] = await hre.ethers.getSigners();
+      const { lockManager } = await loadFixture(deployDSTokenRegulated);
+
+      // First set liquidate only to true
+      await lockManager.connect(transferAgent).setInvestorLiquidateOnly(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, true);
+
+      // Try to set it to true again - should revert
+      await expect(lockManager.connect(transferAgent).setInvestorLiquidateOnly(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, true))
+        .to.be.revertedWith('already in this state');
+
+      // Second set liquidate only to false successfully
+      await lockManager.connect(transferAgent).setInvestorLiquidateOnly(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, false);
+
+      // Try to set it to false again - should revert
+      await expect(lockManager.connect(transferAgent).setInvestorLiquidateOnly(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, false))
+        .to.be.revertedWith('already in this state');
+    });
     it('should prevent issuance to an investor in liquidate only mode', async function () {
       const [wallet, transferAgent] = await hre.ethers.getSigners();
       const { dsToken, registryService, lockManager, trustService } = await loadFixture(deployDSTokenRegulated);
