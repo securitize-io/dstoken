@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -20,7 +20,7 @@ pragma solidity 0.8.22;
 
 contract ServiceConsumerDataStore {
 
-    mapping(uint256 => address) internal services;
+    mapping(uint256 serviceId => address service) internal services;
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new

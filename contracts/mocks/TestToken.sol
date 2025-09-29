@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -36,8 +36,8 @@ contract TestToken {
     /*
      *  Storage
      */
-    mapping(address => uint256) balances;
-    mapping(address => mapping(address => uint256)) allowed;
+    mapping(address owner => uint256 balance) balances;
+    mapping(address owner => mapping(address spender => uint256 allowance)) allowed;
     uint256 public totalSupply;
 
     /*

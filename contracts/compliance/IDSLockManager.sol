@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -112,7 +112,7 @@ abstract contract IDSLockManager {
      * Note - a lock can be inactive (due to its time expired) but still exists for a specific address
      */
 
-    function lockCountForInvestor(string memory _investorId) public view virtual returns (uint256);
+    function lockCountForInvestor(string calldata _investorId) public view virtual returns (uint256);
 
     /**
      * @dev Get details of a specific lock associated with an address
@@ -164,7 +164,7 @@ abstract contract IDSLockManager {
      * @param _investorId investor id
      */
     function lockInvestor(
-        string memory _investorId /*issuerOrAbove*/
+        string calldata _investorId /*issuerOrAbove*/
     ) public virtual returns (bool);
 
     /**
@@ -172,14 +172,14 @@ abstract contract IDSLockManager {
      * @param _investorId investor id
      */
     function unlockInvestor(
-        string memory _investorId /*issuerOrAbove*/
+        string calldata _investorId /*issuerOrAbove*/
     ) public virtual returns (bool);
 
     /**
      * @dev Returns true if paused, otherwise false
      * @param _investorId investor id
      */
-    function isInvestorLocked(string memory _investorId) public view virtual returns (bool);
+    function isInvestorLocked(string calldata _investorId) public view virtual returns (bool);
 
     /**
      * @dev set investor to liquidate only mode
@@ -192,5 +192,5 @@ abstract contract IDSLockManager {
      * @dev Returns true if the investor is in liquidate only mode
      * @param _investorId investor id
      */
-    function isInvestorLiquidateOnly(string memory _investorId) public view virtual returns (bool);
+    function isInvestorLiquidateOnly(string calldata _investorId) public view virtual returns (bool);
 }
