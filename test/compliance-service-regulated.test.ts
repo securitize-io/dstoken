@@ -383,6 +383,49 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await dsToken.issueTokens(wallet, 100);
       await expect(dsToken.transfer(wallet2, 50)).revertedWith('Destination restricted');
     });
+
+    it('Should revert due to Max Investor in category when transferring total balance from nonUs to US investor', async function() {
+      const [usInvestor1, usInvestor2, nonUsInvestor] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployDSTokenRegulated);
+
+      // Setup: US limit = 1, disable other limits
+      await complianceConfigurationService.setAll(
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 1, 1, 0], // No other limits, short lock period
+        [false, false, false, false, false] // Disable all compliance checks initially
+      );
+      await complianceConfigurationService.setUSInvestorsLimit(1);// set one investor limit for us investor
+      await complianceConfigurationService.setBlockFlowbackEndTime(1); // Disable flowback restriction
+      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.GERMANY, INVESTORS.Compliance.EU);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, usInvestor1.address, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, usInvestor2.address, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.GERMANY_INVESTOR_ID, nonUsInvestor.address, registryService);
+
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.USA);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.GERMANY_INVESTOR_ID, INVESTORS.Country.GERMANY);
+
+      // Issue tokens to non-US investor first
+      await dsToken.issueTokens(nonUsInvestor.address, 1000);
+
+      // Issue tokens to first US investor (reaches limit)
+      await dsToken.issueTokens(usInvestor1.address, 1000);
+      expect(await complianceService.getUSInvestorsCount()).to.equal(1);
+
+      // Direct issuance to second US investor should fail
+      await expect(dsToken.issueTokens(usInvestor2.address, 100))
+        .to.be.revertedWith('Max investors in category');
+
+      // Non-US investor cannot bypass US limit with full transfer
+      await expect(dsToken.connect(nonUsInvestor).transfer(usInvestor2.address, 1000))
+        .to.be.revertedWith('Max investors in category');
+
+      // Transfer was blocked, counts unchanged
+      expect(await dsToken.balanceOf(usInvestor2.address)).to.equal(0);
+      expect(await dsToken.balanceOf(nonUsInvestor.address)).to.equal(1000);
+      expect(await complianceService.getUSInvestorsCount()).to.equal(1);
+    });
   });
 
   describe('Validate burn', function() {
