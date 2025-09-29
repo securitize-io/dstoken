@@ -28,6 +28,18 @@ describe('DS Token Regulated Unit Tests', function() {
       const { dsToken } = await loadFixture(deployDSTokenRegulated);
       expect( await dsToken.getImplementationAddress()).to.be.exist;
     });
+
+    it('SHOULD fail when trying to initialize implementation contract directly', async () => {
+      const TokenLibrary = await hre.ethers.deployContract('TokenLibrary');
+      const DSTokenFactory = await hre.ethers.getContractFactory('DSToken', {
+        libraries: {
+          TokenLibrary: TokenLibrary.target
+        }
+      });
+      const implementation = await DSTokenFactory.deploy();
+      await expect(implementation.initialize('Test', 'TST', 18))
+        .to.revertedWithCustomError(implementation, 'UUPSUnauthorizedCallContext');
+    });
   });
 
   describe('Ownership', function() {
