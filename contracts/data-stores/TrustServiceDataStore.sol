@@ -21,10 +21,10 @@ pragma solidity 0.8.22;
 contract TrustServiceDataStore {
     address internal owner;
     mapping(address account => uint8 role) internal roles;
-    mapping(string entityId => address owner) internal entitiesOwners;
-    mapping(address owner => string entityId) internal ownersEntities;
-    mapping(address operator => string entityId) internal operatorsEntities;
-    mapping(address resource => string entityId) internal resourcesEntities;
+    mapping(string entityId => address owner) internal DEPRECATED_entitiesOwners;
+    mapping(address owner => string entityId) internal DEPRECATED_ownersEntities;
+    mapping(address operator => string entityId) internal DEPRECATED_operatorsEntities;
+    mapping(address resource => string entityId) internal DEPRECATED_resourcesEntities;
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
