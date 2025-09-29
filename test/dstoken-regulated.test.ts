@@ -1113,7 +1113,7 @@ describe('DS Token Regulated Unit Tests', function() {
         });
       });
   describe('US Investor Limit Bypass Vulnerability POC', function() {
-    it.only('Should demonstrate that US investor limit can be bypassed with full transfer from any country', async function() {
+    it('Should demonstrate that US investor limit can be bypassed with full transfer from any country', async function() {
       const [usInvestor1, usInvestor2, nonUsInvestor] = await hre.ethers.getSigners();
       const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndEighteenDecimal);
 
