@@ -32,7 +32,7 @@ abstract contract IDSTokenIssuer {
         string calldata _id,
         address _to,
         uint256[] memory _issuanceValues,
-        string calldata _reason,
+        string memory _reason,
         uint256[] memory _locksValues,
         uint64[] memory _lockReleaseTimes,
         string memory _collisionHash,
