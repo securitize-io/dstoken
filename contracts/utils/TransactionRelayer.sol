@@ -45,7 +45,7 @@ contract TransactionRelayer is BaseDSContract {
 
     uint256 public constant CONTRACT_VERSION = 5;
 
-    mapping(bytes32 => uint256) internal noncePerInvestor;
+    mapping(bytes32 investorHash => uint256 nonce) internal noncePerInvestor;
 
     event InvestorNonceUpdated(string investorId, uint256 newNonce);
     event DomainSeparatorUpdated(uint256 chainId);

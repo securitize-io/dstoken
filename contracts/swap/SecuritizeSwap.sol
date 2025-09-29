@@ -40,7 +40,7 @@ contract SecuritizeSwap is BaseSecuritizeSwap {
 
     bytes32 constant SALT = 0xc7c09cf61ec4558aac49f42b32ffbafd87af4676341e61db3c383153955f6f39;
 
-    mapping(string => uint256) internal noncePerInvestor;
+    mapping(string investor => uint256 nonce) internal noncePerInvestor;
     bytes32 public DOMAIN_SEPARATOR;
 
     function initialize(
