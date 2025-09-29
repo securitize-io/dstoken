@@ -9,7 +9,6 @@ task('deploy-all', 'Deploy DS Protocol')
   .addOptionalParam('multiplier', 'Rebasing Multiplier', '1000000000000000000', types.string)
   .setAction(async (args, { run }) => {
     await run("compile");
-    const [owner, wallet] = await hre.ethers.getSigners();
 
     const dsToken = await run('deploy-token', args);
     const trustService = await run('deploy-trust-service');
@@ -33,12 +32,6 @@ task('deploy-all', 'Deploy DS Protocol')
         decimals: 6,
       });
 
-    const swap = await run("deploy-securitize-swap", {
-      dsToken: dsToken.target,
-      stableCoin: usdcMock.target,
-      navProvider: navProviderMock.target,
-      issuerWallet: wallet.address,
-    });
     const dsContracts = {
       dsToken,
       trustService,
@@ -53,7 +46,6 @@ task('deploy-all', 'Deploy DS Protocol')
       issuerMulticall,
       bulkOperator,
       usdcMock,
-      swap,
       navProviderMock,
       rebasingProvider
     };
