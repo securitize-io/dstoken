@@ -60,18 +60,27 @@ contract TokenIssuer is IDSTokenIssuer, BaseDSContract {
         uint256[] memory _attributeValues,
         uint256[] memory _attributeExpirations
     ) private {
-        if (!getRegistryService().isInvestor(_id)) {
-            getRegistryService().registerInvestor(_id, _collisionHash);
-            getRegistryService().setCountry(_id, _country);
-
-            if (_attributeValues.length > 0) {
-                require(_attributeValues.length == 3, "Wrong length of parameters");
-                getRegistryService().setAttribute(_id, KYC_APPROVED, _attributeValues[0], _attributeExpirations[0], "");
-                getRegistryService().setAttribute(_id, ACCREDITED, _attributeValues[1], _attributeExpirations[1], "");
-                getRegistryService().setAttribute(_id, QUALIFIED, _attributeValues[2], _attributeExpirations[2], "");
-            }
-
+        // all parameters required or none for Token Issuer
+        require(_attributeValues.length == 0 || _attributeValues.length == 3, "Wrong length of parameters");
+        uint8[] memory attributesIds;
+        if (_attributeValues.length == 3) {
+            attributesIds = new uint8[](3);
+            attributesIds[0] = KYC_APPROVED;
+            attributesIds[1] = ACCREDITED;
+            attributesIds[2] = QUALIFIED;
+        } else {
+            attributesIds = new uint8[](0);
         }
-        getRegistryService().addWallet(_wallet, _id);
+        address[] memory investorWallets = new address[](1);
+        investorWallets[0] = _wallet;
+        getRegistryService().updateInvestor(
+            _id,
+            _collisionHash,
+            _country,
+            investorWallets,
+            attributesIds,
+            _attributeValues,
+            _attributeExpirations
+        );
     }
 }
