@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,7 +18,7 @@
 
 pragma solidity 0.8.22;
 
-import "./ServiceConsumerDataStore.sol";
+import {ServiceConsumerDataStore} from "./ServiceConsumerDataStore.sol";
 
 contract WalletManagerDataStore is ServiceConsumerDataStore {
     mapping(address wallet => uint8 walletType) internal walletsTypes;

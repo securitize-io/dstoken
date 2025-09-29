@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,9 +18,9 @@
 
 pragma solidity 0.8.22;
 
-import "./IDSComplianceConfigurationService.sol";
-import "../data-stores/ComplianceConfigurationDataStore.sol";
-import "../utils/BaseDSContract.sol";
+import {IDSComplianceConfigurationService} from "./IDSComplianceConfigurationService.sol";
+import {ComplianceConfigurationDataStore} from "../data-stores/ComplianceConfigurationDataStore.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
 
 contract ComplianceConfigurationService is IDSComplianceConfigurationService, ComplianceConfigurationDataStore, BaseDSContract {
 

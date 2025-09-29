@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,14 +18,14 @@
 
 pragma solidity 0.8.22;
 
-import "./IBulkOperator.sol";
-import "../token/IDSToken.sol";
-import "../trust/IDSTrustService.sol";
-import "../issuance/TokenIssuer.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "../utils/BaseDSContract.sol";
-import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import {IBulkOperator} from "./IBulkOperator.sol";
+import {IDSToken} from "../token/IDSToken.sol";
+import {IDSTrustService} from "../trust/IDSTrustService.sol";
+import {TokenIssuer} from "../issuance/TokenIssuer.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 contract BulkOperator is  IBulkOperator, BaseDSContract, PausableUpgradeable {
 

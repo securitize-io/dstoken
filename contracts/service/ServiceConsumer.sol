@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,17 +18,17 @@
 
 pragma solidity 0.8.22;
 
-import "./IDSServiceConsumer.sol";
-import "../data-stores/ServiceConsumerDataStore.sol";
-import "../token/IDSToken.sol";
-import "../compliance/IDSWalletManager.sol";
-import "../compliance/IDSLockManager.sol";
-import "../compliance/IDSComplianceService.sol";
-import "../compliance/IDSComplianceConfigurationService.sol";
-import "../registry/IDSRegistryService.sol";
-import "../trust/IDSTrustService.sol";
+import {IDSServiceConsumer} from "./IDSServiceConsumer.sol";
+import {ServiceConsumerDataStore} from "../data-stores/ServiceConsumerDataStore.sol";
+import {IDSToken} from "../token/IDSToken.sol";
+import {IDSWalletManager} from "../compliance/IDSWalletManager.sol";
+import {IDSLockManager} from "../compliance/IDSLockManager.sol";
+import {IDSComplianceService} from "../compliance/IDSComplianceService.sol";
+import {IDSComplianceConfigurationService} from "../compliance/IDSComplianceConfigurationService.sol";
+import {IDSRegistryService} from "../registry/IDSRegistryService.sol";
+import {IDSTrustService} from "../trust/IDSTrustService.sol";
 import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,12 +17,13 @@
  */
 pragma solidity 0.8.22;
 
-import "../registry/IDSRegistryService.sol";
-import "../token/IDSToken.sol";
-import "../trust/IDSTrustService.sol";
-import "../nav/ISecuritizeNavProvider.sol";
-import "../utils/BaseDSContract.sol";
-import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import {IDSRegistryService} from "../registry/IDSRegistryService.sol";
+import {IDSToken} from "../token/IDSToken.sol";
+import {IDSTrustService} from "../trust/IDSTrustService.sol";
+import {ISecuritizeNavProvider} from "../nav/ISecuritizeNavProvider.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IUSDCBridge {
     /**
