@@ -90,44 +90,4 @@ abstract contract IDSTrustService {
      */
     function getRole(address _address) public view virtual returns (uint8);
 
-    function addEntity(
-        string calldata _name,
-        address _owner /*onlyMasterOrIssuer onlyNewEntity onlyNewEntityOwner*/
-    ) public virtual;
-
-    function changeEntityOwner(
-        string calldata _name,
-        address _oldOwner,
-        address _newOwner /*onlyMasterOrIssuer onlyExistingEntityOwner*/
-    ) public virtual;
-
-    function addOperator(
-        string calldata _name,
-        address _operator /*onlyEntityOwnerOrAbove onlyNewOperator*/
-    ) public virtual;
-
-    function removeOperator(
-        string calldata _name,
-        address _operator /*onlyEntityOwnerOrAbove onlyExistingOperator*/
-    ) public virtual;
-
-    function addResource(
-        string calldata _name,
-        address _resource /*onlyMasterOrIssuer onlyExistingEntity onlyNewResource*/
-    ) public virtual;
-
-    function removeResource(
-        string calldata _name,
-        address _resource /*onlyMasterOrIssuer onlyExistingResource*/
-    ) public virtual;
-
-    function getEntityByOwner(address _owner) public view virtual returns (string memory);
-
-    function getEntityByOperator(address _operator) public view virtual returns (string memory);
-
-    function getEntityByResource(address _resource) public view virtual returns (string memory);
-
-    function isResourceOwner(address _resource, address _owner) public view virtual returns (bool);
-
-    function isResourceOperator(address _resource, address _operator) public view virtual returns (bool);
 }
