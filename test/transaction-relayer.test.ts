@@ -29,6 +29,11 @@ describe('Transaction Relayer Unit Tests', function() {
       const { transactionRelayer } = await loadFixture(deployDSTokenRegulated);
       expect(await transactionRelayer.getImplementationAddress()).to.be.exist;
     });
+
+    it('SHOULD fail when trying to initialize implementation contract directly', async () => {
+      const implementation = await hre.ethers.deployContract('TransactionRelayer');
+      await expect(implementation.initialize()).to.revertedWithCustomError(implementation, 'UUPSUnauthorizedCallContext');
+    });
   });
 
   describe('executeByInvestorWithBlockLimit method', function() {

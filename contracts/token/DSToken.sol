@@ -30,6 +30,11 @@ contract DSToken is StandardToken {
     using TokenLibrary for TokenLibrary.SupportedFeatures;
     uint256 internal constant DEPRECATED_OMNIBUS_NO_ACTION = 0;  // Deprecated, kept for backward compatibility
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize(
         string calldata _name,
         string calldata _symbol,

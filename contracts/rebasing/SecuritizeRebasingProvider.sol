@@ -27,8 +27,13 @@ import {RebasingLibrary} from "./RebasingLibrary.sol";
 contract SecuritizeRebasingProvider is BaseDSContract, ISecuritizeRebasingProvider {
     uint256 public multiplier; // Multiplier is fixed to 18 decimals
     uint8 public tokenDecimals;
-    
+
     error InvalidMultiplier(uint256 providedMultiplier);
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
 
     function initialize(uint256 _multiplier, uint8 _tokenDecimals) public onlyProxy initializer override {
         __BaseDSContract_init();

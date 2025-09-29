@@ -29,6 +29,11 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Pau
 
 contract BulkOperator is  IBulkOperator, BaseDSContract, PausableUpgradeable {
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     IDSToken public dsToken;
 
     function initialize(address _dsToken) public override initializer onlyProxy {
