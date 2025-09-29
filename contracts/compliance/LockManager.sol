@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,10 +18,10 @@
 
 pragma solidity 0.8.22;
 
-import "./IDSLockManager.sol";
-import "../data-stores/LockManagerDataStore.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
-import "../utils/BaseDSContract.sol";
+import {IDSLockManager} from "./IDSLockManager.sol";
+import {LockManagerDataStore} from "../data-stores/LockManagerDataStore.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
 
 /**
  * @title LockManager

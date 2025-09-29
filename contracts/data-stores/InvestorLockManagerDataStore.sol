@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,7 +18,7 @@
 
 pragma solidity 0.8.22;
 
-import "./BaseLockManagerDataStore.sol";
+import {BaseLockManagerDataStore} from "./BaseLockManagerDataStore.sol";
 
 contract InvestorLockManagerDataStore is BaseLockManagerDataStore {
     mapping(string investorId => mapping(uint256 lockId => Lock lock)) internal investorsLocks;

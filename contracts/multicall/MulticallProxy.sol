@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,7 +18,7 @@
 
 pragma solidity 0.8.22;
 
-import "../service/ServiceConsumer.sol";
+import {ServiceConsumer} from "../service/ServiceConsumer.sol";
 
     error MulticallFailed(uint256 index, string reason);
 

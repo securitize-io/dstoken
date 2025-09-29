@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,11 +18,11 @@
 
 pragma solidity 0.8.22;
 
-import "./IDSLockManager.sol";
-import "./InvestorLockManagerBase.sol";
-import "../data-stores/InvestorLockManagerDataStore.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
-import "../utils/BaseDSContract.sol";
+import {IDSLockManager} from "./IDSLockManager.sol";
+import {InvestorLockManagerBase} from "./InvestorLockManagerBase.sol";
+import {InvestorLockManagerDataStore} from "../data-stores/InvestorLockManagerDataStore.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
 
 contract InvestorLockManager is InvestorLockManagerBase {
     uint256 constant MAX_LOCKS_PER_INVESTOR = 30;

@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,8 +18,10 @@
 
 pragma solidity 0.8.22;
 
-import "./IDSWalletRegistrar.sol";
-import "../utils/BaseDSContract.sol";
+import {IDSWalletRegistrar} from "./IDSWalletRegistrar.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
+import {IDSRegistryService} from "./IDSRegistryService.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
 
 contract WalletRegistrar is IDSWalletRegistrar, BaseDSContract {
     function initialize() public override onlyProxy initializer {
