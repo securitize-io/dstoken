@@ -39,7 +39,5 @@ contract BulkBalanceChecker {
         for (uint256 i = 0; i < length; i++) {
             balances[i] = erc20.balanceOf(wallets[i]);
         }
-
-        return balances;
     }
 }
