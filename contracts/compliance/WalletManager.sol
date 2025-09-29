@@ -72,7 +72,7 @@ contract WalletManager is IDSWalletManager, WalletManagerDataStore, BaseDSContra
    */
     function addIssuerWallets(address[] memory _wallets) public override onlyIssuerOrAbove returns (bool) {
         require(_wallets.length <= 30, "Exceeded the maximum number of wallets");
-        for (uint256 i = 0; i < _wallets.length; i++) {
+        for (uint8 i = 0; i < _wallets.length; i++) {
             addIssuerWallet(_wallets[i]);
         }
         return true;
@@ -94,7 +94,7 @@ contract WalletManager is IDSWalletManager, WalletManagerDataStore, BaseDSContra
    */
     function addPlatformWallets(address[] memory _wallets) public override onlyIssuerOrAbove returns (bool) {
         require(_wallets.length <= 30, "Exceeded the maximum number of wallets");
-        for (uint256 i = 0; i < _wallets.length; i++) {
+        for (uint8 i = 0; i < _wallets.length; i++) {
             addPlatformWallet(_wallets[i]);
         }
         return true;

@@ -31,7 +31,7 @@ contract ComplianceConfigurationService is IDSComplianceConfigurationService, Co
     function setCountriesCompliance(string[] calldata _countries, uint256[] calldata _values) public override onlyTransferAgentOrAbove {
         require(_countries.length <= 35, "Exceeded the maximum number of countries");
         require(_countries.length == _values.length, "Wrong length of parameters");
-        for (uint256 i = 0; i < _countries.length; i++) {
+        for (uint8 i = 0; i < _countries.length; i++) {
             setCountryCompliance(_countries[i], _values[i]);
         }
     }
