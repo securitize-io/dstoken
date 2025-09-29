@@ -9,9 +9,7 @@ export const deployDSTokenRegulated = async () => {
   const name = 'Token Example 1';
   const symbol = 'TX1';
   const contracts = await hre.run('deploy-all', { name, symbol, decimals: 2 });
-  const [owner1, owner2, owner3] = await hre.ethers.getSigners();
-  const multisig = await hre.ethers.deployContract('MultiSigWallet', [[owner1, owner2, owner3], 3]);
-  return { ...contracts, multisig };
+  return { ...contracts };
 };
 
 export const deployDSTokenWhitelisted = () => {
@@ -26,18 +24,14 @@ export const deployDSTokenRegulatedWithRebasing = async () => {
   const symbol = 'TX1';
   const multiplier = '1500000000000000000';
   const contracts = await hre.run('deploy-all', { name, symbol, decimals: 2, multiplier });
-  const [owner1, owner2, owner3] = await hre.ethers.getSigners();
-  const multisig = await hre.ethers.deployContract('MultiSigWallet', [[owner1, owner2, owner3], 3]);
-  return { ...contracts, multisig };
+  return { ...contracts };
 };
 export const deployDSTokenRegulatedWithRebasingAndSixDecimal = async () => {
   const name = 'Token Example 1';
   const symbol = 'TX1';
   const multiplier = '1730000000000000000';
   const contracts = await hre.run('deploy-all', { name, symbol, decimals: 6, multiplier });
-  const [owner1, owner2, owner3] = await hre.ethers.getSigners();
-  const multisig = await hre.ethers.deployContract('MultiSigWallet', [[owner1, owner2, owner3], 3]);
-  return { ...contracts, multisig };
+  return { ...contracts };
 };
 
 export const deployDSTokenRegulatedWithRebasingAndEighteenDecimal = async () => {
@@ -45,9 +39,7 @@ export const deployDSTokenRegulatedWithRebasingAndEighteenDecimal = async () => 
   const symbol = 'TX1';
   const multiplier = '1250000000000000000';
   const contracts = await hre.run('deploy-all', { name, symbol, decimals: 18, multiplier });
-  const [owner1, owner2, owner3] = await hre.ethers.getSigners();
-  const multisig = await hre.ethers.deployContract('MultiSigWallet', [[owner1, owner2, owner3], 3]);
-  return { ...contracts, multisig };
+  return { ...contracts };
 };
 
 export const MINUTES = 60;
