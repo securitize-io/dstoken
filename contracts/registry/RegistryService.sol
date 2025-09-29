@@ -25,6 +25,11 @@ import {BaseDSContract} from "../utils/BaseDSContract.sol";
 
 contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDSContract {
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize() public override onlyProxy initializer {
         __BaseDSContract_init();
     }

@@ -27,6 +27,11 @@ import {BaseDSContract} from "../utils/BaseDSContract.sol";
 contract InvestorLockManager is InvestorLockManagerBase {
     uint256 constant MAX_LOCKS_PER_INVESTOR = 30;
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize() public override onlyProxy initializer {
         __BaseDSContract_init();
     }

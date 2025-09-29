@@ -32,6 +32,11 @@ import {ERC1967Utils} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.s
 
 contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable {
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize() public override onlyProxy initializer {
         owner = msg.sender;
         roles[msg.sender] = MASTER;

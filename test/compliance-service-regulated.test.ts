@@ -113,6 +113,16 @@ describe('Compliance Service Regulated Unit Tests', function() {
         const { complianceService } = await loadFixture(deployDSTokenRegulated);
         expect( await complianceService.getImplementationAddress()).to.be.exist;
       });
+
+      it('SHOULD fail when trying to initialize implementation contract directly for ComplianceServiceNotRegulated', async () => {
+        const implementation = await hre.ethers.deployContract('ComplianceServiceNotRegulated');
+        await expect(implementation.initialize()).to.revertedWithCustomError(implementation, 'UUPSUnauthorizedCallContext');
+      });
+
+      it('SHOULD fail when trying to initialize implementation contract directly for ComplianceServiceWhitelisted', async () => {
+        const implementation = await hre.ethers.deployContract('ComplianceServiceWhitelisted');
+        await expect(implementation.initialize()).to.revertedWithCustomError(implementation, 'UUPSUnauthorizedCallContext');
+      });
     });
 
     it('Should revert due to not token call', async function() {

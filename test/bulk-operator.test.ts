@@ -70,6 +70,11 @@ describe('Bulk operator', () => {
         await expect(bulkOperator.initialize(dsToken.target))
           .to.revertedWithCustomError(bulkOperator, 'InvalidInitialization');
       });
+      it('SHOULD fail when trying to initialize implementation contract directly', async () => {
+        const implementation = await hre.ethers.deployContract('BulkOperator');
+        await expect(implementation.initialize(hre.ethers.ZeroAddress))
+          .to.revertedWithCustomError(implementation, 'InvalidInitialization');
+      });
     });
     describe('BulkOperator pause methods', () => {
       it('SHOULD pause the contract', async () => {

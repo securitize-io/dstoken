@@ -29,6 +29,11 @@ import {CommonUtils} from "../utils/CommonUtils.sol";
 
 contract ComplianceServiceWhitelisted is ComplianceService {
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize() public virtual override onlyProxy initializer {
         ComplianceService.initialize();
     }
