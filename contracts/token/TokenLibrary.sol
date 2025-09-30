@@ -72,7 +72,7 @@ library TokenLibrary {
         TokenData storage _tokenData,
         address[] memory _services,
         IDSLockManager _lockManager,
-        IssueParams memory _params       
+        IssueParams memory _params
     ) public returns (uint256) {
         //Check input values
         require(_params._to != address(0), "Invalid address");
@@ -86,7 +86,7 @@ library TokenLibrary {
 
         //Check issuance is allowed (and inform the compliance manager, possibly adding locks)
         IDSComplianceService(_services[COMPLIANCE_SERVICE]).validateIssuance(_params._to, _params._value, _params._issuanceTime);
-        
+
         uint256 shares =  _params._rebasingProvider.convertTokensToShares(_params._value);
 
         _tokenData.totalSupply += shares;
@@ -102,41 +102,6 @@ library TokenLibrary {
         }
         require(totalLocked <= _params._value, "valueLocked must be smaller than value");
         emit Issue(_params._to, _params._value, totalLocked);
-        return shares;
-    }
-
-    function issueTokensWithNoCompliance(
-        TokenData storage _tokenData,
-        address[] memory _services,
-        address _to,
-        uint256 _value,
-        uint256 _issuanceTime,
-        uint256 _cap,
-        ISecuritizeRebasingProvider _rebasingProvider 
-    ) public returns (uint256) {
-        uint256 totalIssuedTokens = _rebasingProvider.convertSharesToTokens(_tokenData.totalIssued);
-
-        //Make sure we are not hitting the cap. Cap in visible tokens
-        require(_cap == 0 || totalIssuedTokens + _value <= _cap, "Token Cap Hit");
-
-        //Check and inform issuance is allowed
-        IDSComplianceService(_services[COMPLIANCE_SERVICE]).validateIssuanceWithNoCompliance(_to, _value, _issuanceTime);
-
-        uint256 shares = _rebasingProvider.convertTokensToShares(_value);
-
-        _tokenData.totalSupply += shares;
-        _tokenData.totalIssued += shares;
-        _tokenData.walletsBalances[_to] += shares;
-
-        updateInvestorBalance(
-            _tokenData,
-            IDSRegistryService(_services[REGISTRY_SERVICE]),
-            _to,
-            shares,
-            CommonUtils.IncDec.Increase
-        );
-
-        emit Issue(_to, _value, 0);
         return shares;
     }
 
@@ -177,11 +142,11 @@ library TokenLibrary {
     }
 
     function seize(
-        TokenData storage _tokenData, 
-        address[] memory _services, 
-        address _from, 
-        address _to, 
-        uint256 _value, 
+        TokenData storage _tokenData,
+        address[] memory _services,
+        address _from,
+        address _to,
+        uint256 _value,
         uint256 _shares
 )
     public

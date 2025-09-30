@@ -54,10 +54,6 @@ contract StandardTokenMock is StandardToken {
         revertFunction();
     }
 
-    function issueTokensWithNoCompliance(address, uint256) public pure override {
-        revertFunction();
-    }
-
     function preTransferCheck(address, address, uint256) public pure override returns (uint256, string memory) {
         revertFunction();
     }

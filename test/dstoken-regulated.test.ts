@@ -161,27 +161,6 @@ describe('DS Token Regulated Unit Tests', function() {
     });
   });
 
-  describe('Issuance with no compliance', function () {
-    it('Should issue tokens to a eu wallet (no compliance)', async function () {
-      const [investor] = await hre.ethers.getSigners();
-      const { dsToken, registryService } = await loadFixture(deployDSTokenRegulated);
-      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.FRANCE);
-      await dsToken.issueTokensWithNoCompliance(investor, 500);
-      expect(await dsToken.balanceOf(investor)).equal(500);
-    });
-
-    it('Should issue tokens to a forbidden wallet (no compliance)', async function () {
-      const [investor] = await hre.ethers.getSigners();
-      const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);
-      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.CHINA, INVESTORS.Compliance.FORBIDDEN);
-      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.CHINA);
-      await dsToken.issueTokensWithNoCompliance(investor, 500);
-      expect(await dsToken.balanceOf(investor)).equal(500);
-    });
-  });
-
   describe('Transfer', function () {
     it('Should emit TxShares event on transfer', async function () {
       const [investor, investor2] = await hre.ethers.getSigners();
@@ -379,7 +358,7 @@ describe('DS Token Regulated Unit Tests', function() {
         await dsToken.setCap(1000);
         await expect(dsToken.setCap(1000)).revertedWith('Token cap already set');
       });
-  
+
       it('Does not prevent issuing tokens within limit', async function () {
         const [investor] = await hre.ethers.getSigners();
         const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
@@ -389,7 +368,7 @@ describe('DS Token Regulated Unit Tests', function() {
         await dsToken.issueTokens(investor, 500);
         expect(await dsToken.balanceOf(investor)).equal(1000);
       })
-  
+
       it('Prevents issuing too many tokens', async function () {
         const [investor] = await hre.ethers.getSigners();
         const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
@@ -408,7 +387,7 @@ describe('DS Token Regulated Unit Tests', function() {
         await dsToken.issueTokens(investor, 500);
         expect(await dsToken.balanceOf(investor)).equal(500);
       });
-  
+
       it('Should issue tokens to a eu wallet', async function () {
         const [investor] = await hre.ethers.getSigners();
         const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
@@ -417,7 +396,7 @@ describe('DS Token Regulated Unit Tests', function() {
         await dsToken.issueTokens(investor, 500);
         expect(await dsToken.balanceOf(investor)).equal(500);
       });
-  
+
       it('Should not issue tokens to a forbidden wallet', async function () {
         const [investor] = await hre.ethers.getSigners();
         const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
@@ -426,7 +405,7 @@ describe('DS Token Regulated Unit Tests', function() {
         await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.CHINA);
         await expect(dsToken.issueTokens(investor, 500)).revertedWith('Destination restricted');
       });
-  
+
       it('Should record the number of total issued token correctly', async function () {
         const [investor, investor2] = await hre.ethers.getSigners();
         const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
@@ -456,28 +435,7 @@ describe('DS Token Regulated Unit Tests', function() {
           .withArgs(hre.ethers.ZeroAddress, investor.address, shares, multiplier);
       });
     });
-  
-    describe('Issuance with no compliance', function () {
-      it('Should issue tokens to a eu wallet (no compliance)', async function () {
-        const [investor] = await hre.ethers.getSigners();
-        const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
-        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-        await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.FRANCE);
-        await dsToken.issueTokensWithNoCompliance(investor, 500);
-        expect(await dsToken.balanceOf(investor)).equal(500);
-      });
-  
-      it('Should issue tokens to a forbidden wallet (no compliance)', async function () {
-        const [investor] = await hre.ethers.getSigners();
-        const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
-        await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.CHINA, INVESTORS.Compliance.FORBIDDEN);
-        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-        await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.CHINA);
-        await dsToken.issueTokensWithNoCompliance(investor, 500);
-        expect(await dsToken.balanceOf(investor)).equal(500);
-      });
-    });
-  
+
     describe('Transfer', function () {
       it('Should emit TxShares event on transfer', async function () {
         const [investor, investor2] = await hre.ethers.getSigners();
@@ -555,7 +513,7 @@ describe('DS Token Regulated Unit Tests', function() {
         expect(await dsToken.balanceOf(anotherWallet)).equal(300);
       });
     });
-  
+
     describe('Burn', function () {
       it('Should burn tokens from a specific wallet', async function () {
         const [investor] = await hre.ethers.getSigners();
@@ -582,7 +540,7 @@ describe('DS Token Regulated Unit Tests', function() {
           .withArgs(investor.address, hre.ethers.ZeroAddress, shares, multiplier);
       });
     });
-  
+
     describe('Seize', function () {
       it('Should seize tokens correctly', async function () {
         const [investor, issuer] = await hre.ethers.getSigners();
@@ -621,8 +579,6 @@ describe('DS Token Regulated Unit Tests', function() {
         await expect(dsToken.seize(investor, issuer, 550, 'test burn')).revertedWith('Not enough balance');
       });
     });
-
-
   });
       describe('DS Token Regulated with Rebasing 1730000000000000000 and 6 decimals', function () {
       describe('Cap', function () {
@@ -631,7 +587,7 @@ describe('DS Token Regulated Unit Tests', function() {
           await dsToken.setCap(1000);
           await expect(dsToken.setCap(1000)).revertedWith('Token cap already set');
         });
-    
+
         it('Does not prevent issuing tokens within limit', async function () {
           const [investor] = await hre.ethers.getSigners();
           const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
@@ -641,7 +597,7 @@ describe('DS Token Regulated Unit Tests', function() {
           await dsToken.issueTokens(investor, 500);
           expect(await dsToken.balanceOf(investor)).equal(1000);
         })
-    
+
         it('Prevents issuing too many tokens', async function () {
           const [investor] = await hre.ethers.getSigners();
           const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
@@ -660,7 +616,7 @@ describe('DS Token Regulated Unit Tests', function() {
           await dsToken.issueTokens(investor, 500);
           expect(await dsToken.balanceOf(investor)).equal(500);
         });
-    
+
         it('Should issue tokens to a eu wallet', async function () {
           const [investor] = await hre.ethers.getSigners();
           const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
@@ -669,7 +625,7 @@ describe('DS Token Regulated Unit Tests', function() {
           await dsToken.issueTokens(investor, 500);
           expect(await dsToken.balanceOf(investor)).equal(500);
         });
-    
+
         it('Should not issue tokens to a forbidden wallet', async function () {
           const [investor] = await hre.ethers.getSigners();
           const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
@@ -678,7 +634,7 @@ describe('DS Token Regulated Unit Tests', function() {
           await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.CHINA);
           await expect(dsToken.issueTokens(investor, 500)).revertedWith('Destination restricted');
         });
-    
+
         it('Should record the number of total issued token correctly', async function () {
           const [investor, investor2] = await hre.ethers.getSigners();
           const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
@@ -708,28 +664,7 @@ describe('DS Token Regulated Unit Tests', function() {
             .withArgs(hre.ethers.ZeroAddress, investor.address, shares, multiplier);
         });
       });
-  
-      describe('Issuance with no compliance', function () {
-        it('Should issue tokens to a eu wallet (no compliance)', async function () {
-          const [investor] = await hre.ethers.getSigners();
-          const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
-          await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-          await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.FRANCE);
-          await dsToken.issueTokensWithNoCompliance(investor, 500);
-          expect(await dsToken.balanceOf(investor)).equal(500);
-        });
-    
-        it('Should issue tokens to a forbidden wallet (no compliance)', async function () {
-          const [investor] = await hre.ethers.getSigners();
-          const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
-          await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.CHINA, INVESTORS.Compliance.FORBIDDEN);
-          await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-          await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.CHINA);
-          await dsToken.issueTokensWithNoCompliance(investor, 500);
-          expect(await dsToken.balanceOf(investor)).equal(500);
-        });
-      });
-  
+
       describe('Transfer', function () {
         it('Should emit TxShares event on transfer', async function () {
           const [investor, investor2] = await hre.ethers.getSigners();
@@ -807,7 +742,7 @@ describe('DS Token Regulated Unit Tests', function() {
           expect(await dsToken.balanceOf(anotherWallet)).equal(300);
         });
       });
-  
+
       describe('Burn', function () {
         it('Should burn tokens from a specific wallet', async function () {
           const [investor] = await hre.ethers.getSigners();
@@ -834,7 +769,7 @@ describe('DS Token Regulated Unit Tests', function() {
             .withArgs(investor.address, hre.ethers.ZeroAddress, shares, multiplier);
         });
       });
-  
+
       describe('Seize', function () {
         it('Should seize tokens correctly', async function () {
           const [investor, issuer] = await hre.ethers.getSigners();
@@ -882,7 +817,7 @@ describe('DS Token Regulated Unit Tests', function() {
           await dsToken.setCap(1000);
           await expect(dsToken.setCap(1000)).revertedWith('Token cap already set');
         });
-    
+
         it('Does not prevent issuing tokens within limit', async function () {
           const [investor] = await hre.ethers.getSigners();
           const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndEighteenDecimal);
@@ -892,7 +827,7 @@ describe('DS Token Regulated Unit Tests', function() {
           await dsToken.issueTokens(investor, 500);
           expect(await dsToken.balanceOf(investor)).equal(1000);
         })
-    
+
         it('Prevents issuing too many tokens', async function () {
           const [investor] = await hre.ethers.getSigners();
           const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndEighteenDecimal);
@@ -911,7 +846,7 @@ describe('DS Token Regulated Unit Tests', function() {
           await dsToken.issueTokens(investor, 500);
           expect(await dsToken.balanceOf(investor)).equal(500);
         });
-    
+
         it('Should issue tokens to a eu wallet', async function () {
           const [investor] = await hre.ethers.getSigners();
           const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndEighteenDecimal);
@@ -920,7 +855,7 @@ describe('DS Token Regulated Unit Tests', function() {
           await dsToken.issueTokens(investor, 500);
           expect(await dsToken.balanceOf(investor)).equal(500);
         });
-    
+
         it('Should not issue tokens to a forbidden wallet', async function () {
           const [investor] = await hre.ethers.getSigners();
           const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndEighteenDecimal);
@@ -929,7 +864,7 @@ describe('DS Token Regulated Unit Tests', function() {
           await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.CHINA);
           await expect(dsToken.issueTokens(investor, 500)).revertedWith('Destination restricted');
         });
-    
+
         it('Should record the number of total issued token correctly', async function () {
           const [investor, investor2] = await hre.ethers.getSigners();
           const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndEighteenDecimal);
@@ -959,28 +894,7 @@ describe('DS Token Regulated Unit Tests', function() {
             .withArgs(hre.ethers.ZeroAddress, investor.address, shares, multiplier);
         });
       });
-  
-      describe('Issuance with no compliance', function () {
-        it('Should issue tokens to a eu wallet (no compliance)', async function () {
-          const [investor] = await hre.ethers.getSigners();
-          const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndEighteenDecimal);
-          await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-          await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.FRANCE);
-          await dsToken.issueTokensWithNoCompliance(investor, 500);
-          expect(await dsToken.balanceOf(investor)).equal(500);
-        });
-    
-        it('Should issue tokens to a forbidden wallet (no compliance)', async function () {
-          const [investor] = await hre.ethers.getSigners();
-          const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndEighteenDecimal);
-          await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.CHINA, INVESTORS.Compliance.FORBIDDEN);
-          await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-          await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.CHINA);
-          await dsToken.issueTokensWithNoCompliance(investor, 500);
-          expect(await dsToken.balanceOf(investor)).equal(500);
-        });
-      });
-  
+
       describe('Transfer', function () {
         it('Should emit TxShares event on transfer', async function () {
           const [investor, investor2] = await hre.ethers.getSigners();
@@ -1058,7 +972,7 @@ describe('DS Token Regulated Unit Tests', function() {
           expect(await dsToken.balanceOf(anotherWallet)).equal(300);
         });
       });
-  
+
       describe('Burn', function () {
         it('Should burn tokens from a specific wallet', async function () {
           const [investor] = await hre.ethers.getSigners();
@@ -1085,7 +999,7 @@ describe('DS Token Regulated Unit Tests', function() {
             .withArgs(investor.address, hre.ethers.ZeroAddress, shares, multiplier);
         });
       });
-  
+
       describe('Seize', function () {
         it('Should seize tokens correctly', async function () {
           const [investor, issuer] = await hre.ethers.getSigners();

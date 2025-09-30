@@ -74,12 +74,6 @@ abstract contract IDSComplianceService {
         uint256 _issuanceTime /*onlyToken*/
     ) public virtual returns (bool);
 
-    function validateIssuanceWithNoCompliance(
-        address _to,
-        uint256 _value,
-        uint256 _issuanceTime /*onlyToken*/
-    ) public virtual returns (bool);
-
     function validateBurn(
         address _who,
         uint256 _value /*onlyToken*/
