@@ -54,15 +54,6 @@ export const TR_DOMAIN_DATA = {
   version: EIP712_TR_VERSION
 };
 
-export const EIP712_MS_NAME = 'Securitize Off-Chain Multisig Wallet';
-export const EIP712_MS_VERSION = '1';
-export const SALT_MS = '0xb37745e66c38577667d690143f874b67afebdda0d4baa8b47e7ec4f32a43ff12';
-export const MS_DOMAIN_DATA = {
-  name: EIP712_MS_NAME,
-  version: EIP712_MS_VERSION,
-  salt: SALT_MS
-};
-
 export const transactionRelayerPreApproval = async (
   hsm: HardhatEthersSigner,
   transactionRelayerAddress: string,
@@ -92,35 +83,4 @@ export const transactionRelayerPreApproval = async (
 
   const signatureRaw = await hsm.signTypedData(domain, types, message);
   return ethers.Signature.from(signatureRaw);
-};
-
-export const multisigPreApproval = async (
-  signers: HardhatEthersSigner[],
-  multisigAddress: string,
-  message: any,
-  domainData: ethers.TypedDataDomain = MS_DOMAIN_DATA
-): Promise<Signature[]> => {
-
-  domainData.verifyingContract = multisigAddress;
-  if (!domainData.chainId) {
-    domainData.chainId = (await hre.ethers.provider.getNetwork()).chainId;
-  }
-
-  const types = {
-    MultiSigTransaction: [
-      { name: 'destination', type: 'address' },
-      { name: 'value', type: 'uint256' },
-      { name: 'data', type: 'bytes' },
-      { name: 'nonce', type: 'uint256' },
-      { name: 'executor', type: 'address' },
-      { name: 'gasLimit', type: 'uint256' }
-    ]
-  };
-
-  const promises = signers.map(async (signer) => {
-    const signatureRaw = await signer.signTypedData(domainData, types, message);
-    return ethers.Signature.from(signatureRaw);
-  });
-
-  return Promise.all(promises);
 };

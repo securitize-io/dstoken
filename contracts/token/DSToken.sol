@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,15 +18,22 @@
 
 pragma solidity 0.8.22;
 
-import "./IDSToken.sol";
-import "./StandardToken.sol";
+import {IDSToken} from "./IDSToken.sol";
+import {StandardToken} from "./StandardToken.sol";
 import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
-import "../rebasing/RebasingLibrary.sol";
+import {RebasingLibrary} from "../rebasing/RebasingLibrary.sol";
+import {TokenLibrary} from "./TokenLibrary.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
 
 contract DSToken is StandardToken {
     // using FeaturesLibrary for SupportedFeatures;
     using TokenLibrary for TokenLibrary.SupportedFeatures;
     uint256 internal constant DEPRECATED_OMNIBUS_NO_ACTION = 0;  // Deprecated, kept for backward compatibility
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
 
     function initialize(
         string calldata _name,

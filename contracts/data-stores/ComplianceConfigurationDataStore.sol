@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,10 +18,10 @@
 
 pragma solidity 0.8.22;
 
-import "./ServiceConsumerDataStore.sol";
+import {ServiceConsumerDataStore} from "./ServiceConsumerDataStore.sol";
 
 contract ComplianceConfigurationDataStore is ServiceConsumerDataStore {
-    mapping(string => uint256) public countriesCompliances;
+    mapping(string country => uint256 compliance) public countriesCompliances;
     uint256 public totalInvestorsLimit;
     uint256 public minUSTokens;
     uint256 public minEUTokens;
