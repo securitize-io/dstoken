@@ -514,7 +514,7 @@ library ComplianceServiceLibrary {
         }
         // remains in tokens because maximun holdings per investor is set in tokens
         if (
-            !walletManager.isPlatformWallet(_to) &&
+            !IDSWalletManager(_services[WALLET_MANAGER]).isPlatformWallet(_to) &&
             isMaximumHoldingsPerInvestorOk(
                 complianceConfigurationService.getMaximumHoldingsPerInvestor(),
                 balanceOfInvestorTo,
