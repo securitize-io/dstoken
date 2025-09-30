@@ -815,6 +815,88 @@ describe('Compliance Service Regulated Unit Tests', function() {
       expect(res[0]).equal(51);
       expect(res[1]).equal('Amount of tokens under min');
     });
+
+    it('should allow transfers to platform wallets even when below the minimum holdings limit', async function () {
+      const [investor, platformWallet] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService, complianceService, walletManager } = await loadFixture(deployDSTokenRegulated);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
+      await complianceConfigurationService.setMinimumHoldingsPerInvestor(50);
+      await walletManager.addPlatformWallet(platformWallet);
+
+      await dsToken.setCap(1000);
+      await dsToken.issueTokens(investor, 100);
+
+      const preCheck = await complianceService.preTransferCheck(investor, platformWallet, 10);
+      expect(preCheck[0]).equal(0);
+      expect(preCheck[1]).equal('Valid');
+
+      const dsTokenFromInvestor = dsToken.connect(investor);
+      await expect(dsTokenFromInvestor.transfer(platformWallet, 10))
+        .to.emit(dsToken, 'Transfer')
+        .withArgs(investor.address, platformWallet.address, 10);
+
+      expect(await dsToken.balanceOf(platformWallet)).to.equal(10);
+      expect(await dsToken.balanceOf(investor)).to.equal(90);
+    });
+
+    it('should allow transfers to platform wallets even when exceeding the maximum holdings limit', async function () {
+      const [investor, platformWallet] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService, complianceService, walletManager } = await loadFixture(deployDSTokenRegulated);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
+      await walletManager.addPlatformWallet(platformWallet);
+
+      await dsToken.setCap(1000);
+      await dsToken.issueTokens(investor, 200);
+      await complianceConfigurationService.setMaximumHoldingsPerInvestor(100);
+
+      const preCheck = await complianceService.preTransferCheck(investor, platformWallet, 150);
+      expect(preCheck[0]).equal(0);
+      expect(preCheck[1]).equal('Valid');
+
+      const dsTokenFromInvestor = dsToken.connect(investor);
+      await expect(dsTokenFromInvestor.transfer(platformWallet, 150)).not.to.be.reverted;
+    });
+
+    it('should block transfers to regular investors that exceed the maximum holdings limit', async function () {
+      const [investor, investor2] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployDSTokenRegulated);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
+
+      await dsToken.setCap(1000);
+      await dsToken.issueTokens(investor, 200);
+
+      await complianceConfigurationService.setMaximumHoldingsPerInvestor(100);
+
+      const preCheck = await complianceService.preTransferCheck(investor, investor2, 150);
+      expect(preCheck[0]).equal(52);
+      expect(preCheck[1]).equal('Amount of tokens above max');
+
+      const dsTokenFromInvestor = dsToken.connect(investor);
+      await expect(dsTokenFromInvestor.transfer(investor2, 150)).revertedWith('Amount of tokens above max');
+    });
+
+    it('should enforce force-full-transfer rules even for platform wallets', async function () {
+      const [investor, platformWallet] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService, complianceService, walletManager } = await loadFixture(deployDSTokenRegulated);
+
+      await walletManager.addPlatformWallet(platformWallet);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
+
+      await dsToken.setCap(1000);
+      await dsToken.issueTokens(investor, 100);
+      await complianceConfigurationService.setWorldWideForceFullTransfer(true);
+
+      const res = await complianceService.preTransferCheck(investor, platformWallet, 50);
+      expect(res[0]).equal(50);
+      expect(res[1]).equal('Only full transfer');
+
+      const dsTokenFromInvestor = dsToken.connect(investor);
+      await expect(dsTokenFromInvestor.transfer(platformWallet, 50)).revertedWith('Only full transfer');
+    });
   });
 
   describe('Pre issuance check', function () {
@@ -884,6 +966,40 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
 
       await expect(dsToken.issueTokens(wallet, 310)).revertedWith('Amount of tokens above max');
+    });
+
+    it('should allow platform wallet issuance below the minimum holdings limit', async function () {
+      const [, platformWallet] = await hre.ethers.getSigners();
+      const { dsToken, complianceService, complianceConfigurationService, walletManager } = await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setMinimumHoldingsPerInvestor(50);
+      await walletManager.addPlatformWallet(platformWallet);
+
+      const res = await complianceService.preIssuanceCheck(platformWallet, 10);
+      expect(res[0]).equal(0);
+      expect(res[1]).equal('Valid');
+
+      await dsToken.setCap(1000);
+      await expect(dsToken.issueTokens(platformWallet, 10)).not.to.be.reverted;
+    });
+
+    it('should allow platform wallet issuance above the maximum holdings limit', async function () {
+      const [, platformWallet] = await hre.ethers.getSigners();
+      const { dsToken, complianceService, complianceConfigurationService, walletManager } = await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setMaximumHoldingsPerInvestor(100);
+      await walletManager.addPlatformWallet(platformWallet);
+
+      const nearLimit = await complianceService.preIssuanceCheck(platformWallet, 101);
+      expect(nearLimit[0]).equal(0);
+      expect(nearLimit[1]).equal('Valid');
+
+      const largeIssuance = await complianceService.preIssuanceCheck(platformWallet, 1000);
+      expect(largeIssuance[0]).equal(0);
+      expect(largeIssuance[1]).equal('Valid');
+
+      await dsToken.setCap(2000);
+      await expect(dsToken.issueTokens(platformWallet, 1000)).not.to.be.reverted;
     });
 
     it('should not issue tokens to a new investor if investor limit is exceeded', async function () {
