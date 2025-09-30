@@ -139,7 +139,7 @@ contract DSToken is StandardToken {
             _rebasingProvider: rebasingProvider
         });
         uint256 shares = TokenLibrary.issueTokensCustom(
-            tokenData, 
+            tokenData,
             getCommonServices(),
             getLockManager(),
             params
@@ -150,22 +150,6 @@ contract DSToken is StandardToken {
 
         checkWalletsForList(address(0), _to);
         return true;
-    }
-
-    function issueTokensWithNoCompliance(address _to, uint256 _value) public virtual override onlyIssuerOrAbove {
-        require(getRegistryService().isWallet(_to), "Unknown wallet");
-        ISecuritizeRebasingProvider rebasingProvider = getRebasingProvider();
-        uint256 shares =  TokenLibrary.issueTokensWithNoCompliance(
-            tokenData, 
-            getCommonServices(), 
-            _to, 
-            _value, 
-            block.timestamp, 
-            cap, 
-            rebasingProvider
-        );
-        emit Transfer(address(0), _to, _value);
-        emit TxShares(address(0), _to, shares, rebasingProvider.multiplier());
     }
 
     //*********************

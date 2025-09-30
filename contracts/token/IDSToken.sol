@@ -90,8 +90,6 @@ abstract contract IDSToken is IERC20, Initializable {
         uint64[] memory _releaseTimes /*onlyIssuerOrAbove*/
     ) public virtual returns (bool);
 
-    function issueTokensWithNoCompliance(address _to, uint256 _value) public virtual /*onlyIssuerOrAbove*/;
-
     //*********************
     // TOKEN BURNING
     //*********************
