@@ -221,7 +221,7 @@ contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable
     function setRoles(address[] calldata _addresses, uint8[] calldata _roles) public override onlyMasterOrIssuerOrTransferAgent returns (bool) {
         require(_addresses.length <= 30, "Exceeded the maximum number of addresses");
         require(_addresses.length == _roles.length, "Wrong length of parameters");
-        for (uint i = 0; i < _addresses.length; i++) {
+        for (uint8 i = 0; i < _addresses.length; i++) {
             setRole(_addresses[i], _roles[i]);
         }
         return true;
