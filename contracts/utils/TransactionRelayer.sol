@@ -18,11 +18,11 @@
 
 pragma solidity 0.8.22;
 
-import "./BaseDSContract.sol";
-import "./CommonUtils.sol";
-import "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import { BaseDSContract } from "./BaseDSContract.sol";
+import { CommonUtils } from "./CommonUtils.sol";
+import { EIP712Upgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 /**
  @dev Based on SimpleWallet (https://github.com/christianlundkvist/simple-multisig) and uses EIP-712 standard validate a signature
@@ -47,6 +47,11 @@ contract TransactionRelayer is BaseDSContract, EIP712Upgradeable {
         string senderInvestor;
         uint256 nonce;
         uint256 blockLimit;
+    }
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
     }
 
     function initialize() public onlyProxy initializer {
