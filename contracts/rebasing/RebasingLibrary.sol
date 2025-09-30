@@ -30,18 +30,14 @@ library RebasingLibrary {
         uint8 _tokenDecimals
     ) internal pure returns (uint256 shares) {
         require(_rebasingMultiplier > 0, "Invalid rebasing multiplier");
-        // Apply rounding to the nearest integer when dividing by 1e18.
-        // Adding 1e18 / 2 before division is a common technique to reduce rounding errors
-        // caused by Solidity's integer division which always rounds down.
-        // This ensures more accurate conversion when working with fractional token values.
         if (_tokenDecimals == 18) {
-            return (_tokens * DECIMALS_FACTOR + _rebasingMultiplier / 2) / _rebasingMultiplier;
+            return (_tokens * DECIMALS_FACTOR) / _rebasingMultiplier;
         } else if (_tokenDecimals < 18) {
             uint256 scale = 10**(18 - _tokenDecimals);
-            return (_tokens * scale * DECIMALS_FACTOR + _rebasingMultiplier / 2) / _rebasingMultiplier;
+            return (_tokens * scale * DECIMALS_FACTOR) / _rebasingMultiplier;
         } else {
             uint256 scale = 10**(_tokenDecimals - 18);
-            return (_tokens * DECIMALS_FACTOR + (_rebasingMultiplier * scale) / 2) / (_rebasingMultiplier * scale);
+            return (_tokens * DECIMALS_FACTOR) / (_rebasingMultiplier * scale);
         }
     }
 
@@ -51,18 +47,14 @@ library RebasingLibrary {
         uint8 _tokenDecimals
     ) internal pure returns (uint256 tokens) {
         require(_rebasingMultiplier > 0, "Invalid rebasing multiplier");
-        // Apply rounding to the nearest integer when dividing by 1e18.
-        // Adding 1e18 / 2 before division is a common technique to reduce rounding errors
-        // caused by Solidity's integer division which always rounds down.
-        // This ensures more accurate conversion when working with fractional token values.
         if (_tokenDecimals == 18) {
-            return (_shares * _rebasingMultiplier + DECIMALS_FACTOR / 2) / DECIMALS_FACTOR;
+            return (_shares * _rebasingMultiplier) / DECIMALS_FACTOR;
         } else if (_tokenDecimals < 18) {
             uint256 scale = 10**(18 - _tokenDecimals);
-            return (((_shares * _rebasingMultiplier + DECIMALS_FACTOR / 2) / DECIMALS_FACTOR) + scale / 2) / scale;
+            return ((_shares * _rebasingMultiplier) / DECIMALS_FACTOR) / scale;
         } else {
             uint256 scale = 10**(_tokenDecimals - 18);
-            return (_shares * _rebasingMultiplier * scale + DECIMALS_FACTOR / 2) / DECIMALS_FACTOR;
+            return (_shares * _rebasingMultiplier * scale) / DECIMALS_FACTOR;
         }
     }
 }
