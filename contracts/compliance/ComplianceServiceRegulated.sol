@@ -560,7 +560,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         uint256 _value
     ) internal override returns (bool) {
         if (compareInvestorBalance(_to, _value, 0)) {
-            adjustTransferCounts(_to, CommonUtils.IncDec.Increase);
+            adjustTotalInvestorsCounts(_to, CommonUtils.IncDec.Increase);
         }
 
         if (compareInvestorBalance(_from, _value, _value)) {
@@ -570,13 +570,6 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         cleanupInvestorIssuances(_from);
         cleanupInvestorIssuances(_to);
         return true;
-    }
-
-    function adjustTransferCounts(
-        address _from,
-        CommonUtils.IncDec _increase
-    ) internal {
-        adjustTotalInvestorsCounts(_from, _increase);
     }
 
     function recordIssuance(
