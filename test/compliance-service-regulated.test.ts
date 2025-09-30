@@ -114,8 +114,18 @@ describe('Compliance Service Regulated Unit Tests', function() {
         expect( await complianceService.getImplementationAddress()).to.be.exist;
       });
 
-      it('SHOULD fail when trying to initialize implementation contract directly for ComplianceServiceNotRegulated', async () => {
-        const implementation = await hre.ethers.deployContract('ComplianceServiceNotRegulated');
+      it('SHOULD fail when trying to initialize implementation contract directly for ComplianceServiceRegulated', async () => {
+        const complianceServiceLibraryFactory = await hre.ethers.getContractFactory('ComplianceServiceLibrary');
+        const complianceServiceLibrary = await complianceServiceLibraryFactory.deploy();
+        await complianceServiceLibrary.waitForDeployment();
+
+        const implementationFactory = await hre.ethers.getContractFactory('ComplianceServiceRegulated', {
+          libraries: {
+            ComplianceServiceLibrary: await complianceServiceLibrary.getAddress()
+          }
+        });
+        const implementation = await implementationFactory.deploy();
+        await implementation.waitForDeployment();
         await expect(implementation.initialize()).to.revertedWithCustomError(implementation, 'UUPSUnauthorizedCallContext');
       });
 

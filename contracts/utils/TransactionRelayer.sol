@@ -18,56 +18,40 @@
 
 pragma solidity 0.8.22;
 
-import {BaseDSContract} from "./BaseDSContract.sol";
+import "./BaseDSContract.sol";
+import "./CommonUtils.sol";
+import "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 /**
  @dev Based on SimpleWallet (https://github.com/christianlundkvist/simple-multisig) and uses EIP-712 standard validate a signature
 */
 
-contract TransactionRelayer is BaseDSContract {
-    // EIP712 Precomputed hashes:
-    // keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract,bytes32 salt)")
-    bytes32 constant public EIP712DOMAINTYPE_HASH = 0xd87cd6ef79d4e2b95e15ce8abf732db51ec771f1ca2edccf22a46c729ac56472;
+contract TransactionRelayer is BaseDSContract, EIP712Upgradeable {
+    using Address for address;
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
+    string public constant NAME = "TransactionRelayer";
 
-    // keccak256("Securitize Transaction Relayer for pre-approved transactions")
-    bytes32 constant public NAME_HASH = 0x378460f4f89643d76dadb1d55fed95ff69d3c2e4b34cc81a5b565a797b10ce30;
+    // keccak256("ExecutePreApprovedTransaction(address destination,bytes32 data,uint256 nonce,bytes32 senderInvestor,uint256 blockLimit)")
+    bytes32 public constant TXTYPE_HASH = 0x103eaa9a7f02c07fe1be89fcbaf6f0591b7ee351d8bef38fb2e3e71ce08a26c0;
 
-    // keccak256("5")
-    bytes32 constant public VERSION_HASH = 0xceebf77a833b30520287ddd9478ff51abbdffa30aa90a8d655dba0e8a79ce0c1;
-
-    // keccak256("TransactionRelayer(address destination,uint256 value,bytes data,uint256 nonce,address executor,uint256 gasLimit,string investorId,uint256 blockLimit)")
-    bytes32 constant public TXTYPE_HASH = 0xe6d21e84f71e7221d45242249466f859d08c5b2820de017dfd5e28a588c401a9;
-
-    // keccak256("Securitize Transaction Relayer SALT")
-    bytes32 public constant SALT = 0x6e31104f5170e59a0a98ebdeb5ba99f8b32ef7b56786b1722f81a5fa19dd1629;
-
-    bytes32 public DOMAIN_SEPARATOR; // hash for EIP712, computed from contract address
-
-    uint256 public constant CONTRACT_VERSION = 5;
+    string public constant CONTRACT_VERSION = "5";
 
     mapping(bytes32 investorHash => uint256 nonce) internal noncePerInvestor;
 
     event InvestorNonceUpdated(string investorId, uint256 newNonce);
-    event DomainSeparatorUpdated(uint256 chainId);
+    struct ExecutePreApprovedTransaction {
+        address destination;
+        bytes data;
+        string senderInvestor;
+        uint256 nonce;
+        uint256 blockLimit;
+    }
 
     function initialize() public onlyProxy initializer {
         __BaseDSContract_init();
-
-        DOMAIN_SEPARATOR = keccak256(
-            abi.encode(
-                EIP712DOMAINTYPE_HASH,
-                NAME_HASH,
-                VERSION_HASH,
-                block.chainid,
-                this,
-                SALT
-            )
-        );
+        __EIP712_init(NAME, CONTRACT_VERSION);
     }
 
     // Note that address recovered from signatures must be strictly increasing, in order to prevent duplicates
@@ -100,113 +84,86 @@ contract TransactionRelayer is BaseDSContract {
     }
 
     /**
-     * @dev Validates off-chain signatures and executes transaction.
-     * @param sigV V signature
-     * @param sigR R signature
-     * @param sigR R signature
-     * @param senderInvestor investor id created by registryService
-     * @param destination address
-     * @param data encoded transaction data. For example issue token
-     * @param params array of params. params[0] = value, params[1] = gasLimit, params[2] = blockLimit
+     * @dev Legacy entrypoint kept for ABI compatibility.
      */
     function executeByInvestorWithBlockLimit(
-        uint8 sigV,
-        bytes32 sigR,
-        bytes32 sigS,
-        string memory senderInvestor,
-        address destination,
-        address executor,
-        bytes memory data,
-        uint256[] memory params
+        uint8 /*sigV*/,
+        bytes32 /*sigR*/,
+        bytes32 /*sigS*/,
+        string memory /*senderInvestor*/,
+        address /*destination*/,
+        address /*executor*/,
+        bytes memory /*data*/,
+        uint256[] memory /*params*/
+    ) public pure {
+        require(false, "not implemented");
+    }
+
+    /**
+     * @dev Validates una firma EIP-712 y ejecuta la transacción preaprobada.
+     * @param signature Firma compacta de 65 bytes.
+     * @param txData Datos firmados y metadatos necesarios para ejecutar la llamada.
+     */
+    function executePreApprovedTransaction(
+        bytes memory signature,
+        ExecutePreApprovedTransaction calldata txData
     ) public {
-        require(params.length == 3, "Incorrect params length");
-        require(params[2] >= block.number, "Transaction too old");
-        doExecuteByInvestor(sigV, sigR, sigS, senderInvestor, destination, data, executor, params);
+        require(txData.blockLimit >= block.number, "Transaction too old");
+        _executePreApprovedTransaction(signature, txData);
     }
 
 
     function nonceByInvestor(string memory investorId) public view returns (uint256) {
-        return noncePerInvestor[toBytes32(investorId)];
+        return noncePerInvestor[CommonUtils.encodeString(investorId)];
     }
-
-    function updateDomainSeparator(uint256 chainId) public onlyMaster {
-        DOMAIN_SEPARATOR = keccak256(
-            abi.encode(
-                EIP712DOMAINTYPE_HASH,
-                NAME_HASH,
-                VERSION_HASH,
-                chainId,
-                this,
-                SALT
-            )
-        );
-        emit DomainSeparatorUpdated(chainId);
+    /**
+     * @dev Legacy entrypoint kept for ABI compatibility.
+     */
+    function updateDomainSeparator(uint256) public pure {
+        revert("not implemented");
     }
 
     function setInvestorNonce(string memory investorId, uint256 newNonce) public onlyMaster {
-        uint256 investorNonce = noncePerInvestor[toBytes32(investorId)];
+        bytes32 investorKey = CommonUtils.encodeString(investorId);
+        uint256 investorNonce = noncePerInvestor[investorKey];
         require(newNonce > investorNonce, "New nonce should be greater than old");
-        noncePerInvestor[toBytes32(investorId)] = newNonce;
+        noncePerInvestor[investorKey] = newNonce;
         emit InvestorNonceUpdated(investorId, newNonce);
     }
 
-    function toBytes32(string memory str) private pure returns (bytes32) {
-        return keccak256(abi.encodePacked(str));
-    }
-
-    // Note that address recovered from signatures must be strictly increasing, in order to prevent duplicates
-    function doExecuteByInvestor(
-        uint8 sigV,
-        bytes32 sigR,
-        bytes32 sigS,
-        string memory senderInvestor,
-        address destination,
-        bytes memory data,
-        address executor,
-        uint256[] memory params
+    function _executePreApprovedTransaction(
+        bytes memory signature,
+        ExecutePreApprovedTransaction calldata txData
     ) private {
-        // EIP712 scheme: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md
-        // hash typed data
-        bytes32 totalHash = keccak256(
-            abi.encodePacked(
-                "\x19\x01", // backslash is needed to escape the character
-                DOMAIN_SEPARATOR,
-                keccak256(
-                    abi.encode(
-                        TXTYPE_HASH,
-                        destination,
-                        params[0],
-                        keccak256(data),
-                        noncePerInvestor[toBytes32(senderInvestor)],
-                        executor,
-                        params[1],
-                        keccak256(abi.encodePacked(senderInvestor)),
-                        params[2]
-                    )
-                )
-            )
-        );
+        bytes32 investorKey = CommonUtils.encodeString(txData.senderInvestor);
+        uint256 currentNonce = noncePerInvestor[investorKey];
 
-        address recovered = ecrecover(totalHash, sigV, sigR, sigS);
-        // Check that the recovered address is an issuer
+        require(txData.nonce == currentNonce, "Invalid nonce");
+
+        bytes32 digest = _hashTx(txData);
+        address recovered = ECDSA.recover(digest, signature);
         uint256 approverRole = getTrustService().getRole(recovered);
         require(approverRole == ROLE_ISSUER || approverRole == ROLE_MASTER, 'Invalid signature');
 
-        noncePerInvestor[toBytes32(senderInvestor)]++;
-        bool success = false;
-        uint256 value = params[0];
-        uint256 gasLimit = params[1];
-        assembly {
-            success := call(
-            gasLimit,
-            destination,
-            value,
-            add(data, 0x20),
-            mload(data),
-            0,
-            0
+        noncePerInvestor[investorKey] = currentNonce + 1;
+        Address.functionCall(txData.destination, txData.data);
+    }
+
+    /// @dev Computes the digest to sign (EIP-712)
+    function _hashTx(ExecutePreApprovedTransaction calldata txData) private view returns (bytes32) {
+        bytes32 dataHash = keccak256(txData.data);
+        bytes32 senderInvestorHash = keccak256(bytes(txData.senderInvestor));
+        bytes32 structHash = keccak256(
+            abi.encode(
+                TXTYPE_HASH,
+                txData.destination,
+                dataHash,
+                txData.nonce,
+                senderInvestorHash,
+                txData.blockLimit
             )
-        }
-        require(success, "transaction was not executed");
+        );
+
+        return _hashTypedDataV4(structHash);
     }
 }
