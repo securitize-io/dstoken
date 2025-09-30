@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -34,9 +34,9 @@ abstract contract IDSServiceConsumer {
     uint256 public constant DEPRECATED_OMNIBUS_TBE_CONTROLLER = 2048; // Deprecated, keep for backward compatibility
     uint256 public constant TRANSACTION_RELAYER = 4096;
     uint256 public constant DEPRECATED_TOKEN_REALLOCATOR = 8192; // Deprecated, keep for backward compatibility
-    uint256 public constant ISSUER_MULTICALL = 8194;
-    uint256 public constant TA_MULTICALL = 8195;
-    uint256 public constant SECURITIZE_SWAP = 16384;
+    uint256 public constant DEPRECATED_ISSUER_MULTICALL = 0;
+    uint256 public constant DEPRECATED_TA_MULTICALL = 0;
+    uint256 public constant DEPRECATED_SECURITIZE_SWAP = 16384;
     uint256 public constant REBASING_PROVIDER = 8196;
 
     function getDSService(uint256 _serviceId) public view virtual returns (address);

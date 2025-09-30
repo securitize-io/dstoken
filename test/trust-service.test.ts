@@ -20,6 +20,11 @@ describe('Trust Service Unit Tests', function() {
       const { trustService } = await loadFixture(deployDSTokenRegulated);
       expect( await trustService.getImplementationAddress()).to.be.exist;
     });
+
+    it('SHOULD fail when trying to initialize implementation contract directly', async () => {
+      const implementation = await hre.ethers.deployContract('TrustService');
+      await expect(implementation.initialize()).to.revertedWithCustomError(implementation, 'UUPSUnauthorizedCallContext');
+    });
   });
 
   describe('Creation flow', function() {

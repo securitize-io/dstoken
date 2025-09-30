@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,17 +18,17 @@
 
 pragma solidity 0.8.22;
 
-import "./IDSServiceConsumer.sol";
-import "../data-stores/ServiceConsumerDataStore.sol";
-import "../token/IDSToken.sol";
-import "../compliance/IDSWalletManager.sol";
-import "../compliance/IDSLockManager.sol";
-import "../compliance/IDSComplianceService.sol";
-import "../compliance/IDSComplianceConfigurationService.sol";
-import "../registry/IDSRegistryService.sol";
-import "../trust/IDSTrustService.sol";
+import {IDSServiceConsumer} from "./IDSServiceConsumer.sol";
+import {ServiceConsumerDataStore} from "../data-stores/ServiceConsumerDataStore.sol";
+import {IDSToken} from "../token/IDSToken.sol";
+import {IDSWalletManager} from "../compliance/IDSWalletManager.sol";
+import {IDSLockManager} from "../compliance/IDSLockManager.sol";
+import {IDSComplianceService} from "../compliance/IDSComplianceService.sol";
+import {IDSComplianceConfigurationService} from "../compliance/IDSComplianceConfigurationService.sol";
+import {IDSRegistryService} from "../registry/IDSRegistryService.sol";
+import {IDSTrustService} from "../trust/IDSTrustService.sol";
 import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 
 
@@ -46,8 +46,7 @@ abstract contract ServiceConsumer is IDSServiceConsumer, ServiceConsumerDataStor
     }
 
     modifier onlyMaster {
-        IDSTrustService trustManager = getTrustService();
-        require(owner() == msg.sender || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
+        if(owner() != msg.sender) require(getTrustService().getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
         _;
     }
 
@@ -56,31 +55,29 @@ abstract contract ServiceConsumer is IDSServiceConsumer, ServiceConsumerDataStor
    */
     modifier onlyIssuerOrTransferAgentOrAbove() {
         IDSTrustService trustManager = getTrustService();
-        require(trustManager.getRole(msg.sender) == ROLE_TRANSFER_AGENT || trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
+        uint8 role = trustManager.getRole(msg.sender);
+        require(role == ROLE_TRANSFER_AGENT || role == ROLE_ISSUER || role == ROLE_MASTER, "Insufficient trust level");
         _;
     }
 
     modifier onlyIssuerOrAbove {
         IDSTrustService trustManager = getTrustService();
-        require(trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
+        uint8 role = trustManager.getRole(msg.sender);
+        require(role == ROLE_ISSUER || role == ROLE_MASTER, "Insufficient trust level");
         _;
     }
 
     modifier onlyTransferAgentOrAbove {
         IDSTrustService trustManager = getTrustService();
-        require(trustManager.getRole(msg.sender) == ROLE_TRANSFER_AGENT || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
+        uint8 role = trustManager.getRole(msg.sender);
+        require(role == ROLE_TRANSFER_AGENT || role == ROLE_MASTER, "Insufficient trust level");
         _;
     }
 
     modifier onlyExchangeOrAbove {
         IDSTrustService trustManager = getTrustService();
-        require(
-            trustManager.getRole(msg.sender) == ROLE_EXCHANGE
-            || trustManager.getRole(msg.sender) == ROLE_ISSUER
-            || trustManager.getRole(msg.sender) == ROLE_TRANSFER_AGENT
-            || trustManager.getRole(msg.sender) == ROLE_MASTER,
-            "Insufficient trust level"
-        );
+        uint8 role = trustManager.getRole(msg.sender);
+        require(role == ROLE_EXCHANGE || role == ROLE_ISSUER || role == ROLE_TRANSFER_AGENT || role == ROLE_MASTER, "Insufficient trust level");
         _;
     }
 

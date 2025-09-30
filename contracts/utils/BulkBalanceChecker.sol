@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,7 +18,7 @@
 
 pragma solidity 0.8.22;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract BulkBalanceChecker {
     /**
@@ -39,7 +39,5 @@ contract BulkBalanceChecker {
         for (uint256 i = 0; i < length; i++) {
             balances[i] = erc20.balanceOf(wallets[i]);
         }
-
-        return balances;
     }
 }

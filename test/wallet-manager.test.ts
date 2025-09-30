@@ -20,6 +20,11 @@ describe('Wallet Manager Unit Tests', function() {
       const { walletManager } = await loadFixture(deployDSTokenRegulated);
       expect( await walletManager.getImplementationAddress()).to.be.exist;
     });
+
+    it('SHOULD fail when trying to initialize implementation contract directly', async () => {
+      const implementation = await hre.ethers.deployContract('WalletManager');
+      await expect(implementation.initialize()).to.revertedWithCustomError(implementation, 'UUPSUnauthorizedCallContext');
+    });
   });
 
   describe('Add issuer wallet:', function() {

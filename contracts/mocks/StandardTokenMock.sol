@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,7 +18,8 @@
 
 pragma solidity 0.8.22;
 
-import "../token/StandardToken.sol";
+import {StandardToken} from "../token/StandardToken.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
 
 // mock class using StandardToken
 contract StandardTokenMock is StandardToken {

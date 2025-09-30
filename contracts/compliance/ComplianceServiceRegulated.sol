@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,10 +18,14 @@
 
 pragma solidity 0.8.22;
 
-import "./ComplianceServiceWhitelisted.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "../rebasing/RebasingLibrary.sol";
+import {ComplianceServiceWhitelisted} from "./ComplianceServiceWhitelisted.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
+import {IDSRegistryService} from "../registry/IDSRegistryService.sol";
+import {IDSToken} from "../token/IDSToken.sol";
+import {IDSComplianceConfigurationService} from "./IDSComplianceConfigurationService.sol";
+import {IDSWalletManager} from "./IDSWalletManager.sol";
+import {IDSLockManager} from "./IDSLockManager.sol";
 
 library ComplianceServiceLibrary {
     uint256 internal constant DS_TOKEN = 0;
@@ -171,7 +175,7 @@ library ComplianceServiceLibrary {
     }
 
     function doPreTransferCheckRegulated(
-        address[] memory _services,
+        address[] calldata _services,
         address _from,
         address _to,
         uint256 _value,
@@ -207,7 +211,7 @@ library ComplianceServiceLibrary {
     }
 
     function completeTransferCheck(
-        address[] memory _services,
+        address[] calldata _services,
         CompletePreTransferCheckArgs memory _args
     ) internal view returns (uint256 code, string memory reason) {
         (string memory investorFrom, string memory investorTo) = IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestors(_args.from, _args.to);
@@ -582,10 +586,14 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     function adjustInvestorCountsAfterCountryChange(
         string memory _id,
         string memory _country,
-        string memory /*_prevCountry*/
+        string memory _prevCountry
     ) public override onlyRegistry returns (bool) {
         if (getToken().balanceOfInvestor(_id) == 0) {
             return false;
+        }
+
+        if (bytes(_prevCountry).length > 0) {
+            adjustInvestorsCountsByCountry(_prevCountry, _id, CommonUtils.IncDec.Decrease);
         }
 
         adjustInvestorsCountsByCountry(_country, _id, CommonUtils.IncDec.Increase);

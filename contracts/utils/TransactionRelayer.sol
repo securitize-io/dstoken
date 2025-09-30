@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -38,7 +38,7 @@ contract TransactionRelayer is BaseDSContract, EIP712Upgradeable {
 
     string public constant CONTRACT_VERSION = "5";
 
-    mapping(bytes32 => uint256) internal noncePerInvestor;
+    mapping(bytes32 investorHash => uint256 nonce) internal noncePerInvestor;
 
     event InvestorNonceUpdated(string investorId, uint256 newNonce);
     struct ExecutePreApprovedTransaction {

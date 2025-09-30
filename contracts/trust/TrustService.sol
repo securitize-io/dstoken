@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,10 +18,11 @@
 
 pragma solidity 0.8.22;
 
-import "../utils/CommonUtils.sol";
-import "./IDSTrustService.sol";
-import "../data-stores/TrustServiceDataStore.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
+import {IDSTrustService} from "./IDSTrustService.sol";
+import {TrustServiceDataStore} from "../data-stores/TrustServiceDataStore.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {ERC1967Utils} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 
 /**
  * @title TrustService
@@ -30,6 +31,11 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
  */
 
 contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable {
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
 
     function initialize() public override onlyProxy initializer {
         owner = msg.sender;

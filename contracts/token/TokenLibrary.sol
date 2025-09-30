@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,9 +18,11 @@
 
 pragma solidity 0.8.22;
 
-import "../service/ServiceConsumer.sol";
 import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
-import "../rebasing/RebasingLibrary.sol";
+import {IDSLockManager} from "../compliance/IDSLockManager.sol";
+import {IDSComplianceService} from "../compliance/IDSComplianceService.sol";
+import {IDSRegistryService} from "../registry/IDSRegistryService.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
 
 
 library TokenLibrary {
@@ -33,8 +35,8 @@ library TokenLibrary {
     uint256 internal constant DEPRECATED_OMNIBUS_WITHDRAW = 2; // Deprecated, keep for backwards compatibility
 
     struct TokenData {
-        mapping(address => uint256) walletsBalances;
-        mapping(string => uint256) investorsBalances;
+        mapping(address wallet => uint256 balance) walletsBalances;
+        mapping(string investor => uint256 balance) investorsBalances;
         uint256 totalSupply;
         uint256 totalIssued;
     }

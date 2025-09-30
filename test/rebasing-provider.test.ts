@@ -33,4 +33,9 @@ describe("SecuritizeRebasingProvider", () => {
 
     expect(updated).to.equal(newMultiplier);
   });
+
+  it('SHOULD fail when trying to initialize implementation contract directly', async () => {
+    const implementation = await ethers.deployContract('SecuritizeRebasingProvider');
+    await expect(implementation.initialize(1, 18)).to.revertedWithCustomError(implementation, 'UUPSUnauthorizedCallContext');
+  });
 });

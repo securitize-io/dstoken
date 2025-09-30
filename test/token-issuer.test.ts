@@ -19,6 +19,11 @@ describe('Token Issuer Unit Tests', function() {
       const { tokenIssuer } = await loadFixture(deployDSTokenRegulated);
       expect( await tokenIssuer.getImplementationAddress()).to.be.exist;
     });
+
+    it('SHOULD fail when trying to initialize implementation contract directly', async () => {
+      const implementation = await hre.ethers.deployContract('TokenIssuer');
+      await expect(implementation.initialize()).to.revertedWithCustomError(implementation, 'UUPSUnauthorizedCallContext');
+    });
   });
 
   describe('Normal Token Issuance', function() {
