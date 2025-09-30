@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { loadFixture, time } from '@nomicfoundation/hardhat-toolbox/network-helpers';
 import hre from 'hardhat';
 import { deployDSTokenRegulated, deployDSTokenRegulatedWithRebasing, deployDSTokenRegulatedWithRebasingAndEighteenDecimal, deployDSTokenRegulatedWithRebasingAndSixDecimal, INVESTORS } from './utils/fixture';
-import { registerInvestor } from './utils/test-helper';
+import { convertSharesToTokens, convertTokensToShares, registerInvestor, roundedTokens } from './utils/test-helper';
 
 describe('DS Token Regulated Unit Tests', function() {
   describe('Creation', function() {
@@ -382,12 +382,13 @@ describe('DS Token Regulated Unit Tests', function() {
   
       it('Does not prevent issuing tokens within limit', async function () {
         const [investor] = await hre.ethers.getSigners();
-        const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
+        const { dsToken, registryService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasing);
         await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
         await dsToken.setCap(1000);
         await dsToken.issueTokens(investor, 500);
         await dsToken.issueTokens(investor, 500);
-        expect(await dsToken.balanceOf(investor)).equal(1000);
+        const expectedBalance = await roundedTokens(rebasingProvider, 500, 500);
+        expect(await dsToken.balanceOf(investor)).equal(expectedBalance);
       })
   
       it('Prevents issuing too many tokens', async function () {
@@ -402,20 +403,20 @@ describe('DS Token Regulated Unit Tests', function() {
     describe('Issuance', function () {
       it('Should issue tokens to a us wallet', async function () {
         const [investor] = await hre.ethers.getSigners();
-        const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
+        const { dsToken, registryService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasing);
         await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
         await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
         await dsToken.issueTokens(investor, 500);
-        expect(await dsToken.balanceOf(investor)).equal(500);
+        expect(await dsToken.balanceOf(investor)).equal(await roundedTokens(rebasingProvider, 500));
       });
   
       it('Should issue tokens to a eu wallet', async function () {
         const [investor] = await hre.ethers.getSigners();
-        const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
+        const { dsToken, registryService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasing);
         await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
         await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.FRANCE);
         await dsToken.issueTokens(investor, 500);
-        expect(await dsToken.balanceOf(investor)).equal(500);
+        expect(await dsToken.balanceOf(investor)).equal(await roundedTokens(rebasingProvider, 500));
       });
   
       it('Should not issue tokens to a forbidden wallet', async function () {
@@ -429,7 +430,7 @@ describe('DS Token Regulated Unit Tests', function() {
   
       it('Should record the number of total issued token correctly', async function () {
         const [investor, investor2] = await hre.ethers.getSigners();
-        const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
+        const { dsToken, registryService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasing);
         await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
         await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
         await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.FRANCE);
@@ -438,7 +439,7 @@ describe('DS Token Regulated Unit Tests', function() {
         await dsToken.issueTokens(investor2, 500);
         await dsToken.issueTokens(investor, 500);
         await dsToken.issueTokens(investor2, 500);
-        expect(await dsToken.totalIssued()).equal(2000);
+        expect(await dsToken.totalIssued()).equal(await roundedTokens(rebasingProvider, 500, 500, 500, 500));
       });
 
       it('Should emit TxShares event on issuance', async function () {
@@ -460,21 +461,21 @@ describe('DS Token Regulated Unit Tests', function() {
     describe('Issuance with no compliance', function () {
       it('Should issue tokens to a eu wallet (no compliance)', async function () {
         const [investor] = await hre.ethers.getSigners();
-        const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
+        const { dsToken, registryService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasing);
         await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
         await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.FRANCE);
         await dsToken.issueTokensWithNoCompliance(investor, 500);
-        expect(await dsToken.balanceOf(investor)).equal(500);
+        expect(await dsToken.balanceOf(investor)).equal(await roundedTokens(rebasingProvider, 500));
       });
   
       it('Should issue tokens to a forbidden wallet (no compliance)', async function () {
         const [investor] = await hre.ethers.getSigners();
-        const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
+        const { dsToken, registryService, complianceConfigurationService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasing);
         await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.CHINA, INVESTORS.Compliance.FORBIDDEN);
         await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
         await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.CHINA);
         await dsToken.issueTokensWithNoCompliance(investor, 500);
-        expect(await dsToken.balanceOf(investor)).equal(500);
+        expect(await dsToken.balanceOf(investor)).equal(await roundedTokens(rebasingProvider, 500));
       });
     });
   
@@ -500,71 +501,86 @@ describe('DS Token Regulated Unit Tests', function() {
     describe('Locking', async function () {
       it('Should not allow transferring any tokens when all locked', async function () {
         const [investor, investor2] = await hre.ethers.getSigners();
-        const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
+        const { dsToken, registryService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasing);
         await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
         await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
         await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
         await dsToken.issueTokensCustom(investor, 500, await time.latest(), 500, 'TEST', await time.latest() + 1000);
 
         const dsTokenFromInvestor = await dsToken.connect(investor);
-        await expect(dsTokenFromInvestor.transfer(investor2, 500)).revertedWith('Tokens locked');
+        const transferableAmount = await roundedTokens(rebasingProvider, 500);
+        await expect(dsTokenFromInvestor.transfer(investor2, transferableAmount)).revertedWith('Tokens locked');
       });
 
       it('Should ignore issuance time if token has disallowBackDating set to true and allow transferring', async function () {
         const [investor, investor2] = await hre.ethers.getSigners();
-        const { dsToken, complianceConfigurationService, registryService, complianceService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
+        const { dsToken, complianceConfigurationService, registryService, complianceService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasing);
         await complianceConfigurationService.setDisallowBackDating(true);
         await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
         await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
         const issuanceTime = await time.latest();
         await dsToken.issueTokensCustom(investor, 100, issuanceTime + 10000, 0, 'TEST', 0);
-        expect(await dsToken.balanceOf(investor)).equal(100);
-        expect(await complianceService.getComplianceTransferableTokens(investor, await time.latest(), 0)).equal(100);
+        const issuedTokens = await roundedTokens(rebasingProvider, 100);
+        expect(await dsToken.balanceOf(investor)).equal(issuedTokens);
+        expect(await complianceService.getComplianceTransferableTokens(investor, await time.latest(), 0)).equal(issuedTokens);
 
         const dsTokenFromInvestor = await dsToken.connect(investor);
-        await dsTokenFromInvestor.transfer(investor2, 100);
+        await dsTokenFromInvestor.transfer(investor2, issuedTokens);
         expect(await dsToken.balanceOf(investor)).equal(0);
-        expect(await dsToken.balanceOf(investor2)).equal(100);
+        expect(await dsToken.balanceOf(investor2)).equal(issuedTokens);
       });
 
       it('Should allow transferring tokens when other are locked', async function () {
         const [investor, investor2] = await hre.ethers.getSigners();
-        const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
+        const { dsToken, registryService, complianceService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasing);
         await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
         await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
         await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
         await dsToken.issueTokensCustom(investor, 500, await time.latest(), 200, 'TEST', await time.latest() + 1000);
 
         const dsTokenFromInvestor = await dsToken.connect(investor);
-        await dsTokenFromInvestor.transfer(investor2, 300);
-        expect(await dsToken.balanceOf(investor)).equal(200);
-        expect(await dsToken.balanceOf(investor2)).equal(300);
+        const transferableTokens = await complianceService.getComplianceTransferableTokens(investor, await time.latest(), 0);
+        await dsTokenFromInvestor.transfer(investor2, transferableTokens);
+        const issueShares = await convertTokensToShares(rebasingProvider, 500);
+        const transferredShares = await convertTokensToShares(rebasingProvider, transferableTokens);
+        const expectedInvestorBalance = await convertSharesToTokens(rebasingProvider, issueShares - transferredShares);
+        const expectedReceiverBalance = await convertSharesToTokens(rebasingProvider, transferredShares);
+        expect(await dsToken.balanceOf(investor)).equal(expectedInvestorBalance);
+        expect(await dsToken.balanceOf(investor2)).equal(expectedReceiverBalance);
       });
 
       it('Should allow transferring tokens when other are locked', async function () {
         const [investor, anotherWallet] = await hre.ethers.getSigners();
-        const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
+        const { dsToken, registryService, complianceService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasing);
         await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
         await registryService.addWallet(anotherWallet, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
         await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
         await dsToken.issueTokensCustom(investor, 500, await time.latest(), 500, 'TEST', await time.latest() + 1000);
 
         const dsTokenFromInvestor = await dsToken.connect(investor);
-        await dsTokenFromInvestor.transfer(anotherWallet, 300);
-        expect(await dsToken.balanceOf(investor)).equal(200);
-        expect(await dsToken.balanceOf(anotherWallet)).equal(300);
+        const transferableTokens = await complianceService.getComplianceTransferableTokens(investor, await time.latest(), 0);
+        await dsTokenFromInvestor.transfer(anotherWallet, transferableTokens);
+        const issueShares = await convertTokensToShares(rebasingProvider, 500);
+        const transferredShares = await convertTokensToShares(rebasingProvider, transferableTokens);
+        const expectedInvestorBalance = await convertSharesToTokens(rebasingProvider, issueShares - transferredShares);
+        const expectedReceiverBalance = await convertSharesToTokens(rebasingProvider, transferredShares);
+        expect(await dsToken.balanceOf(investor)).equal(expectedInvestorBalance);
+        expect(await dsToken.balanceOf(anotherWallet)).equal(expectedReceiverBalance);
       });
     });
   
     describe('Burn', function () {
       it('Should burn tokens from a specific wallet', async function () {
         const [investor] = await hre.ethers.getSigners();
-        const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
+        const { dsToken, registryService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasing);
         await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
         await dsToken.issueTokens(investor, 500);
         await dsToken.burn(investor, 50, 'test burn');
-        expect(await dsToken.balanceOf(investor)).equal(450);
-        expect(await dsToken.totalIssued()).equal(500);
+        const issueShares = await convertTokensToShares(rebasingProvider, 500);
+        const burnShares = await convertTokensToShares(rebasingProvider, 50);
+        const expectedBalance = await convertSharesToTokens(rebasingProvider, issueShares - burnShares);
+        expect(await dsToken.balanceOf(investor)).equal(expectedBalance);
+        expect(await dsToken.totalIssued()).equal(await roundedTokens(rebasingProvider, 500));
       });
 
       it('Should emit TxShares event on burn', async function () {
@@ -586,14 +602,18 @@ describe('DS Token Regulated Unit Tests', function() {
     describe('Seize', function () {
       it('Should seize tokens correctly', async function () {
         const [investor, issuer] = await hre.ethers.getSigners();
-        const { dsToken, registryService, walletManager } = await loadFixture(deployDSTokenRegulatedWithRebasing);
+        const { dsToken, registryService, walletManager, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasing);
         await walletManager.addIssuerWallet(issuer)
         await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
         await dsToken.issueTokens(investor, 500);
         await dsToken.seize(investor, issuer, 50, 'test burn');
-        expect(await dsToken.balanceOf(investor)).equal(450);
-        expect(await dsToken.balanceOf(issuer)).equal(50);
-        expect(await dsToken.totalIssued()).equal(500);
+        const issueShares = await convertTokensToShares(rebasingProvider, 500);
+        const seizeShares = await convertTokensToShares(rebasingProvider, 50);
+        const expectedInvestorBalance = await convertSharesToTokens(rebasingProvider, issueShares - seizeShares);
+        const expectedIssuerBalance = await convertSharesToTokens(rebasingProvider, seizeShares);
+        expect(await dsToken.balanceOf(investor)).equal(expectedInvestorBalance);
+        expect(await dsToken.balanceOf(issuer)).equal(expectedIssuerBalance);
+        expect(await dsToken.totalIssued()).equal(await roundedTokens(rebasingProvider, 500));
       });
 
       it('Should emit TxShares event on seize', async function () {
@@ -634,12 +654,13 @@ describe('DS Token Regulated Unit Tests', function() {
     
         it('Does not prevent issuing tokens within limit', async function () {
           const [investor] = await hre.ethers.getSigners();
-          const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
+          const { dsToken, registryService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
           await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
           await dsToken.setCap(1000);
           await dsToken.issueTokens(investor, 500);
           await dsToken.issueTokens(investor, 500);
-          expect(await dsToken.balanceOf(investor)).equal(1000);
+          const expectedBalance = await roundedTokens(rebasingProvider, 500, 500);
+          expect(await dsToken.balanceOf(investor)).equal(expectedBalance);
         })
     
         it('Prevents issuing too many tokens', async function () {
@@ -654,20 +675,20 @@ describe('DS Token Regulated Unit Tests', function() {
       describe('Issuance', function () {
         it('Should issue tokens to a us wallet', async function () {
           const [investor] = await hre.ethers.getSigners();
-          const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
+          const { dsToken, registryService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
           await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
           await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
           await dsToken.issueTokens(investor, 500);
-          expect(await dsToken.balanceOf(investor)).equal(500);
+          expect(await dsToken.balanceOf(investor)).equal(await roundedTokens(rebasingProvider, 500));
         });
     
         it('Should issue tokens to a eu wallet', async function () {
           const [investor] = await hre.ethers.getSigners();
-          const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
+          const { dsToken, registryService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
           await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
           await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.FRANCE);
           await dsToken.issueTokens(investor, 500);
-          expect(await dsToken.balanceOf(investor)).equal(500);
+          expect(await dsToken.balanceOf(investor)).equal(await roundedTokens(rebasingProvider, 500));
         });
     
         it('Should not issue tokens to a forbidden wallet', async function () {
@@ -681,7 +702,7 @@ describe('DS Token Regulated Unit Tests', function() {
     
         it('Should record the number of total issued token correctly', async function () {
           const [investor, investor2] = await hre.ethers.getSigners();
-          const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
+          const { dsToken, registryService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
           await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
           await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
           await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.FRANCE);
@@ -690,7 +711,7 @@ describe('DS Token Regulated Unit Tests', function() {
           await dsToken.issueTokens(investor2, 500);
           await dsToken.issueTokens(investor, 500);
           await dsToken.issueTokens(investor2, 500);
-          expect(await dsToken.totalIssued()).equal(2000);
+          expect(await dsToken.totalIssued()).equal(await roundedTokens(rebasingProvider, 500, 500, 500, 500));
         });
 
         it('Should emit TxShares event on issuance', async function () {
@@ -712,21 +733,21 @@ describe('DS Token Regulated Unit Tests', function() {
       describe('Issuance with no compliance', function () {
         it('Should issue tokens to a eu wallet (no compliance)', async function () {
           const [investor] = await hre.ethers.getSigners();
-          const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
+          const { dsToken, registryService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
           await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
           await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.FRANCE);
           await dsToken.issueTokensWithNoCompliance(investor, 500);
-          expect(await dsToken.balanceOf(investor)).equal(500);
+          expect(await dsToken.balanceOf(investor)).equal(await roundedTokens(rebasingProvider, 500));
         });
     
         it('Should issue tokens to a forbidden wallet (no compliance)', async function () {
           const [investor] = await hre.ethers.getSigners();
-          const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
+          const { dsToken, registryService, complianceConfigurationService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
           await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.CHINA, INVESTORS.Compliance.FORBIDDEN);
           await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
           await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.CHINA);
           await dsToken.issueTokensWithNoCompliance(investor, 500);
-          expect(await dsToken.balanceOf(investor)).equal(500);
+          expect(await dsToken.balanceOf(investor)).equal(await roundedTokens(rebasingProvider, 500));
         });
       });
   
@@ -752,71 +773,90 @@ describe('DS Token Regulated Unit Tests', function() {
       describe('Locking', async function () {
         it('Should not allow transferring any tokens when all locked', async function () {
           const [investor, investor2] = await hre.ethers.getSigners();
-          const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
+          const { dsToken, registryService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
           await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
           await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
           await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
           await dsToken.issueTokensCustom(investor, 500, await time.latest(), 500, 'TEST', await time.latest() + 1000);
 
           const dsTokenFromInvestor = await dsToken.connect(investor);
-          await expect(dsTokenFromInvestor.transfer(investor2, 500)).revertedWith('Tokens locked');
+          const transferableAmount = await roundedTokens(rebasingProvider, 500);
+          await expect(dsTokenFromInvestor.transfer(investor2, transferableAmount)).revertedWith('Tokens locked');
         });
 
         it('Should ignore issuance time if token has disallowBackDating set to true and allow transferring', async function () {
           const [investor, investor2] = await hre.ethers.getSigners();
-          const { dsToken, complianceConfigurationService, registryService, complianceService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
+          const { dsToken, complianceConfigurationService, registryService, complianceService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
           await complianceConfigurationService.setDisallowBackDating(true);
           await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
           await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
           const issuanceTime = await time.latest();
           await dsToken.issueTokensCustom(investor, 100, issuanceTime + 10000, 0, 'TEST', 0);
-          expect(await dsToken.balanceOf(investor)).equal(100);
-          expect(await complianceService.getComplianceTransferableTokens(investor, await time.latest(), 0)).equal(100);
+          const issuedTokens = await roundedTokens(rebasingProvider, 100);
+          expect(await dsToken.balanceOf(investor)).equal(issuedTokens);
+          expect(await complianceService.getComplianceTransferableTokens(investor, await time.latest(), 0)).equal(issuedTokens);
 
           const dsTokenFromInvestor = await dsToken.connect(investor);
-          await dsTokenFromInvestor.transfer(investor2, 100);
-          expect(await dsToken.balanceOf(investor)).equal(0);
-          expect(await dsToken.balanceOf(investor2)).equal(100);
+          await dsTokenFromInvestor.transfer(investor2, issuedTokens);
+          const issueShares = await convertTokensToShares(rebasingProvider, 100);
+          const transferredShares = await convertTokensToShares(rebasingProvider, issuedTokens);
+          const expectedInvestorBalance = await convertSharesToTokens(rebasingProvider, issueShares - transferredShares);
+          const expectedReceiverBalance = await convertSharesToTokens(rebasingProvider, transferredShares);
+          expect(await dsToken.balanceOf(investor)).equal(expectedInvestorBalance);
+          expect(await dsToken.balanceOf(investor2)).equal(expectedReceiverBalance);
         });
 
         it('Should allow transferring tokens when other are locked', async function () {
           const [investor, investor2] = await hre.ethers.getSigners();
-          const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
+          const { dsToken, registryService, complianceService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
           await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
           await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
           await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
           await dsToken.issueTokensCustom(investor, 500, await time.latest(), 200, 'TEST', await time.latest() + 1000);
 
           const dsTokenFromInvestor = await dsToken.connect(investor);
-          await dsTokenFromInvestor.transfer(investor2, 300);
-          expect(await dsToken.balanceOf(investor)).equal(200);
-          expect(await dsToken.balanceOf(investor2)).equal(300);
+          const transferableTokens = await complianceService.getComplianceTransferableTokens(investor, await time.latest(), 0);
+          await dsTokenFromInvestor.transfer(investor2, transferableTokens);
+          const issueShares = await convertTokensToShares(rebasingProvider, 500);
+          const transferredShares = await convertTokensToShares(rebasingProvider, transferableTokens);
+          const expectedInvestorBalance = await convertSharesToTokens(rebasingProvider, issueShares - transferredShares);
+          const expectedReceiverBalance = await convertSharesToTokens(rebasingProvider, transferredShares);
+          expect(await dsToken.balanceOf(investor)).equal(expectedInvestorBalance);
+          expect(await dsToken.balanceOf(investor2)).equal(expectedReceiverBalance);
         });
 
         it('Should allow transferring tokens when other are locked', async function () {
           const [investor, anotherWallet] = await hre.ethers.getSigners();
-          const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
+          const { dsToken, registryService, complianceService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
           await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
           await registryService.addWallet(anotherWallet, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
           await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
           await dsToken.issueTokensCustom(investor, 500, await time.latest(), 500, 'TEST', await time.latest() + 1000);
 
           const dsTokenFromInvestor = await dsToken.connect(investor);
-          await dsTokenFromInvestor.transfer(anotherWallet, 300);
-          expect(await dsToken.balanceOf(investor)).equal(200);
-          expect(await dsToken.balanceOf(anotherWallet)).equal(300);
+          const transferableTokens = await complianceService.getComplianceTransferableTokens(investor, await time.latest(), 0);
+          await dsTokenFromInvestor.transfer(anotherWallet, transferableTokens);
+          const issueShares = await convertTokensToShares(rebasingProvider, 500);
+          const transferredShares = await convertTokensToShares(rebasingProvider, transferableTokens);
+          const expectedInvestorBalance = await convertSharesToTokens(rebasingProvider, issueShares - transferredShares);
+          const expectedReceiverBalance = await convertSharesToTokens(rebasingProvider, transferredShares);
+          expect(await dsToken.balanceOf(investor)).equal(expectedInvestorBalance);
+          expect(await dsToken.balanceOf(anotherWallet)).equal(expectedReceiverBalance);
         });
       });
   
       describe('Burn', function () {
         it('Should burn tokens from a specific wallet', async function () {
           const [investor] = await hre.ethers.getSigners();
-          const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
+          const { dsToken, registryService, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
           await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
           await dsToken.issueTokens(investor, 500);
           await dsToken.burn(investor, 50, 'test burn');
-          expect(await dsToken.balanceOf(investor)).equal(450);
-          expect(await dsToken.totalIssued()).equal(500);
+          const issueShares = await convertTokensToShares(rebasingProvider, 500);
+          const burnShares = await convertTokensToShares(rebasingProvider, 50);
+          const expectedBalance = await convertSharesToTokens(rebasingProvider, issueShares - burnShares);
+          expect(await dsToken.balanceOf(investor)).equal(expectedBalance);
+          expect(await dsToken.totalIssued()).equal(await roundedTokens(rebasingProvider, 500));
         });
 
         it('Should emit TxShares event on burn', async function () {
@@ -838,14 +878,18 @@ describe('DS Token Regulated Unit Tests', function() {
       describe('Seize', function () {
         it('Should seize tokens correctly', async function () {
           const [investor, issuer] = await hre.ethers.getSigners();
-          const { dsToken, registryService, walletManager } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
+          const { dsToken, registryService, walletManager, rebasingProvider } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
           await walletManager.addIssuerWallet(issuer)
           await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
           await dsToken.issueTokens(investor, 500);
           await dsToken.seize(investor, issuer, 50, 'test burn');
-          expect(await dsToken.balanceOf(investor)).equal(450);
-          expect(await dsToken.balanceOf(issuer)).equal(50);
-          expect(await dsToken.totalIssued()).equal(500);
+          const issueShares = await convertTokensToShares(rebasingProvider, 500);
+          const seizeShares = await convertTokensToShares(rebasingProvider, 50);
+          const expectedInvestorBalance = await convertSharesToTokens(rebasingProvider, issueShares - seizeShares);
+          const expectedIssuerBalance = await convertSharesToTokens(rebasingProvider, seizeShares);
+          expect(await dsToken.balanceOf(investor)).equal(expectedInvestorBalance);
+          expect(await dsToken.balanceOf(issuer)).equal(expectedIssuerBalance);
+          expect(await dsToken.totalIssued()).equal(await roundedTokens(rebasingProvider, 500));
         });
 
         it('Should emit TxShares event on seize', async function () {

@@ -3,6 +3,7 @@ import { expect } from 'chai';
 import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
 import { ethers, Signature } from 'ethers';
 import hre from 'hardhat';
+import { ISecuritizeRebasingProvider } from '../../typechain-types';
 
 export const setCounters = async (txCounters, complianceService) => {
   const currentCounters = await getCounters(complianceService);
@@ -83,4 +84,24 @@ export const transactionRelayerPreApproval = async (
 
   const signatureRaw = await hsm.signTypedData(domain, types, message);
   return ethers.Signature.from(signatureRaw);
+};
+
+
+type RebasingProviderType = Pick<ISecuritizeRebasingProvider, 'convertTokensToShares' | 'convertSharesToTokens'>;
+
+export const convertTokensToShares = async (rebasingProvider: RebasingProviderType, amount: bigint | number) => {
+  const value = typeof amount === 'bigint' ? amount : BigInt(amount);
+  return BigInt(await rebasingProvider.convertTokensToShares(value));
+};
+
+export const convertSharesToTokens = async (rebasingProvider: RebasingProviderType, shares: bigint) => {
+  return BigInt(await rebasingProvider.convertSharesToTokens(shares));
+};
+
+export const roundedTokens = async (rebasingProvider: RebasingProviderType, ...amounts: Array<number | bigint>) => {
+  let totalShares = 0n;
+  for (const amount of amounts) {
+    totalShares += await convertTokensToShares(rebasingProvider, amount);
+  }
+  return convertSharesToTokens(rebasingProvider, totalShares);
 };
