@@ -420,7 +420,6 @@ library ComplianceServiceLibrary {
     ) public view returns (uint256 code, string memory reason) {
         ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
         IDSComplianceConfigurationService complianceConfigurationService = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]);
-        IDSWalletManager walletManager = IDSWalletManager(_services[WALLET_MANAGER]);
         string memory toCountry = IDSRegistryService(_services[REGISTRY_SERVICE]).getCountry(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to));
         uint256 toRegion = complianceConfigurationService.getCountryCompliance(toCountry);
 
@@ -437,9 +436,18 @@ library ComplianceServiceLibrary {
         }
 
         uint256 balanceOfInvestorTo = balanceOfInvestor(_services, _to);
+        bool isAccreditedTo = isAccredited(_services, _to);
+
+        if (
+            complianceConfigurationService.getForceAccredited() &&
+            !isAccreditedTo
+        ) {
+            return (61, ONLY_ACCREDITED);
+        }
+
         if (isNewInvestor(balanceOfInvestorTo)) {
             // verify global non accredited limit
-            if (!isAccredited(_services, _to)) {
+            if (!isAccreditedTo) {
                 if (
                     complianceConfigurationService.getNonAccreditedInvestorsLimit() != 0 &&
                     complianceService.getTotalInvestorsCount() - complianceService.getAccreditedInvestorsCount() >=
@@ -464,7 +472,7 @@ library ComplianceServiceLibrary {
                 // verify accredited US limit is not exceeded
                 if (
                     complianceConfigurationService.getUSAccreditedInvestorsLimit() != 0 &&
-                    isAccredited(_services, _to) &&
+                    isAccreditedTo &&
                     complianceService.getUSAccreditedInvestorsCount() >= complianceConfigurationService.getUSAccreditedInvestorsLimit()
                 ) {
                     return (40, MAX_INVESTORS_IN_CATEGORY);
@@ -483,9 +491,23 @@ library ComplianceServiceLibrary {
             }
         }
 
+        if (toRegion == US) {
+            if (
+                complianceConfigurationService.getForceAccreditedUS() &&
+                !isAccreditedTo
+            ) {
+                return (62, ONLY_US_ACCREDITED);
+            }
+        }
+
+        uint256 minimumHoldingsRequirement = complianceConfigurationService.getMinimumHoldingsPerInvestor();
+        if (toRegion == US) {
+            minimumHoldingsRequirement = complianceConfigurationService.getMinUSTokens();
+        }
+
         if (
-            !walletManager.isPlatformWallet(_to) &&
-        balanceOfInvestorTo + _value < complianceConfigurationService.getMinimumHoldingsPerInvestor()
+            !IDSWalletManager(_services[WALLET_MANAGER]).isPlatformWallet(_to) &&
+        balanceOfInvestorTo + _value < minimumHoldingsRequirement
         ) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
