@@ -327,8 +327,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
 
       await dsToken.setCap(1000);
-      await dsToken.issueTokens(platformWallet, 100);
-
+      await dsToken.issueTokensCustom(platformWallet, 100, await time.latest(), 100, 'TEST', await time.latest() + 1000);
       const tokenFromPlatformWallet = await dsToken.connect(platformWallet);
       await tokenFromPlatformWallet.transfer(wallet, 100);
       expect(await dsToken.balanceOf(wallet)).equal(100);
