@@ -420,16 +420,17 @@ library ComplianceServiceLibrary {
         uint256 _value
     ) public view returns (uint256 code, string memory reason) {
         ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
+
+        if (!complianceService.checkWhitelisted(_to)) {
+            return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
+        }
+
         IDSComplianceConfigurationService complianceConfigurationService = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]);
         string memory toCountry = IDSRegistryService(_services[REGISTRY_SERVICE]).getCountry(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to));
         uint256 toRegion = complianceConfigurationService.getCountryCompliance(toCountry);
 
         if (toRegion == FORBIDDEN) {
             return (26, DESTINATION_RESTRICTED);
-        }
-
-        if (!complianceService.checkWhitelisted(_to)) {
-            return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
         }
 
         if (IDSLockManager(_services[LOCK_MANAGER]).isInvestorLiquidateOnly(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to))) {
