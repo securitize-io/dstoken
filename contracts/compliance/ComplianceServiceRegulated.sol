@@ -731,6 +731,21 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return ComplianceServiceLibrary.preTransferCheck(getServices(), _from, _to, _value);
     }
 
+    /**
+     * @notice Calculates the number of transferable tokens for a given investor at a specific time,
+     *         taking into account issuance-level lockups (Investor Level Locks).
+     *
+     * @dev The calculation is performed as follows:
+     *      1. Retrieve the base transferable balance of the investor from the LockManager.
+     *      2. Determine the total amount of tokens from issuances that are still subject to a lockup period.
+     *      3. Subtract the locked tokens from the base transferable balance.
+     *
+     * @param _who Address of the investor being queried.
+     * @param _time Timestamp (in seconds) representing the evaluation moment. Must be greater than zero.
+     * @param _lockTime Duration of the lockup period in seconds.
+     *
+     * @return transferable The amount of transferable tokens
+     */
     function getComplianceTransferableTokens(
         address _who,
         uint256 _time,
