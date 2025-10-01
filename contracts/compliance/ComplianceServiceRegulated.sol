@@ -748,7 +748,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         require(_time != 0, "Time must be greater than zero");
         string memory investor = getRegistryService().getInvestor(_who);
 
-        uint256 balanceOfInvestor = getLockManager().getTransferableTokens(_who, _time);
+        uint256 balanceOfInvestor = getLockManager().getTransferableTokensForInvestor(investor, _time);
 
         uint256 investorIssuancesCount = issuancesCounters[investor];
 
