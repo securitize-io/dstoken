@@ -18,6 +18,7 @@
 
 pragma solidity 0.8.22;
 
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {IDSToken} from "../token/IDSToken.sol";
 
 
@@ -38,13 +39,13 @@ library RebasingLibrary {
     ) internal pure returns (uint256) {
         require(_rebasingMultiplier > 0, "Invalid rebasing multiplier");
         if (_tokenDecimals == 18) {
-            return (_tokens * DECIMALS_FACTOR) / _rebasingMultiplier;
+            return Math.mulDiv(_tokens, DECIMALS_FACTOR, _rebasingMultiplier);
         } else if (_tokenDecimals < 18) {
             uint256 scale = 10**(18 - _tokenDecimals);
-            return (_tokens * scale * DECIMALS_FACTOR) / _rebasingMultiplier;
+            return Math.mulDiv(_tokens * scale, DECIMALS_FACTOR, _rebasingMultiplier);
         } else {
             uint256 scale = 10**(_tokenDecimals - 18);
-            return (_tokens * DECIMALS_FACTOR) / (_rebasingMultiplier * scale);
+            return Math.mulDiv(_tokens, DECIMALS_FACTOR, _rebasingMultiplier * scale);
         }
     }
 
@@ -62,13 +63,13 @@ library RebasingLibrary {
     ) internal pure returns (uint256) {
         require(_rebasingMultiplier > 0, "Invalid rebasing multiplier");
         if (_tokenDecimals == 18) {
-            return (_shares * _rebasingMultiplier) / DECIMALS_FACTOR;
+            return Math.mulDiv(_shares, _rebasingMultiplier, DECIMALS_FACTOR);
         } else if (_tokenDecimals < 18) {
             uint256 scale = 10**(18 - _tokenDecimals);
-            return ((_shares * _rebasingMultiplier) / DECIMALS_FACTOR) / scale;
+            return Math.mulDiv(_shares, _rebasingMultiplier, DECIMALS_FACTOR * scale);
         } else {
             uint256 scale = 10**(_tokenDecimals - 18);
-            return (_shares * _rebasingMultiplier * scale) / DECIMALS_FACTOR;
+            return Math.mulDiv(_shares * scale, _rebasingMultiplier, DECIMALS_FACTOR);
         }
     }
 }
