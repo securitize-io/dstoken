@@ -44,8 +44,7 @@ library RebasingLibrary {
             uint256 scale = 10**(18 - _tokenDecimals);
             return Math.mulDiv(_tokens * scale, DECIMALS_FACTOR, _rebasingMultiplier);
         } else {
-            uint256 scale = 10**(_tokenDecimals - 18);
-            return Math.mulDiv(_tokens, DECIMALS_FACTOR, _rebasingMultiplier * scale);
+            revert("Token decimals greater than 18 not supported");
         }
     }
 
@@ -68,8 +67,7 @@ library RebasingLibrary {
             uint256 scale = 10**(18 - _tokenDecimals);
             return Math.mulDiv(_shares, _rebasingMultiplier, DECIMALS_FACTOR * scale);
         } else {
-            uint256 scale = 10**(_tokenDecimals - 18);
-            return Math.mulDiv(_shares * scale, _rebasingMultiplier, DECIMALS_FACTOR);
+            revert("Token decimals greater than 18 not supported");
         }
     }
 }
