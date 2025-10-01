@@ -336,7 +336,7 @@ library ComplianceServiceLibrary {
             uint256 usInvestorsLimit = getUSInvestorsLimit(_services);
             if (
                 usInvestorsLimit != 0 &&
-                _args.fromInvestorBalance > _args.value &&
+                (_args.fromRegion != US || _args.fromInvestorBalance > _args.value) &&
                 ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getUSInvestorsCount() >= usInvestorsLimit &&
                 isNewInvestor(toInvestorBalance)
             ) {
