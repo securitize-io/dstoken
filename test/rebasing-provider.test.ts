@@ -46,6 +46,17 @@ describe("Rebasing", function () {
       // Checks that protocol does not lose tokens due to rounding errors
       expect(totalTokensOut).to.be.below(totalTokensIn);
     });
+
+    it("should revert when token decimals are greater than 18 for token to share conversions", async function () {
+      const { mock } = await loadFixture(deployRebasingLibraryMock);
+      const multiplier = ethers.parseUnits("1", 18);
+      const tokens = ethers.parseUnits("1", 18);
+
+      await expect(mock.convertTokensToShares(tokens, multiplier, 19)).to.be.revertedWith(
+        "Token decimals greater than 18 not supported"
+      );
+    });
+
   });
 
   describe("SecuritizeRebasingProvider", function () {
