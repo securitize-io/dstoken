@@ -24,11 +24,18 @@ import {IDSToken} from "../token/IDSToken.sol";
 library RebasingLibrary {
     uint256 private constant DECIMALS_FACTOR = 1e18;
 
+    /**
+     * @notice Converts a token amount to a share amount.
+     * @param _tokens The amount of tokens to convert.
+     * @param _rebasingMultiplier The current rebasing multiplier, fixed to 18 decimals.
+     * @param _tokenDecimals The number of decimals of the token.
+     * @return The corresponding amount of shares.
+     */
     function convertTokensToShares(
         uint256 _tokens,
         uint256 _rebasingMultiplier, // should be fixed to 18 decimals
         uint8 _tokenDecimals
-    ) internal pure returns (uint256 shares) {
+    ) internal pure returns (uint256) {
         require(_rebasingMultiplier > 0, "Invalid rebasing multiplier");
         if (_tokenDecimals == 18) {
             return (_tokens * DECIMALS_FACTOR) / _rebasingMultiplier;
@@ -41,11 +48,18 @@ library RebasingLibrary {
         }
     }
 
+    /**
+     * @notice Converts a share amount to a token amount.
+     * @param _shares The amount of shares to convert.
+     * @param _rebasingMultiplier The current rebasing multiplier, fixed to 18 decimals.
+     * @param _tokenDecimals The number of decimals of the token.
+     * @return The corresponding amount of tokens.
+     */
     function convertSharesToTokens(
         uint256 _shares,
         uint256 _rebasingMultiplier,
         uint8 _tokenDecimals
-    ) internal pure returns (uint256 tokens) {
+    ) internal pure returns (uint256) {
         require(_rebasingMultiplier > 0, "Invalid rebasing multiplier");
         if (_tokenDecimals == 18) {
             return (_shares * _rebasingMultiplier) / DECIMALS_FACTOR;
