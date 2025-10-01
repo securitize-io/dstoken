@@ -311,6 +311,28 @@ describe('Compliance Service Regulated Unit Tests', function() {
       expect(await complianceService.getTotalInvestorsCount()).equal(0);
     });
 
+    it('Should be able to transfer tokens from platform wallet to investor without checking HoldUp', async function() {
+      const [wallet, platformWallet] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService, walletManager } = await loadFixture(deployDSTokenRegulated);
+
+      //Previous configuration with 1 year lock up for US investors and platform wallet
+      await walletManager.addPlatformWallet(platformWallet);
+      await complianceConfigurationService.setAll(
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, INVESTORS.Time.YEARS, 0, 0],
+          [true, false, false, false, false]
+      );
+      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
+
+      await dsToken.setCap(1000);
+      await dsToken.issueTokensCustom(platformWallet, 100, await time.latest(), 100, 'TEST', await time.latest() + 1000);
+      const tokenFromPlatformWallet = await dsToken.connect(platformWallet);
+      await tokenFromPlatformWallet.transfer(wallet, 100);
+      expect(await dsToken.balanceOf(wallet)).equal(100);
+    });
+
 
     it('Should not be able to transfer tokens because of 1 year lock for US investors', async function() {
       const [wallet, wallet2] = await hre.ethers.getSigners();
@@ -1202,7 +1224,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
     it('should clean expired issuances during recordIssuance', async function() {
       const [wallet] = await hre.ethers.getSigners();
       const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployDSTokenRegulated);
-      
+
       // Set US lock period to 1 day for testing
       await complianceConfigurationService.setAll(
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 86400, 0, 0], // 86400 = 1 day in seconds
@@ -1214,7 +1236,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
 
       await dsToken.setCap(10000);
-      
+
       // Issue tokens at current time
       await time.latest();
       await dsToken.issueTokens(wallet, 100);
@@ -1227,8 +1249,8 @@ describe('Compliance Service Regulated Unit Tests', function() {
 
       // Check that the old issuance was cleaned up by checking transferable tokens
       const transferableTokens = await complianceService.getComplianceTransferableTokens(
-        wallet, 
-        await time.latest(), 
+        wallet,
+        await time.latest(),
         86400
       );
 
@@ -1240,7 +1262,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
     it('should clean expired issuances during recordTransfer', async function() {
       const [wallet, wallet2] = await hre.ethers.getSigners();
       const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployDSTokenRegulated);
-      
+
       // Set US lock period to 1 day for testing
       await complianceConfigurationService.setAll(
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 86400, 0, 0], // 86400 = 1 day in seconds
@@ -1254,10 +1276,10 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.USA);
 
       await dsToken.setCap(10000);
-      
+
       // Issue tokens to wallet1
       await dsToken.issueTokens(wallet, 100);
-      
+
       // Issue tokens to wallet2 at a different time
       await time.increase(3600); // 1 hour later
       await dsToken.issueTokens(wallet2, 50);
@@ -1270,20 +1292,20 @@ describe('Compliance Service Regulated Unit Tests', function() {
 
       // Check that cleanup happened by verifying transferable tokens
       const transferableTokensWallet1 = await complianceService.getComplianceTransferableTokens(
-        wallet, 
-        await time.latest(), 
+        wallet,
+        await time.latest(),
         86400
       );
-      
+
       const transferableTokensWallet2 = await complianceService.getComplianceTransferableTokens(
-        wallet2, 
-        await time.latest(), 
+        wallet2,
+        await time.latest(),
         86400
       );
 
       // wallet1 should have 50 remaining tokens, all transferable since first issuance expired
       expect(transferableTokensWallet1).to.equal(50);
-      
+
       // wallet2 should have 100 tokens (50 original + 50 transferred)
       // The transferred tokens don't inherit lock periods, so wallet2 balance matters more
       // Let's check what the actual transferable amount is
@@ -1294,7 +1316,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
     it('should preserve locked issuances and only clean expired ones', async function() {
       const [wallet] = await hre.ethers.getSigners();
       const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployDSTokenRegulated);
-      
+
       // Set US lock period to 2 days for testing
       await complianceConfigurationService.setAll(
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 172800, 0, 0], // 172800 = 2 days in seconds
@@ -1306,26 +1328,26 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
 
       await dsToken.setCap(10000);
-      
+
       // First issuance
       await dsToken.issueTokens(wallet, 100);
-      
+
       // Move forward 1 day
       await time.increase(86400);
-      
+
       // Second issuance
       await dsToken.issueTokens(wallet, 200);
-      
+
       // Move forward 1.5 days (total 2.5 days from first issuance, 1.5 days from second)
       await time.increase(129600); // 1.5 days
-      
+
       // Third issuance - should clean first but preserve second
       await dsToken.issueTokens(wallet, 300);
 
       // Check transferable tokens
       const transferableTokens = await complianceService.getComplianceTransferableTokens(
-        wallet, 
-        await time.latest(), 
+        wallet,
+        await time.latest(),
         172800 // 2 days lock period
       );
 
@@ -1337,7 +1359,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
     it('should handle multiple expired issuances correctly', async function() {
       const [wallet] = await hre.ethers.getSigners();
       const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployDSTokenRegulated);
-      
+
       // Set US lock period to 1 day for testing
       await complianceConfigurationService.setAll(
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 86400, 0, 0], // 86400 = 1 day in seconds
@@ -1349,24 +1371,24 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
 
       await dsToken.setCap(10000);
-      
+
       // Create multiple issuances
       await dsToken.issueTokens(wallet, 100); // Will expire
       await time.increase(3600); // 1 hour
       await dsToken.issueTokens(wallet, 200); // Will expire
-      await time.increase(3600); // 1 hour  
+      await time.increase(3600); // 1 hour
       await dsToken.issueTokens(wallet, 300); // Will expire
-      
+
       // Move forward 2 days (all previous issuances should expire)
       await time.increase(2 * 86400);
-      
+
       // New issuance should clean all expired ones
       await dsToken.issueTokens(wallet, 400);
 
       // Check transferable tokens
       const transferableTokens = await complianceService.getComplianceTransferableTokens(
-        wallet, 
-        await time.latest(), 
+        wallet,
+        await time.latest(),
         86400
       );
 
@@ -1378,7 +1400,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
     it('should work correctly with different lock periods for US vs non-US investors', async function() {
       const [usWallet, euWallet] = await hre.ethers.getSigners();
       const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployDSTokenRegulated);
-      
+
       // Set different lock periods: US = 2 days, Non-US = 1 day
       await complianceConfigurationService.setAll(
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 172800, 86400, 0], // US: 172800 (2 days), Non-US: 86400 (1 day)
@@ -1393,14 +1415,14 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.FRANCE);
 
       await dsToken.setCap(10000);
-      
+
       // Issue tokens to both investors at the same time
       await dsToken.issueTokens(usWallet, 100);
       await dsToken.issueTokens(euWallet, 100);
-      
+
       // Move forward 1.5 days
       await time.increase(129600); // 1.5 days
-      
+
       // Issue more tokens - should clean EU investor's expired issuance but not US investor's
       await dsToken.issueTokens(usWallet, 200);
       await dsToken.issueTokens(euWallet, 200);
@@ -1408,20 +1430,20 @@ describe('Compliance Service Regulated Unit Tests', function() {
       // Check transferable tokens for both investors
       const currentTime = await time.latest();
       const usTransferableTokens = await complianceService.getComplianceTransferableTokens(
-        usWallet, 
-        currentTime, 
+        usWallet,
+        currentTime,
         172800 // 2 days
       );
-      
+
       const euTransferableTokens = await complianceService.getComplianceTransferableTokens(
-        euWallet, 
-        currentTime, 
+        euWallet,
+        currentTime,
         86400 // 1 day
       );
 
       // US investor: first issuance still locked, only new issuance should be locked
       expect(usTransferableTokens).to.equal(0); // Both issuances still locked
-      
+
       // EU investor: first issuance should be transferable, new issuance locked
       expect(euTransferableTokens).to.equal(100); // First issuance was cleaned and is transferable
     });
