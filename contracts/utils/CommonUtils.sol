@@ -30,6 +30,6 @@ library CommonUtils {
   }
 
   function isEmptyString(string memory _str) internal pure returns (bool) {
-    return isEqualString(_str, "");
+    return bytes(_str).length == 0;
   }
 }
