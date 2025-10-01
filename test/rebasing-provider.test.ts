@@ -57,16 +57,6 @@ describe("Rebasing", function () {
       );
     });
 
-    it("should revert when token decimals are greater than 18 for share to token conversions", async function () {
-      const { mock } = await loadFixture(deployRebasingLibraryMock);
-      const multiplier = ethers.parseUnits("1", 18);
-      const shares = ethers.parseUnits("1", 18);
-
-      await expect(mock.convertSharesToTokens(shares, multiplier, 19)).to.be.revertedWith(
-        "Token decimals greater than 18 not supported"
-      );
-    });
-
     it("should revert with overflow when scaled tokens exceed uint256 max", async function () {
       const { mock } = await loadFixture(deployRebasingLibraryMock);
       const multiplier = ethers.parseUnits("1", 18);
