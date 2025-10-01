@@ -35,6 +35,10 @@ contract ComplianceServiceWhitelisted is ComplianceService {
     }
 
     function initialize() public virtual override onlyProxy initializer {
+        _initialize();
+    }
+
+    function _initialize() internal onlyInitializing {
         ComplianceService.initialize();
     }
 
