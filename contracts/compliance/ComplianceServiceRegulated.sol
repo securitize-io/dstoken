@@ -138,17 +138,19 @@ library ComplianceServiceLibrary {
         bool _isUSLockPeriod,
         bool _isPlatformWalletFrom
     ) internal view returns (bool) {
-        ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
-        uint256 lockPeriod;
-        if (_isUSLockPeriod) {
-            lockPeriod = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSLockPeriod();
-        } else {
-            lockPeriod = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUSLockPeriod();
-        }
+        if (!_isPlatformWalletFrom) {
+            ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
+            uint256 lockPeriod;
+            if (_isUSLockPeriod) {
+                lockPeriod = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSLockPeriod();
+            } else {
+                lockPeriod = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUSLockPeriod();
+            }
 
-        return
-        !_isPlatformWalletFrom &&
-        complianceService.getComplianceTransferableTokens(_from, block.timestamp, uint64(lockPeriod)) < _value;
+            return
+                complianceService.getComplianceTransferableTokens(_from, block.timestamp, uint64(lockPeriod)) < _value;
+        }
+        return false;
     }
 
     function maxInvestorsInCategoryForNonAccredited(
