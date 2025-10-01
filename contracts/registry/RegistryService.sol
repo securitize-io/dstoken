@@ -116,7 +116,6 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
             getComplianceService().adjustInvestorCountsAfterCountryChange(_id, _country, prevCountry);
 
             investors[_id].country = _country;
-            investors[_id].lastUpdatedBy = msg.sender;
 
             emit DSRegistryServiceInvestorCountryChanged(_id, _country, msg.sender);
         }
@@ -143,7 +142,6 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
         attributes[_id][_attributeId].value = _value;
         attributes[_id][_attributeId].expiry = _expiry;
         attributes[_id][_attributeId].proofHash = _proofHash;
-        investors[_id].lastUpdatedBy = msg.sender;
 
         emit DSRegistryServiceInvestorAttributeChanged(_id, _attributeId, _value, _expiry, _proofHash, msg.sender);
 
