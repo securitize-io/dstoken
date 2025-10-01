@@ -32,11 +32,10 @@ contract BulkBalanceChecker {
         view
         returns (uint256[] memory balances)
     {
-        uint256 length = wallets.length;
-        balances = new uint256[](length);
+        balances = new uint256[](wallets.length);
         IERC20 erc20 = IERC20(token);
 
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i = 0; i < wallets.length; i++) {
             balances[i] = erc20.balanceOf(wallets[i]);
         }
     }
