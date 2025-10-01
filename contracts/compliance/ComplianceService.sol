@@ -24,6 +24,7 @@ import {ComplianceServiceDataStore} from "../data-stores/ComplianceServiceDataSt
 import {BaseDSContract} from "../utils/BaseDSContract.sol";
 import {RebasingLibrary} from "../rebasing/RebasingLibrary.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IDSToken} from "../token/IDSToken.sol";
 
 
 /**
@@ -148,19 +149,8 @@ abstract contract ComplianceService is IDSComplianceService, ComplianceServiceDa
         address _to,
         uint256 _value
     ) public view virtual override returns (uint256 code, string memory reason) {
-        if (getToken().isPaused()) {
-            return (10, TOKEN_PAUSED);
-        }
-
-        if (getToken().balanceOf(_from) < _value) {
-            return (15, NOT_ENOUGH_TOKENS);
-        }
-
-        if (getLockManager().getTransferableTokens(_from, block.timestamp) < _value) {
-            return (16, TOKENS_LOCKED);
-        }
-
-        return checkTransfer(_from, _to, _value);
+        IDSToken token = getToken();
+        return newPreTransferCheck(_from, _to, _value, token.balanceOf(_from), token.isPaused());
     }
 
     function preInternalTransferCheck(
