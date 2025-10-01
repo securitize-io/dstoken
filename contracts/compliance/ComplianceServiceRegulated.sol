@@ -66,6 +66,22 @@ library ComplianceServiceLibrary {
         bool isPlatformWalletTo;
     }
 
+    /**
+     * @notice Determines if a wallet belongs to a retail investor for EU classification purposes.
+     * @dev WARNING: This function should ONLY be used for EU investors.
+     *      For EU investors, retail classification is based solely on the "Qualified" attribute.
+     *      For US investors, the correct definition of non-retail would require checking both
+     *      !isQualifiedInvestor() AND !isAccreditedInvestor(), as both Qualified Purchasers
+     *      and Accredited Investors are considered non-retail in US securities law.
+     *
+     *      Current usage: This function is correctly used only within EU region checks
+     *      (toRegion == EU) throughout the codebase. Do not use this function for US investors
+     *      or other jurisdictions without proper modification.
+     *
+     * @param _services Array of service addresses
+     * @param _wallet Address of the wallet to check
+     * @return bool True if the wallet is a retail investor (not qualified), false otherwise
+     */
     function isRetail(address[] memory _services, address _wallet) internal view returns (bool) {
         IDSRegistryService registry = IDSRegistryService(_services[REGISTRY_SERVICE]);
 
