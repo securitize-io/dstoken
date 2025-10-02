@@ -56,7 +56,6 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await trustService.setRole(transferAgent, DSConstants.roles.TRANSFER_AGENT);
       // Set liquidate only
       await lockManager.connect(transferAgent).setInvestorLiquidateOnly(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, true);
-      await dsToken.setCap(1000);
       // Issuance should fail
       await expect(dsToken.issueTokens(wallet, 100)).revertedWith('Investor liquidate only');
     });
@@ -70,7 +69,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await trustService.setRole(transferAgent, DSConstants.roles.TRANSFER_AGENT);
       // Set liquidate only for wallet2
       await lockManager.connect(transferAgent).setInvestorLiquidateOnly(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, true);
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
       // Transfer to wallet2 should fail
       await expect(dsToken.transfer(wallet2, 10)).revertedWith('Investor liquidate only');
@@ -84,7 +83,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
       await trustService.setRole(transferAgent, DSConstants.roles.TRANSFER_AGENT);
       // Issue tokens to wallet
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
       // Set liquidate only for wallet
       await lockManager.connect(transferAgent).setInvestorLiquidateOnly(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, true);
@@ -139,7 +138,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       const [wallet] = await hre.ethers.getSigners();
       const { complianceService, dsToken } = await loadFixture(deployDSTokenRegulated);
 
-      await dsToken.setCap(1000);
+
       await expect(complianceService.validateIssuance(wallet, 100, await time.latest())).revertedWith('This function can only called by the associated token');
     });
 
@@ -148,7 +147,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       const { dsToken, registryService } = await loadFixture(deployDSTokenRegulated);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
       expect(await dsToken.balanceOf(wallet)).equal(100);
     });
@@ -160,7 +159,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await dsToken.pause();
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
       expect(await dsToken.balanceOf(wallet)).equal(100);
     });
@@ -175,7 +174,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await walletManager.addIssuerWallet(issuerWallet);
 
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
       await expect(dsToken.transfer(issuerWallet, 100)).revertedWith('Wallet not in registry service');
     });
@@ -185,7 +184,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       const { dsToken, registryService } = await loadFixture(deployDSTokenRegulated);
 
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
       await expect(dsToken.transfer(wallet2, 100)).revertedWith('Wallet not in registry service');
     });
@@ -195,7 +194,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       const { dsToken, registryService } = await loadFixture(deployDSTokenRegulated);
 
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
-      await dsToken.setCap(1000);
+
       await expect(dsToken.transfer(wallet2, 100)).revertedWith('Not enough tokens');
     });
 
@@ -206,7 +205,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
 
       await lockManager.addManualLockRecord(wallet, 95, '', await time.latest() + 1000);
@@ -221,7 +220,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
       await dsToken.issueTokens(wallet2, 100);
 
@@ -239,7 +238,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
       expect(await walletManager.isSpecialWallet(wallet)).to.equal(false);
       expect(await walletManager.isSpecialWallet(wallet2)).to.equal(false);
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
 
       expect(await complianceService.getTotalInvestorsCount()).equal(1);
@@ -262,7 +261,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
 
       await walletManager.addPlatformWallet(platformWallet);
       expect(await walletManager.isSpecialWallet(platformWallet)).to.equal(true);
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
       expect(await complianceService.getTotalInvestorsCount()).equal(1);
 
@@ -281,7 +280,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
 
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
       expect(await walletManager.isSpecialWallet(wallet2)).to.equal(false);
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
 
       // The system has not investor because issuance was to a platform wallet
@@ -301,7 +300,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
 
       await walletManager.addPlatformWallet(wallet2);
       expect(await walletManager.isSpecialWallet(wallet2)).to.equal(true);
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
 
       // The system hasn't investor because issuance was to a platform wallet
@@ -326,7 +325,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokensCustom(platformWallet, 100, await time.latest(), 100, 'TEST', await time.latest() + 1000);
       const tokenFromPlatformWallet = await dsToken.connect(platformWallet);
       await tokenFromPlatformWallet.transfer(wallet, 100);
@@ -351,7 +350,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.USA);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
       const tokenFromInvestor = await dsToken.connect(wallet);
       await expect(tokenFromInvestor.transfer(wallet2, 100)).revertedWith('Under lock-up');
@@ -374,7 +373,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.USA);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
       const tokenFromInvestor = await dsToken.connect(wallet);
       await time.increase(370 * INVESTORS.Time.DAYS);
@@ -403,7 +402,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
 
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
       const tokenFromInvestor = await dsToken.connect(wallet);
       await tokenFromInvestor.transfer(wallet2, 100);
@@ -421,7 +420,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.CHINA);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
       await expect(dsToken.transfer(wallet2, 50)).revertedWith('Destination restricted');
     });
@@ -475,7 +474,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       const [owner, unauthorized] = await hre.ethers.getSigners();
       const { dsToken, registryService } = await loadFixture(deployDSTokenRegulated);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, owner, registryService);
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(owner, 100);
 
       const dsTokenFromUnauthorized = await dsToken.connect(unauthorized);
@@ -488,7 +487,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       expect(await complianceService.getTotalInvestorsCount()).equal(0);
 
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
       expect(await dsToken.balanceOf(wallet)).equal(100);
       expect(await complianceService.getTotalInvestorsCount()).equal(1);
@@ -503,7 +502,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
 
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 200);
       expect(await complianceService.getTotalInvestorsCount()).equal(1);
       await dsToken.connect(wallet).transfer(wallet2, 50);
@@ -517,7 +516,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       const { dsToken, complianceService, registryService } = await loadFixture(deployDSTokenRegulated);
       expect(await complianceService.getTotalInvestorsCount()).equal(0);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
       expect(await dsToken.balanceOf(wallet)).equal(100);
       expect(await complianceService.getTotalInvestorsCount()).equal(1);
@@ -533,7 +532,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       const { dsToken, complianceService, walletManager } = await loadFixture(deployDSTokenRegulated);
       expect(await complianceService.getTotalInvestorsCount()).equal(0);
       await walletManager.addPlatformWallet(wallet);
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
       expect(await dsToken.balanceOf(wallet)).equal(100);
       expect(await complianceService.getTotalInvestorsCount()).equal(0);
@@ -550,7 +549,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       const { dsToken, registryService } = await loadFixture(deployDSTokenRegulated);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, owner, registryService);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet, registryService);
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(owner, 100);
 
       const dsTokenFromUnauthorized = await dsToken.connect(unauthorized);
@@ -564,7 +563,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
 
       await walletManager.addIssuerWallet(platformWallet);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
       expect(await dsToken.balanceOf(wallet)).equal(100);
       expect(await complianceService.getTotalInvestorsCount()).equal(1);
@@ -578,7 +577,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       expect(await complianceService.getTotalInvestorsCount()).equal(0);
 
       await walletManager.addPlatformWallet(platformWallet2);
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(platformWallet2, 100);
       expect(await dsToken.balanceOf(platformWallet2)).equal(100);
       expect(await complianceService.getTotalInvestorsCount()).equal(0);
@@ -599,7 +598,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
       await dsToken.pause();
 
@@ -627,7 +626,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
       await walletManager.addIssuerWallet(wallet2);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
 
       const res = await complianceService.preTransferCheck(wallet, wallet2, 10);
@@ -642,7 +641,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
 
       await lockManager.addManualLockRecord(wallet, 95, '', await time.latest() + 1000);
@@ -674,7 +673,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.USA);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
 
       const res = await complianceService.preTransferCheck(wallet, wallet2, 10);
@@ -705,7 +704,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.FRANCE);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet2, 100);
 
       await complianceConfigurationService.setBlockFlowbackEndTime(1);
@@ -739,7 +738,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.FRANCE);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet2, 100);
 
       await complianceConfigurationService.setBlockFlowbackEndTime(1);
@@ -767,7 +766,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.USA);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
       await time.increase(370 * INVESTORS.Time.DAYS);
 
@@ -794,7 +793,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.GERMANY);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.FRANCE);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
       await time.increase(370 * INVESTORS.Time.DAYS);
       await complianceConfigurationService.setForceFullTransfer(false);
@@ -823,7 +822,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.FRANCE);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.USA);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
 
       const res = await complianceService.preTransferCheck(wallet, wallet2, 100);
@@ -848,7 +847,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.JAPAN);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.JAPAN);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
 
       const res = await complianceService.preTransferCheck(wallet, wallet2, 10);
@@ -873,7 +872,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
 
       await complianceConfigurationService.setMinimumHoldingsPerInvestor(50);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(wallet, 100);
 
       const res = await complianceService.preTransferCheck(wallet, wallet2, 99);
@@ -889,7 +888,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await complianceConfigurationService.setMinimumHoldingsPerInvestor(50);
       await walletManager.addPlatformWallet(platformWallet);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(investor, 100);
 
       const preCheck = await complianceService.preTransferCheck(investor, platformWallet, 10);
@@ -912,7 +911,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
       await walletManager.addPlatformWallet(platformWallet);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(investor, 200);
       await complianceConfigurationService.setMaximumHoldingsPerInvestor(100);
 
@@ -931,7 +930,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(investor, 200);
 
       await complianceConfigurationService.setMaximumHoldingsPerInvestor(100);
@@ -951,7 +950,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await walletManager.addPlatformWallet(platformWallet);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
 
-      await dsToken.setCap(1000);
+
       await dsToken.issueTokens(investor, 100);
       await complianceConfigurationService.setWorldWideForceFullTransfer(true);
 
@@ -987,7 +986,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, wallet, registryService);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, INVESTORS.Country.USA);
 
-      await dsToken.setCap(1000);
+
 
       await expect(dsToken.issueTokens(wallet, 100)).revertedWith('Only accredited');
     });
@@ -1002,7 +1001,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, wallet, registryService);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, INVESTORS.Country.USA);
 
-      await dsToken.setCap(1000);
+
 
       await expect(dsToken.issueTokens(wallet, 100)).revertedWith('Only us accredited');
     });
@@ -1017,7 +1016,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, wallet, registryService);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, INVESTORS.Country.USA);
 
-      await dsToken.setCap(1000);
+
 
       await expect(dsToken.issueTokens(wallet, 150)).revertedWith('Amount of tokens under min');
     });
@@ -1044,7 +1043,7 @@ describe('Compliance Service Regulated Unit Tests', function() {
       expect(res[0]).equal(0);
       expect(res[1]).equal('Valid');
 
-      await dsToken.setCap(1000);
+
       await expect(dsToken.issueTokens(platformWallet, 10)).not.to.be.reverted;
     });
 
@@ -1063,7 +1062,6 @@ describe('Compliance Service Regulated Unit Tests', function() {
       expect(largeIssuance[0]).equal(0);
       expect(largeIssuance[1]).equal('Valid');
 
-      await dsToken.setCap(2000);
       await expect(dsToken.issueTokens(platformWallet, 1000)).not.to.be.reverted;
     });
 
@@ -1235,8 +1233,6 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
 
-      await dsToken.setCap(10000);
-
       // Issue tokens at current time
       await time.latest();
       await dsToken.issueTokens(wallet, 100);
@@ -1274,8 +1270,6 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.USA);
-
-      await dsToken.setCap(10000);
 
       // Issue tokens to wallet1
       await dsToken.issueTokens(wallet, 100);
@@ -1327,8 +1321,6 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
 
-      await dsToken.setCap(10000);
-
       // First issuance
       await dsToken.issueTokens(wallet, 100);
 
@@ -1369,8 +1361,6 @@ describe('Compliance Service Regulated Unit Tests', function() {
 
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
-
-      await dsToken.setCap(10000);
 
       // Create multiple issuances
       await dsToken.issueTokens(wallet, 100); // Will expire
@@ -1413,8 +1403,6 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, euWallet, registryService);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
       await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.FRANCE);
-
-      await dsToken.setCap(10000);
 
       // Issue tokens to both investors at the same time
       await dsToken.issueTokens(usWallet, 100);
