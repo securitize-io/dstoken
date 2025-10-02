@@ -19,6 +19,7 @@
 pragma solidity 0.8.22;
 
 import {IDSTokenIssuer} from "./IDSTokenIssuer.sol";
+import {IDSRegistryService} from "../registry/IDSRegistryService.sol";
 import {BaseDSContract} from "../utils/BaseDSContract.sol";
 import {CommonUtils} from "../utils/CommonUtils.sol";
 
@@ -66,20 +67,22 @@ contract TokenIssuer is IDSTokenIssuer, BaseDSContract {
         uint256[] memory _attributeValues,
         uint256[] memory _attributeExpirations
     ) private {
+        IDSRegistryService registryService = getRegistryService();
+        uint8 EXPECTED_NUM_ATTRIBUTES = 3;
         // all parameters required or none for Token Issuer
-        require(_attributeValues.length == 0 || _attributeValues.length == 3, "Wrong length of parameters");
+        require(_attributeValues.length == 0 || _attributeValues.length == EXPECTED_NUM_ATTRIBUTES, "Wrong length of parameters");
         uint8[] memory attributesIds;
-        if (_attributeValues.length == 3) {
-            attributesIds = new uint8[](3);
-            attributesIds[0] = KYC_APPROVED;
-            attributesIds[1] = ACCREDITED;
-            attributesIds[2] = QUALIFIED;
+        if (_attributeValues.length == EXPECTED_NUM_ATTRIBUTES) {
+            attributesIds = new uint8[](EXPECTED_NUM_ATTRIBUTES);
+            attributesIds[0] = registryService.KYC_APPROVED();
+            attributesIds[1] = registryService.ACCREDITED();
+            attributesIds[2] = registryService.QUALIFIED();
         } else {
             attributesIds = new uint8[](0);
         }
         address[] memory investorWallets = new address[](1);
         investorWallets[0] = _wallet;
-        getRegistryService().updateInvestor(
+        registryService.updateInvestor(
             _id,
             _collisionHash,
             _country,
