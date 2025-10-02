@@ -22,12 +22,6 @@ abstract contract IDSTokenIssuer {
 
     function initialize() public virtual;
 
-    //Same values as IDSRegistryService
-    uint8 public constant KYC_APPROVED = 1;
-    uint8 public constant ACCREDITED = 2;
-    uint8 public constant QUALIFIED = 4;
-
-
     function issueTokens(
         string calldata _id,
         address _to,
