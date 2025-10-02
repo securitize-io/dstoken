@@ -383,7 +383,7 @@ describe('Registry Service Unit Tests', function() {
         await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
         await expect(
             registryService.addWallet(oldPlatformWallet, INVESTORS.INVESTOR_ID.INVESTOR_ID_1)
-        ).to.revertedWith('Wallet has token balance');
+        ).to.revertedWith('Wallet with positive balance');
       });
 
       it('Trying to remove the wallet with MASTER permissions', async function() {
