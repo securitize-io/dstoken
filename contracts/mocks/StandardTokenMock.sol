@@ -62,7 +62,7 @@ contract StandardTokenMock is StandardToken {
         revertFunction();
     }
 
-function updateInvestorBalance(address, uint256, CommonUtils.IncDec) internal pure override {
+    function updateInvestorBalance(address, uint256, CommonUtils.IncDec) internal pure override {
         revertFunction();
     }
 
