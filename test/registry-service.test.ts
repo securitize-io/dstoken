@@ -431,6 +431,17 @@ describe('Registry Service Unit Tests', function() {
         await expect(registryService.removeWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1)).to.revertedWith('Unknown wallet');
       });
 
+      it('Trying to remove a wallet with balance - should be an error', async function() {
+        const [investor] = await hre.ethers.getSigners();
+        const { registryService, dsToken } = await loadFixture(deployDSTokenRegulated);
+        await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
+        await registryService.addWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+        await dsToken.issueTokens(investor, 100);
+        expect(await dsToken.balanceOf(investor)).to.equal(100);
+
+        await expect(registryService.removeWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1)).to.revertedWith('Wallet with positive balance');
+      });
+
       it('Trying to remove the wallet with the wrong investor - should be an error', async function() {
         const [investor] = await hre.ethers.getSigners();
         const { registryService } = await loadFixture(deployDSTokenRegulated);

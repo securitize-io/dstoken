@@ -174,6 +174,7 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
 
     function removeWallet(address _address, string memory _id) public override onlyExchangeOrAbove walletExists(_address) walletBelongsToInvestor(_address, _id) returns (bool) {
         require(getTrustService().getRole(msg.sender) != EXCHANGE || investorsWallets[_address].creator == msg.sender, "Insufficient permissions");
+        require(getToken().balanceOf(_address) == 0, "Wallet with positive balance");
 
         delete investorsWallets[_address];
         investors[_id].walletCount--;
