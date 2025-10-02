@@ -52,7 +52,6 @@ library TokenLibrary {
         uint256[] _valuesLocked;
         uint64[] _releaseTimes;
         string _reason;
-        uint256 _cap;
         ISecuritizeRebasingProvider _rebasingProvider;
     }
 
@@ -78,11 +77,6 @@ library TokenLibrary {
         require(_params._to != address(0), "Invalid address");
         require(_params._value > 0, "Value is zero");
         require(_params._valuesLocked.length == _params._releaseTimes.length, "Wrong length of parameters");
-
-        uint256 totalIssuedTokens = _params._rebasingProvider.convertSharesToTokens(_tokenData.totalIssued);
-
-        //Make sure we are not hitting the cap
-        require(_params._cap == 0 || totalIssuedTokens + _params._value <= _params._cap, "Token Cap Hit");
 
         //Check issuance is allowed (and inform the compliance manager, possibly adding locks)
         IDSComplianceService(_services[COMPLIANCE_SERVICE]).validateIssuance(_params._to, _params._value, _params._issuanceTime);
