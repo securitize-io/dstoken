@@ -562,7 +562,7 @@ library ComplianceServiceLibrary {
 contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
     function initialize() public virtual override onlyProxy initializer {
-        super.initialize();
+        _initialize();
     }
 
     function compareInvestorBalance(
