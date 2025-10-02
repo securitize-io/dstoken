@@ -296,7 +296,7 @@ contract DSToken is StandardToken {
         updateInvestorBalance(_to, _value, CommonUtils.IncDec.Increase);
     }
 
-    function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal override returns (bool) {
+    function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal override {
         string memory investor = getRegistryService().getInvestor(_wallet);
         if (!CommonUtils.isEmptyString(investor)) {
             uint256 balance = balanceOfInvestor(investor);
@@ -312,8 +312,6 @@ contract DSToken is StandardToken {
 
             tokenData.investorsBalances[investor] = sharesBalance;
         }
-
-        return true;
     }
 
     function preTransferCheck(address _from, address _to, uint256 _value) public view override returns (uint256 code, string memory reason) {

@@ -126,7 +126,7 @@ abstract contract IDSToken is IERC20, Initializable {
 
     function balanceOfInvestor(string memory _id) public view virtual returns (uint256);
 
-    function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal virtual returns (bool);
+    function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal virtual;
 
     function preTransferCheck(address _from, address _to, uint256 _value) public view virtual returns (uint256 code, string memory reason);
 
