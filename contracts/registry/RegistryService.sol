@@ -163,7 +163,6 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
     function addWallet(address _address, string memory _id) public override onlyExchangeOrAbove investorExists(_id) newWallet(_address) returns (bool) {
         require(!getWalletManager().isSpecialWallet(_address), "Wallet has special role");
 
-
         investorsWallets[_address] = Wallet(_id, msg.sender, msg.sender);
         investors[_id].walletCount++;
 
