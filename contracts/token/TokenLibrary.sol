@@ -161,7 +161,7 @@ library TokenLibrary {
         updateInvestorBalance(_tokenData, registryService, _to, _shares, CommonUtils.IncDec.Increase);
     }
 
-    function updateInvestorBalance(TokenData storage _tokenData, IDSRegistryService _registryService, address _wallet, uint256 _shares, CommonUtils.IncDec _increase) internal returns (bool) {
+    function updateInvestorBalance(TokenData storage _tokenData, IDSRegistryService _registryService, address _wallet, uint256 _shares, CommonUtils.IncDec _increase) internal {
         string memory investor = _registryService.getInvestor(_wallet);
         if (!CommonUtils.isEmptyString(investor)) {
             uint256 balance = _tokenData.investorsBalances[investor];
@@ -172,7 +172,5 @@ library TokenLibrary {
             }
             _tokenData.investorsBalances[investor] = balance;
         }
-
-        return true;
     }
 }
