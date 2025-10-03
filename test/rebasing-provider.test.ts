@@ -110,7 +110,50 @@ describe("Rebasing", function () {
       const maxTokens = ethers.MaxUint256;
 
       await expect(mock.convertTokensToShares(maxTokens, multiplier, 0)).to.be.revertedWithPanic(0x11);
-    });    
+    });   
+    
+    it("should revert when non-zero tokens round down to zero shares (unrealistic scenario)", async function () {
+      const { mock } = await loadFixture(deployRebasingLibraryMock);
+      // NOTE: This is an UNREALISTIC scenario kept for edge case documentation.
+      //
+      // With "round to nearest" logic, we need an extremely high multiplier
+      // to make even 1 token with 0 decimals round down to 0 shares.
+      //
+      // Formula: shares = (tokens * scale * 1e18 + multiplier/2) / multiplier
+      // For shares to be 0: tokens * scale * 1e18 + multiplier/2 < multiplier
+      // With tokens=1, decimals=0 (scale=1e18): 1e36 + multiplier/2 < multiplier
+      // Simplifying: 1e36 < multiplier/2 → multiplier > 2e36
+      //
+      // IMPORTANT: A multiplier of 2e36 is unrealistic because:
+      // - Multipliers are expressed with 18 decimals precision
+      // - A value of 2e36 represents an absolute multiplier value of 2,000,000,000,000,000,000
+      // - In practice, multipliers would be in the range of 0.1 to 1000 (1e17 to 1000e18)
+      // - This test uses a multiplier with effectively 36 decimals, far beyond realistic values
+      const tinyTokens = 1n;
+      const extremeMultiplier = 2n * 10n**36n + 1n; // Unrealistic: effectively 36 decimals
+
+      await expect(mock.convertTokensToShares(tinyTokens, extremeMultiplier, 0)).to.be.revertedWith(
+        "Shares amount too small"
+      );
+    });
+
+    it("should NOT revert with realistic multipliers (18 decimals) even for tiny amounts", async function () {
+      const { mock } = await loadFixture(deployRebasingLibraryMock);
+      // This test demonstrates that with realistic multipliers (18 decimals),
+      // the "round to nearest" logic ensures that tokens > 0 always results in shares > 0
+
+      // Test with extremely high but realistic multiplier: 1,000,000 (1e6 in absolute value)
+      const realisticHighMultiplier = ethers.parseUnits("1000000", 18); // 1e6 * 1e18 = 1e24
+      const tinyTokens = 1n;
+
+      // With decimals=0, scale=1e18:
+      // shares = (1 * 1e18 * 1e18 + 1e24/2) / 1e24
+      //        = (1e36 + 0.5e24) / 1e24
+      //        = 1e36 / 1e24 (approximately, since 0.5e24 is negligible)
+      //        = 1e12 (much greater than 0)
+      const shares = await mock.convertTokensToShares(tinyTokens, realisticHighMultiplier, 0);
+      expect(shares).to.be.gt(0);
+    }); 
   });
   
 
