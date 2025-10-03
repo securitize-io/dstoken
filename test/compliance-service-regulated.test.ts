@@ -1316,220 +1316,222 @@ describe('Compliance Service Regulated Unit Tests', function() {
   });
 
   describe('Clean Investor Issuances Functionality', function() {
-    it('should clean expired issuances during recordIssuance', async function() {
-      const [wallet] = await hre.ethers.getSigners();
-      const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployDSTokenRegulated);
+    // Deploy with Mock Compliance Service to access internal state
+    async function deployWithMockCompliance() {
+      const name = 'Token Example 1';
+      const symbol = 'TX1';
+      const decimals = 2;
 
-      // Set US lock period to 1 day for testing
-      await complianceConfigurationService.setAll(
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 86400, 0, 0], // 86400 = 1 day in seconds
-        [false, false, false, false, false]
-      );
-      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+      // Deploy using the 'REGULATED_MOCK' compliance type
+      const contracts = await hre.run('deploy-all', { name, symbol, decimals, compliance: 'REGULATED_MOCK' });
 
-      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
-      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
+      return contracts;
+    }
 
-      // Issue tokens at current time
-      await time.latest();
-      await dsToken.issueTokens(wallet, 100);
+    describe('Issuances Array Cleanup', function() {
+      it('should directly verify issuances array is cleaned when single issuance expires', async function() {
+        const [wallet] = await hre.ethers.getSigners();
+        const { dsToken, registryService, complianceConfigurationService, complianceService, rebasingProvider } = await loadFixture(deployWithMockCompliance);
 
-      // Move forward 2 days (past the 1 day lock period)
-      await time.increase(2 * 86400);
+        // Set US lock period to 1 day for testing
+        await complianceConfigurationService.setAll(
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 86400, 0, 0],
+          [false, false, false, false, false]
+        );
+        await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
 
-      // Issue more tokens - this should trigger cleanup of the first issuance
-      await dsToken.issueTokens(wallet, 200);
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
 
-      // Check that the old issuance was cleaned up by checking transferable tokens
-      const transferableTokens = await complianceService.getComplianceTransferableTokens(
-        wallet,
-        await time.latest(),
-        86400
-      );
+        // Issue 100 tokens
+        await dsToken.issueTokens(wallet, 100);
 
-      // Only the first issuance (100 tokens) should be transferable since it expired
-      // The second issuance (200 tokens) should still be locked
-      expect(transferableTokens).to.equal(100);
-    });
+        // Verify issuance was recorded
+        let issuancesCount = await complianceService.getIssuancesCount(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+        expect(issuancesCount).to.equal(1);
 
-    it('should clean expired issuances during recordTransfer', async function() {
-      const [wallet, wallet2] = await hre.ethers.getSigners();
-      const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployDSTokenRegulated);
+        // Move forward 2 days (past the 1 day lock period)
+        await time.increase(2 * 86400);
 
-      // Set US lock period to 1 day for testing
-      await complianceConfigurationService.setAll(
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 86400, 0, 0], // 86400 = 1 day in seconds
-        [false, false, false, false, false]
-      );
-      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+        // Issue more tokens - should trigger cleanup
+        await dsToken.issueTokens(wallet, 200);
 
-      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
-      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
-      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
-      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.USA);
+        // Verify old issuance was cleaned up
+        issuancesCount = await complianceService.getIssuancesCount(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+        expect(issuancesCount).to.equal(1); // Only the new issuance should remain
 
-      // Issue tokens to wallet1
-      await dsToken.issueTokens(wallet, 100);
+        // Verify the remaining issuance is the new one (200 tokens worth of shares)
+        const issuanceValueInShares = await complianceService.getIssuanceValue(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, 0);
+        const expectedShares = await rebasingProvider.convertTokensToShares(200);
+        expect(issuanceValueInShares).to.equal(expectedShares);
+      });
 
-      // Issue tokens to wallet2 at a different time
-      await time.increase(3600); // 1 hour later
-      await dsToken.issueTokens(wallet2, 50);
+      it('should directly verify multiple expired issuances are cleaned from array', async function() {
+        const [wallet] = await hre.ethers.getSigners();
+        const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployWithMockCompliance);
 
-      // Move forward 2 days (past the 1 day lock period for first issuance)
-      await time.increase(2 * 86400);
+        // Set US lock period to 1 day
+        await complianceConfigurationService.setAll(
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 86400, 0, 0],
+          [false, false, false, false, false]
+        );
+        await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
 
-      // Transfer should trigger cleanup for both wallets
-      await dsToken.connect(wallet).transfer(wallet2, 50);
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
 
-      // Check that cleanup happened by verifying transferable tokens
-      const transferableTokensWallet1 = await complianceService.getComplianceTransferableTokens(
-        wallet,
-        await time.latest(),
-        86400
-      );
+        // Create 3 issuances that will expire
+        await dsToken.issueTokens(wallet, 100);
+        await time.increase(3600); // 1 hour
+        await dsToken.issueTokens(wallet, 200);
+        await time.increase(3600); // 1 hour
+        await dsToken.issueTokens(wallet, 300);
 
-      const transferableTokensWallet2 = await complianceService.getComplianceTransferableTokens(
-        wallet2,
-        await time.latest(),
-        86400
-      );
+        // Verify we have 3 issuances
+        let issuancesCount = await complianceService.getIssuancesCount(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+        expect(issuancesCount).to.equal(3);
 
-      // wallet1 should have 50 remaining tokens, all transferable since first issuance expired
-      expect(transferableTokensWallet1).to.equal(50);
+        // Move forward 2 days (all 3 issuances expire)
+        await time.increase(2 * 86400);
 
-      // wallet2 should have 100 tokens (50 original + 50 transferred)
-      // The transferred tokens don't inherit lock periods, so wallet2 balance matters more
-      // Let's check what the actual transferable amount is
-      console.log("Wallet2 transferable tokens:", transferableTokensWallet2.toString());
-      expect(transferableTokensWallet2).to.be.gte(0); // Just check it's not negative for now
-    });
+        // New issuance should clean all 3 expired ones
+        await dsToken.issueTokens(wallet, 400);
 
-    it('should preserve locked issuances and only clean expired ones', async function() {
-      const [wallet] = await hre.ethers.getSigners();
-      const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployDSTokenRegulated);
+        // Verify all old issuances were cleaned
+        issuancesCount = await complianceService.getIssuancesCount(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+        expect(issuancesCount).to.equal(1); // Only the new issuance should remain
+      });
 
-      // Set US lock period to 2 days for testing
-      await complianceConfigurationService.setAll(
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 172800, 0, 0], // 172800 = 2 days in seconds
-        [false, false, false, false, false]
-      );
-      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+      it('should verify partial cleanup - some expired, some still locked', async function() {
+        const [wallet] = await hre.ethers.getSigners();
+        const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployWithMockCompliance);
 
-      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
-      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
+        // Set US lock period to 2 days
+        await complianceConfigurationService.setAll(
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 172800, 0, 0], // 2 days
+          [false, false, false, false, false]
+        );
+        await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
 
-      // First issuance
-      await dsToken.issueTokens(wallet, 100);
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
 
-      // Move forward 1 day
-      await time.increase(86400);
+        // First issuance - will expire
+        const firstTimestamp = await time.latest();
+        await dsToken.issueTokens(wallet, 100);
 
-      // Second issuance
-      await dsToken.issueTokens(wallet, 200);
+        // Move forward 1 day
+        await time.increase(86400);
 
-      // Move forward 1.5 days (total 2.5 days from first issuance, 1.5 days from second)
-      await time.increase(129600); // 1.5 days
+        // Second issuance - will NOT expire
+        const secondTimestamp = await time.latest();
+        await dsToken.issueTokens(wallet, 200);
 
-      // Third issuance - should clean first but preserve second
-      await dsToken.issueTokens(wallet, 300);
+        // Move forward 1.5 days (total 2.5 days from first, 1.5 days from second)
+        await time.increase(129600);
 
-      // Check transferable tokens
-      const transferableTokens = await complianceService.getComplianceTransferableTokens(
-        wallet,
-        await time.latest(),
-        172800 // 2 days lock period
-      );
+        // Third issuance - this will also trigger cleanup, removing the first expired issuance
+        await dsToken.issueTokens(wallet, 300);
 
-      // Only first issuance (100 tokens) should be transferable
-      // Second issuance (200 tokens) and third issuance (300 tokens) should still be locked
-      expect(transferableTokens).to.equal(100);
-    });
+        // After third issuance, first should already be cleaned
+        // We should have 2 issuances (second, third)
+        let issuancesCount = await complianceService.getIssuancesCount(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+        expect(issuancesCount).to.equal(2);
 
-    it('should handle multiple expired issuances correctly', async function() {
-      const [wallet] = await hre.ethers.getSigners();
-      const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployDSTokenRegulated);
+        // Fourth issuance should NOT clean anything (no new expirations)
+        await dsToken.issueTokens(wallet, 400);
 
-      // Set US lock period to 1 day for testing
-      await complianceConfigurationService.setAll(
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 86400, 0, 0], // 86400 = 1 day in seconds
-        [false, false, false, false, false]
-      );
-      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+        // Verify we now have 3 issuances (second, third, fourth)
+        issuancesCount = await complianceService.getIssuancesCount(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+        expect(issuancesCount).to.equal(3);
 
-      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
-      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
+        // Verify the timestamps of remaining issuances are newer than the first
+        const remainingTimestamp0 = await complianceService.getIssuanceTimestamp(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, 0);
+        const remainingTimestamp1 = await complianceService.getIssuanceTimestamp(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, 1);
+        const remainingTimestamp2 = await complianceService.getIssuanceTimestamp(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, 2);
 
-      // Create multiple issuances
-      await dsToken.issueTokens(wallet, 100); // Will expire
-      await time.increase(3600); // 1 hour
-      await dsToken.issueTokens(wallet, 200); // Will expire
-      await time.increase(3600); // 1 hour
-      await dsToken.issueTokens(wallet, 300); // Will expire
+        // All remaining timestamps should be >= secondTimestamp (first one was cleaned)
+        expect(remainingTimestamp0).to.be.gte(secondTimestamp);
+        expect(remainingTimestamp1).to.be.gte(secondTimestamp);
+        expect(remainingTimestamp2).to.be.gte(secondTimestamp);
+      });
 
-      // Move forward 2 days (all previous issuances should expire)
-      await time.increase(2 * 86400);
+      it('should verify no cleanup occurs when no issuances have expired', async function() {
+        const [wallet] = await hre.ethers.getSigners();
+        const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployWithMockCompliance);
 
-      // New issuance should clean all expired ones
-      await dsToken.issueTokens(wallet, 400);
+        // Set US lock period to 10 days
+        await complianceConfigurationService.setAll(
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 864000, 0, 0], // 10 days
+          [false, false, false, false, false]
+        );
+        await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
 
-      // Check transferable tokens
-      const transferableTokens = await complianceService.getComplianceTransferableTokens(
-        wallet,
-        await time.latest(),
-        86400
-      );
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
 
-      // All 1000 tokens should be transferable: 600 from expired issuances + 400 locked from new issuance
-      // But only the 600 from expired issuances should be transferable
-      expect(transferableTokens).to.equal(600);
-    });
+        // Create 2 issuances
+        await dsToken.issueTokens(wallet, 100);
+        await time.increase(3600); // 1 hour
+        await dsToken.issueTokens(wallet, 200);
 
-    it('should work correctly with different lock periods for US vs non-US investors', async function() {
-      const [usWallet, euWallet] = await hre.ethers.getSigners();
-      const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployDSTokenRegulated);
+        // Verify we have 2 issuances
+        let issuancesCount = await complianceService.getIssuancesCount(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+        expect(issuancesCount).to.equal(2);
 
-      // Set different lock periods: US = 2 days, Non-US = 1 day
-      await complianceConfigurationService.setAll(
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 172800, 86400, 0], // US: 172800 (2 days), Non-US: 86400 (1 day)
-        [false, false, false, false, false]
-      );
-      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
-      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.FRANCE, INVESTORS.Compliance.EU);
+        // Move forward only 1 day (not enough to expire with 10 day lock period)
+        await time.increase(86400);
 
-      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, usWallet, registryService);
-      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, euWallet, registryService);
-      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
-      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.FRANCE);
+        // New issuance should NOT clean anything
+        await dsToken.issueTokens(wallet, 300);
 
-      // Issue tokens to both investors at the same time
-      await dsToken.issueTokens(usWallet, 100);
-      await dsToken.issueTokens(euWallet, 100);
+        // Verify all issuances still exist
+        issuancesCount = await complianceService.getIssuancesCount(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+        expect(issuancesCount).to.equal(3); // All 3 issuances should remain
+      });
 
-      // Move forward 1.5 days
-      await time.increase(129600); // 1.5 days
+      it('should verify cleanup also happens during transfer, not just issuance', async function() {
+        const [wallet, wallet2] = await hre.ethers.getSigners();
+        const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployWithMockCompliance);
 
-      // Issue more tokens - should clean EU investor's expired issuance but not US investor's
-      await dsToken.issueTokens(usWallet, 200);
-      await dsToken.issueTokens(euWallet, 200);
+        // Set US lock period to 1 day
+        await complianceConfigurationService.setAll(
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 86400, 0, 0],
+          [false, false, false, false, false]
+        );
+        await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
 
-      // Check transferable tokens for both investors
-      const currentTime = await time.latest();
-      const usTransferableTokens = await complianceService.getComplianceTransferableTokens(
-        usWallet,
-        currentTime,
-        172800 // 2 days
-      );
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.USA);
 
-      const euTransferableTokens = await complianceService.getComplianceTransferableTokens(
-        euWallet,
-        currentTime,
-        86400 // 1 day
-      );
+        // Issue tokens to wallet1
+        await dsToken.issueTokens(wallet, 100);
 
-      // US investor: first issuance still locked, only new issuance should be locked
-      expect(usTransferableTokens).to.equal(0); // Both issuances still locked
+        // Verify issuance recorded
+        let issuancesCount = await complianceService.getIssuancesCount(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+        expect(issuancesCount).to.equal(1);
 
-      // EU investor: first issuance should be transferable, new issuance locked
-      expect(euTransferableTokens).to.equal(100); // First issuance was cleaned and is transferable
+        // Move forward 2 days (issuance expires)
+        await time.increase(2 * 86400);
+
+        // Issue new tokens to wallet1
+        await dsToken.issueTokens(wallet, 200);
+
+        // After new issuance, should have cleaned expired and have only 1
+        issuancesCount = await complianceService.getIssuancesCount(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+        expect(issuancesCount).to.equal(1);
+
+        // Move forward another 2 days
+        await time.increase(2 * 86400);
+
+        // Transfer should trigger cleanup for sender
+        await dsToken.connect(wallet).transfer(wallet2, 50);
+
+        // After transfer, the sender's old issuance should be cleaned
+        issuancesCount = await complianceService.getIssuancesCount(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+        expect(issuancesCount).to.equal(0); // All expired issuances cleaned
+      });
     });
   });
