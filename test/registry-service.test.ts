@@ -239,7 +239,6 @@ describe('Registry Service Unit Tests', function() {
 
         // Set initial country and issue tokens
         await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
-        await dsToken.setCap(1000);
         await dsToken.issueTokens(wallet, 100);
 
         // Verify initial state: 1 US investor
@@ -264,7 +263,7 @@ describe('Registry Service Unit Tests', function() {
 
         // Set initial country and issue tokens
         await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
-        await dsToken.setCap(1000);
+
         await dsToken.issueTokens(wallet, 100);
 
         // Verify initial state: 1 US investor
@@ -374,6 +373,18 @@ describe('Registry Service Unit Tests', function() {
         expect(await registryService['isQualifiedInvestor(string)'](INVESTORS.INVESTOR_ID.INVESTOR_ID_1)).to.equal(false);
       });
 
+      it('Trying to add a new wallet with DSToken balance', async function() {
+        const [oldPlatformWallet] = await hre.ethers.getSigners();
+        const { registryService, walletManager, dsToken } = await loadFixture(deployDSTokenRegulated);
+        await walletManager.addPlatformWallet(oldPlatformWallet);
+        await dsToken.issueTokens(oldPlatformWallet, 10);
+        await walletManager.removeSpecialWallet(oldPlatformWallet);
+        await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
+        await expect(
+            registryService.addWallet(oldPlatformWallet, INVESTORS.INVESTOR_ID.INVESTOR_ID_1)
+        ).to.revertedWith('Wallet with positive balance');
+      });
+
       it('Trying to remove the wallet with MASTER permissions', async function() {
         const [owner, investor] = await hre.ethers.getSigners();
         const { registryService } = await loadFixture(deployDSTokenRegulated);
@@ -429,6 +440,17 @@ describe('Registry Service Unit Tests', function() {
         const [investor] = await hre.ethers.getSigners();
         const { registryService } = await loadFixture(deployDSTokenRegulated);
         await expect(registryService.removeWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1)).to.revertedWith('Unknown wallet');
+      });
+
+      it('Trying to remove a wallet with balance - should be an error', async function() {
+        const [investor] = await hre.ethers.getSigners();
+        const { registryService, dsToken } = await loadFixture(deployDSTokenRegulated);
+        await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
+        await registryService.addWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+        await dsToken.issueTokens(investor, 100);
+        expect(await dsToken.balanceOf(investor)).to.equal(100);
+
+        await expect(registryService.removeWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1)).to.revertedWith('Wallet with positive balance');
       });
 
       it('Trying to remove the wallet with the wrong investor - should be an error', async function() {

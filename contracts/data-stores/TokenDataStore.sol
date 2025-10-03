@@ -31,7 +31,7 @@ contract TokenDataStore is ServiceConsumerDataStore {
     // These two variables replace the 2-slot TokenPartitions struct to preserve storage layout
     address internal DEPRECATED_PARTITIONS_WALLETS;
     address internal DEPRECATED_PARTITIONS_BALANCES;
-    uint256 public cap;
+    uint256 public DEPRECATED_CAP;
     string public name;
     string public symbol;
     uint8 public decimals;
