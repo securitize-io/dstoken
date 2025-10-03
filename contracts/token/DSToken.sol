@@ -59,12 +59,6 @@ contract DSToken is StandardToken {
         supportedFeatures.value = features;
     }
 
-    function setCap(uint256 _cap) public override onlyTransferAgentOrAbove {
-        require(cap == 0, "Token cap already set");
-        require(_cap > 0);
-        cap = _cap;
-    }
-
     function totalIssued() public view returns (uint256) {
         ISecuritizeRebasingProvider rebasingProvider = getRebasingProvider();
         uint256 tokens = rebasingProvider.convertSharesToTokens(tokenData.totalIssued);
@@ -135,7 +129,6 @@ contract DSToken is StandardToken {
             _valuesLocked: _valuesLocked,
             _releaseTimes: _releaseTimes,
             _reason: _reason,
-            _cap: cap,
             _rebasingProvider: rebasingProvider
         });
         uint256 shares = TokenLibrary.issueTokensCustom(
