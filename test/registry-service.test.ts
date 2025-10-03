@@ -374,6 +374,18 @@ describe('Registry Service Unit Tests', function() {
         expect(await registryService['isQualifiedInvestor(string)'](INVESTORS.INVESTOR_ID.INVESTOR_ID_1)).to.equal(false);
       });
 
+      it('Trying to add a new wallet with DSToken balance', async function() {
+        const [oldPlatformWallet] = await hre.ethers.getSigners();
+        const { registryService, walletManager, dsToken } = await loadFixture(deployDSTokenRegulated);
+        await walletManager.addPlatformWallet(oldPlatformWallet);
+        await dsToken.issueTokens(oldPlatformWallet, 10);
+        await walletManager.removeSpecialWallet(oldPlatformWallet);
+        await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
+        await expect(
+            registryService.addWallet(oldPlatformWallet, INVESTORS.INVESTOR_ID.INVESTOR_ID_1)
+        ).to.revertedWith('Wallet with positive balance');
+      });
+
       it('Trying to remove the wallet with MASTER permissions', async function() {
         const [owner, investor] = await hre.ethers.getSigners();
         const { registryService } = await loadFixture(deployDSTokenRegulated);
