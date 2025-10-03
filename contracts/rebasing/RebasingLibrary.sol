@@ -67,14 +67,21 @@ library RebasingLibrary {
         uint8 _tokenDecimals
     ) internal pure returns (uint256) {
         require(_rebasingMultiplier > 0, "Invalid rebasing multiplier");
+        uint256 shares;        
         if (_tokenDecimals == 18) {
-            return (_tokens * DECIMALS_FACTOR + _rebasingMultiplier / 2) / _rebasingMultiplier;
+            shares = (_tokens * DECIMALS_FACTOR + _rebasingMultiplier / 2) / _rebasingMultiplier;
         } else if (_tokenDecimals < 18) {
             uint256 scale = 10**(18 - _tokenDecimals);
-            return (_tokens * scale * DECIMALS_FACTOR + _rebasingMultiplier / 2) / _rebasingMultiplier;
+            shares = (_tokens * scale * DECIMALS_FACTOR + _rebasingMultiplier / 2) / _rebasingMultiplier;
         } else {
             revert("Token decimals greater than 18 not supported");
         }
+
+
+        if (_tokens > 0) {
+            require(shares > 0, "Shares amount too small");
+        }
+        return shares;        
     }
 
     /**
