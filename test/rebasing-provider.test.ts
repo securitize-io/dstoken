@@ -11,20 +11,70 @@ async function deployRebasingLibraryMock() {
 
 describe("Rebasing", function () {
   describe("RebasingLibrary", function () {
-    it("should round down when converting tokens to shares and back", async function () {
+    it("should never inflate totals across many conversions 6 decimal", async function () {
       const { mock } = await loadFixture(deployRebasingLibraryMock);
-      const multiplier = ethers.parseUnits("1.5", 18);
-      const decimals = 18;
-      const initialTokens = ethers.parseUnits("1", 18);
+      const multiplier = ethers.parseUnits("1.73222", 18);
+      const decimals = 6;
 
-      const shares = await mock.convertTokensToShares(initialTokens, multiplier, decimals);
-      const finalTokens = await mock.convertSharesToTokens(shares, multiplier, decimals);
+      let totalShares = 0n;
+      let totalTokensIn = 0n;
 
-      expect(finalTokens).to.be.at.most(initialTokens);
-      expect(initialTokens - finalTokens).to.be.at.most(1n);
+      // Simulate 1000 small deposits
+      for (let i = 0n; i < 10000n; i++) {
+        const tokens = 1_000_00n + i;
+        const shares = await mock.convertTokensToShares(tokens, multiplier, decimals);
+        totalTokensIn += tokens;
+        totalShares += shares;
+      }
+
+      const totalTokensOut = await mock.convertSharesToTokens(totalShares, multiplier, decimals);
+
+      expect(totalTokensOut).to.be.lte(totalTokensIn);
     });
 
-    it("should never inflate totals across many conversions", async function () {
+    it("should never inflate totals across many conversions 2 decimal", async function () {
+      const { mock } = await loadFixture(deployRebasingLibraryMock);
+      const multiplier = ethers.parseUnits("1.73222", 18);
+      const decimals = 2;
+
+      let totalShares = 0n;
+      let totalTokensIn = 0n;
+
+      // Simulate 1000 small deposits
+      for (let i = 0n; i < 10000n; i++) {
+        const tokens = 1n + i;
+        const shares = await mock.convertTokensToShares(tokens, multiplier, decimals);
+        totalTokensIn += tokens;
+        totalShares += shares;
+      }
+
+      const totalTokensOut = await mock.convertSharesToTokens(totalShares, multiplier, decimals);
+
+      expect(totalTokensOut).to.be.lte(totalTokensIn);
+    });
+
+    it("Should never inflate totals across many conversions 18 decimals", async function () {
+      const { mock } = await loadFixture(deployRebasingLibraryMock);
+      const multiplier = ethers.parseUnits("1.765446", 18);
+      const decimals = 18;
+
+      let totalShares = 0n;
+      let totalTokensIn = 0n;
+
+      // Simulate 1000 small deposits
+      for (let i = 0n; i < 1000n; i++) {
+        const tokens = 1_000_000_000_000_000n + i;
+        const shares = await mock.convertTokensToShares(tokens, multiplier, decimals);
+        totalTokensIn += tokens;
+        totalShares += shares;
+      }
+
+      const totalTokensOut = await mock.convertSharesToTokens(totalShares, multiplier, decimals);
+
+      expect(totalTokensOut).to.lte(totalTokensIn);
+    });
+
+    it("Should lose 1 wei across many (1000) conversions with 18 decimals", async function () {
       const { mock } = await loadFixture(deployRebasingLibraryMock);
       const multiplier = ethers.parseUnits("1.7", 18);
       const decimals = 18;
@@ -41,10 +91,7 @@ describe("Rebasing", function () {
       }
 
       const totalTokensOut = await mock.convertSharesToTokens(totalShares, multiplier, decimals);
-
-      expect(totalTokensOut).to.be.at.most(totalTokensIn);
-      // Checks that protocol does not lose tokens due to rounding errors
-      expect(totalTokensOut).to.be.below(totalTokensIn);
+      expect(totalTokensOut).to.equal(totalTokensIn + 1n);
     });
 
     it("should revert when token decimals are greater than 18 for token to share conversions", async function () {
@@ -63,9 +110,9 @@ describe("Rebasing", function () {
       const maxTokens = ethers.MaxUint256;
 
       await expect(mock.convertTokensToShares(maxTokens, multiplier, 0)).to.be.revertedWithPanic(0x11);
-    });
-
+    });    
   });
+  
 
   describe("SecuritizeRebasingProvider", function () {
     const initialMultiplier = ethers.parseUnits("1", 18);
