@@ -30,14 +30,14 @@ contract RegistryServiceDataStore is ServiceConsumerDataStore {
     struct Wallet {
         string owner;
         address creator;
-        address lastUpdatedBy;
+        address DEPRECATED_lastUpdatedBy;
     }
 
     struct Investor {
         string id;
         string collisionHash;
         address creator;
-        address lastUpdatedBy;
+        address DEPRECATED_lastUpdatedBy;
         string country;
         uint256 walletCount;
         // Mappings outside Storage

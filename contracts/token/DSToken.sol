@@ -59,12 +59,6 @@ contract DSToken is StandardToken {
         supportedFeatures.value = features;
     }
 
-    function setCap(uint256 _cap) public override onlyTransferAgentOrAbove {
-        require(cap == 0, "Token cap already set");
-        require(_cap > 0);
-        cap = _cap;
-    }
-
     function totalIssued() public view returns (uint256) {
         ISecuritizeRebasingProvider rebasingProvider = getRebasingProvider();
         uint256 tokens = rebasingProvider.convertSharesToTokens(tokenData.totalIssued);
@@ -135,7 +129,6 @@ contract DSToken is StandardToken {
             _valuesLocked: _valuesLocked,
             _releaseTimes: _releaseTimes,
             _reason: _reason,
-            _cap: cap,
             _rebasingProvider: rebasingProvider
         });
         uint256 shares = TokenLibrary.issueTokensCustom(
@@ -296,7 +289,7 @@ contract DSToken is StandardToken {
         updateInvestorBalance(_to, _value, CommonUtils.IncDec.Increase);
     }
 
-    function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal override returns (bool) {
+    function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal override {
         string memory investor = getRegistryService().getInvestor(_wallet);
         if (!CommonUtils.isEmptyString(investor)) {
             uint256 balance = balanceOfInvestor(investor);
@@ -312,8 +305,6 @@ contract DSToken is StandardToken {
 
             tokenData.investorsBalances[investor] = sharesBalance;
         }
-
-        return true;
     }
 
     function preTransferCheck(address _from, address _to, uint256 _value) public view override returns (uint256 code, string memory reason) {

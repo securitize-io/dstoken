@@ -116,7 +116,6 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
             getComplianceService().adjustInvestorCountsAfterCountryChange(_id, _country, prevCountry);
 
             investors[_id].country = _country;
-            investors[_id].lastUpdatedBy = msg.sender;
 
             emit DSRegistryServiceInvestorCountryChanged(_id, _country, msg.sender);
         }
@@ -143,7 +142,6 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
         attributes[_id][_attributeId].value = _value;
         attributes[_id][_attributeId].expiry = _expiry;
         attributes[_id][_attributeId].proofHash = _proofHash;
-        investors[_id].lastUpdatedBy = msg.sender;
 
         emit DSRegistryServiceInvestorAttributeChanged(_id, _attributeId, _value, _expiry, _proofHash, msg.sender);
 
@@ -164,7 +162,7 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
 
     function addWallet(address _address, string memory _id) public override onlyExchangeOrAbove investorExists(_id) newWallet(_address) returns (bool) {
         require(!getWalletManager().isSpecialWallet(_address), "Wallet has special role");
-
+        require(getToken().balanceOf(_address) == 0, "Wallet with positive balance");
         investorsWallets[_address] = Wallet(_id, msg.sender, msg.sender);
         investors[_id].walletCount++;
 
@@ -176,6 +174,7 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
 
     function removeWallet(address _address, string memory _id) public override onlyExchangeOrAbove walletExists(_address) walletBelongsToInvestor(_address, _id) returns (bool) {
         require(getTrustService().getRole(msg.sender) != EXCHANGE || investorsWallets[_address].creator == msg.sender, "Insufficient permissions");
+        require(getToken().balanceOf(_address) == 0, "Wallet with positive balance");
 
         delete investorsWallets[_address];
         investors[_id].walletCount--;

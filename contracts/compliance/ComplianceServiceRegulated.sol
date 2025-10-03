@@ -66,6 +66,22 @@ library ComplianceServiceLibrary {
         bool isPlatformWalletTo;
     }
 
+    /**
+     * @notice Determines if a wallet belongs to a retail investor for EU classification purposes.
+     * @dev WARNING: This function should ONLY be used for EU investors.
+     *      For EU investors, retail classification is based solely on the "Qualified" attribute.
+     *      For US investors, the correct definition of non-retail would require checking both
+     *      !isQualifiedInvestor() AND !isAccreditedInvestor(), as both Qualified Purchasers
+     *      and Accredited Investors are considered non-retail in US securities law.
+     *
+     *      Current usage: This function is correctly used only within EU region checks
+     *      (toRegion == EU) throughout the codebase. Do not use this function for US investors
+     *      or other jurisdictions without proper modification.
+     *
+     * @param _services Array of service addresses
+     * @param _wallet Address of the wallet to check
+     * @return bool True if the wallet is a retail investor (not qualified), false otherwise
+     */
     function isRetail(address[] memory _services, address _wallet) internal view returns (bool) {
         IDSRegistryService registry = IDSRegistryService(_services[REGISTRY_SERVICE]);
 
@@ -122,17 +138,19 @@ library ComplianceServiceLibrary {
         bool _isUSLockPeriod,
         bool _isPlatformWalletFrom
     ) internal view returns (bool) {
-        ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
-        uint256 lockPeriod;
-        if (_isUSLockPeriod) {
-            lockPeriod = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSLockPeriod();
-        } else {
-            lockPeriod = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUSLockPeriod();
-        }
+        if (!_isPlatformWalletFrom) {
+            ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
+            uint256 lockPeriod;
+            if (_isUSLockPeriod) {
+                lockPeriod = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getUSLockPeriod();
+            } else {
+                lockPeriod = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonUSLockPeriod();
+            }
 
-        return
-        !_isPlatformWalletFrom &&
-        complianceService.getComplianceTransferableTokens(_from, block.timestamp, uint64(lockPeriod)) < _value;
+            return
+                complianceService.getComplianceTransferableTokens(_from, block.timestamp, uint64(lockPeriod)) < _value;
+        }
+        return false;
     }
 
     function maxInvestorsInCategoryForNonAccredited(
@@ -336,7 +354,7 @@ library ComplianceServiceLibrary {
             uint256 usInvestorsLimit = getUSInvestorsLimit(_services);
             if (
                 usInvestorsLimit != 0 &&
-                _args.fromInvestorBalance > _args.value &&
+                (_args.fromRegion != US || _args.fromInvestorBalance > _args.value) &&
                 ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getUSInvestorsCount() >= usInvestorsLimit &&
                 isNewInvestor(toInvestorBalance)
             ) {
@@ -420,16 +438,17 @@ library ComplianceServiceLibrary {
         uint256 _value
     ) public view returns (uint256 code, string memory reason) {
         ComplianceServiceRegulated complianceService = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]);
+
+        if (!complianceService.checkWhitelisted(_to)) {
+            return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
+        }
+
         IDSComplianceConfigurationService complianceConfigurationService = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]);
         string memory toCountry = IDSRegistryService(_services[REGISTRY_SERVICE]).getCountry(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to));
         uint256 toRegion = complianceConfigurationService.getCountryCompliance(toCountry);
 
         if (toRegion == FORBIDDEN) {
             return (26, DESTINATION_RESTRICTED);
-        }
-
-        if (!complianceService.checkWhitelisted(_to)) {
-            return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
         }
 
         if (IDSLockManager(_services[LOCK_MANAGER]).isInvestorLiquidateOnly(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to))) {
@@ -543,15 +562,15 @@ library ComplianceServiceLibrary {
 contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
     function initialize() public virtual override onlyProxy initializer {
-        super.initialize();
+        _initialize();
     }
 
     function compareInvestorBalance(
-        address _who,
+        string memory _investor,
         uint256 _value,
         uint256 _compareTo
     ) internal view returns (bool) {
-        return (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_who)) == _compareTo);
+        return (_value != 0 && getToken().balanceOfInvestor(_investor) == _compareTo);
     }
 
     function recordTransfer(
@@ -559,24 +578,22 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         address _to,
         uint256 _value
     ) internal override returns (bool) {
-        if (compareInvestorBalance(_to, _value, 0)) {
-            adjustTransferCounts(_to, CommonUtils.IncDec.Increase);
+        string memory investorFrom = getRegistryService().getInvestor(_from);
+        string memory investorTo = getRegistryService().getInvestor(_to);
+
+        if (compareInvestorBalance(investorTo, _value, 0)) {
+            adjustTotalInvestorsCounts(_to, CommonUtils.IncDec.Increase);
         }
 
-        if (compareInvestorBalance(_from, _value, _value)) {
-            adjustTotalInvestorsCounts(_from, CommonUtils.IncDec.Decrease);
+        if(!CommonUtils.isEqualString(investorFrom, investorTo)) {
+            if (compareInvestorBalance(investorFrom, _value, _value)) {
+                adjustTotalInvestorsCounts(_from, CommonUtils.IncDec.Decrease);
+            }
         }
 
-        cleanupInvestorIssuances(_from);
-        cleanupInvestorIssuances(_to);
+        cleanupInvestorIssuances(investorFrom);
+        cleanupInvestorIssuances(investorTo);
         return true;
-    }
-
-    function adjustTransferCounts(
-        address _from,
-        CommonUtils.IncDec _increase
-    ) internal {
-        adjustTotalInvestorsCounts(_from, _increase);
     }
 
     function recordIssuance(
@@ -584,17 +601,18 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         uint256 _value,
         uint256 _issuanceTime
     ) internal override returns (bool) {
-        if (compareInvestorBalance(_to, _value, 0)) {
+        string memory investorTo = getRegistryService().getInvestor(_to);
+        if (compareInvestorBalance(investorTo, _value, 0)) {
             adjustTotalInvestorsCounts(_to, CommonUtils.IncDec.Increase);
         }
         uint256 shares = getRebasingProvider().convertTokensToShares(_value);
 
-        return createIssuanceInformation(getRegistryService().getInvestor(_to), shares, _issuanceTime);
+        return createIssuanceInformation(investorTo, shares, _issuanceTime);
     }
 
     function recordBurn(address _who, uint256 _value) internal override returns (bool) {
-
-        if (compareInvestorBalance(_who, _value, _value)) {
+        string memory investor = getRegistryService().getInvestor(_who);
+        if (compareInvestorBalance(investor, _value, _value)) {
             adjustTotalInvestorsCounts(_who, CommonUtils.IncDec.Decrease);
         }
         return true;
@@ -731,6 +749,21 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return ComplianceServiceLibrary.preTransferCheck(getServices(), _from, _to, _value);
     }
 
+    /**
+     * @notice Calculates the number of transferable tokens for a given investor at a specific time,
+     *         taking into account issuance-level lockups (Investor Level Locks).
+     *
+     * @dev The calculation is performed as follows:
+     *      1. Retrieve the base transferable balance of the investor from the LockManager.
+     *      2. Determine the total amount of tokens from issuances that are still subject to a lockup period.
+     *      3. Subtract the locked tokens from the base transferable balance.
+     *
+     * @param _who Address of the investor being queried.
+     * @param _time Timestamp (in seconds) representing the evaluation moment. Must be greater than zero.
+     * @param _lockTime Duration of the lockup period in seconds.
+     *
+     * @return transferable The amount of transferable tokens
+     */
     function getComplianceTransferableTokens(
         address _who,
         uint256 _time,
@@ -739,7 +772,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         require(_time != 0, "Time must be greater than zero");
         string memory investor = getRegistryService().getInvestor(_who);
 
-        uint256 balanceOfInvestor = getLockManager().getTransferableTokens(_who, _time);
+        uint256 balanceOfInvestor = getLockManager().getTransferableTokensForInvestor(investor, _time);
 
         uint256 investorIssuancesCount = issuancesCounters[investor];
 
@@ -829,8 +862,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return true;
     }
 
-    function cleanupInvestorIssuances(address _who) internal {
-        string memory investor = getRegistryService().getInvestor(_who);
+    function cleanupInvestorIssuances(string memory investor) internal {
         string memory country = getRegistryService().getCountry(investor);
 
         uint256 region = getComplianceConfigurationService().getCountryCompliance(country);
