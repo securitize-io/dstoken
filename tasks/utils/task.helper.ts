@@ -20,6 +20,8 @@ export const getComplianceContractName = (complianceType: string): string => {
   switch (complianceType) {
     case 'WHITELISTED':
       return 'ComplianceServiceWhitelisted';
+    case 'REGULATED_MOCK':
+      return 'ComplianceServiceRegulatedMock';
     default:
       return 'ComplianceServiceRegulated';
   }
