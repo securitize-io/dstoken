@@ -77,29 +77,13 @@ describe('DS Token Regulated Unit Tests', function() {
     });
   });
 
-  describe('Cap', function () {
-    it('Cannot be set twice', async function () {
-      const { dsToken } = await loadFixture(deployDSTokenRegulated);
-      await dsToken.setCap(1000);
-      await expect(dsToken.setCap(1000)).revertedWith('Token cap already set');
-    });
-
-    it('Does not prevent issuing tokens within limit', async function () {
-      const [investor] = await hre.ethers.getSigners();
-      const { dsToken, registryService } = await loadFixture(deployDSTokenRegulated);
-      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-      await dsToken.setCap(1000);
-      await dsToken.issueTokens(investor, 500);
-      await dsToken.issueTokens(investor, 500);
-      expect(await dsToken.balanceOf(investor)).equal(1000);
-    })
-
+  describe('Cap - Max Authorized securities checks', function () {
     it('Prevents issuing too many tokens', async function () {
       const [investor] = await hre.ethers.getSigners();
-      const { dsToken, registryService } = await loadFixture(deployDSTokenRegulated);
+      const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-      await dsToken.setCap(10);
-      await expect(dsToken.issueTokens(investor, 500)).revertedWith('Token Cap Hit');
+      await complianceConfigurationService.setAuthorizedSecurities(10);
+      await expect(dsToken.issueTokens(investor, 500)).revertedWith('Max authorized securities exceeded');
     });
   });
 
@@ -352,29 +336,13 @@ describe('DS Token Regulated Unit Tests', function() {
   });
 
   describe('DS Token Regulated with Rebasing 1500000000000000000 and 2 decimals', function () {
-    describe('Cap', function () {
-      it('Cannot be set twice', async function () {
-        const { dsToken } = await loadFixture(deployDSTokenRegulatedWithRebasing);
-        await dsToken.setCap(1000);
-        await expect(dsToken.setCap(1000)).revertedWith('Token cap already set');
-      });
-
-      it('Does not prevent issuing tokens within limit', async function () {
-        const [investor] = await hre.ethers.getSigners();
-        const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
-        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-        await dsToken.setCap(1000);
-        await dsToken.issueTokens(investor, 500);
-        await dsToken.issueTokens(investor, 500);
-        expect(await dsToken.balanceOf(investor)).equal(1000);
-      })
-
+    describe('Cap - Max Authorized securities checks', function () {
       it('Prevents issuing too many tokens', async function () {
         const [investor] = await hre.ethers.getSigners();
-        const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
+        const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulatedWithRebasing);
         await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-        await dsToken.setCap(10);
-        await expect(dsToken.issueTokens(investor, 500)).revertedWith('Token Cap Hit');
+        await complianceConfigurationService.setAuthorizedSecurities(10);
+        await expect(dsToken.issueTokens(investor, 500)).revertedWith('Max authorized securities exceeded');
       });
     });
 
@@ -581,29 +549,13 @@ describe('DS Token Regulated Unit Tests', function() {
     });
   });
       describe('DS Token Regulated with Rebasing 1730000000000000000 and 6 decimals', function () {
-      describe('Cap', function () {
-        it('Cannot be set twice', async function () {
-          const { dsToken } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
-          await dsToken.setCap(1000);
-          await expect(dsToken.setCap(1000)).revertedWith('Token cap already set');
-        });
-
-        it('Does not prevent issuing tokens within limit', async function () {
-          const [investor] = await hre.ethers.getSigners();
-          const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
-          await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-          await dsToken.setCap(1000);
-          await dsToken.issueTokens(investor, 500);
-          await dsToken.issueTokens(investor, 500);
-          expect(await dsToken.balanceOf(investor)).equal(1000);
-        })
-
+      describe('Cap - Max Authorized securities checks', function () {
         it('Prevents issuing too many tokens', async function () {
           const [investor] = await hre.ethers.getSigners();
-          const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
+          const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndSixDecimal);
           await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-          await dsToken.setCap(10);
-          await expect(dsToken.issueTokens(investor, 500)).revertedWith('Token Cap Hit');
+          await complianceConfigurationService.setAuthorizedSecurities(10);
+          await expect(dsToken.issueTokens(investor, 500)).revertedWith('Max authorized securities exceeded');
         });
       });
 
@@ -811,29 +763,13 @@ describe('DS Token Regulated Unit Tests', function() {
     });
 
     describe('DS Token Regulated with Rebasing 1250000000000000000 and 18 decimals', function () {
-      describe('Cap', function () {
-        it('Cannot be set twice', async function () {
-          const { dsToken } = await loadFixture(deployDSTokenRegulatedWithRebasingAndEighteenDecimal);
-          await dsToken.setCap(1000);
-          await expect(dsToken.setCap(1000)).revertedWith('Token cap already set');
-        });
-
-        it('Does not prevent issuing tokens within limit', async function () {
-          const [investor] = await hre.ethers.getSigners();
-          const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndEighteenDecimal);
-          await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-          await dsToken.setCap(1000);
-          await dsToken.issueTokens(investor, 500);
-          await dsToken.issueTokens(investor, 500);
-          expect(await dsToken.balanceOf(investor)).equal(1000);
-        })
-
+      describe('Cap - Max Authorized securities checks', function () {
         it('Prevents issuing too many tokens', async function () {
           const [investor] = await hre.ethers.getSigners();
-          const { dsToken, registryService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndEighteenDecimal);
+          const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulatedWithRebasingAndEighteenDecimal);
           await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-          await dsToken.setCap(10);
-          await expect(dsToken.issueTokens(investor, 500)).revertedWith('Token Cap Hit');
+          await complianceConfigurationService.setAuthorizedSecurities(10);
+          await expect(dsToken.issueTokens(investor, 500)).revertedWith('Max authorized securities exceeded');
         });
       });
 
