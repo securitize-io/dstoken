@@ -92,8 +92,27 @@ describe("Rebasing", function () {
 
       const totalTokensOut = await mock.convertSharesToTokens(totalShares, multiplier, decimals);
       expect(totalTokensOut).to.equal(totalTokensIn + 1n);
-    });  
+    });
+
+    it("should revert when token decimals are greater than 18 for token to share conversions", async function () {
+      const { mock } = await loadFixture(deployRebasingLibraryMock);
+      const multiplier = ethers.parseUnits("1", 18);
+      const tokens = ethers.parseUnits("1", 18);
+
+      await expect(mock.convertTokensToShares(tokens, multiplier, 19)).to.be.revertedWith(
+        "Token decimals greater than 18 not supported"
+      );
+    });
+
+    it("should revert with overflow when scaled tokens exceed uint256 max", async function () {
+      const { mock } = await loadFixture(deployRebasingLibraryMock);
+      const multiplier = ethers.parseUnits("1", 18);
+      const maxTokens = ethers.MaxUint256;
+
+      await expect(mock.convertTokensToShares(maxTokens, multiplier, 0)).to.be.revertedWithPanic(0x11);
+    });    
   });
+  
 
   describe("SecuritizeRebasingProvider", function () {
     const initialMultiplier = ethers.parseUnits("1", 18);
