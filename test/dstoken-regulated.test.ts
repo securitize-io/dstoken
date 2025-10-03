@@ -975,4 +975,249 @@ describe('DS Token Regulated Unit Tests', function() {
         });
       });
     });
+
+    describe('DS Token Regulated with Rebasing and 1 decimal - Rounding after multiplier change', function () {
+      it('should demonstrate rounding loss with multiplier 2.0 → 1.0', async function () {
+        const [owner, investor, investor2] = await hre.ethers.getSigners();
+
+        // Deploy with multiplier 2.0
+        const name = 'Token Example 1';
+        const symbol = 'TX1';
+        const decimals = 1;
+        const multiplier = hre.ethers.parseUnits('2', 18).toString();
+        const { dsToken, registryService, rebasingProvider } = await hre.run('deploy-all', { name, symbol, decimals, multiplier });
+
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
+
+        // Issue 1 token with multiplier 2.0 → generates 0.05 shares
+        await dsToken.issueTokens(investor, 1);
+        const sharesBeforeRebase = await rebasingProvider.convertTokensToShares(1);
+        expect(sharesBeforeRebase).to.equal(50000000000000000n); // 0.05 * 10^18
+        expect(await dsToken.balanceOf(investor)).to.equal(1n);
+
+        // Change multiplier to 1.0
+        await rebasingProvider.connect(owner).setMultiplier(hre.ethers.parseUnits('1', 18));
+
+        // Balance calculation with round to nearest:
+        // Step 1: (shares * multiplier + DECIMALS_FACTOR/2) / DECIMALS_FACTOR
+        //         = (0.05e18 * 1e18 + 0.5e18) / 1e18 = 0.55e18 / 1e18 = 0.55 → rounds to nearest = 1
+        // Step 2: (1e18 + scale/2) / scale = (1e18 + 0.5e17) / 1e17 = 1.5e18 / 1e17 = 15 → rounds to nearest = 1 token (1 decimal)
+        const balanceAfter = await dsToken.balanceOf(investor);
+        expect(balanceAfter).to.equal(1n);
+
+        // To transfer 1 token with multiplier 1.0, need 0.1 shares, but only have 0.05 shares
+        const sharesRequiredForTransfer = await rebasingProvider.convertTokensToShares(balanceAfter);
+        expect(sharesRequiredForTransfer).to.equal(100000000000000000n); // 0.1 * 10^18
+        expect(sharesRequiredForTransfer).to.be.gt(sharesBeforeRebase);
+
+        // Transfer should fail - not enough shares despite visible balance showing 1
+        const dsTokenFromInvestor = dsToken.connect(investor);
+        await expect(dsTokenFromInvestor.transfer(investor2, balanceAfter)).to.be.reverted;
+      });
+
+      it('should demonstrate rounding loss with multiplier 10.0 → 1.0', async function () {
+        const [owner, investor, investor2] = await hre.ethers.getSigners();
+
+        // Deploy with multiplier 10.0
+        const name = 'Token Example 1';
+        const symbol = 'TX1';
+        const decimals = 1;
+        const multiplier = hre.ethers.parseUnits('10', 18).toString();
+        const { dsToken, registryService, rebasingProvider } = await hre.run('deploy-all', { name, symbol, decimals, multiplier });
+
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
+
+        // Issue 4 tokens with multiplier 10.0 → generates 0.04 shares
+        await dsToken.issueTokens(investor, 4);
+        const sharesBeforeRebase = await rebasingProvider.convertTokensToShares(4);
+        expect(sharesBeforeRebase).to.equal(40000000000000000n); // 0.04 * 10^18
+        expect(await dsToken.balanceOf(investor)).to.equal(4n);
+
+        // Change multiplier to 1.0
+        await rebasingProvider.connect(owner).setMultiplier(hre.ethers.parseUnits('1', 18));
+
+        // Balance calculation with round to nearest:
+        // Step 1: (shares * multiplier + DECIMALS_FACTOR/2) / DECIMALS_FACTOR
+        //         = (0.04e18 * 1e18 + 0.5e18) / 1e18 = 0.54e18 / 1e18
+        //         = 0.54 → rounds to nearest, which is round down to 0
+        // Step 2: (0 + scale/2) / scale = 0.5e17 / 1e17 = 5
+        //         → rounds to nearest, which is round down to 0 token (1 decimal)
+        const balanceAfter = await dsToken.balanceOf(investor);
+        expect(balanceAfter).to.equal(0n);
+
+        // User has shares > 0 in storage but visible balance is 0
+        expect(sharesBeforeRebase).to.be.gt(0n);
+
+        // Any transfer attempt should fail - balance is 0
+        const dsTokenFromInvestor = dsToken.connect(investor);
+        await expect(dsTokenFromInvestor.transfer(investor2, 1)).to.be.reverted;
+      });
+
+      it('should demonstrate complete loss with multiplier 3.0 → 1.0', async function () {
+        const [owner, investor, investor2] = await hre.ethers.getSigners();
+
+        // Deploy with multiplier 3.0
+        const name = 'Token Example 1';
+        const symbol = 'TX1';
+        const decimals = 1;
+        const multiplier = hre.ethers.parseUnits('3', 18).toString();
+        const { dsToken, registryService, rebasingProvider } = await hre.run('deploy-all', { name, symbol, decimals, multiplier });
+
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
+
+        // Issue 1 token with multiplier 3.0 → generates ~0.033 shares
+        await dsToken.issueTokens(investor, 1);
+        const sharesBeforeRebase = await rebasingProvider.convertTokensToShares(1);
+        expect(sharesBeforeRebase).to.equal(33333333333333333n); // ~0.033 * 10^18
+        expect(await dsToken.balanceOf(investor)).to.equal(1n);
+
+        // Change multiplier to 1.0
+        await rebasingProvider.connect(owner).setMultiplier(hre.ethers.parseUnits('1', 18));
+
+        // Balance calculation with round to nearest:
+        // Step 1: (shares * multiplier + DECIMALS_FACTOR/2) / DECIMALS_FACTOR
+        //         = (0.033e18 * 1e18 + 0.5e18) / 1e18 = 0.533e18 / 1e18
+        //         = 0.533 → rounds to nearest, which is round down to 0
+        // Step 2: (0 + scale/2) / scale = 0.5e17 / 1e17 = 5
+        //         → rounds to nearest, which is round down to 0 token (1 decimal)
+        const balanceAfter = await dsToken.balanceOf(investor);
+        expect(balanceAfter).to.equal(0n);
+
+        // User has shares > 0 in storage but visible balance is 0
+        expect(sharesBeforeRebase).to.be.gt(0n);
+
+        // Any transfer attempt should fail - balance is 0
+        const dsTokenFromInvestor = dsToken.connect(investor);
+        await expect(dsTokenFromInvestor.transfer(investor2, 1)).to.be.reverted;
+      });
+    });
+
+    describe('DS Token Regulated with Rebasing and 0 decimals - Extreme rounding after multiplier change', function () {
+      it('should demonstrate rounding loss with multiplier 2.0 → 1.0', async function () {
+        const [owner, investor, investor2] = await hre.ethers.getSigners();
+
+        // Deploy with multiplier 2.0 and 0 decimals
+        const name = 'Token Example 1';
+        const symbol = 'TX1';
+        const decimals = 0;
+        const multiplier = hre.ethers.parseUnits('2', 18).toString();
+        const { dsToken, registryService, rebasingProvider } = await hre.run('deploy-all', { name, symbol, decimals, multiplier });
+
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
+
+        // Issue 1 token with multiplier 2.0 → generates 0.5 shares
+        await dsToken.issueTokens(investor, 1);
+        const sharesBeforeRebase = await rebasingProvider.convertTokensToShares(1);
+        expect(sharesBeforeRebase).to.equal(500000000000000000n); // 0.5 * 10^18
+        expect(await dsToken.balanceOf(investor)).to.equal(1n);
+
+        // Change multiplier to 1.0
+        await rebasingProvider.connect(owner).setMultiplier(hre.ethers.parseUnits('1', 18));
+
+        // Balance calculation with round to nearest (demonstrates "mirror rounding effect"):
+        // Step 1: (shares * multiplier + DECIMALS_FACTOR/2) / DECIMALS_FACTOR
+        //         = (0.5e18 * 1e18 + 0.5e18) / 1e18 = 1.0e18 / 1e18 = 1
+        // Step 2: (1e18 + scale/2) / scale where scale = 10^18
+        //         = (1e18 + 0.5e18) / 1e18 = 1.5e18 / 1e18
+        //         Integer division: 1.5e18 / 1e18 = 1 token (0 decimals)
+        //
+        // IMPORTANT: balanceOf() rounds UP showing 1 token, but internally user only has 0.5 shares
+        const balanceAfter = await dsToken.balanceOf(investor);
+        expect(balanceAfter).to.equal(1n);
+
+        // To transfer 1 token with multiplier 1.0, need 1.0 shares, but only have 0.5 shares
+        const sharesRequiredForTransfer = await rebasingProvider.convertTokensToShares(balanceAfter);
+        expect(sharesRequiredForTransfer).to.equal(1000000000000000000n); // 1.0 * 10^18
+        expect(sharesRequiredForTransfer).to.be.gt(sharesBeforeRebase);
+
+        // Transfer fails due to "mirror rounding effect":
+        // - balanceOf() rounds UP: 0.5 shares → displays as 1 token
+        // - transfer() requires exact shares: 1 token → needs 1.0 shares
+        // - User only has 0.5 shares → insufficient → REVERT
+        const dsTokenFromInvestor = dsToken.connect(investor);
+        await expect(dsTokenFromInvestor.transfer(investor2, balanceAfter)).to.be.reverted;
+      });
+
+      it('should demonstrate complete loss with multiplier 3.0 → 1.0', async function () {
+        const [owner, investor, investor2] = await hre.ethers.getSigners();
+
+        // Deploy with multiplier 3.0 and 0 decimals
+        const name = 'Token Example 1';
+        const symbol = 'TX1';
+        const decimals = 0;
+        const multiplier = hre.ethers.parseUnits('3', 18).toString();
+        const { dsToken, registryService, rebasingProvider } = await hre.run('deploy-all', { name, symbol, decimals, multiplier });
+
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
+
+        // Issue 1 token with multiplier 3.0 → generates ~0.333 shares
+        await dsToken.issueTokens(investor, 1);
+        const sharesBeforeRebase = await rebasingProvider.convertTokensToShares(1);
+        expect(sharesBeforeRebase).to.equal(333333333333333333n); // ~0.333 * 10^18
+        expect(await dsToken.balanceOf(investor)).to.equal(1n);
+
+        // Change multiplier to 1.0
+        await rebasingProvider.connect(owner).setMultiplier(hre.ethers.parseUnits('1', 18));
+
+        // Balance calculation with round to nearest:
+        // Step 1: (shares * multiplier + DECIMALS_FACTOR/2) / DECIMALS_FACTOR
+        //         = (0.333e18 * 1e18 + 0.5e18) / 1e18 = 0.833e18 / 1e18
+        //         = 0.833 → rounds to nearest, which is round down to 0
+        // Step 2: (0 + scale/2) / scale = 0.5e18 / 1e18 = 0.5
+        //         → rounds to nearest, which is round down to 0 token (0 decimals)
+        const balanceAfter = await dsToken.balanceOf(investor);
+        expect(balanceAfter).to.equal(0n);
+
+        // User has shares > 0 in storage but visible balance is 0
+        expect(sharesBeforeRebase).to.be.gt(0n);
+
+        // Any transfer attempt should fail - balance is 0
+        const dsTokenFromInvestor = dsToken.connect(investor);
+        await expect(dsTokenFromInvestor.transfer(investor2, 1)).to.be.reverted;
+      });
+
+      it('should demonstrate complete loss with multiplier 10.0 → 1.0', async function () {
+        const [owner, investor, investor2] = await hre.ethers.getSigners();
+
+        // Deploy with multiplier 10.0 and 0 decimals
+        const name = 'Token Example 1';
+        const symbol = 'TX1';
+        const decimals = 0;
+        const multiplier = hre.ethers.parseUnits('10', 18).toString();
+        const { dsToken, registryService, rebasingProvider } = await hre.run('deploy-all', { name, symbol, decimals, multiplier });
+
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
+
+        // Issue 1 token with multiplier 10.0 → generates 0.1 shares
+        await dsToken.issueTokens(investor, 1);
+        const sharesBeforeRebase = await rebasingProvider.convertTokensToShares(1);
+        expect(sharesBeforeRebase).to.equal(100000000000000000n); // 0.1 * 10^18
+        expect(await dsToken.balanceOf(investor)).to.equal(1n);
+
+        // Change multiplier to 1.0
+        await rebasingProvider.connect(owner).setMultiplier(hre.ethers.parseUnits('1', 18));
+
+        // Balance calculation with round to nearest:
+        // Step 1: (shares * multiplier + DECIMALS_FACTOR/2) / DECIMALS_FACTOR
+        //         = (0.1e18 * 1e18 + 0.5e18) / 1e18 = 0.6e18 / 1e18
+        //         = 0.6 → rounds to nearest, which is round down to 0
+        // Step 2: (0 + scale/2) / scale = 0.5e18 / 1e18 = 0.5
+        //         → rounds to nearest, which is round down to 0 token (0 decimals)
+        const balanceAfter = await dsToken.balanceOf(investor);
+        expect(balanceAfter).to.equal(0n);
+
+        // User has shares > 0 in storage but visible balance is 0
+        expect(sharesBeforeRebase).to.be.gt(0n);
+
+        // Any transfer attempt should fail - balance is 0
+        const dsTokenFromInvestor = dsToken.connect(investor);
+        await expect(dsTokenFromInvestor.transfer(investor2, 1)).to.be.reverted;
+      });
+    });
 });
