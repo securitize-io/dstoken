@@ -73,8 +73,7 @@ library RebasingLibrary {
             uint256 scale = 10**(18 - _tokenDecimals);
             return (_tokens * scale * DECIMALS_FACTOR + _rebasingMultiplier / 2) / _rebasingMultiplier;
         } else {
-            uint256 scale = 10**(_tokenDecimals - 18);
-            return (_tokens * DECIMALS_FACTOR + (_rebasingMultiplier * scale) / 2) / (_rebasingMultiplier * scale);
+            revert("Token decimals greater than 18 not supported");
         }
     }
 
@@ -97,8 +96,7 @@ library RebasingLibrary {
             uint256 scale = 10**(18 - _tokenDecimals);
             return (((_shares * _rebasingMultiplier + DECIMALS_FACTOR / 2) / DECIMALS_FACTOR) + scale / 2) / scale;
         } else {
-            uint256 scale = 10**(_tokenDecimals - 18);
-            return (_shares * _rebasingMultiplier * scale + DECIMALS_FACTOR / 2) / DECIMALS_FACTOR;
+            revert("Token decimals greater than 18 not supported");
         }
     }
 }
