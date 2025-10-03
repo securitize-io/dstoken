@@ -239,7 +239,6 @@ describe('Registry Service Unit Tests', function() {
 
         // Set initial country and issue tokens
         await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
-        await dsToken.setCap(1000);
         await dsToken.issueTokens(wallet, 100);
 
         // Verify initial state: 1 US investor
@@ -264,7 +263,7 @@ describe('Registry Service Unit Tests', function() {
 
         // Set initial country and issue tokens
         await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
-        await dsToken.setCap(1000);
+
         await dsToken.issueTokens(wallet, 100);
 
         // Verify initial state: 1 US investor
