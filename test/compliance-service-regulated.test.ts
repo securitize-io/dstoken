@@ -310,6 +310,103 @@ describe('Compliance Service Regulated Unit Tests', function() {
       expect(await complianceService.getTotalInvestorsCount()).equal(0);
     });
 
+
+    it('Should maintain correct investor counters when transferring between wallets of the same investor', async function () {
+      const [wallet1Investor1, wallet2Investor1, walletInvestor2, walletInvestor3] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+      await complianceConfigurationService.setUSInvestorsLimit(10);
+
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, '');
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID_2, '');
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID_3, '');
+
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, INVESTORS.Country.USA);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.US_INVESTOR_ID_2, INVESTORS.Country.USA);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.US_INVESTOR_ID_3, INVESTORS.Country.USA);
+
+      await registryService.addWallet(wallet1Investor1, INVESTORS.INVESTOR_ID.US_INVESTOR_ID);
+      await registryService.addWallet(wallet2Investor1, INVESTORS.INVESTOR_ID.US_INVESTOR_ID);
+
+      await registryService.addWallet(walletInvestor2, INVESTORS.INVESTOR_ID.US_INVESTOR_ID_2);
+      await registryService.addWallet(walletInvestor3, INVESTORS.INVESTOR_ID.US_INVESTOR_ID_3);
+
+      const currentTime = await time.latest();
+
+      await dsToken.issueTokensCustom(wallet1Investor1, 10_000, currentTime, 0, 'TEST', 0);
+      await dsToken.issueTokensCustom(walletInvestor2, 10_000, currentTime, 0, 'TEST', 0);
+      await dsToken.issueTokensCustom(walletInvestor3, 10_000, currentTime, 0, 'TEST', 0);
+
+      expect(await complianceService.getUSInvestorsCount()).equal(3);
+      expect(await complianceService.getTotalInvestorsCount()).equal(3);
+
+      const dsTokenWallet1Investor1 = await dsToken.connect(wallet1Investor1);
+      const dsTokenWallet2Investor1 = await dsToken.connect(wallet2Investor1);
+
+      await dsTokenWallet1Investor1.transfer(wallet2Investor1, 10_000);
+      await dsTokenWallet2Investor1.transfer(wallet1Investor1, 10_000);
+      await dsTokenWallet1Investor1.transfer(wallet2Investor1, 10_000);
+
+      expect(await complianceService.getUSInvestorsCount()).equal(3);
+      expect(await complianceService.getTotalInvestorsCount()).equal(3);
+
+      expect(await dsToken.balanceOfInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID)).equal(10_000);
+      expect(await dsToken.balanceOfInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID_2)).equal(10_000);
+      expect(await dsToken.balanceOfInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID_3)).equal(10_000);
+
+      const dsTokenWalletInvestor2 = await dsToken.connect(walletInvestor2);
+      await dsTokenWalletInvestor2.transfer(walletInvestor3, 10_000);
+      expect(await dsToken.balanceOf(walletInvestor3)).equal(20_000);
+    });
+
+    it('Should maintain correct investor counters on self-transfer', async function () {
+      const [wallet1Investor1, walletInvestor2, walletInvestor3] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+      await complianceConfigurationService.setUSInvestorsLimit(10);
+
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, '');
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID_2, '');
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID_3, '');
+
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, INVESTORS.Country.USA);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.US_INVESTOR_ID_2, INVESTORS.Country.USA);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.US_INVESTOR_ID_3, INVESTORS.Country.USA);
+
+      await registryService.addWallet(wallet1Investor1, INVESTORS.INVESTOR_ID.US_INVESTOR_ID);
+
+      await registryService.addWallet(walletInvestor2, INVESTORS.INVESTOR_ID.US_INVESTOR_ID_2);
+      await registryService.addWallet(walletInvestor3, INVESTORS.INVESTOR_ID.US_INVESTOR_ID_3);
+
+      const currentTime = await time.latest();
+
+      await dsToken.issueTokensCustom(wallet1Investor1, 10_000, currentTime, 0, 'TEST', 0);
+      await dsToken.issueTokensCustom(walletInvestor2, 10_000, currentTime, 0, 'TEST', 0);
+      await dsToken.issueTokensCustom(walletInvestor3, 10_000, currentTime, 0, 'TEST', 0);
+
+      expect(await complianceService.getUSInvestorsCount()).equal(3);
+      expect(await complianceService.getTotalInvestorsCount()).equal(3);
+
+      const dsTokenWallet1Investor1 = await dsToken.connect(wallet1Investor1);
+
+      await dsTokenWallet1Investor1.transfer(wallet1Investor1, 10_000);
+      await dsTokenWallet1Investor1.transfer(wallet1Investor1, 10_000);
+      await dsTokenWallet1Investor1.transfer(wallet1Investor1, 10_000);
+
+      expect(await complianceService.getUSInvestorsCount()).equal(3);
+      expect(await complianceService.getTotalInvestorsCount()).equal(3);
+
+      expect(await dsToken.balanceOfInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID)).equal(10_000);
+      expect(await dsToken.balanceOfInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID_2)).equal(10_000);
+      expect(await dsToken.balanceOfInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID_3)).equal(10_000);
+
+      const dsTokenWalletInvestor2 = await dsToken.connect(walletInvestor2);
+      await dsTokenWalletInvestor2.transfer(walletInvestor3, 10_000);
+      expect(await dsToken.balanceOf(walletInvestor3)).equal(20_000);
+    });
+
     it('Should be able to transfer tokens from platform wallet to investor without checking HoldUp', async function() {
       const [wallet, platformWallet] = await hre.ethers.getSigners();
       const { dsToken, registryService, complianceConfigurationService, walletManager } = await loadFixture(deployDSTokenRegulated);
