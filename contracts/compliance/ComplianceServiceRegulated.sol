@@ -566,11 +566,11 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function compareInvestorBalance(
-        address _who,
+        string memory _investor,
         uint256 _value,
         uint256 _compareTo
     ) internal view returns (bool) {
-        return (_value != 0 && getToken().balanceOfInvestor(getRegistryService().getInvestor(_who)) == _compareTo);
+        return (_value != 0 && getToken().balanceOfInvestor(_investor) == _compareTo);
     }
 
     function recordTransfer(
@@ -578,16 +578,21 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         address _to,
         uint256 _value
     ) internal override returns (bool) {
-        if (compareInvestorBalance(_to, _value, 0)) {
+        string memory investorFrom = getRegistryService().getInvestor(_from);
+        string memory investorTo = getRegistryService().getInvestor(_to);
+
+        if (compareInvestorBalance(investorTo, _value, 0)) {
             adjustTotalInvestorsCounts(_to, CommonUtils.IncDec.Increase);
         }
 
-        if (compareInvestorBalance(_from, _value, _value)) {
-            adjustTotalInvestorsCounts(_from, CommonUtils.IncDec.Decrease);
+        if(!CommonUtils.isEqualString(investorFrom, investorTo)) {
+            if (compareInvestorBalance(investorFrom, _value, _value)) {
+                adjustTotalInvestorsCounts(_from, CommonUtils.IncDec.Decrease);
+            }
         }
 
-        cleanupInvestorIssuances(_from);
-        cleanupInvestorIssuances(_to);
+        cleanupInvestorIssuances(investorFrom);
+        cleanupInvestorIssuances(investorTo);
         return true;
     }
 
@@ -596,17 +601,18 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         uint256 _value,
         uint256 _issuanceTime
     ) internal override returns (bool) {
-        if (compareInvestorBalance(_to, _value, 0)) {
+        string memory investorTo = getRegistryService().getInvestor(_to);
+        if (compareInvestorBalance(investorTo, _value, 0)) {
             adjustTotalInvestorsCounts(_to, CommonUtils.IncDec.Increase);
         }
         uint256 shares = getRebasingProvider().convertTokensToShares(_value);
 
-        return createIssuanceInformation(getRegistryService().getInvestor(_to), shares, _issuanceTime);
+        return createIssuanceInformation(investorTo, shares, _issuanceTime);
     }
 
     function recordBurn(address _who, uint256 _value) internal override returns (bool) {
-
-        if (compareInvestorBalance(_who, _value, _value)) {
+        string memory investor = getRegistryService().getInvestor(_who);
+        if (compareInvestorBalance(investor, _value, _value)) {
             adjustTotalInvestorsCounts(_who, CommonUtils.IncDec.Decrease);
         }
         return true;
@@ -856,8 +862,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return true;
     }
 
-    function cleanupInvestorIssuances(address _who) internal {
-        string memory investor = getRegistryService().getInvestor(_who);
+    function cleanupInvestorIssuances(string memory investor) internal {
         string memory country = getRegistryService().getCountry(investor);
 
         uint256 region = getComplianceConfigurationService().getCountryCompliance(country);
