@@ -607,6 +607,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         }
         uint256 shares = getRebasingProvider().convertTokensToShares(_value);
 
+        cleanupInvestorIssuances(investorTo);
         return createIssuanceInformation(investorTo, shares, _issuanceTime);
     }
 
@@ -897,12 +898,13 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
                 delete issuancesTimestamps[investor][currentIssuancesCount - 1];
                 delete issuancesValues[investor][currentIssuancesCount - 1];
 
-                issuancesCounters[investor]--;
-                currentIssuancesCount = issuancesCounters[investor];
+                currentIssuancesCount--;
             } else {
                 currentIndex++;
             }
         }
+
+        issuancesCounters[investor] = currentIssuancesCount;
     }
 
     function getServices() internal view returns (address[] memory services) {
