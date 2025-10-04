@@ -1,0 +1,34 @@
+{
+  "complianceRules": {
+    "uintValues": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      100000000
+    ],
+    "boolValues": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "countryCompliance": {
+    "US": 1,
+    "EU": 2,
+    "JP": 8
+  }
+}

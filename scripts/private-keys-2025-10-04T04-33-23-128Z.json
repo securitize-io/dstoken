@@ -1,0 +1,31 @@
+{
+  "generatedAt": "2025-10-04T04:33:23.128Z",
+  "network": "arbitrum",
+  "warning": "KEEP THIS FILE SECURE - Contains private keys!",
+  "keys": [
+    {
+      "investorId": "lau__fb7e77",
+      "address": "0x02c11d60034b24E9C69dCc6fa5e528Ed0851A8A7",
+      "privateKey": "0x4daf5106dae910fb375e0a49146e2188948841a7c26fec6fc8408d4835785928",
+      "mnemonic": "melody globe thank sick cart brisk arrange boss chef bird amount assist"
+    },
+    {
+      "investorId": "lau__8f6bb6",
+      "address": "0x6C2EfEDE62866846fAC40C41897A7977a8dbeFf1",
+      "privateKey": "0x4a15690fa382b1801710f1f65e9b9391155ab25c6cbb80ec43731e7049df04ee",
+      "mnemonic": "wage two matter tool charge notable citizen hint typical square gap segment"
+    },
+    {
+      "investorId": "lau__4fc053",
+      "address": "0x99a6f143EAF9aF26B31DB0F44D2A9335084E03Ce",
+      "privateKey": "0x5be9d3066bf2117c3027725e928bbcea77ee4497e7b348dd8faa4201fed07718",
+      "mnemonic": "exhibit donor street keen toss pulse brief brown brown cargo okay skin"
+    },
+    {
+      "investorId": "lau__511972",
+      "address": "0x305ff8d78A67e7419e18C874BE2E6DE35ED10928",
+      "privateKey": "0x25e36281dc22a36a94e61ec98e4ce8405970422cb4ea27caf4f47c8a23a8195b",
+      "mnemonic": "help bonus donate toss venture gentle glory sign consider pistol math trap"
+    }
+  ]
+}

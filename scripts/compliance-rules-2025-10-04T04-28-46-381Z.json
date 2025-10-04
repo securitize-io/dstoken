@@ -1,0 +1,168 @@
+{
+  "metadata": {
+    "generatedAt": "2025-10-04T04:28:42.898Z",
+    "network": "arbitrum",
+    "chainId": 421614,
+    "signer": "0x56f7b817804AaCBd7dbd5d04b7aA6fEA227fC8a2",
+    "contractAddress": "0x5EFae3f89f57c28Ccbf19366d161D44630D91873",
+    "inputFile": "scripts/compliance-rules.json",
+    "dryRun": false
+  },
+  "transaction": {
+    "hash": "0x13443b40b1c4ceb308a95be48a6883e8b7313468afa0118dbc365ba7017920ec",
+    "blockNumber": 200966088,
+    "gasUsed": "187532",
+    "gasPrice": "100000001",
+    "timestamp": "2025-10-04T04:28:46.024Z"
+  },
+  "complianceRules": {
+    "uintValues": {
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        100000000
+      ],
+      "names": [
+        "totalInvestorsLimit",
+        "minUSTokens",
+        "minEUTokens",
+        "usInvestorsLimit",
+        "usAccreditedInvestorsLimit",
+        "nonAccreditedInvestorsLimit",
+        "maxUSInvestorsPercentage",
+        "blockFlowbackEndTime",
+        "nonUSLockPeriod",
+        "minimumTotalInvestors",
+        "minimumHoldingsPerInvestor",
+        "maximumHoldingsPerInvestor",
+        "euRetailInvestorsLimit",
+        "usLockPeriod",
+        "jpInvestorsLimit",
+        "authorizedSecurities"
+      ],
+      "mapped": {
+        "totalInvestorsLimit": 0,
+        "minUSTokens": 0,
+        "minEUTokens": 0,
+        "usInvestorsLimit": 0,
+        "usAccreditedInvestorsLimit": 0,
+        "nonAccreditedInvestorsLimit": 0,
+        "maxUSInvestorsPercentage": 0,
+        "blockFlowbackEndTime": 0,
+        "nonUSLockPeriod": 0,
+        "minimumTotalInvestors": 0,
+        "minimumHoldingsPerInvestor": 0,
+        "maximumHoldingsPerInvestor": 0,
+        "euRetailInvestorsLimit": 0,
+        "usLockPeriod": 0,
+        "jpInvestorsLimit": 0,
+        "authorizedSecurities": 100000000
+      }
+    },
+    "boolValues": {
+      "values": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "names": [
+        "forceFullTransfer",
+        "forceAccredited",
+        "forceAccreditedUS",
+        "worldWideForceFullTransfer",
+        "disallowBackDating"
+      ],
+      "mapped": {
+        "forceFullTransfer": false,
+        "forceAccredited": false,
+        "forceAccreditedUS": false,
+        "worldWideForceFullTransfer": false,
+        "disallowBackDating": false
+      }
+    }
+  },
+  "changes": {
+    "uintChanges": [
+      {
+        "parameter": "authorizedSecurities",
+        "index": 15,
+        "from": "0",
+        "to": "100000000"
+      }
+    ],
+    "boolChanges": []
+  },
+  "verification": {
+    "uintValues": {
+      "expected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        100000000
+      ],
+      "actual": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "100000000"
+      ],
+      "verified": true
+    },
+    "boolValues": {
+      "expected": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "actual": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "verified": true
+    }
+  }
+}

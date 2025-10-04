@@ -1,0 +1,31 @@
+{
+  "generatedAt": "2025-10-04T04:33:49.664Z",
+  "network": "arbitrum",
+  "warning": "KEEP THIS FILE SECURE - Contains private keys!",
+  "keys": [
+    {
+      "investorId": "lau__138dd3",
+      "address": "0xA764E771B93B21F0A15761Cd010b7E4eD2930038",
+      "privateKey": "0x25b36048c2da1cffd5cc1c5a600e6f596e13779773d2da75f9cf5c61416a10b3",
+      "mnemonic": "hole north amount such address scatter dial clip sing pen bread purity"
+    },
+    {
+      "investorId": "lau__c45b26",
+      "address": "0x0444DD6861d532cE45b00BbeCb9c6F7ae678B310",
+      "privateKey": "0x7cd199781e03396a5e45e1fbadd0c74d3cd5380a09af51612ab469f9bbe07701",
+      "mnemonic": "purity fence pudding flip book reform pencil hill oval bind goddess hire"
+    },
+    {
+      "investorId": "lau__1f0a42",
+      "address": "0x8e8C503e0ed43a886eE07307cd9089eEFc9D2805",
+      "privateKey": "0xfaa0b82bb52094e0de0aea430119c9c8d58fd9141c75cac3b8ab3fbe48695222",
+      "mnemonic": "year fluid cliff success today visual home coral body chase until blame"
+    },
+    {
+      "investorId": "lau__1cc1a4",
+      "address": "0x98af5b465Edcc7fA91325F67DA152644E515353d",
+      "privateKey": "0xe054613ccdc4f3df70bd6741a06e70879f5ebc146283aa59b56460eca839c101",
+      "mnemonic": "symptom shock plug calm resource erupt dinosaur myth screen abstract screen broom"
+    }
+  ]
+}

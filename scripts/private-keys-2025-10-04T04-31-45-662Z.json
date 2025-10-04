@@ -1,0 +1,31 @@
+{
+  "generatedAt": "2025-10-04T04:31:45.663Z",
+  "network": "arbitrum",
+  "warning": "KEEP THIS FILE SECURE - Contains private keys!",
+  "keys": [
+    {
+      "investorId": "lau_",
+      "address": "0xbFa373B5C597ca7BE07e2A75c9f39589c42c418d",
+      "privateKey": "0xd61f0bbd6b3601a71f2d4d985b938afe14f97c4da44d79686b5ff4638b79cb65",
+      "mnemonic": "civil define stool day stadium patch sell uncover chronic drip filter sell"
+    },
+    {
+      "investorId": "lau_",
+      "address": "0xf6374C4EaeDCd1EDbe1CA0c863A6eb8dbaD95F80",
+      "privateKey": "0x7d00396d9f4624bae80d0256e8b52bf1a223f1a3bb8b16ef8fefae2e1efb2c36",
+      "mnemonic": "own slim adjust enjoy question defense zebra ecology beef swarm wise resist"
+    },
+    {
+      "investorId": "lau_",
+      "address": "0xe4830762449D9B2D88bf412df5F2BA9D685244Cb",
+      "privateKey": "0xf71a9b8886056667b82d3383a2b20a37862c1c189d3b771c07f5f7bb9f254c40",
+      "mnemonic": "jeans lake kick scan maximum there force bulk come guard athlete twenty"
+    },
+    {
+      "investorId": "lau_",
+      "address": "0xB18BD8C95ECA5C627146bCB3AC37FfC779854425",
+      "privateKey": "0x43b121d17e0592f74d2945e249b15be092a77d56560929402c2588129d2f97fb",
+      "mnemonic": "address drama material truth legal index million swift mechanic plug illness you"
+    }
+  ]
+}
