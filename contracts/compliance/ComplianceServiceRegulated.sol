@@ -546,7 +546,7 @@ library ComplianceServiceLibrary {
     }
 
     function isMaximumHoldingsPerInvestorOk(uint256 _maximumHoldingsPerInvestor, uint256 _balanceOfInvestorTo, uint256 _value) internal pure returns (bool) {
-        return _maximumHoldingsPerInvestor != 0 && _balanceOfInvestorTo + _value > _maximumHoldingsPerInvestor;
+        return _maximumHoldingsPerInvestor != 0 && _balanceOfInvestorTo + _value >= _maximumHoldingsPerInvestor;
     }
 
     function isBlockFlowbackEndTimeOk(uint256 _blockFlowBackEndTime) private view returns (bool){
