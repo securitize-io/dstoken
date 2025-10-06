@@ -38,6 +38,7 @@ contract BulkOperator is  IBulkOperator, BaseDSContract, PausableUpgradeable {
 
     function initialize(address _dsToken) public override initializer onlyProxy {
         dsToken = IDSToken(_dsToken);
+        __Pausable_init();
         __BaseDSContract_init();
     }
 

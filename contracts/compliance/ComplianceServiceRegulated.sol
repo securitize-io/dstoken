@@ -511,6 +511,8 @@ library ComplianceServiceLibrary {
             }
         }
 
+        bool isPlatformWallet = IDSWalletManager(_services[WALLET_MANAGER]).isPlatformWallet(_to);
+
         if (toRegion == US) {
             if (
                 complianceConfigurationService.getForceAccreditedUS() &&
@@ -518,22 +520,33 @@ library ComplianceServiceLibrary {
             ) {
                 return (62, ONLY_US_ACCREDITED);
             }
-        }
+            // Check regional minimum holdings requirements
+            if (
+                !isPlatformWallet &&
+                balanceOfInvestorTo + _value < complianceConfigurationService.getMinUSTokens()
+            ) {
+                return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+            }            
+        } else if (toRegion == EU) {
+            // Check regional minimum holdings requirements
+            if (
+                !isPlatformWallet &&
+                balanceOfInvestorTo + _value < complianceConfigurationService.getMinEUTokens()
+            ) {
+                return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
+            }
+        }        
 
-        uint256 minimumHoldingsRequirement = complianceConfigurationService.getMinimumHoldingsPerInvestor();
-        if (toRegion == US) {
-            minimumHoldingsRequirement = complianceConfigurationService.getMinUSTokens();
-        }
-
+        // Check global minimum holdings requirement (enforced for all regions)
         if (
-            !IDSWalletManager(_services[WALLET_MANAGER]).isPlatformWallet(_to) &&
-        balanceOfInvestorTo + _value < minimumHoldingsRequirement
+            !isPlatformWallet &&
+            balanceOfInvestorTo + _value < complianceConfigurationService.getMinimumHoldingsPerInvestor()
         ) {
             return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
         }
         // remains in tokens because maximun holdings per investor is set in tokens
         if (
-            !IDSWalletManager(_services[WALLET_MANAGER]).isPlatformWallet(_to) &&
+            !isPlatformWallet &&
             isMaximumHoldingsPerInvestorOk(
                 complianceConfigurationService.getMaximumHoldingsPerInvestor(),
                 balanceOfInvestorTo,
@@ -546,7 +559,7 @@ library ComplianceServiceLibrary {
     }
 
     function isMaximumHoldingsPerInvestorOk(uint256 _maximumHoldingsPerInvestor, uint256 _balanceOfInvestorTo, uint256 _value) internal pure returns (bool) {
-        return _maximumHoldingsPerInvestor != 0 && _balanceOfInvestorTo + _value > _maximumHoldingsPerInvestor;
+        return _maximumHoldingsPerInvestor != 0 && _balanceOfInvestorTo + _value >= _maximumHoldingsPerInvestor;
     }
 
     function isBlockFlowbackEndTimeOk(uint256 _blockFlowBackEndTime) private view returns (bool){

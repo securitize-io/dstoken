@@ -84,13 +84,15 @@ contract DSToken is StandardToken {
     }
 
     /**
-     * @dev Issuing tokens from the fund
-     * @param _to address The address which is going to receive the newly issued tokens
-     * @param _value uint256 the value of tokens to issue
-     * @param _valueLocked uint256 value of tokens, from those issued, to lock immediately.
-     * @param _reason reason for token locking
-     * @param _releaseTime timestamp to release the lock (or 0 for locks which can only released by an unlockTokens call)
-     * @return true if successful
+     * @notice Issues tokens with optional locking parameters
+     * @dev Issues tokens to an address with custom issuance time and optional single lock
+     * @param _to The address which will receive the newly issued tokens
+     * @param _value The amount of tokens to issue
+     * @param _issuanceTime The timestamp when tokens are considered issued
+     * @param _valueLocked The amount of tokens to be locked (0 for no lock)
+     * @param _reason The reason for token issuance
+     * @param _releaseTime The timestamp when locked tokens will be released
+     * @return bool Returns true if successful
      */
     function issueTokensCustom(address _to, uint256 _value, uint256 _issuanceTime, uint256 _valueLocked, string memory _reason, uint64 _releaseTime)
     public
