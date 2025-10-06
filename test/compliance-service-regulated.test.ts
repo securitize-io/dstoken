@@ -522,17 +522,37 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await expect(dsToken.transfer(wallet2, 50)).revertedWith('Destination restricted');
     });
 
-    it('Should revert due to Max Investor in category when transferring total balance from nonUs to US investor', async function() {
+    it('Should revert due to Max US Investor in category when transferring total balance from nonUs to US investor', async function() {
       const [usInvestor1, usInvestor2, nonUsInvestor] = await hre.ethers.getSigners();
       const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployDSTokenRegulated);
 
       // Setup: US limit = 1, disable other limits
       await complianceConfigurationService.setAll(
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, 1, 1, 0], // No other limits, short lock period
+        [
+          0,
+          0,
+          0,
+          1, // setUSInvestorsLimit
+          0,
+          0,
+          0,
+          1, // setBlockFlowbackEndTime
+          0,
+          0,
+          0,
+          0,
+          1, // setEURetailInvestorsLimit
+          0,
+          0,
+          0,
+        ], // No other limits, short lock period
         [false, false, false, false, false] // Disable all compliance checks initially
       );
-      await complianceConfigurationService.setUSInvestorsLimit(1);// set one investor limit for us investor
-      await complianceConfigurationService.setBlockFlowbackEndTime(1); // Disable flowback restriction
+
+      expect(await complianceConfigurationService.getUSInvestorsLimit()).to.equal(1);
+      expect(await complianceConfigurationService.getBlockFlowbackEndTime()).to.equal(1);
+      expect(await complianceConfigurationService.getEURetailInvestorsLimit()).to.equal(1);
+
       await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
       await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.GERMANY, INVESTORS.Compliance.EU);
 
@@ -563,6 +583,132 @@ describe('Compliance Service Regulated Unit Tests', function() {
       expect(await dsToken.balanceOf(usInvestor2.address)).to.equal(0);
       expect(await dsToken.balanceOf(nonUsInvestor.address)).to.equal(1000);
       expect(await complianceService.getUSInvestorsCount()).to.equal(1);
+    });
+
+    it('Should revert due to Max EU Retail Investor in category when transferring total balance from non-EU to EU Retail investor', async function() {
+      const [euRetailInvestor1, euRetailInvestor2, nonEuInvestor] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployDSTokenRegulated);
+
+      // Setup: EU Retail limit = 1, disable other limits
+       await complianceConfigurationService.setAll(
+        [
+          0,
+          0,
+          0,
+          1, // setUSInvestorsLimit
+          0,
+          0,
+          0,
+          1, // setBlockFlowbackEndTime
+          0,
+          0,
+          0,
+          0,
+          1, // setEURetailInvestorsLimit
+          0,
+          0,
+          0,
+        ], // No other limits, short lock period
+        [false, false, false, false, false] // Disable all compliance checks initially
+      );
+
+      expect(await complianceConfigurationService.getUSInvestorsLimit()).to.equal(1);
+      expect(await complianceConfigurationService.getBlockFlowbackEndTime()).to.equal(1);
+      expect(await complianceConfigurationService.getEURetailInvestorsLimit()).to.equal(1);
+
+      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.FRANCE, INVESTORS.Compliance.EU);
+      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, euRetailInvestor1.address, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, euRetailInvestor2.address, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, nonEuInvestor.address, registryService);
+
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.FRANCE);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.FRANCE);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, INVESTORS.Country.USA);
+
+      // Issue tokens to non-EU investor first
+      await dsToken.issueTokens(nonEuInvestor.address, 1000);
+
+      // Issue tokens to first EU Retail investor (reaches limit)
+      await dsToken.issueTokens(euRetailInvestor1.address, 1000);
+      expect(await complianceService.getEURetailInvestorsCount(INVESTORS.Country.FRANCE)).to.equal(1);
+
+      // Direct issuance to second EU Retail investor should fail
+      await expect(dsToken.issueTokens(euRetailInvestor2.address, 100))
+        .to.be.revertedWith('Max investors in category');
+
+      // Non-EU investor cannot bypass EU Retail limit with full transfer
+      await expect(dsToken.connect(nonEuInvestor).transfer(euRetailInvestor2.address, 1000))
+        .to.be.revertedWith('Max investors in category');
+
+      // Transfer was blocked, counts unchanged
+      expect(await dsToken.balanceOf(euRetailInvestor2.address)).to.equal(0);
+      expect(await dsToken.balanceOf(nonEuInvestor.address)).to.equal(1000);
+      expect(await complianceService.getEURetailInvestorsCount(INVESTORS.Country.FRANCE)).to.equal(1);
+    });
+
+    it('Should revert due to Max JP Investor in category when transferring total balance from non-JP to JP investor', async function() {
+      const [jpInvestor1, jpInvestor2, nonJpInvestor] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployDSTokenRegulated);
+
+      // Setup: JP limit = 1, disable other limits
+      await complianceConfigurationService.setAll(
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1, // setBlockFlowbackEndTime
+          0,
+          0,
+          0,
+          0,
+          1, // setEURetailInvestorsLimit
+          0,
+          1, // setJPInvestorsLimit
+          0,
+        ], // No other limits, short lock period
+        [false, false, false, false, false] // Disable all compliance checks initially
+      );
+
+      expect(await complianceConfigurationService.getJPInvestorsLimit()).to.equal(1);
+      expect(await complianceConfigurationService.getBlockFlowbackEndTime()).to.equal(1);
+      expect(await complianceConfigurationService.getEURetailInvestorsLimit()).to.equal(1);
+
+      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.JAPAN, INVESTORS.Compliance.JP);
+      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.GERMANY, INVESTORS.Compliance.EU);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, jpInvestor1.address, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, jpInvestor2.address, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.GERMANY_INVESTOR_ID, nonJpInvestor.address, registryService);
+
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.JAPAN);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.JAPAN);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.GERMANY_INVESTOR_ID, INVESTORS.Country.GERMANY);
+
+      // Issue tokens to non-JP investor first
+      await dsToken.issueTokens(nonJpInvestor.address, 1000);
+
+      // Issue tokens to first JP investor (reaches limit)
+      await dsToken.issueTokens(jpInvestor1.address, 1000);
+      expect(await complianceService.getJPInvestorsCount()).to.equal(1);
+
+      // Direct issuance to second JP investor should fail
+      await expect(dsToken.issueTokens(jpInvestor2.address, 100))
+        .to.be.revertedWith('Max investors in category');
+
+      // Non-JP investor cannot bypass JP limit with full transfer
+      await expect(dsToken.connect(nonJpInvestor).transfer(jpInvestor2.address, 1000))
+        .to.be.revertedWith('Max investors in category');
+
+      // Transfer was blocked, counts unchanged
+      expect(await dsToken.balanceOf(jpInvestor2.address)).to.equal(0);
+      expect(await dsToken.balanceOf(nonJpInvestor.address)).to.equal(1000);
+      expect(await complianceService.getJPInvestorsCount()).to.equal(1);
     });
   });
 
