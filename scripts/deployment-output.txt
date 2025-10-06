@@ -7,36 +7,36 @@
 # etc...
 
 # Paste your deployment output below this line:
-DSToken Proxy address: 0x983C179e1ABA7cE0f974b7165Caa05967577DF5A
-DSToken Implementation address: 0xBef659C93011555f4627fC603f63b0610Ad4d1De
-Trust Service Proxy address: 0x46f96fb48baE945Ee95Feb5F4dc4B2fB9dd7079A
+DSToken Proxy address: 0x9Bb0af14a1Ad355EB77efefd52b312B97edbaB75
+DSToken Implementation address: 0x368e954d6D8F097b66e923f4eAc31eEd472812f2
+Trust Service Proxy address: 0x8cc022Cdd08ba8B5835E6DFf2a9fDC8F0338dE0d
 Trust Service Implementation address: 0xc1A3c52065e40dfe3784c73654719829cF940B47
-Registry Service Proxy address: 0xa1efAf2BF27881f5F6e9005B46A53ca979C7bC37
+Registry Service Proxy address: 0x7B78eEaF5560E885ab6633D170505610c0cd477e
 Registry Service Implementation address: 0xD08791A33bA241c61Ab269f6C27b06876D47f720
 Warning: Potentially unsafe deployment of contracts/compliance/ComplianceServiceRegulated.sol:ComplianceServiceRegulated
 
     You are using the `unsafeAllow.external-library-linking` flag to include external libraries.
     Make sure you have manually checked that the linked libraries are upgrade safe.
 
-Compliance Service Proxy address: 0xe4EF689D188c4f5D5b558FAB3D8bc9468d8ED8f0
-Compliance Service Implementation address: 0x5b68bd305F5bC5b4dC6f1CeC3124fF728BE06D91
-Wallet Manager Proxy address: 0xde37F2aC59b0e966322ba8d53a56E551095C7cf6
+Compliance Service Proxy address: 0x123b5A5bA168aE64a4Bf631493E9c998d01683e2
+Compliance Service Implementation address: 0xB8b79c10ee14b580242D2E9152EA21766202Abe8
+Wallet Manager Proxy address: 0x0cb2De0361cDBec63210F9287e528DeEa2EE47eA
 Wallet Manager Implementation address: 0xf6dc12190313C597bF38444CD0128fcC368dFFD6
-Lock Manager Proxy address: 0xBad6A9c308b3fc6381833656265083179DdAD4Bf
+Lock Manager Proxy address: 0xE587078f88b3b7e4179da89fdb108F3627a7F22B
 Lock Manager Implementation address: 0xE369dDA0A55EC225AaFD995ECBf165A57DA6f8A7
-Compliance Configuration Service Proxy address: 0x5EFae3f89f57c28Ccbf19366d161D44630D91873
+Compliance Configuration Service Proxy address: 0x17a3a58a849Da2996191758e43C9adaa0b7405E9
 Compliance Configuration Service Implementation address: 0x65E28C794dAbFAa1Ab3c71b33113603290558D1f
-Token Issuer Proxy address: 0x3dd98E85aF4cFf9bF2433a9A538a42E2dB1C79Eb
+Token Issuer Proxy address: 0xd1bebB0B045cFD1cb4fDaeedb89d6e471155494d
 Token Issuer Implementation address: 0x2396f226a00D0d3b4CbF9DA016b23183682a9c1E
-Wallet Registrar Proxy address: 0xf989251A96A8A3de26B89110646B56893Bd961f0
+Wallet Registrar Proxy address: 0x5443AF2732258C1047CCF6d61e2F48528E5D9283
 Wallet Registrar Implementation address: 0x34a56cc05f0598F9Db6a6BC95D4AE2705d1B879D
-Transaction Relayer Proxy address: 0x0a9468bD7f7bDe737a037B095fF9376Adc884c9E
+Transaction Relayer Proxy address: 0x4980287aD31E8E2e579F35f3D113dE038132e006
 Transaction Relayer Implementation address: 0xc161B1C78e2138499984eE56C75aB71DeD76F7Ae
-Bulk Operator Proxy address: 0xA14d18cBB5d1e2C81998C64f333BDBEfBfE9FeDE
+Bulk Operator Proxy address: 0x2eBc60128ad4bDD2213334C7ce4912a17CAB52E4
 Bulk Operator Implementation address: 0xdd37c745231e4F67937634ff0098c1aa87Cb393B
 Nothing to compile
 No need to generate any newer typings.
-Rebasing provider Proxy address: 0xafECe6B8B16cFc3f4bD49Ac641868bf081317EDd
+Rebasing provider Proxy address: 0xbFB6C24CAb83A0A62aF5D114662b626a918CD6de
 Rebasing provider Implementation address: 0xbBDa03747af56b1fe5008D438eDBD3385329948b
-Mock Token deployed to: 0x5D051165B60d4d1fE94201635fC5BCceC4D6a2D6
-Granting issuer permissions to Token Issuer 0x3dd98E85aF4cFf9bF2433a9A538a42E2dB1C79Eb
+Mock Token deployed to: 0x5d58eB31c64657641eE75e630586FF5e8a4f831E
+Granting issuer permissions to Token Issuer 0xd1bebB0B045cFD1cb4fDaeedb89d6e471155494d

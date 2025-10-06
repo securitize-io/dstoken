@@ -1,19 +1,19 @@
 {
   "metadata": {
-    "generatedAt": "2025-10-04T04:28:42.898Z",
+    "generatedAt": "2025-10-06T13:00:15.661Z",
     "network": "arbitrum",
     "chainId": 421614,
     "signer": "0x56f7b817804AaCBd7dbd5d04b7aA6fEA227fC8a2",
-    "contractAddress": "0x5EFae3f89f57c28Ccbf19366d161D44630D91873",
+    "contractAddress": "0x17a3a58a849Da2996191758e43C9adaa0b7405E9",
     "inputFile": "scripts/compliance-rules.json",
     "dryRun": false
   },
   "transaction": {
-    "hash": "0x13443b40b1c4ceb308a95be48a6883e8b7313468afa0118dbc365ba7017920ec",
-    "blockNumber": 200966088,
+    "hash": "0x5864c9433f34ec2c4a72c4be18c656fd9348891f502c7a18d9b98c1a27a00183",
+    "blockNumber": 201779667,
     "gasUsed": "187532",
-    "gasPrice": "100000001",
-    "timestamp": "2025-10-04T04:28:46.024Z"
+    "gasPrice": "106150001",
+    "timestamp": "2025-10-06T13:00:18.283Z"
   },
   "complianceRules": {
     "uintValues": {

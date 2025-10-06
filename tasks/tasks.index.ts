@@ -19,3 +19,4 @@ export * from './verify-all';
 
 export * from './create-investor';
 export * from './set-compliance-rules';
+export * from './transfer-from-investors';

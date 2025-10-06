@@ -11,19 +11,19 @@ if (!global.ethers) {
   
   // === Addresses (edit if they change) ===
   const ADDR = {
-    dsToken: "0x983C179e1ABA7cE0f974b7165Caa05967577DF5A",
-    trustService: "0x46f96fb48baE945Ee95Feb5F4dc4B2fB9dd7079A",
-    regService: "0xa1efAf2BF27881f5F6e9005B46A53ca979C7bC37",
-    compService: "0xe4EF689D188c4f5D5b558FAB3D8bc9468d8ED8f0",
-    walletManager: "0xde37F2aC59b0e966322ba8d53a56E551095C7cf6",
-    lockManager: "0xBad6A9c308b3fc6381833656265083179DdAD4Bf",
-    compConfigService: "0x5EFae3f89f57c28Ccbf19366d161D44630D91873",
-    tokenIssuer: "0x3dd98E85aF4cFf9bF2433a9A538a42E2dB1C79Eb",
-    walletRegistrar: "0xf989251A96A8A3de26B89110646B56893Bd961f0",
-    transactionRelayer: "0x0a9468bD7f7bDe737a037B095fF9376Adc884c9E",
-    bulkOperator: "0xA14d18cBB5d1e2C81998C64f333BDBEfBfE9FeDE",
-    rebasingProvider: "0xafECe6B8B16cFc3f4bD49Ac641868bf081317EDd",
-    mockToken: "0x5D051165B60d4d1fE94201635fC5BCceC4D6a2D6"
+    dsToken: "0x9Bb0af14a1Ad355EB77efefd52b312B97edbaB75",
+    trustService: "0x8cc022Cdd08ba8B5835E6DFf2a9fDC8F0338dE0d",
+    regService: "0x7B78eEaF5560E885ab6633D170505610c0cd477e",
+    compService: "0x123b5A5bA168aE64a4Bf631493E9c998d01683e2",
+    walletManager: "0x0cb2De0361cDBec63210F9287e528DeEa2EE47eA",
+    lockManager: "0xE587078f88b3b7e4179da89fdb108F3627a7F22B",
+    compConfigService: "0x17a3a58a849Da2996191758e43C9adaa0b7405E9",
+    tokenIssuer: "0xd1bebB0B045cFD1cb4fDaeedb89d6e471155494d",
+    walletRegistrar: "0x5443AF2732258C1047CCF6d61e2F48528E5D9283",
+    transactionRelayer: "0x4980287aD31E8E2e579F35f3D113dE038132e006",
+    bulkOperator: "0x2eBc60128ad4bDD2213334C7ce4912a17CAB52E4",
+    rebasingProvider: "0xbFB6C24CAb83A0A62aF5D114662b626a918CD6de",
+    mockToken: "0x5d58eB31c64657641eE75e630586FF5e8a4f831E"
   };
   
   (async () => {
@@ -31,7 +31,7 @@ if (!global.ethers) {
     const [signer] = await ethers.getSigners();
     global.signer = signer;
   
-                                                            // Attach contracts and expose as globals
+                                                                // Attach contracts and expose as globals
     global.dsToken = await ethers.getContractAt("IDSToken", ADDR.dsToken, signer);
     global.trustService = await ethers.getContractAt("IDSTrustService", ADDR.trustService, signer);
     global.regService = await ethers.getContractAt("IDSRegistryService", ADDR.regService, signer);

@@ -2,14 +2,13 @@ import { task, types } from "hardhat/config";
 import { ethers } from "ethers";
 import * as fs from "fs";
 import * as path from "path";
-import { randomBytes } from "crypto";
 
 // Contract addresses (auto-updated from deployment)
 const CONTRACT_ADDRESSES = {
-  regService: "0xa1efAf2BF27881f5F6e9005B46A53ca979C7bC37",
-  trustService: "0x46f96fb48baE945Ee95Feb5F4dc4B2fB9dd7079A",
-  compConfigService: "0x5EFae3f89f57c28Ccbf19366d161D44630D91873",
-  dsToken: "0x983C179e1ABA7cE0f974b7165Caa05967577DF5A"
+  regService: "0x7B78eEaF5560E885ab6633D170505610c0cd477e",
+  trustService: "0x8cc022Cdd08ba8B5835E6DFf2a9fDC8F0338dE0d",
+  compConfigService: "0x17a3a58a849Da2996191758e43C9adaa0b7405E9",
+  dsToken: "0x9Bb0af14a1Ad355EB77efefd52b312B97edbaB75"
 };
 
 // Attribute type constants
@@ -25,11 +24,6 @@ const ATTRIBUTE_STATUS = {
   APPROVED: 1,
   REJECTED: 2
 };
-
-// Helper function to generate random strings
-function generateRandomString(length: number = 6): string {
-  return randomBytes(Math.ceil(length / 2)).toString('hex').slice(0, length);
-}
 
 // Function to generate a new wallet
 function generateWallet() {
@@ -59,14 +53,25 @@ function savePrivateKeys(privateKeys: any[], outputDir: string) {
   return filepath;
 }
 
-task('create-investor', 'Create investors from JSON file with auto-generated random IDs and collision hashes')
+// Add these functions to generate shorter unique IDs
+function generateUniqueId(baseId: string): string {
+  const random = Math.floor(Math.random() * 1000000).toString().padStart(6, '0'); // 6-digit random number
+  return `${baseId}_${random}`;
+}
+
+function generateUniqueCollisionHash(baseHash: string): string {
+  const random = Math.floor(Math.random() * 1000000).toString().padStart(6, '0'); // 6-digit random number
+  return `${baseHash}_${random}`;
+}
+
+task('create-investor', 'Create investors from JSON file with auto wallet generation')
   .addPositionalParam('file', 'Path to investors JSON file', undefined, types.string)
   .addFlag('dryrun', 'Show what would be created without executing')
-  .addFlag('generateWallets', 'Generate new wallets for empty wallet arrays')
+  .addFlag('generatewallets', 'Generate new wallets for empty wallet arrays')
+  .addFlag('generateuniqueids', 'Generate unique IDs for investors with duplicate IDs')
   .addOptionalParam('keysDir', 'Directory to save private keys', './scripts', types.string)
-  .addOptionalParam('randomLength', 'Length of random string to append to IDs and collision hashes', 6, types.int)
   .setAction(async (args, hre) => {
-    const { file, dryrun, generateWallets, keysDir, randomLength } = args;
+    const { file, dryrun, generatewallets, generateuniqueids, keysDir } = args;
     
     // Validate file exists
     if (!fs.existsSync(file)) {
@@ -82,27 +87,7 @@ task('create-investor', 'Create investors from JSON file with auto-generated ran
       process.exit(1);
     }
     
-    // Process investors and add random strings to both ID and collisionHash
-    const processedInvestors = investorData.investors.map((investor: any, index: number) => {
-      const originalId = investor.id;
-      const originalHash = investor.collisionHash;
-      const randomSuffix = generateRandomString(randomLength);
-      
-      const newId = `${originalId}_${randomSuffix}`;
-      const newHash = `${originalHash}_${randomSuffix}`;
-      
-      console.log(`   🎲 ID: ${originalId} → ${newId}`);
-      console.log(`   🔗 Hash: ${originalHash} → ${newHash}`);
-      
-      return {
-        ...investor,
-        id: newId,
-        collisionHash: newHash
-      };
-    });
-    
-    console.log(`📋 Found ${processedInvestors.length} investors to create`);
-    console.log(`🎲 Random string length: ${randomLength} characters`);
+    console.log(`📋 Found ${investorData.investors.length} investors to create`);
     console.log(`🌐 Network: ${hre.network.name}`);
     console.log(`🔗 Chain ID: ${hre.network.config.chainId}`);
     
@@ -110,8 +95,12 @@ task('create-investor', 'Create investors from JSON file with auto-generated ran
       console.log('\n🔍 DRY RUN - No transactions will be executed\n');
     }
     
-    if (generateWallets) {
+    if (generatewallets) {
       console.log('\n🔑 WALLET GENERATION ENABLED - Will create wallets for empty arrays\n');
+    }
+    
+    if (generateuniqueids) {
+      console.log('\n🆔 UNIQUE ID GENERATION ENABLED - Will generate unique IDs for ALL investors\n');
     }
     
     const [signer] = await hre.ethers.getSigners();
@@ -121,35 +110,60 @@ task('create-investor', 'Create investors from JSON file with auto-generated ran
     const regService = await hre.ethers.getContractAt("IDSRegistryService", CONTRACT_ADDRESSES.regService, signer);
     const trustService = await hre.ethers.getContractAt("IDSTrustService", CONTRACT_ADDRESSES.trustService, signer);
     const compConfigService = await hre.ethers.getContractAt("IDSComplianceConfigurationService", CONTRACT_ADDRESSES.compConfigService, signer);
-    const dsToken = await hre.ethers.getContractAt("IDSToken", CONTRACT_ADDRESSES.dsToken, signer);
     
     console.log('\n📝 Contract addresses:');
     console.log(`   Registry Service: ${CONTRACT_ADDRESSES.regService}`);
     console.log(`   Trust Service: ${CONTRACT_ADDRESSES.trustService}`);
     console.log(`   Compliance Config: ${CONTRACT_ADDRESSES.compConfigService}`);
-    console.log(`   DSToken: ${CONTRACT_ADDRESSES.dsToken}`);
     
     let successCount = 0;
     let failCount = 0;
     let generatedWallets: any[] = [];
     
+    // Track used IDs to detect duplicates
+    const usedIds = new Set<string>();
+    const idMapping = new Map<string, string>(); // original -> unique mapping
+    
     console.log('\n🚀 Creating investors...');
     console.log('='.repeat(60));
     
-    for (const investor of processedInvestors) {
+    for (const investor of investorData.investors) {
       try {
-        console.log(`\n📋 Processing investor: ${investor.id}`);
+        // Generate unique ID if needed
+        let finalId = investor.id;
+        let finalCollisionHash = investor.collisionHash;
+        
+        if (generateuniqueids) {
+          // Always generate unique ID when flag is enabled
+          finalId = generateUniqueId(investor.id);
+          finalCollisionHash = generateUniqueCollisionHash(investor.collisionHash);
+          idMapping.set(investor.id, finalId);
+          console.log(`\n📋 Processing investor: ${finalId} (original: ${investor.id})`);
+          console.log(`   🔄 Generated unique ID (flag enabled)`);
+        } else if (usedIds.has(investor.id)) {
+          // Only generate if duplicate detected and flag not enabled
+          finalId = generateUniqueId(investor.id);
+          finalCollisionHash = generateUniqueCollisionHash(investor.collisionHash);
+          idMapping.set(investor.id, finalId);
+          console.log(`\n📋 Processing investor: ${finalId} (original: ${investor.id})`);
+          console.log(`   🔄 Generated unique ID due to duplicate`);
+        } else {
+          console.log(`\n📋 Processing investor: ${finalId}`);
+        }
+        
+        // Track this ID
+        usedIds.add(finalId);
         
         // Check if wallets array is empty and generate wallets if needed
         let wallets = investor.wallets || [];
-        if (wallets.length === 0 && generateWallets) {
+        if (wallets.length === 0 && generatewallets) {
           console.log(`   🔑 No wallets provided - generating new wallet...`);
           const newWallet = generateWallet();
           wallets = [newWallet.address];
           
-          // Store wallet info for private key file
+          // Store wallet info for private key file (use final ID)
           generatedWallets.push({
-            investorId: investor.id,
+            investorId: finalId,
             address: newWallet.address,
             privateKey: newWallet.privateKey,
             mnemonic: newWallet.mnemonic
@@ -158,7 +172,7 @@ task('create-investor', 'Create investors from JSON file with auto-generated ran
           console.log(`   ✅ Generated wallet: ${newWallet.address}`);
         }
         
-        // Validate required fields
+        // Validate required fields (use original fields for validation)
         if (!investor.id || !investor.collisionHash || !investor.country) {
           throw new Error("Missing required fields: id, collisionHash, country");
         }
@@ -179,19 +193,15 @@ task('create-investor', 'Create investors from JSON file with auto-generated ran
         console.log(`   📍 Country: ${investor.country}`);
         console.log(`   💼 Wallets: ${wallets.length}`);
         console.log(`   🏷️  Attributes: ${investor.attributeIds?.length || 0}`);
-        console.log(`   🪙  Tokens: ${investor.tokens || 0}`);
         
         if (dryrun) {
-          console.log(`   ✅ [DRY RUN] Would create investor ${investor.id}`);
-          if (investor.tokens && investor.tokens > 0) {
-            console.log(`   🪙 [DRY RUN] Would issue ${investor.tokens} tokens to ${wallets[0]}`);
-          }
+          console.log(`   ✅ [DRY RUN] Would create investor ${finalId}`);
           successCount++;
         } else {
-          // Execute the updateInvestor function
+          // Execute the updateInvestor function with final IDs
           const tx = await regService.updateInvestor(
-            investor.id,
-            investor.collisionHash,
+            finalId,                    // Use the final (possibly unique) ID
+            finalCollisionHash,         // Use the final (possibly unique) collision hash
             investor.country,
             wallets,
             investor.attributeIds || [],
@@ -201,38 +211,12 @@ task('create-investor', 'Create investors from JSON file with auto-generated ran
           
           console.log(`   ⏳ Transaction submitted: ${tx.hash}`);
           await tx.wait();
-          console.log(`   ✅ Investor ${investor.id} created successfully!`);
-          
-          // Issue tokens if specified
-          if (investor.tokens && investor.tokens > 0) {
-            console.log(`   🪙 Issuing ${investor.tokens} tokens to ${wallets[0]}...`);
-            
-            // Verify the wallet exists and is associated with the investor
-            const isWalletRegistered = await regService.isWallet(wallets[0]);
-            if (!isWalletRegistered) {
-              throw new Error(`Wallet ${wallets[0]} is not registered`);
-            }
-            
-            const walletInvestorId = await regService.getInvestor(wallets[0]);
-            if (walletInvestorId !== investor.id) {
-              throw new Error(`Wallet ${wallets[0]} is associated with investor ${walletInvestorId}, expected ${investor.id}`);
-            }
-            
-            // Issue tokens to the wallet
-            const issuanceTx = await dsToken.issueTokens(wallets[0], investor.tokens);
-            console.log(`   ⏳ Issuance transaction submitted: ${issuanceTx.hash}`);
-            await issuanceTx.wait();
-            
-            // Verify the issuance
-            const balance = await dsToken.balanceOf(wallets[0]);
-            console.log(`   ✅ Tokens issued successfully! Balance: ${balance.toString()}`);
-          }
-          
+          console.log(`   ✅ Investor ${finalId} created successfully!`);
           successCount++;
         }
         
-      } catch (error: any) {
-        console.error(`   ❌ Error creating investor ${investor.id}:`, error.message);
+      } catch (error) {
+        console.error(`   ❌ Error creating investor ${finalId}:`, error.message);
         failCount++;
       }
     }
@@ -245,11 +229,25 @@ task('create-investor', 'Create investors from JSON file with auto-generated ran
       console.log('   ⚠️  IMPORTANT: Keep this file secure and never commit it to version control!');
     }
     
+    // Show ID mapping if unique IDs were generated
+    if (idMapping.size > 0) {
+      console.log('\n🆔 ID MAPPING (Original -> Unique):');
+      console.log('='.repeat(50));
+      for (const [original, unique] of idMapping) {
+        console.log(`   ${original} -> ${unique}`);
+      }
+      console.log('\n💡 Use the unique IDs in your transfer tasks!');
+    }
+    
     console.log('\n' + '='.repeat(60));
     console.log(`📊 Summary: ${successCount} successful, ${failCount} failed`);
     
     if (generatedWallets.length > 0) {
       console.log(`🔑 Generated ${generatedWallets.length} new wallets`);
+    }
+    
+    if (idMapping.size > 0) {
+      console.log(`🆔 Generated ${idMapping.size} unique IDs`);
     }
     
     if (dryrun) {

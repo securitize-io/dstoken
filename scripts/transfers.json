@@ -1,0 +1,12 @@
+{
+  "network": "arbitrum",
+  "tokenAddress": "0x9Bb0af14a1Ad355EB77efefd52b312B97edbaB75",
+  "transfers": [
+    {
+      "from": "0x561129FB50D4B8775Fe002873D1093F1Ee882F14",
+      "to": "0x4328d1DA05e354aCF1C99DE315b3083a6e47a4db",
+      "amount": "1",
+      "description": "Transfer 1000 tokens from investor A to investor B"
+    }
+  ]
+}

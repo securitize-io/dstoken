@@ -4,7 +4,7 @@ import * as path from "path";
 
 // Contract addresses (auto-updated from deployment)
 const CONTRACT_ADDRESSES = {
-  compConfigService: "0x5EFae3f89f57c28Ccbf19366d161D44630D91873",
+  compConfigService: "0x17a3a58a849Da2996191758e43C9adaa0b7405E9",
 };
 
 // Parameter mapping for better readability
@@ -34,15 +34,6 @@ const PARAMETER_NAMES = {
     'worldWideForceFullTransfer',
     'disallowBackDating'
   ]
-};
-
-// Compliance constants
-const COMPLIANCE_VALUES = {
-  NONE: 0,
-  US: 1,
-  EU: 2,
-  FORBIDDEN: 4,
-  JP: 8
 };
 
 // Function to save compliance rules output
@@ -78,7 +69,6 @@ task('set-compliance-rules', 'Set all compliance rules from JSON file using setA
     }
     
     const { uintValues, boolValues } = complianceData.complianceRules;
-    const countryCompliance = complianceData.countryCompliance || {};
     
     // Validate array lengths
     if (uintValues.length !== 16) {
@@ -86,14 +76,6 @@ task('set-compliance-rules', 'Set all compliance rules from JSON file using setA
     }
     if (boolValues.length !== 5) {
       throw new Error(`boolValues must have exactly 5 values, got ${boolValues.length}`);
-    }
-    
-    // Validate country compliance values
-    const validValues = Object.values(COMPLIANCE_VALUES);
-    for (const [country, value] of Object.entries(countryCompliance)) {
-      if (!validValues.includes(value as number)) {
-        throw new Error(`Invalid compliance value ${value} for country ${country}. Valid values: ${validValues.join(', ')}`);
-      }
     }
     
     const [signer] = await hre.ethers.getSigners();
@@ -115,32 +97,21 @@ task('set-compliance-rules', 'Set all compliance rules from JSON file using setA
     
     // Display what will be set
     console.log('\n📊 UInt Values:');
-    uintValues.forEach((value: any, index: number) => {
+    uintValues.forEach((value, index) => {
       const currentValue = currentUintValues[index];
       const changed = currentValue.toString() !== value.toString();
       console.log(`   [${index}] ${PARAMETER_NAMES.uintValues[index]}: ${currentValue} → ${value} ${changed ? '🔄' : '✅'}`);
     });
     
     console.log('\n🔘 Bool Values:');
-    boolValues.forEach((value: any, index: number) => {
+    boolValues.forEach((value, index) => {
       const currentValue = currentBoolValues[index];
       const changed = currentValue !== value;
       console.log(`   [${index}] ${PARAMETER_NAMES.boolValues[index]}: ${currentValue} → ${value} ${changed ? '🔄' : '✅'}`);
     });
     
-    // Display country compliance if provided
-    if (Object.keys(countryCompliance).length > 0) {
-      console.log('\n🌍 Country Compliance:');
-      for (const [country, value] of Object.entries(countryCompliance)) {
-        const currentValue = await compConfigService.getCountryCompliance(country);
-        const changed = currentValue.toString() !== (value as number).toString();
-        const complianceName = Object.keys(COMPLIANCE_VALUES).find(key => COMPLIANCE_VALUES[key as keyof typeof COMPLIANCE_VALUES] === value) || 'UNKNOWN';
-        console.log(`   ${country}: ${currentValue} → ${value} (${complianceName}) ${changed ? '🔄' : '✅'}`);
-      }
-    }
-    
     // Prepare output data
-    const outputData: any = {
+    const outputData = {
       metadata: {
         generatedAt: new Date().toISOString(),
         network: hre.network.name,
@@ -151,12 +122,12 @@ task('set-compliance-rules', 'Set all compliance rules from JSON file using setA
         dryRun: dryrun
       },
       transaction: {
-        hash: null as any,
-        blockNumber: null as any,
-        gasUsed: null as any,
-        gasPrice: null as any,
-        timestamp: null as any
-      } as any,
+        hash: null,
+        blockNumber: null,
+        gasUsed: null,
+        gasPrice: null,
+        timestamp: null
+      },
       complianceRules: {
         uintValues: {
           values: uintValues,
@@ -167,30 +138,25 @@ task('set-compliance-rules', 'Set all compliance rules from JSON file using setA
           values: boolValues,
           names: PARAMETER_NAMES.boolValues,
           mapped: {}
-        },
-        countryCompliance: {
-          values: countryCompliance,
-          changes: []
         }
       },
       changes: {
         uintChanges: [],
-        boolChanges: [],
-        countryChanges: []
+        boolChanges: []
       }
     };
     
     // Map values to names for easier reading
-    uintValues.forEach((value: any, index: number) => {
+    uintValues.forEach((value, index) => {
       outputData.complianceRules.uintValues.mapped[PARAMETER_NAMES.uintValues[index]] = value;
     });
     
-    boolValues.forEach((value: any, index: number) => {
+    boolValues.forEach((value, index) => {
       outputData.complianceRules.boolValues.mapped[PARAMETER_NAMES.boolValues[index]] = value;
     });
     
     // Track changes
-    uintValues.forEach((value: any, index: number) => {
+    uintValues.forEach((value, index) => {
       const currentValue = currentUintValues[index];
       if (currentValue.toString() !== value.toString()) {
         outputData.changes.uintChanges.push({
@@ -202,7 +168,7 @@ task('set-compliance-rules', 'Set all compliance rules from JSON file using setA
       }
     });
     
-    boolValues.forEach((value: any, index: number) => {
+    boolValues.forEach((value, index) => {
       const currentValue = currentBoolValues[index];
       if (currentValue !== value) {
         outputData.changes.boolChanges.push({
@@ -214,23 +180,9 @@ task('set-compliance-rules', 'Set all compliance rules from JSON file using setA
       }
     });
     
-    // Track country compliance changes
-    for (const [country, value] of Object.entries(countryCompliance)) {
-      const currentValue = await compConfigService.getCountryCompliance(country);
-      if (currentValue.toString() !== (value as number).toString()) {
-        const complianceName = Object.keys(COMPLIANCE_VALUES).find(key => COMPLIANCE_VALUES[key as keyof typeof COMPLIANCE_VALUES] === value) || 'UNKNOWN';
-        outputData.changes.countryChanges.push({
-          country,
-          from: currentValue.toString(),
-          to: (value as number).toString(),
-          complianceName
-        });
-      }
-    }
-    
     if (dryrun) {
       console.log('\n🔍 DRY RUN - No transactions will be executed');
-      console.log(`📊 Summary: ${outputData.changes.uintChanges.length} uint changes, ${outputData.changes.boolChanges.length} bool changes, ${outputData.changes.countryChanges.length} country changes`);
+      console.log(`📊 Summary: ${outputData.changes.uintChanges.length} uint changes, ${outputData.changes.boolChanges.length} bool changes`);
       console.log('✅ All compliance rules validated successfully!');
     } else {
       console.log('\n⏳ Executing setAll() transaction...');
@@ -252,29 +204,6 @@ task('set-compliance-rules', 'Set all compliance rules from JSON file using setA
       console.log(`✅ Transaction mined in block: ${receipt.blockNumber}`);
       console.log(`⛽ Gas used: ${receipt.gasUsed.toString()}`);
       
-      // Execute country compliance if provided
-      if (Object.keys(countryCompliance).length > 0) {
-        console.log('\n🌍 Setting country compliance...');
-        const countries = Object.keys(countryCompliance);
-        const values = Object.values(countryCompliance) as number[];
-        
-        const countryTx = await compConfigService.setCountriesCompliance(countries, values);
-        console.log(`📝 Country compliance transaction submitted: ${countryTx.hash}`);
-        
-        const countryReceipt = await countryTx.wait();
-        console.log(`✅ Country compliance transaction mined in block: ${countryReceipt.blockNumber}`);
-        console.log(`⛽ Gas used: ${countryReceipt.gasUsed.toString()}`);
-        
-        // Update output data with country compliance transaction info
-        outputData.transaction.countryCompliance = {
-          hash: countryTx.hash,
-          blockNumber: countryReceipt.blockNumber,
-          gasUsed: countryReceipt.gasUsed.toString(),
-          gasPrice: countryTx.gasPrice?.toString() || '0',
-          timestamp: new Date().toISOString()
-        };
-      }
-      
       // Verify the changes by getting the new values
       console.log('\n🔍 Verifying changes...');
       const [newUintValues, newBoolValues] = await compConfigService.getAll();
@@ -283,31 +212,18 @@ task('set-compliance-rules', 'Set all compliance rules from JSON file using setA
       outputData.verification = {
         uintValues: {
           expected: uintValues,
-          actual: newUintValues.map((v: any) => v.toString()),
-          verified: uintValues.every((v: any, i: number) => v.toString() === newUintValues[i].toString())
+          actual: newUintValues.map(v => v.toString()),
+          verified: uintValues.every((v, i) => v.toString() === newUintValues[i].toString())
         },
         boolValues: {
           expected: boolValues,
           actual: newBoolValues,
-          verified: boolValues.every((v: any, i: number) => v === newBoolValues[i])
-        },
-        countryCompliance: {}
+          verified: boolValues.every((v, i) => v === newBoolValues[i])
+        }
       };
-      
-      // Verify country compliance
-      for (const [country, expectedValue] of Object.entries(countryCompliance)) {
-        const actualValue = await compConfigService.getCountryCompliance(country);
-        const verified = actualValue.toString() === (expectedValue as number).toString();
-        outputData.verification.countryCompliance[country] = {
-          expected: expectedValue as number,
-          actual: actualValue.toString(),
-          verified
-        };
-      }
       
       console.log(`✅ UInt values verified: ${outputData.verification.uintValues.verified}`);
       console.log(`✅ Bool values verified: ${outputData.verification.boolValues.verified}`);
-      console.log(`✅ Country compliance verified: ${Object.values(outputData.verification.countryCompliance).every((v: any) => v.verified)}`);
       console.log('✅ All compliance rules set successfully!');
     }
     

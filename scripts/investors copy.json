@@ -19,6 +19,16 @@
       "attributeValues": [1, 0, 1, 1],
       "attributeExpirations": [0, 0, 0, 0],
       "tokens": 4000000
+    },
+    {
+      "id": "lau_",
+      "collisionHash": "lau_",
+      "country": "EU",
+      "wallets": [],
+      "attributeIds": [1, 2, 4, 8],
+      "attributeValues": [1, 0, 1, 1],
+      "attributeExpirations": [0, 0, 0, 0],
+      "tokens": 4000000
     }
   ]
 }
