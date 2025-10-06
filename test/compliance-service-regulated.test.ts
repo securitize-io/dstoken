@@ -1252,6 +1252,77 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await dsToken.issueTokens(wallet, 100)
       await expect(dsToken.issueTokens(wallet2, 100)).revertedWith('Max investors in category');
     });
+
+    it('should enforce EU minimum holdings requirement during issuance', async function () {
+      const [wallet] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.SPAIN, INVESTORS.Compliance.EU);
+      await complianceConfigurationService.setMinEUTokens(200);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.SPAIN_INVESTOR_ID, wallet, registryService);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.SPAIN_INVESTOR_ID, INVESTORS.Country.SPAIN);
+      // Make investor qualified to avoid EU retail limit
+      await registryService.setAttribute(INVESTORS.INVESTOR_ID.SPAIN_INVESTOR_ID, 4, 1, 0, 'abcde');
+
+      await expect(dsToken.issueTokens(wallet, 150)).revertedWith('Amount of tokens under min');
+    });
+
+    it('should enforce both regional and global minimum holdings during issuance', async function () {
+      const [wallet] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+      // Set regional minimum lower than global minimum
+      await complianceConfigurationService.setMinUSTokens(50);
+      await complianceConfigurationService.setMinimumHoldingsPerInvestor(100);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, wallet, registryService);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, INVESTORS.Country.USA);
+
+      // Should fail because 75 < 100 (global minimum)
+      await expect(dsToken.issueTokens(wallet, 75)).revertedWith('Amount of tokens under min');
+
+      // Should succeed because 150 >= both minimums
+      await expect(dsToken.issueTokens(wallet, 150)).not.to.be.reverted;
+    });
+
+    it('should enforce global minimum when regional minimum is not set', async function () {
+      const [wallet] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.GERMANY, INVESTORS.Compliance.EU);
+      // Set only global minimum (no EU regional minimum)
+      await complianceConfigurationService.setMinEUTokens(0); // Explicitly set to 0
+      await complianceConfigurationService.setMinimumHoldingsPerInvestor(100);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.GERMANY_INVESTOR_ID, wallet, registryService);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.GERMANY_INVESTOR_ID, INVESTORS.Country.GERMANY);
+      // Make investor qualified to avoid EU retail limit
+      await registryService.setAttribute(INVESTORS.INVESTOR_ID.GERMANY_INVESTOR_ID, 4, 1, 0, 'abcde');
+
+      // Should fail because 75 < 100 (global minimum)
+      await expect(dsToken.issueTokens(wallet, 75)).revertedWith('Amount of tokens under min');
+    });
+
+    it('should enforce regional minimum when it is higher than global minimum', async function () {
+      const [wallet] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+      // Set regional minimum higher than global minimum
+      await complianceConfigurationService.setMinUSTokens(200);
+      await complianceConfigurationService.setMinimumHoldingsPerInvestor(50);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, wallet, registryService);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, INVESTORS.Country.USA);
+
+      // Should fail because 150 < 200 (regional minimum)
+      await expect(dsToken.issueTokens(wallet, 150)).revertedWith('Amount of tokens under min');
+
+      // Should succeed because 250 >= both minimums
+      await expect(dsToken.issueTokens(wallet, 250)).not.to.be.reverted;
+    });
   });
 
   describe('Check whitelisted', function () {
