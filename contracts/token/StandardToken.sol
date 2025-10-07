@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,10 +18,11 @@
 
 pragma solidity 0.8.22;
 
-import "../data-stores/TokenDataStore.sol";
+import {TokenDataStore} from "../data-stores/TokenDataStore.sol";
 import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
 import {BaseDSContract} from "../utils/BaseDSContract.sol";
-import "../rebasing/RebasingLibrary.sol";
+import {RebasingLibrary} from "../rebasing/RebasingLibrary.sol";
+import {IDSToken} from "./IDSToken.sol";
 
 abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
     event Pause();
@@ -91,6 +92,8 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
         address _to,
         uint256 _value
     ) public virtual returns (bool) {
+        require(_value <= allowances[_from][msg.sender], "Not enough allowance");
+        allowances[_from][msg.sender] -= _value;
         return transferImpl(_from, _to, _value);
     }
 

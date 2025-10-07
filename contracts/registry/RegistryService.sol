@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,11 +18,17 @@
 
 pragma solidity 0.8.22;
 
-import "./IDSRegistryService.sol";
-import "../data-stores/RegistryServiceDataStore.sol";
-import "../utils/BaseDSContract.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
+import {IDSRegistryService} from "./IDSRegistryService.sol";
+import {RegistryServiceDataStore} from "../data-stores/RegistryServiceDataStore.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
 
 contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDSContract {
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
 
     function initialize() public override onlyProxy initializer {
         __BaseDSContract_init();
@@ -106,14 +112,13 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
 
     function setCountry(string calldata _id, string memory _country) public override onlyExchangeOrAbove investorExists(_id) returns (bool) {
         string memory prevCountry = getCountry(_id);
+        if (!CommonUtils.isEqualString(prevCountry, _country)) {
+            getComplianceService().adjustInvestorCountsAfterCountryChange(_id, _country, prevCountry);
 
-        getComplianceService().adjustInvestorCountsAfterCountryChange(_id, _country, prevCountry);
+            investors[_id].country = _country;
 
-        investors[_id].country = _country;
-        investors[_id].lastUpdatedBy = msg.sender;
-
-        emit DSRegistryServiceInvestorCountryChanged(_id, _country, msg.sender);
-
+            emit DSRegistryServiceInvestorCountryChanged(_id, _country, msg.sender);
+        }
         return true;
     }
 
@@ -137,7 +142,6 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
         attributes[_id][_attributeId].value = _value;
         attributes[_id][_attributeId].expiry = _expiry;
         attributes[_id][_attributeId].proofHash = _proofHash;
-        investors[_id].lastUpdatedBy = msg.sender;
 
         emit DSRegistryServiceInvestorAttributeChanged(_id, _attributeId, _value, _expiry, _proofHash, msg.sender);
 
@@ -158,7 +162,7 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
 
     function addWallet(address _address, string memory _id) public override onlyExchangeOrAbove investorExists(_id) newWallet(_address) returns (bool) {
         require(!getWalletManager().isSpecialWallet(_address), "Wallet has special role");
-
+        require(getToken().balanceOf(_address) == 0, "Wallet with positive balance");
         investorsWallets[_address] = Wallet(_id, msg.sender, msg.sender);
         investors[_id].walletCount++;
 
@@ -167,28 +171,10 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
         return true;
     }
 
-    /**
-     * @dev Add wallet by investor. This method should verify the new wallet to add,
-     * the sender should be an investor, and the new wallet will be added to the retrieved investor (msg.sender)
-     * @param _address - Wallet to be added
-     * @return bool
-     */
-    function addWalletByInvestor(address _address) public override newWallet(_address) returns (bool) {
-        require(!getWalletManager().isSpecialWallet(_address), "Wallet has special role");
-
-        string memory owner = getInvestor(msg.sender);
-        require(isInvestor(owner), "Unknown investor");
-
-        investorsWallets[_address] = Wallet(owner, msg.sender, msg.sender);
-        investors[owner].walletCount++;
-
-        emit DSRegistryServiceWalletAdded(_address, owner, msg.sender);
-
-        return true;
-    }
 
     function removeWallet(address _address, string memory _id) public override onlyExchangeOrAbove walletExists(_address) walletBelongsToInvestor(_address, _id) returns (bool) {
         require(getTrustService().getRole(msg.sender) != EXCHANGE || investorsWallets[_address].creator == msg.sender, "Insufficient permissions");
+        require(getToken().balanceOf(_address) == 0, "Wallet with positive balance");
 
         delete investorsWallets[_address];
         investors[_id].walletCount--;

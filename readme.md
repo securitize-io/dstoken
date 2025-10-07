@@ -55,7 +55,6 @@ The following compliance service types are implemented:
 
 - **Full/Normal** (ESComplianceServiceRegulated) - A full Compliance Service implementing transfer rules common to regulations wordwide, such as: restricting or limiting the number of retail investors, restricting investors from certain countries, requiring accredited investor status or preventing flowback of off-shore tokens.
 - **WhiteList** (ESComplianceServiceWhitelisted.sol) - A simple Compliance Service restricting transfers only based on basic white-listing of investors.
-- **NotRegulated** (ESComplianceServiceNotRegulated.sol) - A simple Compliance Service for tokens allowing all trading by default, with a manual locking option.
 
 More detailed information about the Compliance Service can be found in the tutorials above and in the posts linked above.
 

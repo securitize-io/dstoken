@@ -19,36 +19,41 @@
 pragma solidity 0.8.22;
 
 import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
-import "../service/ServiceConsumer.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "../utils/BaseDSContract.sol";
-import "./RebasingLibrary.sol";
+import {ServiceConsumer} from "../service/ServiceConsumer.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
+import {RebasingLibrary} from "./RebasingLibrary.sol";
 
 contract SecuritizeRebasingProvider is BaseDSContract, ISecuritizeRebasingProvider {
     uint256 public multiplier; // Multiplier is fixed to 18 decimals
     uint8 public tokenDecimals;
-    
+
     error InvalidMultiplier(uint256 providedMultiplier);
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
 
     function initialize(uint256 _multiplier, uint8 _tokenDecimals) public onlyProxy initializer override {
         __BaseDSContract_init();
-        
+
         if (_multiplier == 0) {
             revert InvalidMultiplier(_multiplier);
         }
-        
+
         multiplier = _multiplier;
         tokenDecimals = _tokenDecimals;
     }
     /**
-     * 
+     *
      * @param _multiplier The new multiplier value, fixed to 18 decimals
      */
-    function setMultiplier(uint256 _multiplier) external override onlyMaster {
+    function setMultiplier(uint256 _multiplier) external override onlyIssuerOrAbove {
         if (_multiplier == 0) {
             revert InvalidMultiplier(_multiplier);
         }
-        
+
         uint256 old = multiplier;
         multiplier = _multiplier;
         emit RebasingRateUpdated(old, _multiplier);

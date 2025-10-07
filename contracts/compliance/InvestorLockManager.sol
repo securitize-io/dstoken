@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,14 +18,19 @@
 
 pragma solidity 0.8.22;
 
-import "./IDSLockManager.sol";
-import "./InvestorLockManagerBase.sol";
-import "../data-stores/InvestorLockManagerDataStore.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
-import "../utils/BaseDSContract.sol";
+import {IDSLockManager} from "./IDSLockManager.sol";
+import {InvestorLockManagerBase} from "./InvestorLockManagerBase.sol";
+import {InvestorLockManagerDataStore} from "../data-stores/InvestorLockManagerDataStore.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
 
 contract InvestorLockManager is InvestorLockManagerBase {
     uint256 constant MAX_LOCKS_PER_INVESTOR = 30;
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
 
     function initialize() public override onlyProxy initializer {
         __BaseDSContract_init();
@@ -134,7 +139,7 @@ contract InvestorLockManager is InvestorLockManagerBase {
         return investorsLocksCounts[investor];
     }
 
-    function lockCountForInvestor(string memory _investorId) public view override returns (uint256) {
+    function lockCountForInvestor(string calldata _investorId) public view override returns (uint256) {
         return investorsLocksCounts[_investorId];
     }
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,9 +18,11 @@
 
 pragma solidity 0.8.22;
 
-import "../service/ServiceConsumer.sol";
 import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
-import "../rebasing/RebasingLibrary.sol";
+import {IDSLockManager} from "../compliance/IDSLockManager.sol";
+import {IDSComplianceService} from "../compliance/IDSComplianceService.sol";
+import {IDSRegistryService} from "../registry/IDSRegistryService.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
 
 
 library TokenLibrary {
@@ -33,8 +35,8 @@ library TokenLibrary {
     uint256 internal constant DEPRECATED_OMNIBUS_WITHDRAW = 2; // Deprecated, keep for backwards compatibility
 
     struct TokenData {
-        mapping(address => uint256) walletsBalances;
-        mapping(string => uint256) investorsBalances;
+        mapping(address wallet => uint256 balance) walletsBalances;
+        mapping(string investor => uint256 balance) investorsBalances;
         uint256 totalSupply;
         uint256 totalIssued;
     }
@@ -50,7 +52,6 @@ library TokenLibrary {
         uint256[] _valuesLocked;
         uint64[] _releaseTimes;
         string _reason;
-        uint256 _cap;
         ISecuritizeRebasingProvider _rebasingProvider;
     }
 
@@ -70,21 +71,16 @@ library TokenLibrary {
         TokenData storage _tokenData,
         address[] memory _services,
         IDSLockManager _lockManager,
-        IssueParams memory _params       
+        IssueParams memory _params
     ) public returns (uint256) {
         //Check input values
         require(_params._to != address(0), "Invalid address");
         require(_params._value > 0, "Value is zero");
         require(_params._valuesLocked.length == _params._releaseTimes.length, "Wrong length of parameters");
 
-        uint256 totalIssuedTokens = _params._rebasingProvider.convertSharesToTokens(_tokenData.totalIssued);
-
-        //Make sure we are not hitting the cap
-        require(_params._cap == 0 || totalIssuedTokens + _params._value <= _params._cap, "Token Cap Hit");
-
         //Check issuance is allowed (and inform the compliance manager, possibly adding locks)
         IDSComplianceService(_services[COMPLIANCE_SERVICE]).validateIssuance(_params._to, _params._value, _params._issuanceTime);
-        
+
         uint256 shares =  _params._rebasingProvider.convertTokensToShares(_params._value);
 
         _tokenData.totalSupply += shares;
@@ -100,41 +96,6 @@ library TokenLibrary {
         }
         require(totalLocked <= _params._value, "valueLocked must be smaller than value");
         emit Issue(_params._to, _params._value, totalLocked);
-        return shares;
-    }
-
-    function issueTokensWithNoCompliance(
-        TokenData storage _tokenData,
-        address[] memory _services,
-        address _to,
-        uint256 _value,
-        uint256 _issuanceTime,
-        uint256 _cap,
-        ISecuritizeRebasingProvider _rebasingProvider 
-    ) public returns (uint256) {
-        uint256 totalIssuedTokens = _rebasingProvider.convertSharesToTokens(_tokenData.totalIssued);
-
-        //Make sure we are not hitting the cap. Cap in visible tokens
-        require(_cap == 0 || totalIssuedTokens + _value <= _cap, "Token Cap Hit");
-
-        //Check and inform issuance is allowed
-        IDSComplianceService(_services[COMPLIANCE_SERVICE]).validateIssuanceWithNoCompliance(_to, _value, _issuanceTime);
-
-        uint256 shares = _rebasingProvider.convertTokensToShares(_value);
-
-        _tokenData.totalSupply += shares;
-        _tokenData.totalIssued += shares;
-        _tokenData.walletsBalances[_to] += shares;
-
-        updateInvestorBalance(
-            _tokenData,
-            IDSRegistryService(_services[REGISTRY_SERVICE]),
-            _to,
-            shares,
-            CommonUtils.IncDec.Increase
-        );
-
-        emit Issue(_to, _value, 0);
         return shares;
     }
 
@@ -175,11 +136,11 @@ library TokenLibrary {
     }
 
     function seize(
-        TokenData storage _tokenData, 
-        address[] memory _services, 
-        address _from, 
-        address _to, 
-        uint256 _value, 
+        TokenData storage _tokenData,
+        address[] memory _services,
+        address _from,
+        address _to,
+        uint256 _value,
         uint256 _shares
 )
     public
@@ -194,7 +155,7 @@ library TokenLibrary {
         updateInvestorBalance(_tokenData, registryService, _to, _shares, CommonUtils.IncDec.Increase);
     }
 
-    function updateInvestorBalance(TokenData storage _tokenData, IDSRegistryService _registryService, address _wallet, uint256 _shares, CommonUtils.IncDec _increase) internal returns (bool) {
+    function updateInvestorBalance(TokenData storage _tokenData, IDSRegistryService _registryService, address _wallet, uint256 _shares, CommonUtils.IncDec _increase) internal {
         string memory investor = _registryService.getInvestor(_wallet);
         if (!CommonUtils.isEmptyString(investor)) {
             uint256 balance = _tokenData.investorsBalances[investor];
@@ -205,7 +166,5 @@ library TokenLibrary {
             }
             _tokenData.investorsBalances[investor] = balance;
         }
-
-        return true;
     }
 }

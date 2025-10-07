@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -26,7 +26,7 @@ abstract contract IDSComplianceConfigurationService {
     event DSComplianceBoolRuleSet(string ruleName, bool prevValue, bool newValue);
     event DSComplianceStringToUIntMapRuleSet(string ruleName, string keyValue, uint256 prevValue, uint256 newValue);
 
-    function getCountryCompliance(string memory _country) public view virtual returns (uint256);
+    function getCountryCompliance(string calldata _country) public view virtual returns (uint256);
 
     function setCountriesCompliance(string[] calldata _countries, uint256[] calldata _values) public virtual;
 

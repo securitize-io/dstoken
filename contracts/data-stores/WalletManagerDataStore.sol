@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,11 +18,11 @@
 
 pragma solidity 0.8.22;
 
-import "./ServiceConsumerDataStore.sol";
+import {ServiceConsumerDataStore} from "./ServiceConsumerDataStore.sol";
 
 contract WalletManagerDataStore is ServiceConsumerDataStore {
-    mapping(address => uint8) internal walletsTypes;
-    mapping(address => mapping(string => mapping(uint8 => uint256))) internal walletsSlots;
+    mapping(address wallet => uint8 walletType) internal walletsTypes;
+    mapping(address wallet => mapping(string slotName => mapping(uint8 slotType => uint256 value))) internal walletsSlots;
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new

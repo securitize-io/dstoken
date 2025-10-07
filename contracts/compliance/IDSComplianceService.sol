@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -69,12 +69,6 @@ abstract contract IDSComplianceService {
     ) public virtual returns (bool);
 
     function validateIssuance(
-        address _to,
-        uint256 _value,
-        uint256 _issuanceTime /*onlyToken*/
-    ) public virtual returns (bool);
-
-    function validateIssuanceWithNoCompliance(
         address _to,
         uint256 _value,
         uint256 _issuanceTime /*onlyToken*/

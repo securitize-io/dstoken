@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,9 +18,10 @@
 
 pragma solidity 0.8.22;
 
-import "./IDSWalletManager.sol";
-import "../data-stores/WalletManagerDataStore.sol";
-import "../utils/BaseDSContract.sol";
+import {IDSWalletManager} from "./IDSWalletManager.sol";
+import {WalletManagerDataStore} from "../data-stores/WalletManagerDataStore.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
 
 /**
  * @title WalletManager
@@ -29,6 +30,11 @@ import "../utils/BaseDSContract.sol";
  */
 
 contract WalletManager is IDSWalletManager, WalletManagerDataStore, BaseDSContract {
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize() public override onlyProxy initializer {
         __BaseDSContract_init();
     }
@@ -70,9 +76,9 @@ contract WalletManager is IDSWalletManager, WalletManagerDataStore, BaseDSContra
     * @param _wallets The address of the wallet.
     * @return A boolean that indicates if the operation was successful.
    */
-    function addIssuerWallets(address[] memory _wallets) public override onlyIssuerOrAbove returns (bool) {
+    function addIssuerWallets(address[] calldata _wallets) public override onlyIssuerOrAbove returns (bool) {
         require(_wallets.length <= 30, "Exceeded the maximum number of wallets");
-        for (uint i = 0; i < _wallets.length; i++) {
+        for (uint8 i = 0; i < _wallets.length; i++) {
             addIssuerWallet(_wallets[i]);
         }
         return true;
@@ -92,9 +98,9 @@ contract WalletManager is IDSWalletManager, WalletManagerDataStore, BaseDSContra
     * @param _wallets The address of the wallet.
     * @return A boolean that indicates if the operation was successful.
    */
-    function addPlatformWallets(address[] memory _wallets) public override onlyIssuerOrAbove returns (bool) {
+    function addPlatformWallets(address[] calldata _wallets) public override onlyIssuerOrAbove returns (bool) {
         require(_wallets.length <= 30, "Exceeded the maximum number of wallets");
-        for (uint i = 0; i < _wallets.length; i++) {
+        for (uint8 i = 0; i < _wallets.length; i++) {
             addPlatformWallet(_wallets[i]);
         }
         return true;

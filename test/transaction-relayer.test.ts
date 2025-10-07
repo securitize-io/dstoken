@@ -7,11 +7,8 @@ import {
   EIP712_TR_NAME,
   EIP712_TR_VERSION,
   registerInvestor,
-  SALT_TR,
   transactionRelayerPreApproval
 } from './utils/test-helper';
-
-const GAS_LIMIT = 200000000;
 
 describe('Transaction Relayer Unit Tests', function() {
   describe('Creation', function() {
@@ -29,9 +26,14 @@ describe('Transaction Relayer Unit Tests', function() {
       const { transactionRelayer } = await loadFixture(deployDSTokenRegulated);
       expect(await transactionRelayer.getImplementationAddress()).to.be.exist;
     });
+
+    it('SHOULD fail when trying to initialize implementation contract directly', async () => {
+      const implementation = await hre.ethers.deployContract('TransactionRelayer');
+      await expect(implementation.initialize()).to.revertedWithCustomError(implementation, 'UUPSUnauthorizedCallContext');
+    });
   });
 
-  describe('executeByInvestorWithBlockLimit method', function() {
+  describe('executePreApprovedTransaction method', function() {
     it('Should wallet issuer sign an issueTokens() transaction', async function() {
       const [investor, hsm] = await hre.ethers.getSigners();
       const {
@@ -48,36 +50,36 @@ describe('Transaction Relayer Unit Tests', function() {
       const block = await hre.ethers.provider.getBlock('latest');
       const blockLimit = (block?.number ?? 0) + 5;
       const nonce = await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      const dataHash = hre.ethers.keccak256(issueTokensData);
+      const investorIdHash = hre.ethers.keccak256(hre.ethers.toUtf8Bytes(INVESTORS.INVESTOR_ID.INVESTOR_ID_1));
 
+      const investorId = INVESTORS.INVESTOR_ID.INVESTOR_ID_1;
       const message = {
         destination: await dsToken.getAddress(),
-        value: 0,
-        data: issueTokensData,
+        data: dataHash,
         nonce: nonce,
-        executor: hre.ethers.ZeroAddress,
-        gasLimit: GAS_LIMIT,
-        investorId: INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
+        senderInvestor: investorIdHash,
         blockLimit
       };
 
       const signature = await transactionRelayerPreApproval(hsm, await transactionRelayer.getAddress(), message);
 
-      await transactionRelayer.executeByInvestorWithBlockLimit(
-        signature.v,
-        signature.r,
-        signature.s,
-        INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
-        await dsToken.getAddress(),
-        hre.ethers.ZeroAddress,
-        issueTokensData,
-        [0, GAS_LIMIT, blockLimit]
+      await transactionRelayer.executePreApprovedTransaction(
+        signature.serialized,
+        {
+          destination: await dsToken.getAddress(),
+          data: issueTokensData,
+          senderInvestor: investorId,
+          nonce,
+          blockLimit
+        }
       );
 
       expect(await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1)).to.equal(nonce + 1n);
       expect(await dsToken.balanceOf(investor)).to.equal(100);
     });
 
-    it('SHOULD revert when passing wrong params array length', async function() {
+    it('SHOULD revert when reusing the same nonce', async function() {
       const [investor, hsm] = await hre.ethers.getSigners();
       const {
         dsToken,
@@ -93,30 +95,37 @@ describe('Transaction Relayer Unit Tests', function() {
       const block = await hre.ethers.provider.getBlock('latest');
       const blockLimit = (block?.number ?? 0) + 5;
       const nonce = await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      const dataHash = hre.ethers.keccak256(issueTokensData);
+      const investorIdHash = hre.ethers.keccak256(hre.ethers.toUtf8Bytes(INVESTORS.INVESTOR_ID.INVESTOR_ID_1));
 
+      const investorId = INVESTORS.INVESTOR_ID.INVESTOR_ID_1;
       const message = {
         destination: await dsToken.getAddress(),
-        value: 0,
-        data: issueTokensData,
+        data: dataHash,
         nonce: nonce,
-        executor: hre.ethers.ZeroAddress,
-        gasLimit: GAS_LIMIT,
-        investorId: INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
+        senderInvestor: investorIdHash,
         blockLimit
       };
 
       const signature = await transactionRelayerPreApproval(hsm, await transactionRelayer.getAddress(), message);
 
-      await expect(transactionRelayer.executeByInvestorWithBlockLimit(
-        signature.v,
-        signature.r,
-        signature.s,
-        INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
-        await dsToken.getAddress(),
-        hre.ethers.ZeroAddress,
-        issueTokensData,
-        [0, GAS_LIMIT, blockLimit, blockLimit]
-      )).revertedWith('Incorrect params length');
+      const txData = {
+        destination: await dsToken.getAddress(),
+        data: issueTokensData,
+        senderInvestor: investorId,
+        nonce,
+        blockLimit
+      };
+
+      await transactionRelayer.executePreApprovedTransaction(
+        signature.serialized,
+        txData
+      );
+
+      await expect(transactionRelayer.executePreApprovedTransaction(
+        signature.serialized,
+        txData
+      )).revertedWith('Invalid nonce');
     });
 
     it('SHOULD revert when blockLimit is expired', async () => {
@@ -135,29 +144,31 @@ describe('Transaction Relayer Unit Tests', function() {
       const block = await hre.ethers.provider.getBlock('latest');
       const blockLimit = (block?.number ?? 0) - 5;
       const nonce = await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      const dataHash = hre.ethers.keccak256(issueTokensData);
+      const investorIdHash = hre.ethers.keccak256(hre.ethers.toUtf8Bytes(INVESTORS.INVESTOR_ID.INVESTOR_ID_1));
 
+      const investorId = INVESTORS.INVESTOR_ID.INVESTOR_ID_1;
       const message = {
         destination: await dsToken.getAddress(),
-        value: 0,
-        data: issueTokensData,
+        data: dataHash,
         nonce: nonce,
-        executor: hre.ethers.ZeroAddress,
-        gasLimit: GAS_LIMIT,
-        investorId: INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
+        senderInvestor: investorIdHash,
         blockLimit
       };
 
       const signature = await transactionRelayerPreApproval(hsm, await transactionRelayer.getAddress(), message);
 
-      await expect(transactionRelayer.executeByInvestorWithBlockLimit(
-        signature.v,
-        signature.r,
-        signature.s,
-        INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
-        await dsToken.getAddress(),
-        hre.ethers.ZeroAddress,
-        issueTokensData,
-        [0, GAS_LIMIT, blockLimit]
+      const txData = {
+        destination: await dsToken.getAddress(),
+        data: issueTokensData,
+        senderInvestor: investorId,
+        nonce,
+        blockLimit
+      };
+
+      await expect(transactionRelayer.executePreApprovedTransaction(
+        signature.serialized,
+        txData
       )).revertedWith('Transaction too old');
     });
 
@@ -177,56 +188,109 @@ describe('Transaction Relayer Unit Tests', function() {
       const block = await hre.ethers.provider.getBlock('latest');
       const blockLimit = (block?.number ?? 0) + 5;
       const nonce = await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      const dataHash = hre.ethers.keccak256(issueTokensData);
+      const investorIdHash = hre.ethers.keccak256(hre.ethers.toUtf8Bytes(INVESTORS.INVESTOR_ID.INVESTOR_ID_1));
 
+      const investorId = INVESTORS.INVESTOR_ID.INVESTOR_ID_1;
       const message = {
         destination: await dsToken.getAddress(),
-        value: 0,
-        data: issueTokensData,
+        data: dataHash,
         nonce: nonce,
-        executor: hre.ethers.ZeroAddress,
-        gasLimit: GAS_LIMIT,
-        investorId: INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
+        senderInvestor: investorIdHash,
         blockLimit
       };
 
       const domainDataWrongName = {
         name: 'wrong name',
         version: EIP712_TR_VERSION,
-        chainId: (await hre.ethers.provider.getNetwork()).chainId,
-        salt: SALT_TR
+        chainId: (await hre.ethers.provider.getNetwork()).chainId
       };
 
       let signature = await transactionRelayerPreApproval(hsm, await transactionRelayer.getAddress(), message, domainDataWrongName);
 
-      await expect(transactionRelayer.executeByInvestorWithBlockLimit(
-        signature.v,
-        signature.r,
-        signature.s,
-        INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
-        await dsToken.getAddress(),
-        hre.ethers.ZeroAddress,
-        issueTokensData,
-        [0, GAS_LIMIT, blockLimit]
+      const txData = {
+        destination: await dsToken.getAddress(),
+        data: issueTokensData,
+        senderInvestor: investorId,
+        nonce,
+        blockLimit
+      };
+
+      await expect(transactionRelayer.executePreApprovedTransaction(
+        signature.serialized,
+        txData
       )).revertedWith('Invalid signature');
 
       const domainDataWrongVersion = {
         name: EIP712_TR_NAME,
         version: 'wrong version',
-        chainId: (await hre.ethers.provider.getNetwork()).chainId,
-        salt: SALT_TR
+        chainId: (await hre.ethers.provider.getNetwork()).chainId
       };
 
       signature = await transactionRelayerPreApproval(hsm, await transactionRelayer.getAddress(), message, domainDataWrongVersion);
 
-      await expect(transactionRelayer.executeByInvestorWithBlockLimit(
-        signature.v,
-        signature.r,
-        signature.s,
-        INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
-        await dsToken.getAddress(),
-        hre.ethers.ZeroAddress,
-        issueTokensData,
-        [0, GAS_LIMIT, blockLimit]
+      await expect(transactionRelayer.executePreApprovedTransaction(
+        signature.serialized,
+        txData
+      )).revertedWith('Invalid signature');
+    });
+
+    it('SHOULD revert when signing with wrong struct field types', async function() {
+      const [investor, hsm] = await hre.ethers.getSigners();
+      const {
+        dsToken,
+        transactionRelayer,
+        trustService,
+        registryService
+      } = await loadFixture(deployDSTokenRegulated);
+
+      await trustService.setRole(hsm, DSConstants.roles.ISSUER);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
+
+      const issueTokensData = dsToken.interface.encodeFunctionData('issueTokens', [investor.address, 100]);
+      const block = await hre.ethers.provider.getBlock('latest');
+      const blockLimit = (block?.number ?? 0) + 5;
+      const nonce = await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      const investorIdHash = hre.ethers.keccak256(hre.ethers.toUtf8Bytes(INVESTORS.INVESTOR_ID.INVESTOR_ID_1));
+      const investorId = INVESTORS.INVESTOR_ID.INVESTOR_ID_1;
+
+      const wrongTypes = {
+        ExecutePreApprovedTransaction: [
+          { name: 'destination', type: 'address' },
+          { name: 'data', type: 'bytes' },
+          { name: 'nonce', type: 'uint256' },
+          { name: 'senderInvestor', type: 'bytes32' },
+          { name: 'blockLimit', type: 'uint256' }
+        ]
+      };
+
+      const message = {
+        destination: await dsToken.getAddress(),
+        data: issueTokensData,
+        nonce: nonce,
+        senderInvestor: investorIdHash,
+        blockLimit
+      };
+
+      const signature = await transactionRelayerPreApproval(
+        hsm,
+        await transactionRelayer.getAddress(),
+        message,
+        undefined,
+        wrongTypes
+      );
+
+      const txData = {
+        destination: await dsToken.getAddress(),
+        data: issueTokensData,
+        senderInvestor: investorId,
+        nonce,
+        blockLimit
+      };
+
+      await expect(transactionRelayer.executePreApprovedTransaction(
+        signature.serialized,
+        txData
       )).revertedWith('Invalid signature');
     });
   });

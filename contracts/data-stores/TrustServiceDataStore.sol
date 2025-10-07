@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -20,11 +20,11 @@ pragma solidity 0.8.22;
 
 contract TrustServiceDataStore {
     address internal owner;
-    mapping(address => uint8) internal roles;
-    mapping(string => address) internal entitiesOwners;
-    mapping(address => string) internal ownersEntities;
-    mapping(address => string) internal operatorsEntities;
-    mapping(address => string) internal resourcesEntities;
+    mapping(address account => uint8 role) internal roles;
+    mapping(string entityId => address owner) internal DEPRECATED_entitiesOwners;
+    mapping(address owner => string entityId) internal DEPRECATED_ownersEntities;
+    mapping(address operator => string entityId) internal DEPRECATED_operatorsEntities;
+    mapping(address resource => string entityId) internal DEPRECATED_resourcesEntities;
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new

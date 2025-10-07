@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -22,17 +22,11 @@ abstract contract IDSTokenIssuer {
 
     function initialize() public virtual;
 
-    //Same values as IDSRegistryService
-    uint8 public constant KYC_APPROVED = 1;
-    uint8 public constant ACCREDITED = 2;
-    uint8 public constant QUALIFIED = 4;
-
-
     function issueTokens(
-        string memory _id,
+        string calldata _id,
         address _to,
         uint256[] memory _issuanceValues,
-        string calldata _reason,
+        string memory _reason,
         uint256[] memory _locksValues,
         uint64[] memory _lockReleaseTimes,
         string memory _collisionHash,

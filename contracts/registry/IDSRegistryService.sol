@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,7 +18,7 @@
 
 pragma solidity 0.8.22;
 
-import "../utils/CommonUtils.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
 
 abstract contract IDSRegistryService {
 
@@ -116,7 +116,6 @@ abstract contract IDSRegistryService {
         string memory _id /*onlyExchangeOrAbove newWallet(_address)*/
     ) public virtual returns (bool);
 
-    function addWalletByInvestor(address _address) public virtual returns (bool);
 
     function removeWallet(
         address _address,
