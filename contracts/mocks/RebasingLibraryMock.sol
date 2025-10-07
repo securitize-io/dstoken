@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,19 +17,23 @@
  */
 
 pragma solidity 0.8.22;
-import "./MulticallProxy.sol";
-import "../utils/BaseDSContract.sol";
 
-contract IssuerMulticall is MulticallProxy, BaseDSContract {
+import {RebasingLibrary} from "../rebasing/RebasingLibrary.sol";
 
-    function initialize() public override onlyProxy initializer {
-        __BaseDSContract_init();
+contract RebasingLibraryMock {
+    function convertTokensToShares(
+        uint256 tokens,
+        uint256 multiplier,
+        uint8 decimals
+    ) external pure returns (uint256) {
+        return RebasingLibrary.convertTokensToShares(tokens, multiplier, decimals);
     }
 
-    function multicall(address[] memory _targets, bytes[] calldata data) external override onlyIssuerOrAbove returns (bytes[] memory results) {
-        results = new bytes[](data.length);
-        for (uint256 i = 0; i < data.length; i++) {
-            results[i] = _callTarget(_targets[i], data[i], i);
-        }
+    function convertSharesToTokens(
+        uint256 shares,
+        uint256 multiplier,
+        uint8 decimals
+    ) external pure returns (uint256) {
+        return RebasingLibrary.convertSharesToTokens(shares, multiplier, decimals);
     }
 }

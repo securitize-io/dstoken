@@ -20,6 +20,11 @@ describe('Lock Manager Unit Tests', function() {
       const { lockManager } = await loadFixture(deployDSTokenRegulated);
       expect( await lockManager.getImplementationAddress()).to.be.exist;
     });
+    
+    it('SHOULD fail when trying to initialize implementation contract directly', async () => {
+      const implementation = await hre.ethers.deployContract('InvestorLockManager');
+      await expect(implementation.initialize()).to.revertedWithCustomError(implementation, 'UUPSUnauthorizedCallContext');
+    });
   });
 
   describe('Add Manual Lock Record', function() {

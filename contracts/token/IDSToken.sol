@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,9 +18,9 @@
 
 pragma solidity 0.8.22;
 
-import "@openzeppelin/contracts/interfaces/IERC20.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "../utils/CommonUtils.sol";
+import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
 
 abstract contract IDSToken is IERC20, Initializable {
     event Issue(address indexed to, uint256 value, uint256 valueLocked);
@@ -32,21 +32,6 @@ abstract contract IDSToken is IERC20, Initializable {
     event WalletRemoved(address wallet);
 
     function initialize(string calldata _name, string calldata _symbol, uint8 _decimals) public virtual;
-
-    /******************************
-       CONFIGURATION
-   *******************************/
-
-    /**
-     * @dev Sets the total issuance cap
-     * Note: The cap is compared to the total number of issued token, not the total number of tokens available,
-     * So if a token is burned, it is not removed from the "total number of issued".
-     * This call cannot be called again after it was called once.
-     * @param _cap address The address which is going to receive the newly issued tokens
-     */
-    function setCap(
-        uint256 _cap /*onlyMaster*/
-    ) public virtual;
 
     /******************************
        TOKEN ISSUANCE (MINTING)
@@ -90,8 +75,6 @@ abstract contract IDSToken is IERC20, Initializable {
         uint64[] memory _releaseTimes /*onlyIssuerOrAbove*/
     ) public virtual returns (bool);
 
-    function issueTokensWithNoCompliance(address _to, uint256 _value) public virtual /*onlyIssuerOrAbove*/;
-
     //*********************
     // TOKEN BURNING
     //*********************
@@ -128,7 +111,7 @@ abstract contract IDSToken is IERC20, Initializable {
 
     function balanceOfInvestor(string memory _id) public view virtual returns (uint256);
 
-    function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal virtual returns (bool);
+    function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal virtual;
 
     function preTransferCheck(address _from, address _to, uint256 _value) public view virtual returns (uint256 code, string memory reason);
 

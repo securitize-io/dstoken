@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,15 +18,22 @@
 
 pragma solidity 0.8.22;
 
-import "./IDSToken.sol";
-import "./StandardToken.sol";
+import {IDSToken} from "./IDSToken.sol";
+import {StandardToken} from "./StandardToken.sol";
 import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
-import "../rebasing/RebasingLibrary.sol";
+import {RebasingLibrary} from "../rebasing/RebasingLibrary.sol";
+import {TokenLibrary} from "./TokenLibrary.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
 
 contract DSToken is StandardToken {
     // using FeaturesLibrary for SupportedFeatures;
     using TokenLibrary for TokenLibrary.SupportedFeatures;
     uint256 internal constant DEPRECATED_OMNIBUS_NO_ACTION = 0;  // Deprecated, kept for backward compatibility
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
 
     function initialize(
         string calldata _name,
@@ -50,12 +57,6 @@ contract DSToken is StandardToken {
 
     function setFeatures(uint256 features) public onlyMaster {
         supportedFeatures.value = features;
-    }
-
-    function setCap(uint256 _cap) public override onlyTransferAgentOrAbove {
-        require(cap == 0, "Token cap already set");
-        require(_cap > 0);
-        cap = _cap;
     }
 
     function totalIssued() public view returns (uint256) {
@@ -83,13 +84,15 @@ contract DSToken is StandardToken {
     }
 
     /**
-     * @dev Issuing tokens from the fund
-     * @param _to address The address which is going to receive the newly issued tokens
-     * @param _value uint256 the value of tokens to issue
-     * @param _valueLocked uint256 value of tokens, from those issued, to lock immediately.
-     * @param _reason reason for token locking
-     * @param _releaseTime timestamp to release the lock (or 0 for locks which can only released by an unlockTokens call)
-     * @return true if successful
+     * @notice Issues tokens with optional locking parameters
+     * @dev Issues tokens to an address with custom issuance time and optional single lock
+     * @param _to The address which will receive the newly issued tokens
+     * @param _value The amount of tokens to issue
+     * @param _issuanceTime The timestamp when tokens are considered issued
+     * @param _valueLocked The amount of tokens to be locked (0 for no lock)
+     * @param _reason The reason for token issuance
+     * @param _releaseTime The timestamp when locked tokens will be released
+     * @return bool Returns true if successful
      */
     function issueTokensCustom(address _to, uint256 _value, uint256 _issuanceTime, uint256 _valueLocked, string memory _reason, uint64 _releaseTime)
     public
@@ -128,11 +131,10 @@ contract DSToken is StandardToken {
             _valuesLocked: _valuesLocked,
             _releaseTimes: _releaseTimes,
             _reason: _reason,
-            _cap: cap,
             _rebasingProvider: rebasingProvider
         });
         uint256 shares = TokenLibrary.issueTokensCustom(
-            tokenData, 
+            tokenData,
             getCommonServices(),
             getLockManager(),
             params
@@ -143,22 +145,6 @@ contract DSToken is StandardToken {
 
         checkWalletsForList(address(0), _to);
         return true;
-    }
-
-    function issueTokensWithNoCompliance(address _to, uint256 _value) public virtual override onlyIssuerOrAbove {
-        require(getRegistryService().isWallet(_to), "Unknown wallet");
-        ISecuritizeRebasingProvider rebasingProvider = getRebasingProvider();
-        uint256 shares =  TokenLibrary.issueTokensWithNoCompliance(
-            tokenData, 
-            getCommonServices(), 
-            _to, 
-            _value, 
-            block.timestamp, 
-            cap, 
-            rebasingProvider
-        );
-        emit Transfer(address(0), _to, _value);
-        emit TxShares(address(0), _to, shares, rebasingProvider.multiplier());
     }
 
     //*********************
@@ -305,7 +291,7 @@ contract DSToken is StandardToken {
         updateInvestorBalance(_to, _value, CommonUtils.IncDec.Increase);
     }
 
-    function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal override returns (bool) {
+    function updateInvestorBalance(address _wallet, uint256 _value, CommonUtils.IncDec _increase) internal override {
         string memory investor = getRegistryService().getInvestor(_wallet);
         if (!CommonUtils.isEmptyString(investor)) {
             uint256 balance = balanceOfInvestor(investor);
@@ -321,8 +307,6 @@ contract DSToken is StandardToken {
 
             tokenData.investorsBalances[investor] = sharesBalance;
         }
-
-        return true;
     }
 
     function preTransferCheck(address _from, address _to, uint256 _value) public view override returns (uint256 code, string memory reason) {

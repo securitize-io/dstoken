@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,20 +18,20 @@
 
 pragma solidity 0.8.22;
 
-import "./ServiceConsumerDataStore.sol";
-import '../token/TokenLibrary.sol';
+import {ServiceConsumerDataStore} from "./ServiceConsumerDataStore.sol";
+import {TokenLibrary} from '../token/TokenLibrary.sol';
 
 contract TokenDataStore is ServiceConsumerDataStore {
 
     TokenLibrary.TokenData internal tokenData;
-    mapping(address => mapping(address => uint256)) internal allowances;
-    mapping(uint256 => address) internal walletsList;
+    mapping(address owner => mapping(address spender => uint256 allowance)) internal allowances;
+    mapping(uint256 index => address wallet) internal walletsList;
     uint256 internal walletsCount;
-    mapping(address => uint256) internal walletsToIndexes;
+    mapping(address wallet => uint256 index) internal walletsToIndexes;
     // These two variables replace the 2-slot TokenPartitions struct to preserve storage layout
     address internal DEPRECATED_PARTITIONS_WALLETS;
     address internal DEPRECATED_PARTITIONS_BALANCES;
-    uint256 public cap;
+    uint256 public DEPRECATED_CAP;
     string public name;
     string public symbol;
     uint8 public decimals;

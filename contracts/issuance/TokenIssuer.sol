@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,19 +18,26 @@
 
 pragma solidity 0.8.22;
 
-import "./IDSTokenIssuer.sol";
-import "../utils/BaseDSContract.sol";
+import {IDSTokenIssuer} from "./IDSTokenIssuer.sol";
+import {IDSRegistryService} from "../registry/IDSRegistryService.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
 
 contract TokenIssuer is IDSTokenIssuer, BaseDSContract {
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize() public override onlyProxy initializer {
         __BaseDSContract_init();
     }
 
     function issueTokens(
-        string memory _id,
+        string calldata _id,
         address _to,
         uint256[] memory _issuanceValues,
-        string calldata _reason,
+        string memory _reason,
         uint256[] memory _locksValues,
         uint64[] memory _lockReleaseTimes,
         string memory _collisionHash,
@@ -60,18 +67,29 @@ contract TokenIssuer is IDSTokenIssuer, BaseDSContract {
         uint256[] memory _attributeValues,
         uint256[] memory _attributeExpirations
     ) private {
-        if (!getRegistryService().isInvestor(_id)) {
-            getRegistryService().registerInvestor(_id, _collisionHash);
-            getRegistryService().setCountry(_id, _country);
-
-            if (_attributeValues.length > 0) {
-                require(_attributeValues.length == 3, "Wrong length of parameters");
-                getRegistryService().setAttribute(_id, KYC_APPROVED, _attributeValues[0], _attributeExpirations[0], "");
-                getRegistryService().setAttribute(_id, ACCREDITED, _attributeValues[1], _attributeExpirations[1], "");
-                getRegistryService().setAttribute(_id, QUALIFIED, _attributeValues[2], _attributeExpirations[2], "");
-            }
-
+        IDSRegistryService registryService = getRegistryService();
+        uint8 EXPECTED_NUM_ATTRIBUTES = 3;
+        // all parameters required or none for Token Issuer
+        require(_attributeValues.length == 0 || _attributeValues.length == EXPECTED_NUM_ATTRIBUTES, "Wrong length of parameters");
+        uint8[] memory attributesIds;
+        if (_attributeValues.length == EXPECTED_NUM_ATTRIBUTES) {
+            attributesIds = new uint8[](EXPECTED_NUM_ATTRIBUTES);
+            attributesIds[0] = registryService.KYC_APPROVED();
+            attributesIds[1] = registryService.ACCREDITED();
+            attributesIds[2] = registryService.QUALIFIED();
+        } else {
+            attributesIds = new uint8[](0);
         }
-        getRegistryService().addWallet(_wallet, _id);
+        address[] memory investorWallets = new address[](1);
+        investorWallets[0] = _wallet;
+        registryService.updateInvestor(
+            _id,
+            _collisionHash,
+            _country,
+            investorWallets,
+            attributesIds,
+            _attributeValues,
+            _attributeExpirations
+        );
     }
 }

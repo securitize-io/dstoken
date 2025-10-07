@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -30,6 +30,6 @@ library CommonUtils {
   }
 
   function isEmptyString(string memory _str) internal pure returns (bool) {
-    return isEqualString(_str, "");
+    return bytes(_str).length == 0;
   }
 }

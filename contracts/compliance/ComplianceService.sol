@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,12 +18,13 @@
 
 pragma solidity 0.8.22;
 
-import "./IDSComplianceService.sol";
-import "../utils/CommonUtils.sol";
-import "../data-stores/ComplianceServiceDataStore.sol";
-import "../utils/BaseDSContract.sol";
-import "../rebasing/RebasingLibrary.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IDSComplianceService} from "./IDSComplianceService.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
+import {ComplianceServiceDataStore} from "../data-stores/ComplianceServiceDataStore.sol";
+import {BaseDSContract} from "../utils/BaseDSContract.sol";
+import {RebasingLibrary} from "../rebasing/RebasingLibrary.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IDSToken} from "../token/IDSToken.sol";
 
 
 /**
@@ -95,22 +96,6 @@ abstract contract ComplianceService is IDSComplianceService, ComplianceServiceDa
         return recordIssuance(_to, _value, issuanceTime);
     }
 
-    function validateIssuanceWithNoCompliance(
-        address _to,
-        uint256 _value,
-        uint256 _issuanceTime
-    ) public override onlyToken returns (bool) {
-        uint256 authorizedSecurities = getComplianceConfigurationService().getAuthorizedSecurities();
-
-        uint256 totalSupply = getToken().totalSupply();
-
-        require(authorizedSecurities == 0 || totalSupply + _value <= authorizedSecurities,
-            MAX_AUTHORIZED_SECURITIES_EXCEEDED);
-
-        uint256 issuanceTime = validateIssuanceTime(_issuanceTime);
-        return recordIssuance(_to, _value, issuanceTime);
-    }
-
     function validateBurn(address _who, uint256 _value) public virtual override onlyToken returns (bool) {
         return recordBurn(_who, _value);
     }
@@ -164,19 +149,8 @@ abstract contract ComplianceService is IDSComplianceService, ComplianceServiceDa
         address _to,
         uint256 _value
     ) public view virtual override returns (uint256 code, string memory reason) {
-        if (getToken().isPaused()) {
-            return (10, TOKEN_PAUSED);
-        }
-
-        if (getToken().balanceOf(_from) < _value) {
-            return (15, NOT_ENOUGH_TOKENS);
-        }
-
-        if (getLockManager().getTransferableTokens(_from, block.timestamp) < _value) {
-            return (16, TOKENS_LOCKED);
-        }
-
-        return checkTransfer(_from, _to, _value);
+        IDSToken token = getToken();
+        return newPreTransferCheck(_from, _to, _value, token.balanceOf(_from), token.isPaused());
     }
 
     function preInternalTransferCheck(

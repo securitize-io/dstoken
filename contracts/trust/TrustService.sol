@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Securitize Inc. All rights reserved.
+ * Copyright 2025 Securitize Inc. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -18,10 +18,11 @@
 
 pragma solidity 0.8.22;
 
-import "../utils/CommonUtils.sol";
-import "./IDSTrustService.sol";
-import "../data-stores/TrustServiceDataStore.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
+import {IDSTrustService} from "./IDSTrustService.sol";
+import {TrustServiceDataStore} from "../data-stores/TrustServiceDataStore.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {ERC1967Utils} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 
 /**
  * @title TrustService
@@ -30,6 +31,11 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
  */
 
 contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable {
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
 
     function initialize() public override onlyProxy initializer {
         owner = msg.sender;
@@ -108,69 +114,6 @@ contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable
         _;
     }
 
-    modifier onlyEntityOwnerOrAbove(string memory _name) {
-        require(
-            roles[msg.sender] == MASTER ||
-                roles[msg.sender] == ISSUER ||
-                (!CommonUtils.isEmptyString(ownersEntities[msg.sender]) &&
-                  CommonUtils.isEqualString(ownersEntities[msg.sender], _name)),
-                "Not enough permissions"
-        );
-        _;
-    }
-
-    modifier onlyNewEntity(string memory _name) {
-        require(entitiesOwners[_name] == address(0), "Entity already exists");
-        _;
-    }
-
-    modifier onlyExistingEntity(string memory _name) {
-        require(entitiesOwners[_name] != address(0), "Entity doesn't exist");
-        _;
-    }
-
-    modifier onlyNewEntityOwner(address _owner) {
-        require(CommonUtils.isEmptyString(ownersEntities[_owner]), "Entity owner already exists");
-        _;
-    }
-
-    modifier onlyExistingEntityOwner(string memory _name, address _owner) {
-
-        require(
-            !CommonUtils.isEmptyString(ownersEntities[_owner]) &&
-            CommonUtils.isEqualString(ownersEntities[_owner], _name),
-            "Entity owner doesn't exist"
-        );
-        _;
-    }
-
-    modifier onlyNewOperator(address _operator) {
-        require(CommonUtils.isEmptyString(operatorsEntities[_operator]), "Entity operator already exists");
-        _;
-    }
-
-    modifier onlyExistingOperator(string memory _name, address _operator) {
-        require(
-            !CommonUtils.isEmptyString(operatorsEntities[_operator]) &&
-            CommonUtils.isEqualString(operatorsEntities[_operator], _name),
-            "Entity operator doesn't exist"
-        );
-        _;
-    }
-
-    modifier onlyNewResource(address _resource) {
-        require(CommonUtils.isEmptyString(resourcesEntities[_resource]), "Entity resource already exists");
-        _;
-    }
-
-    modifier onlyExistingResource(string memory _name, address _resource) {
-        require(
-            !CommonUtils.isEmptyString(resourcesEntities[_resource]) &&
-            CommonUtils.isEqualString(resourcesEntities[_resource], _name),
-            "Entity resource doesn't exist"
-        );
-        _;
-    }
 
     /**
    * @dev Sets or removes a role for a wallet. (internal)
@@ -215,7 +158,7 @@ contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable
     function setRoles(address[] calldata _addresses, uint8[] calldata _roles) public override onlyMasterOrIssuerOrTransferAgent returns (bool) {
         require(_addresses.length <= 30, "Exceeded the maximum number of addresses");
         require(_addresses.length == _roles.length, "Wrong length of parameters");
-        for (uint i = 0; i < _addresses.length; i++) {
+        for (uint8 i = 0; i < _addresses.length; i++) {
             setRole(_addresses[i], _roles[i]);
         }
         return true;
@@ -260,54 +203,4 @@ contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable
         return roles[_address];
     }
 
-    function addEntity(string calldata _name, address _owner) public override onlyMasterOrIssuer onlyNewEntity(_name) onlyNewEntityOwner(_owner) {
-        entitiesOwners[_name] = _owner;
-        ownersEntities[_owner] = _name;
-    }
-
-    function changeEntityOwner(string calldata _name, address _oldOwner, address _newOwner) public override onlyMasterOrIssuer onlyExistingEntityOwner(_name, _oldOwner) {
-        delete ownersEntities[_oldOwner];
-        ownersEntities[_newOwner] = _name;
-        entitiesOwners[_name] = _newOwner;
-    }
-
-    function addOperator(string calldata _name, address _operator) public override onlyEntityOwnerOrAbove(_name) onlyNewOperator(_operator) {
-        operatorsEntities[_operator] = _name;
-    }
-
-    function removeOperator(string calldata _name, address _operator) public override onlyEntityOwnerOrAbove(_name) onlyExistingOperator(_name, _operator) {
-        delete operatorsEntities[_operator];
-    }
-
-    function addResource(string calldata _name, address _resource) public override onlyMasterOrIssuer onlyExistingEntity(_name) onlyNewResource(_resource) {
-        resourcesEntities[_resource] = _name;
-    }
-
-    function removeResource(string calldata _name, address _resource) public override onlyMasterOrIssuer onlyExistingResource(_name, _resource) {
-        delete resourcesEntities[_resource];
-    }
-
-    function getEntityByOwner(address _owner) public view override returns (string memory) {
-        return ownersEntities[_owner];
-    }
-
-    function getEntityByOperator(address _operator) public view override returns (string memory) {
-        return operatorsEntities[_operator];
-    }
-
-    function getEntityByResource(address _resource) public view override returns (string memory) {
-        return resourcesEntities[_resource];
-    }
-
-    function isResourceOwner(address _resource, address _owner) public view override returns (bool) {
-        return
-            !CommonUtils.isEmptyString(resourcesEntities[_resource]) &&
-            CommonUtils.isEqualString(resourcesEntities[_resource], ownersEntities[_owner]);
-    }
-
-    function isResourceOperator(address _resource, address _operator) public view override returns (bool) {
-        return
-            !CommonUtils.isEmptyString(resourcesEntities[_resource]) &&
-            CommonUtils.isEqualString(resourcesEntities[_resource], operatorsEntities[_operator]);
-    }
 }
