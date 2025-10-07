@@ -37,23 +37,23 @@ contract SecuritizeRebasingProvider is BaseDSContract, ISecuritizeRebasingProvid
 
     function initialize(uint256 _multiplier, uint8 _tokenDecimals) public onlyProxy initializer override {
         __BaseDSContract_init();
-        
+
         if (_multiplier == 0) {
             revert InvalidMultiplier(_multiplier);
         }
-        
+
         multiplier = _multiplier;
         tokenDecimals = _tokenDecimals;
     }
     /**
-     * 
+     *
      * @param _multiplier The new multiplier value, fixed to 18 decimals
      */
-    function setMultiplier(uint256 _multiplier) external override onlyMaster {
+    function setMultiplier(uint256 _multiplier) external override onlyIssuerOrAbove {
         if (_multiplier == 0) {
             revert InvalidMultiplier(_multiplier);
         }
-        
+
         uint256 old = multiplier;
         multiplier = _multiplier;
         emit RebasingRateUpdated(old, _multiplier);
