@@ -113,5 +113,9 @@ subtask('set-services', 'Set DS Services')
       // Transaction Relayer
       console.log('Connecting transaction relayer to trust service');
       await transactionRelayer.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
-    }
+
+      // Rebasing Provider
+      console.log('Connecting rebasing provider to trust service');
+      await rebasingProvider.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
+    },
   );
