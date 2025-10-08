@@ -7,7 +7,7 @@ task('deploy-all', 'Deploy DS Protocol')
   .addParam('decimals', 'DS Token decimals', 2, types.int)
   .addParam('compliance', 'Compliance Type', 'REGULATED', types.string)
   .addOptionalParam('multiplier', 'Rebasing Multiplier', '1000000000000000000', types.string)
-  .setAction(async (args, { run }) => {
+  .setAction(async (args, { run, ethers }) => {
     await run("compile");
 
     const dsToken = await run('deploy-token', args);
@@ -21,7 +21,7 @@ task('deploy-all', 'Deploy DS Protocol')
     const walletRegistrar = await run('deploy-wallet-registrar');
     const transactionRelayer = await run('deploy-transaction-relayer');
     const bulkOperator = await run('deploy-bulk-operator', { dsToken: dsToken.target });
-    const navProviderMock = await hre.ethers.deployContract('SecuritizeInternalNavProviderMock', [1]);
+    const navProviderMock = await ethers.deployContract('SecuritizeInternalNavProviderMock', [1]);
     const rebasingProvider = await run('deploy-rebasing-provider', { multiplier: args.multiplier, decimals: args.decimals });
     const usdcMock = await run('deploy-erc20',
       {
