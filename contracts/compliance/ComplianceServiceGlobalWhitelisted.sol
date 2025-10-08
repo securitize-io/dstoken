@@ -19,8 +19,8 @@
 pragma solidity 0.8.22;
 
 import {ComplianceServiceWhitelisted} from "./ComplianceServiceWhitelisted.sol";
-import {IDSComplianceServiceWithBlackList} from "./IDSComplianceServiceWithBlackList.sol";
-import {CommonUtils} from "../utils/CommonUtils.sol";
+import {IDSComplianceServiceGlobalWhitelisted} from "./IDSComplianceServiceGlobalWhitelisted.sol";
+import {ComplianceServiceGlobalWhitelistedDataStore} from "../data-stores/ComplianceServiceGlobalWhitelistedDataStore.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /**
@@ -29,13 +29,15 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
  * This compliance service extends ComplianceServiceWhitelisted to add blacklist functionality.
  * Blacklisted wallets are prevented from receiving tokens through transfers or issuances,
  * while maintaining all existing whitelist functionality.
+ *
+ * Follows the project's data store pattern for upgradeability and maintainability.
  */
-contract ComplianceServiceGlobalWhitelisted is ComplianceServiceWhitelisted, IDSComplianceServiceWithBlackList {
+contract ComplianceServiceGlobalWhitelisted is
+    ComplianceServiceWhitelisted,
+    IDSComplianceServiceGlobalWhitelisted,
+    ComplianceServiceGlobalWhitelistedDataStore
+{
     using EnumerableSet for EnumerableSet.AddressSet;
-
-    // State variables
-    EnumerableSet.AddressSet private _blacklistedWallets;
-    mapping(address wallet => string reason) private _blacklistReasons;
 
     // Error messages
     string internal constant WALLET_BLACKLISTED = "Wallet is blacklisted";

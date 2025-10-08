@@ -1,7 +1,7 @@
 import hre from "hardhat";
 import { expect } from "chai";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { deployDSTokenWithBlackList, INVESTORS } from "./utils/fixture";
+import { deployDSTokenGlobalWhitelisted, INVESTORS } from "./utils/fixture";
 import { DSConstants } from "../utils/globals";
 
 describe("ComplianceServiceGlobalWhitelisted", function () {
@@ -20,7 +20,7 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
       trustService,
       registryService,
       complianceService: complianceService_,
-    } = await loadFixture(deployDSTokenWithBlackList);
+    } = await loadFixture(deployDSTokenGlobalWhitelisted);
     complianceService = complianceService_;
 
     const [master, ta, user1, user2] = await hre.ethers.getSigners();

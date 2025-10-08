@@ -27,7 +27,7 @@ import {IDSComplianceService} from "./IDSComplianceService.sol";
  * Blacklisted wallets are prevented from receiving tokens through transfers or issuances,
  * while maintaining all existing compliance functionality.
  */
-interface IDSComplianceServiceWithBlackList {
+interface IDSComplianceServiceGlobalWhitelisted {
     // Events
     event WalletAddedToBlacklist(address indexed wallet, string reason, address indexed admin);
     event WalletRemovedFromBlacklist(address indexed wallet, address indexed admin);
