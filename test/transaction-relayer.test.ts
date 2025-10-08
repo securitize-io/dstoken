@@ -7,7 +7,7 @@ import {
   EIP712_TR_NAME,
   EIP712_TR_VERSION,
   registerInvestor,
-  transactionRelayerPreApproval
+  transactionRelayerPreApproval,
 } from './utils/test-helper';
 
 describe('Transaction Relayer Unit Tests', function() {
@@ -24,7 +24,7 @@ describe('Transaction Relayer Unit Tests', function() {
 
     it('Should get implementation address correctly', async function() {
       const { transactionRelayer } = await loadFixture(deployDSTokenRegulated);
-      expect(await transactionRelayer.getImplementationAddress()).to.be.exist;
+      expect(await transactionRelayer.getImplementationAddress()).to.be.ok;
     });
 
     it('SHOULD fail when trying to initialize implementation contract directly', async () => {
@@ -50,33 +50,86 @@ describe('Transaction Relayer Unit Tests', function() {
       const block = await hre.ethers.provider.getBlock('latest');
       const blockLimit = (block?.number ?? 0) + 5;
       const nonce = await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
-      const dataHash = hre.ethers.keccak256(issueTokensData);
-      const investorIdHash = hre.ethers.keccak256(hre.ethers.toUtf8Bytes(INVESTORS.INVESTOR_ID.INVESTOR_ID_1));
 
-      const investorId = INVESTORS.INVESTOR_ID.INVESTOR_ID_1;
       const message = {
         destination: await dsToken.getAddress(),
-        data: dataHash,
-        nonce: nonce,
-        senderInvestor: investorIdHash,
-        blockLimit
+        data: issueTokensData,
+        nonce,
+        senderInvestor: INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
+        blockLimit,
       };
 
       const signature = await transactionRelayerPreApproval(hsm, await transactionRelayer.getAddress(), message);
 
       await transactionRelayer.executePreApprovedTransaction(
-        signature.serialized,
-        {
-          destination: await dsToken.getAddress(),
-          data: issueTokensData,
-          senderInvestor: investorId,
-          nonce,
-          blockLimit
-        }
+        signature,
+        message,
       );
 
       expect(await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1)).to.equal(nonce + 1n);
       expect(await dsToken.balanceOf(investor)).to.equal(100);
+    });
+
+    it('Should exchange wallet sign a register investor transaction', async function() {
+      const [, hsm] = await hre.ethers.getSigners();
+      const {
+        transactionRelayer,
+        trustService,
+        registryService,
+      } = await loadFixture(deployDSTokenRegulated);
+
+      await trustService.setRole(hsm, DSConstants.roles.EXCHANGE);
+
+      const registerInvestorData = registryService.interface.encodeFunctionData('registerInvestor', [INVESTORS.INVESTOR_ID.INVESTOR_ID_2, '']);
+      const block = await hre.ethers.provider.getBlock('latest');
+      const blockLimit = (block?.number ?? 0) + 5;
+      const nonce = await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2);
+
+      const message = {
+        destination: await registryService.getAddress(),
+        data: registerInvestorData,
+        nonce,
+        senderInvestor: INVESTORS.INVESTOR_ID.INVESTOR_ID_2,
+        blockLimit,
+      };
+
+      const signature = await transactionRelayerPreApproval(hsm, await transactionRelayer.getAddress(), message);
+
+      await transactionRelayer.executePreApprovedTransaction(
+        signature,
+        message,
+      );
+
+      expect(await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2)).to.equal(nonce + 1n);
+      expect(await registryService.isInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2)).to.equal(true);
+    });
+
+    it('Should revert if an unauthorized wallet sign a register investor transaction', async function() {
+      const [, hsm] = await hre.ethers.getSigners();
+      const {
+        transactionRelayer,
+        registryService,
+      } = await loadFixture(deployDSTokenRegulated);
+
+      const registerInvestorData = registryService.interface.encodeFunctionData('registerInvestor', [INVESTORS.INVESTOR_ID.INVESTOR_ID_2, '']);
+      const block = await hre.ethers.provider.getBlock('latest');
+      const blockLimit = (block?.number ?? 0) + 5;
+      const nonce = await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2);
+
+      const message = {
+        destination: await registryService.getAddress(),
+        data: registerInvestorData,
+        nonce,
+        senderInvestor: INVESTORS.INVESTOR_ID.INVESTOR_ID_2,
+        blockLimit,
+      };
+
+      const signature = await transactionRelayerPreApproval(hsm, await transactionRelayer.getAddress(), message);
+
+      await expect(transactionRelayer.executePreApprovedTransaction(
+        signature,
+        message,
+      )).to.revertedWith('Invalid signature');
     });
 
     it('SHOULD revert when reusing the same nonce', async function() {
@@ -85,7 +138,7 @@ describe('Transaction Relayer Unit Tests', function() {
         dsToken,
         transactionRelayer,
         trustService,
-        registryService
+        registryService,
       } = await loadFixture(deployDSTokenRegulated);
 
       await trustService.setRole(hsm, DSConstants.roles.ISSUER);
@@ -95,36 +148,25 @@ describe('Transaction Relayer Unit Tests', function() {
       const block = await hre.ethers.provider.getBlock('latest');
       const blockLimit = (block?.number ?? 0) + 5;
       const nonce = await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
-      const dataHash = hre.ethers.keccak256(issueTokensData);
-      const investorIdHash = hre.ethers.keccak256(hre.ethers.toUtf8Bytes(INVESTORS.INVESTOR_ID.INVESTOR_ID_1));
 
-      const investorId = INVESTORS.INVESTOR_ID.INVESTOR_ID_1;
       const message = {
         destination: await dsToken.getAddress(),
-        data: dataHash,
-        nonce: nonce,
-        senderInvestor: investorIdHash,
-        blockLimit
+        data: issueTokensData,
+        nonce,
+        senderInvestor: INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
+        blockLimit,
       };
 
       const signature = await transactionRelayerPreApproval(hsm, await transactionRelayer.getAddress(), message);
 
-      const txData = {
-        destination: await dsToken.getAddress(),
-        data: issueTokensData,
-        senderInvestor: investorId,
-        nonce,
-        blockLimit
-      };
-
       await transactionRelayer.executePreApprovedTransaction(
-        signature.serialized,
-        txData
+        signature,
+        message,
       );
 
       await expect(transactionRelayer.executePreApprovedTransaction(
-        signature.serialized,
-        txData
+        signature,
+        message,
       )).revertedWith('Invalid nonce');
     });
 
@@ -144,31 +186,20 @@ describe('Transaction Relayer Unit Tests', function() {
       const block = await hre.ethers.provider.getBlock('latest');
       const blockLimit = (block?.number ?? 0) - 5;
       const nonce = await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
-      const dataHash = hre.ethers.keccak256(issueTokensData);
-      const investorIdHash = hre.ethers.keccak256(hre.ethers.toUtf8Bytes(INVESTORS.INVESTOR_ID.INVESTOR_ID_1));
 
-      const investorId = INVESTORS.INVESTOR_ID.INVESTOR_ID_1;
       const message = {
         destination: await dsToken.getAddress(),
-        data: dataHash,
-        nonce: nonce,
-        senderInvestor: investorIdHash,
-        blockLimit
+        data: issueTokensData,
+        nonce,
+        senderInvestor: INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
+        blockLimit,
       };
 
       const signature = await transactionRelayerPreApproval(hsm, await transactionRelayer.getAddress(), message);
 
-      const txData = {
-        destination: await dsToken.getAddress(),
-        data: issueTokensData,
-        senderInvestor: investorId,
-        nonce,
-        blockLimit
-      };
-
       await expect(transactionRelayer.executePreApprovedTransaction(
-        signature.serialized,
-        txData
+        signature,
+        message,
       )).revertedWith('Transaction too old');
     });
 
@@ -178,7 +209,7 @@ describe('Transaction Relayer Unit Tests', function() {
         dsToken,
         transactionRelayer,
         trustService,
-        registryService
+        registryService,
       } = await loadFixture(deployDSTokenRegulated);
 
       await trustService.setRole(hsm, DSConstants.roles.ISSUER);
@@ -188,16 +219,13 @@ describe('Transaction Relayer Unit Tests', function() {
       const block = await hre.ethers.provider.getBlock('latest');
       const blockLimit = (block?.number ?? 0) + 5;
       const nonce = await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
-      const dataHash = hre.ethers.keccak256(issueTokensData);
-      const investorIdHash = hre.ethers.keccak256(hre.ethers.toUtf8Bytes(INVESTORS.INVESTOR_ID.INVESTOR_ID_1));
 
-      const investorId = INVESTORS.INVESTOR_ID.INVESTOR_ID_1;
       const message = {
         destination: await dsToken.getAddress(),
-        data: dataHash,
-        nonce: nonce,
-        senderInvestor: investorIdHash,
-        blockLimit
+        data: issueTokensData,
+        nonce,
+        senderInvestor: INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
+        blockLimit,
       };
 
       const domainDataWrongName = {
@@ -208,17 +236,9 @@ describe('Transaction Relayer Unit Tests', function() {
 
       let signature = await transactionRelayerPreApproval(hsm, await transactionRelayer.getAddress(), message, domainDataWrongName);
 
-      const txData = {
-        destination: await dsToken.getAddress(),
-        data: issueTokensData,
-        senderInvestor: investorId,
-        nonce,
-        blockLimit
-      };
-
       await expect(transactionRelayer.executePreApprovedTransaction(
-        signature.serialized,
-        txData
+        signature,
+        message,
       )).revertedWith('Invalid signature');
 
       const domainDataWrongVersion = {
@@ -230,69 +250,9 @@ describe('Transaction Relayer Unit Tests', function() {
       signature = await transactionRelayerPreApproval(hsm, await transactionRelayer.getAddress(), message, domainDataWrongVersion);
 
       await expect(transactionRelayer.executePreApprovedTransaction(
-        signature.serialized,
-        txData
-      )).revertedWith('Invalid signature');
-    });
-
-    it('SHOULD revert when signing with wrong struct field types', async function() {
-      const [investor, hsm] = await hre.ethers.getSigners();
-      const {
-        dsToken,
-        transactionRelayer,
-        trustService,
-        registryService
-      } = await loadFixture(deployDSTokenRegulated);
-
-      await trustService.setRole(hsm, DSConstants.roles.ISSUER);
-      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-
-      const issueTokensData = dsToken.interface.encodeFunctionData('issueTokens', [investor.address, 100]);
-      const block = await hre.ethers.provider.getBlock('latest');
-      const blockLimit = (block?.number ?? 0) + 5;
-      const nonce = await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
-      const investorIdHash = hre.ethers.keccak256(hre.ethers.toUtf8Bytes(INVESTORS.INVESTOR_ID.INVESTOR_ID_1));
-      const investorId = INVESTORS.INVESTOR_ID.INVESTOR_ID_1;
-
-      const wrongTypes = {
-        ExecutePreApprovedTransaction: [
-          { name: 'destination', type: 'address' },
-          { name: 'data', type: 'bytes' },
-          { name: 'nonce', type: 'uint256' },
-          { name: 'senderInvestor', type: 'bytes32' },
-          { name: 'blockLimit', type: 'uint256' }
-        ]
-      };
-
-      const message = {
-        destination: await dsToken.getAddress(),
-        data: issueTokensData,
-        nonce: nonce,
-        senderInvestor: investorIdHash,
-        blockLimit
-      };
-
-      const signature = await transactionRelayerPreApproval(
-        hsm,
-        await transactionRelayer.getAddress(),
+        signature,
         message,
-        undefined,
-        wrongTypes
-      );
-
-      const txData = {
-        destination: await dsToken.getAddress(),
-        data: issueTokensData,
-        senderInvestor: investorId,
-        nonce,
-        blockLimit
-      };
-
-      await expect(transactionRelayer.executePreApprovedTransaction(
-        signature.serialized,
-        txData
       )).revertedWith('Invalid signature');
     });
   });
-
 });
