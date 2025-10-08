@@ -38,7 +38,7 @@ contract ComplianceServiceWhitelisted is ComplianceService {
         _initialize();
     }
 
-    function _initialize() internal onlyInitializing {
+    function _initialize() internal onlyInitializing virtual {
         ComplianceService.initialize();
     }
 
@@ -60,7 +60,7 @@ contract ComplianceServiceWhitelisted is ComplianceService {
         return doPreTransferCheckWhitelisted(_from, _to, _value, getToken().balanceOf(_from), getToken().isPaused());
     }
 
-    function checkWhitelisted(address _who) public view returns (bool) {
+    function checkWhitelisted(address _who) public view virtual returns (bool) {
         return getWalletManager().isPlatformWallet(_who) || !CommonUtils.isEmptyString(getRegistryService().getInvestor(_who));
     }
 
@@ -72,7 +72,7 @@ contract ComplianceServiceWhitelisted is ComplianceService {
         return true;
     }
 
-    function checkTransfer(address, address _to, uint256) internal view override returns (uint256, string memory) {
+    function checkTransfer(address, address _to, uint256) internal view virtual override returns (uint256, string memory) {
         if (!checkWhitelisted(_to)) {
             return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
         }
@@ -102,7 +102,7 @@ contract ComplianceServiceWhitelisted is ComplianceService {
         uint256 _value,
         uint256 _balanceFrom,
         bool _pausedToken
-    ) internal view returns (uint256 code, string memory reason) {
+    ) internal view virtual returns (uint256 code, string memory reason) {
         if (_pausedToken) {
             return (10, TOKEN_PAUSED);
         }
