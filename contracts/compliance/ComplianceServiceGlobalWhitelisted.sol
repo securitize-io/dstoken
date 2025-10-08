@@ -30,7 +30,7 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
  * Blacklisted wallets are prevented from receiving tokens through transfers or issuances,
  * while maintaining all existing whitelist functionality.
  */
-contract ComplianceServiceWithBlackList is ComplianceServiceWhitelisted, IDSComplianceServiceWithBlackList {
+contract ComplianceServiceGlobalWhitelisted is ComplianceServiceWhitelisted, IDSComplianceServiceWithBlackList {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     // State variables

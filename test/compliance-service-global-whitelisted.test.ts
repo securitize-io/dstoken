@@ -4,7 +4,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { deployDSTokenWithBlackList, INVESTORS } from "./utils/fixture";
 import { DSConstants } from "../utils/globals";
 
-describe("ComplianceServiceWithBlackList", function () {
+describe("ComplianceServiceGlobalWhitelisted", function () {
   let complianceService: any;
   let transferAgent: any;
 
@@ -83,10 +83,10 @@ describe("ComplianceServiceWithBlackList", function () {
     });
 
     it("should test onlyProxy modifier behavior with direct deployment", async function () {
-      const ComplianceServiceWithBlackList =
-        await hre.ethers.getContractFactory("ComplianceServiceWithBlackList");
+      const ComplianceServiceGlobalWhitelisted =
+        await hre.ethers.getContractFactory("ComplianceServiceGlobalWhitelisted");
       const directImplementation =
-        await ComplianceServiceWithBlackList.deploy();
+        await ComplianceServiceGlobalWhitelisted.deploy();
 
       expect(directImplementation).to.not.be.undefined;
 
