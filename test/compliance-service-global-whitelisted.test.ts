@@ -167,27 +167,27 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
 
     describe("Access Control", function () {
       it("should only allow authorized users to manage blacklist", async function () {
-        const reason = "Unauthorized attempt";
+        const errorMsg = "Insufficient trust level";
 
         await expect(
           complianceService.connect(user).addToBlacklist(userAddress, reason),
-        ).to.be.revertedWith("Insufficient trust level");
+        ).to.be.revertedWith(errorMsg);
 
         await expect(
           complianceService.connect(user).removeFromBlacklist(userAddress),
-        ).to.be.revertedWith("Insufficient trust level");
+        ).to.be.revertedWith(errorMsg);
 
         await expect(
           complianceService
             .connect(user)
             .batchAddToBlacklist([userAddress], [reason]),
-        ).to.be.revertedWith("Insufficient trust level");
+        ).to.be.revertedWith(errorMsg);
 
         await expect(
           complianceService
             .connect(user)
             .batchRemoveFromBlacklist([userAddress]),
-        ).to.be.revertedWith("Insufficient trust level");
+        ).to.be.revertedWith(errorMsg);
       });
     });
   });
