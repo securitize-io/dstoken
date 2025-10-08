@@ -75,15 +75,14 @@ export const transactionRelayerPreApproval = async (
   const types = typesOverride ?? {
     ExecutePreApprovedTransaction: [
       { name: 'destination', type: 'address' },
-      { name: 'data', type: 'bytes32' },
+      { name: 'data', type: 'bytes' },
       { name: 'nonce', type: 'uint256' },
-      { name: 'senderInvestor', type: 'bytes32' },
+      { name: 'senderInvestor', type: 'string' },
       { name: 'blockLimit', type: 'uint256' }
     ]
   };
 
-  const signatureRaw = await hsm.signTypedData(domain, types, message);
-  return ethers.Signature.from(signatureRaw);
+  return hsm.signTypedData(domain, types, message);
 };
 
 

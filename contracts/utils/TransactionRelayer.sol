@@ -33,8 +33,8 @@ contract TransactionRelayer is BaseDSContract, EIP712Upgradeable {
 
     string public constant NAME = "TransactionRelayer";
 
-    // keccak256("ExecutePreApprovedTransaction(address destination,bytes32 data,uint256 nonce,bytes32 senderInvestor,uint256 blockLimit)")
-    bytes32 public constant TXTYPE_HASH = 0x103eaa9a7f02c07fe1be89fcbaf6f0591b7ee351d8bef38fb2e3e71ce08a26c0;
+    // keccak256("ExecutePreApprovedTransaction(address destination,bytes data,uint256 nonce,string senderInvestor,uint256 blockLimit)")
+    bytes32 public constant TXTYPE_HASH = 0xa89e47bab73b0e21fa4f8d69171956116faab4bbe8f8162bcc1f27a21f673442;
 
     string public constant CONTRACT_VERSION = "5";
 
@@ -105,9 +105,15 @@ contract TransactionRelayer is BaseDSContract, EIP712Upgradeable {
     }
 
     /**
-     * @dev Validates una firma EIP-712 y ejecuta la transacción preaprobada.
-     * @param signature Firma compacta de 65 bytes.
-     * @param txData Datos firmados y metadatos necesarios para ejecutar la llamada.
+     * @notice Executes a pre-approved transaction that has been signed by an authorized signer
+     * @dev The transaction must be executed before the block limit and use the correct nonce
+     * @param signature The signature of the transaction data signed by an authorized signer (issuer or master)
+     * @param txData The transaction data struct containing:
+     *        - destination: Target contract address
+     *        - data: The call data to be executed
+     *        - senderInvestor: ID of the investor initiating the transaction
+     *        - nonce: Current nonce for the investor
+     *        - blockLimit: Block number limit for transaction execution
      */
     function executePreApprovedTransaction(
         bytes memory signature,
@@ -116,7 +122,6 @@ contract TransactionRelayer is BaseDSContract, EIP712Upgradeable {
         require(txData.blockLimit >= block.number, "Transaction too old");
         _executePreApprovedTransaction(signature, txData);
     }
-
 
     function nonceByInvestor(string memory investorId) public view returns (uint256) {
         return noncePerInvestor[CommonUtils.encodeString(investorId)];
@@ -148,7 +153,7 @@ contract TransactionRelayer is BaseDSContract, EIP712Upgradeable {
         bytes32 digest = _hashTx(txData);
         address recovered = ECDSA.recover(digest, signature);
         uint256 approverRole = getTrustService().getRole(recovered);
-        require(approverRole == ROLE_ISSUER || approverRole == ROLE_MASTER, 'Invalid signature');
+        require(approverRole == ROLE_EXCHANGE || approverRole == ROLE_ISSUER, 'Invalid signature');
 
         noncePerInvestor[investorKey] = currentNonce + 1;
         Address.functionCall(txData.destination, txData.data);
