@@ -100,6 +100,52 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
         "UUPSUnauthorizedCallContext",
       );
     });
+
+    it("should revert when _initialize is called outside initialization context", async function () {
+      const MockComplianceServiceGlobalWhitelisted =
+        await hre.ethers.getContractFactory("MockComplianceServiceGlobalWhitelisted");
+      const mock = await hre.upgrades.deployProxy(MockComplianceServiceGlobalWhitelisted, [], { initializer: false });
+
+      // First, initialize properly
+      await mock.initialize();
+
+      // Now try to call _initialize again outside of initialization
+      await expect(
+        mock.exposedInitialize(),
+      ).to.be.revertedWithCustomError(mock, "NotInitializing");
+    });
+  });
+
+  describe("BlackListManager Initialization", function () {
+    it("Should throw if already initialized", async function () {
+      expect(await blacklistManager.getInitializedVersion()).to.equal(1);
+      await expect(blacklistManager.initialize()).to.be.revertedWithCustomError(
+        blacklistManager,
+        "InvalidInitialization",
+      );
+    });
+
+    it("Should throw if trying to initialize the implementation contract", async function () {
+      const BlackListManager = await hre.ethers.getContractFactory("BlackListManager");
+      const blmAddress = await hre.upgrades.deployImplementation(BlackListManager);
+      const blmImplementation = BlackListManager.attach(blmAddress as string);
+      await expect(blmImplementation.initialize()).to.be.revertedWithCustomError(
+        blmImplementation,
+        "UUPSUnauthorizedCallContext",
+      );
+    });
+
+    it("Should throw if trying to initialize the implementation contract of a proxy", async function () {
+      const implementation = await hre.upgrades.erc1967.getImplementationAddress(
+        await blacklistManager.getAddress(),
+      );
+      const BlackListManager = await hre.ethers.getContractFactory("BlackListManager");
+      const blmImplementation = BlackListManager.attach(implementation);
+      await expect(blmImplementation.initialize()).to.be.revertedWithCustomError(
+        blmImplementation,
+        "UUPSUnauthorizedCallContext",
+      );
+    });
   });
 
   describe("Blacklist Management", function () {
