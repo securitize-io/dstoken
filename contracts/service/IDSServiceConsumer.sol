@@ -19,7 +19,6 @@
 pragma solidity 0.8.22;
 
 abstract contract IDSServiceConsumer {
-
     uint256 public constant TRUST_SERVICE = 1;
     uint256 public constant DS_TOKEN = 2;
     uint256 public constant REGISTRY_SERVICE = 4;
@@ -38,13 +37,11 @@ abstract contract IDSServiceConsumer {
     uint256 public constant DEPRECATED_TA_MULTICALL = 0;
     uint256 public constant DEPRECATED_SECURITIZE_SWAP = 16384;
     uint256 public constant REBASING_PROVIDER = 8196;
+    uint256 public constant BLACKLIST_MANAGER = 1000;
 
     function getDSService(uint256 _serviceId) public view virtual returns (address);
 
-    function setDSService(
-        uint256 _serviceId,
-        address _address /*onlyMaster*/
-    ) public virtual returns (bool);
+    function setDSService(uint256 _serviceId, address _address /*onlyMaster*/) public virtual returns (bool);
 
     event DSServiceSet(uint256 serviceId, address serviceAddress);
 }
