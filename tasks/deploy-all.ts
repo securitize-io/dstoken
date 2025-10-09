@@ -23,6 +23,7 @@ task('deploy-all', 'Deploy DS Protocol')
     const bulkOperator = await run('deploy-bulk-operator', { dsToken: dsToken.target });
     const navProviderMock = await ethers.deployContract('SecuritizeInternalNavProviderMock', [1]);
     const rebasingProvider = await run('deploy-rebasing-provider', { multiplier: args.multiplier, decimals: args.decimals });
+    const blacklistManager = await run('deploy-blacklist-manager');
     const usdcMock = await run('deploy-erc20',
       {
         name: 'USDC',
@@ -45,7 +46,8 @@ task('deploy-all', 'Deploy DS Protocol')
       bulkOperator,
       usdcMock,
       navProviderMock,
-      rebasingProvider
+      rebasingProvider,
+      blacklistManager
     };
 
     await run("set-roles", { dsContracts });

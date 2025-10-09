@@ -6,6 +6,7 @@ import { DSConstants } from "../utils/globals";
 
 describe("ComplianceServiceGlobalWhitelisted", function () {
   let complianceService: any;
+  let blacklistManager: any;
   let transferAgent: any;
 
   let user: any;
@@ -20,8 +21,10 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
       trustService,
       registryService,
       complianceService: complianceService_,
+      blacklistManager: blacklistManager_,
     } = await loadFixture(deployDSTokenGlobalWhitelisted);
     complianceService = complianceService_;
+    blacklistManager = blacklistManager_;
 
     const [master, ta, user1, user2] = await hre.ethers.getSigners();
     await trustService
@@ -67,8 +70,8 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
     });
 
     it("should initialize with empty blacklist", async function () {
-      expect(await complianceService.getBlacklistedWalletsCount()).to.equal(0);
-      expect(await complianceService.getBlacklistedWallets()).to.deep.equal([]);
+      expect(await blacklistManager.getBlacklistedWalletsCount()).to.equal(0);
+      expect(await blacklistManager.getBlacklistedWallets()).to.deep.equal([]);
     });
 
     it("should test constructor and initialization functions", async function () {
@@ -79,7 +82,7 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
         "InvalidInitialization",
       );
 
-      expect(await complianceService.getBlacklistedWalletsCount()).to.equal(0);
+      expect(await blacklistManager.getBlacklistedWalletsCount()).to.equal(0);
     });
 
     it("should test onlyProxy modifier behavior with direct deployment", async function () {
@@ -97,72 +100,118 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
         "UUPSUnauthorizedCallContext",
       );
     });
+
+    it("should revert when _initialize is called outside initialization context", async function () {
+      const MockComplianceServiceGlobalWhitelisted =
+        await hre.ethers.getContractFactory("MockComplianceServiceGlobalWhitelisted");
+      const mock = await hre.upgrades.deployProxy(MockComplianceServiceGlobalWhitelisted, [], { initializer: false });
+
+      // First, initialize properly
+      await mock.initialize();
+
+      // Now try to call _initialize again outside of initialization
+      await expect(
+        mock.exposedInitialize(),
+      ).to.be.revertedWithCustomError(mock, "NotInitializing");
+    });
+  });
+
+  describe("BlackListManager Initialization", function () {
+    it("Should throw if already initialized", async function () {
+      expect(await blacklistManager.getInitializedVersion()).to.equal(1);
+      await expect(blacklistManager.initialize()).to.be.revertedWithCustomError(
+        blacklistManager,
+        "InvalidInitialization",
+      );
+    });
+
+    it("Should throw if trying to initialize the implementation contract", async function () {
+      const BlackListManager = await hre.ethers.getContractFactory("BlackListManager");
+      const blmAddress = await hre.upgrades.deployImplementation(BlackListManager);
+      const blmImplementation = BlackListManager.attach(blmAddress as string);
+      await expect(blmImplementation.initialize()).to.be.revertedWithCustomError(
+        blmImplementation,
+        "UUPSUnauthorizedCallContext",
+      );
+    });
+
+    it("Should throw if trying to initialize the implementation contract of a proxy", async function () {
+      const implementation = await hre.upgrades.erc1967.getImplementationAddress(
+        await blacklistManager.getAddress(),
+      );
+      const BlackListManager = await hre.ethers.getContractFactory("BlackListManager");
+      const blmImplementation = BlackListManager.attach(implementation);
+      await expect(blmImplementation.initialize()).to.be.revertedWithCustomError(
+        blmImplementation,
+        "UUPSUnauthorizedCallContext",
+      );
+    });
   });
 
   describe("Blacklist Management", function () {
     it("should add wallet to blacklist with reason", async function () {
       await expect(
-        complianceService
+        blacklistManager
           .connect(transferAgent)
           .addToBlacklist(userAddress, reason),
       )
-        .to.emit(complianceService, "WalletAddedToBlacklist")
+        .to.emit(blacklistManager, "WalletAddedToBlacklist")
         .withArgs(userAddress, reason, await transferAgent.getAddress());
 
-      expect(await complianceService.isBlacklisted(userAddress)).to.be.true;
-      expect(await complianceService.getBlacklistReason(userAddress)).to.equal(
+      expect(await blacklistManager.isBlacklisted(userAddress)).to.be.true;
+      expect(await blacklistManager.getBlacklistReason(userAddress)).to.equal(
         reason,
       );
     });
 
     it("should remove wallet from blacklist", async function () {
       // Add to blacklist first
-      await complianceService
+      await blacklistManager
         .connect(transferAgent)
         .addToBlacklist(userAddress, reason);
-      expect(await complianceService.isBlacklisted(userAddress)).to.be.true;
+      expect(await blacklistManager.isBlacklisted(userAddress)).to.be.true;
 
       // Now remove from blacklist
       await expect(
-        complianceService
+        blacklistManager
           .connect(transferAgent)
           .removeFromBlacklist(userAddress),
       )
-        .to.emit(complianceService, "WalletRemovedFromBlacklist")
+        .to.emit(blacklistManager, "WalletRemovedFromBlacklist")
         .withArgs(userAddress, await transferAgent.getAddress());
 
-      expect(await complianceService.isBlacklisted(userAddress)).to.be.false;
+      expect(await blacklistManager.isBlacklisted(userAddress)).to.be.false;
     });
 
     it("should reject duplicate blacklist addition", async function () {
       // Add to blacklist first
-      await complianceService
+      await blacklistManager
         .connect(transferAgent)
         .addToBlacklist(userAddress, "First reason");
 
       // Try adding again
       await expect(
-        complianceService
+        blacklistManager
           .connect(transferAgent)
           .addToBlacklist(userAddress, "Second reason"),
-      ).to.be.revertedWithCustomError(complianceService, "WalletAlreadyBlacklisted");
+      ).to.be.revertedWithCustomError(blacklistManager, "WalletAlreadyBlacklisted");
     });
 
     it("should reject removal of non-blacklisted wallet", async function () {
       // Try to remove without adding first
       await expect(
-        complianceService
+        blacklistManager
           .connect(transferAgent)
           .removeFromBlacklist(userAddress),
-      ).to.be.revertedWithCustomError(complianceService, "WalletNotBlacklisted");
+      ).to.be.revertedWithCustomError(blacklistManager, "WalletNotBlacklisted");
     });
 
     it("should reject zero address in blacklist", async function () {
       await expect(
-        complianceService
+        blacklistManager
           .connect(transferAgent)
           .addToBlacklist(hre.ethers.ZeroAddress, "Invalid"),
-      ).to.be.revertedWithCustomError(complianceService, "ZeroAddressInvalid");
+      ).to.be.revertedWithCustomError(blacklistManager, "ZeroAddressInvalid");
     });
 
     describe("Access Control", function () {
@@ -170,21 +219,21 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
         const errorMsg = "Insufficient trust level";
 
         await expect(
-          complianceService.connect(user).addToBlacklist(userAddress, reason),
+          blacklistManager.connect(user).addToBlacklist(userAddress, reason),
         ).to.be.revertedWith(errorMsg);
 
         await expect(
-          complianceService.connect(user).removeFromBlacklist(userAddress),
+          blacklistManager.connect(user).removeFromBlacklist(userAddress),
         ).to.be.revertedWith(errorMsg);
 
         await expect(
-          complianceService
+          blacklistManager
             .connect(user)
             .batchAddToBlacklist([userAddress], [reason]),
         ).to.be.revertedWith(errorMsg);
 
         await expect(
-          complianceService
+          blacklistManager
             .connect(user)
             .batchRemoveFromBlacklist([userAddress]),
         ).to.be.revertedWith(errorMsg);
@@ -197,36 +246,36 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
       const wallets = [userAddress, user2Address];
       const reasons = ["Reason 1", "Reason 2"];
 
-      await complianceService
+      await blacklistManager
         .connect(transferAgent)
         .batchAddToBlacklist(wallets, reasons);
 
       for (let i = 0; i < wallets.length; i++) {
-        expect(await complianceService.isBlacklisted(wallets[i])).to.be.true;
-        expect(await complianceService.getBlacklistReason(wallets[i])).to.equal(
+        expect(await blacklistManager.isBlacklisted(wallets[i])).to.be.true;
+        expect(await blacklistManager.getBlacklistReason(wallets[i])).to.equal(
           reasons[i],
         );
       }
-      expect(await complianceService.getBlacklistedWalletsCount()).to.equal(2);
+      expect(await blacklistManager.getBlacklistedWalletsCount()).to.equal(2);
     });
 
     it("should remove multiple wallets from blacklist", async function () {
       const wallets = [userAddress, user2Address];
       const reasons = ["Reason 1", "Reason 2"];
 
-      await complianceService
+      await blacklistManager
         .connect(transferAgent)
         .batchAddToBlacklist(wallets, reasons);
-      expect(await complianceService.getBlacklistedWalletsCount()).to.equal(2);
+      expect(await blacklistManager.getBlacklistedWalletsCount()).to.equal(2);
 
-      await complianceService
+      await blacklistManager
         .connect(transferAgent)
         .batchRemoveFromBlacklist(wallets);
 
       for (const wallet of wallets) {
-        expect(await complianceService.isBlacklisted(wallet)).to.be.false;
+        expect(await blacklistManager.isBlacklisted(wallet)).to.be.false;
       }
-      expect(await complianceService.getBlacklistedWalletsCount()).to.equal(0);
+      expect(await blacklistManager.getBlacklistedWalletsCount()).to.equal(0);
     });
 
     it("should reject batch operations with mismatched array lengths", async function () {
@@ -234,10 +283,10 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
       const reasons = ["Reason 1", "Reason 2"];
 
       await expect(
-        complianceService
+        blacklistManager
           .connect(transferAgent)
           .batchAddToBlacklist(wallets, reasons),
-      ).to.be.revertedWithCustomError(complianceService, "ArraysLengthMismatch");
+      ).to.be.revertedWithCustomError(blacklistManager, "ArraysLengthMismatch");
     });
   });
 
@@ -266,7 +315,7 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
     });
 
     it("should reject transfers to blacklisted wallets", async function () {
-      await complianceService
+      await blacklistManager
         .connect(transferAgent)
         .addToBlacklist(user2Address, reason);
 
@@ -290,7 +339,7 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
     });
 
     it("should override whitelist check for blacklisted wallets", async function () {
-      await complianceService
+      await blacklistManager
         .connect(transferAgent)
         .addToBlacklist(userAddress, reason);
 
@@ -310,7 +359,7 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
     });
 
     it("should reject issuance to blacklisted wallets", async function () {
-      await complianceService
+      await blacklistManager
         .connect(transferAgent)
         .addToBlacklist(userAddress, reason);
 

@@ -19,6 +19,7 @@ subtask('set-services', 'Set DS Services')
         transactionRelayer,
         bulkOperator,
         rebasingProvider,
+        blacklistManager,
       } = dsContracts;
 
       // Token
@@ -72,6 +73,8 @@ subtask('set-services', 'Set DS Services')
       await complianceService.setDSService(DSConstants.services.REGISTRY_SERVICE, registryService.getAddress());
       console.log('Connecting compliance service to rebasing provider');
       await complianceService.setDSService(DSConstants.services.REBASING_PROVIDER, rebasingProvider.getAddress());
+      console.log('Connecting compliance service to blacklist manager');
+      await complianceService.setDSService(DSConstants.services.BLACKLIST_MANAGER, blacklistManager.getAddress());
 
       // Lock Manager
       console.log('Connecting lock manager to trust service');
@@ -117,5 +120,9 @@ subtask('set-services', 'Set DS Services')
       // Rebasing Provider
       console.log('Connecting rebasing provider to trust service');
       await rebasingProvider.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
+
+      // Blacklist Manager
+      console.log('Connecting blacklist manager to trust service');
+      await blacklistManager.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
     },
   );

@@ -53,8 +53,19 @@ More detailed information about the types of data stored in the registry can be 
 The compliance service contracts enforce the actual compliance rules, and can be used by the token (and others) to make sure trades are done in a regulatory-compliant manner.
 The following compliance service types are implemented:
 
-- **Full/Normal** (ESComplianceServiceRegulated) - A full Compliance Service implementing transfer rules common to regulations wordwide, such as: restricting or limiting the number of retail investors, restricting investors from certain countries, requiring accredited investor status or preventing flowback of off-shore tokens.
-- **WhiteList** (ESComplianceServiceWhitelisted.sol) - A simple Compliance Service restricting transfers only based on basic white-listing of investors.
+- **Full/Normal** (ComplianceServiceRegulated) - A full Compliance Service implementing transfer rules common to regulations worldwide, such as: restricting or limiting the number of retail investors, restricting investors from certain countries, requiring accredited investor status or preventing flowback of off-shore tokens.
+- **WhiteList** (ComplianceServiceWhitelisted.sol) - A simple Compliance Service restricting transfers only based on basic white-listing of investors.
+- **Global Whitelisted with Blacklist** (ComplianceServiceGlobalWhitelisted) - A Compliance Service that combines global whitelisting with a dedicated blacklist functionality. This service validates transfers and issuances against both whitelist rules and a separate blacklist of restricted wallets.
+
+#### BlackListManager (/contracts/compliance)
+
+The BlackListManager is a dedicated service for managing blacklisted wallets. It provides functionality to add, remove, and query blacklisted addresses with associated reasons. This separation of concerns allows for:
+
+- Independent management of blacklist operations
+- Reusability across different compliance services
+- Clear separation between validation logic (ComplianceService) and data management (BlackListManager)
+
+The BlackListManager supports both individual and batch operations for efficient management of restricted wallets.
 
 More detailed information about the Compliance Service can be found in the tutorials above and in the posts linked above.
 
@@ -96,7 +107,7 @@ npm install
 # or if using yarn: yarn install
 
 npx hardhat deploy-all --name <token name> --symbol <token symbol> --decimals <token decimals>
---compliance TYPE - compliance service type (REGULATED, PARTITIONED, WHITELISTED) - if omitted, REGULATED is selected
+--compliance TYPE - compliance service type (REGULATED, WHITELISTED, GLOBAL_WHITELISTED) - if omitted, REGULATED is selected
 
 ```
 
