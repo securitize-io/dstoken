@@ -22,12 +22,12 @@ import {ServiceConsumerDataStore} from "./ServiceConsumerDataStore.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /**
- * @title Data store for compliance service blacklist functionality
+ * @title Data store for BlackListManager
  *
  * This contract stores blacklist-related state variables following the project's
  * data store pattern for upgradeability and maintainability.
  */
-contract ComplianceServiceGlobalWhitelistedDataStore is ServiceConsumerDataStore {
+contract BlackListManagerDataStore is ServiceConsumerDataStore {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     // Blacklist state variables
@@ -39,9 +39,8 @@ contract ComplianceServiceGlobalWhitelistedDataStore is ServiceConsumerDataStore
      * variables without shifting down storage in the inheritance chain.
      * Calculated based on the complete inheritance hierarchy:
      * - ServiceConsumerDataStore: 1 slot (services mapping)
-     * - ComplianceServiceDataStore: 9 slots (5 uint256 + 4 mappings)
      * - Blacklist variables: 2 slots (1 EnumerableSet + 1 mapping)
-     * - Total: 12 slots used, leaving 38 for future expansion
+     * - Total: 3 slots used, leaving 45 for future expansion
      */
-    uint256[38] private __gap;
+    uint256[45] private __gap;
 }

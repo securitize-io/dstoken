@@ -18,16 +18,15 @@
 
 pragma solidity 0.8.22;
 
-import {IDSComplianceService} from "./IDSComplianceService.sol";
-
 /**
- * @title Interface for compliance service with blacklist functionality
+ * @title Interface for BlackListManager
  *
- * This interface defines blacklist functionality for compliance services.
- * Blacklisted wallets are prevented from receiving tokens through transfers or issuances,
- * while maintaining all existing compliance functionality.
+ * This interface defines functionality for managing blacklisted wallets.
+ * Blacklisted wallets are prevented from receiving tokens through transfers or issuances.
  */
-interface IDSComplianceServiceGlobalWhitelisted {
+abstract contract IDSBlackListManager {
+    function initialize() public virtual;
+
     // Events
     event WalletAddedToBlacklist(address indexed wallet, string reason, address indexed admin);
     event WalletRemovedFromBlacklist(address indexed wallet, address indexed admin);
@@ -47,20 +46,20 @@ interface IDSComplianceServiceGlobalWhitelisted {
     error ArraysLengthMismatch();
 
     // View functions
-    function isBlacklisted(address _wallet) external view returns (bool);
+    function isBlacklisted(address _wallet) external view virtual returns (bool);
 
-    function getBlacklistedWalletsCount() external view returns (uint256);
+    function getBlacklistedWalletsCount() external view virtual returns (uint256);
 
-    function getBlacklistedWallets() external view returns (address[] memory);
+    function getBlacklistedWallets() external view virtual returns (address[] memory);
 
-    function getBlacklistReason(address _wallet) external view returns (string memory);
+    function getBlacklistReason(address _wallet) external view virtual returns (string memory);
 
     // State-changing functions
-    function addToBlacklist(address _wallet, string calldata _reason) external returns (bool);
+    function addToBlacklist(address _wallet, string calldata _reason) external virtual returns (bool);
 
-    function removeFromBlacklist(address _wallet) external returns (bool);
+    function removeFromBlacklist(address _wallet) external virtual returns (bool);
 
-    function batchAddToBlacklist(address[] calldata _wallets, string[] calldata _reasons) external returns (bool);
+    function batchAddToBlacklist(address[] calldata _wallets, string[] calldata _reasons) external virtual returns (bool);
 
-    function batchRemoveFromBlacklist(address[] calldata _wallets) external returns (bool);
+    function batchRemoveFromBlacklist(address[] calldata _wallets) external virtual returns (bool);
 }
