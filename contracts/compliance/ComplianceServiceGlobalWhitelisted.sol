@@ -19,9 +19,6 @@
 pragma solidity 0.8.22;
 
 import {ComplianceServiceWhitelisted} from "./ComplianceServiceWhitelisted.sol";
-import {IDSComplianceServiceGlobalWhitelisted} from "./IDSComplianceServiceGlobalWhitelisted.sol";
-import {ComplianceServiceGlobalWhitelistedDataStore} from "../data-stores/ComplianceServiceGlobalWhitelistedDataStore.sol";
-import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /**
  * @title Compliance service with blacklist functionality
@@ -32,9 +29,7 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
  *
  * Follows the project's data store pattern for upgradeability and maintainability.
  */
-contract ComplianceServiceGlobalWhitelisted is ComplianceServiceWhitelisted, IDSComplianceServiceGlobalWhitelisted, ComplianceServiceGlobalWhitelistedDataStore {
-    using EnumerableSet for EnumerableSet.AddressSet;
-
+contract ComplianceServiceGlobalWhitelisted is ComplianceServiceWhitelisted {
     // Error messages
     string internal constant WALLET_BLACKLISTED = "Wallet is blacklisted";
 
@@ -51,22 +46,6 @@ contract ComplianceServiceGlobalWhitelisted is ComplianceServiceWhitelisted, IDS
         super._initialize();
     }
 
-    function isBlacklisted(address _wallet) public view returns (bool) {
-        return _blacklistedWallets.contains(_wallet);
-    }
-
-    function getBlacklistedWalletsCount() public view returns (uint256) {
-        return _blacklistedWallets.length();
-    }
-
-    function getBlacklistedWallets() public view returns (address[] memory) {
-        return _blacklistedWallets.values();
-    }
-
-    function getBlacklistReason(address _wallet) public view returns (string memory) {
-        return _blacklistReasons[_wallet];
-    }
-
     function newPreTransferCheck(
         address _from,
         address _to,
@@ -75,9 +54,8 @@ contract ComplianceServiceGlobalWhitelisted is ComplianceServiceWhitelisted, IDS
         bool _pausedToken
     ) public view virtual override returns (uint256 code, string memory reason) {
         // First check if recipient is blacklisted
-        (uint256 blacklistCode, string memory blacklistReason) = _getBlacklistCheckResult(_to);
-        if (blacklistCode != 0) {
-            return (blacklistCode, blacklistReason);
+        if (getBlackListManager().isBlacklisted(_to)) {
+            return (100, WALLET_BLACKLISTED);
         }
 
         // Then perform the standard whitelist check
@@ -86,9 +64,8 @@ contract ComplianceServiceGlobalWhitelisted is ComplianceServiceWhitelisted, IDS
 
     function preTransferCheck(address _from, address _to, uint256 _value) public view virtual override returns (uint256 code, string memory reason) {
         // First check if recipient is blacklisted
-        (uint256 blacklistCode, string memory blacklistReason) = _getBlacklistCheckResult(_to);
-        if (blacklistCode != 0) {
-            return (blacklistCode, blacklistReason);
+        if (getBlackListManager().isBlacklisted(_to)) {
+            return (100, WALLET_BLACKLISTED);
         }
 
         // Then perform the standard whitelist check
@@ -97,7 +74,7 @@ contract ComplianceServiceGlobalWhitelisted is ComplianceServiceWhitelisted, IDS
 
     function checkWhitelisted(address _who) public view override returns (bool) {
         // First check if wallet is blacklisted
-        if (isBlacklisted(_who)) {
+        if (getBlackListManager().isBlacklisted(_who)) {
             return false;
         }
 
@@ -107,69 +84,11 @@ contract ComplianceServiceGlobalWhitelisted is ComplianceServiceWhitelisted, IDS
 
     function preIssuanceCheck(address _to, uint256 _value) public view virtual override returns (uint256 code, string memory reason) {
         // First check if recipient is blacklisted
-        (uint256 blacklistCode, string memory blacklistReason) = _getBlacklistCheckResult(_to);
-        if (blacklistCode != 0) {
-            return (blacklistCode, blacklistReason);
+        if (getBlackListManager().isBlacklisted(_to)) {
+            return (100, WALLET_BLACKLISTED);
         }
 
         // Then perform the standard whitelist check
         return super.preIssuanceCheck(_to, _value);
-    }
-
-    function addToBlacklist(address _wallet, string calldata _reason) public onlyTransferAgentOrAbove returns (bool) {
-        _addToBlacklist(_wallet, _reason);
-        return true;
-    }
-
-    function removeFromBlacklist(address _wallet) public onlyTransferAgentOrAbove returns (bool) {
-        _removeFromBlacklist(_wallet);
-        return true;
-    }
-
-    function batchAddToBlacklist(address[] calldata _wallets, string[] calldata _reasons) public onlyTransferAgentOrAbove returns (bool) {
-        uint8 walletsLength = uint8(_wallets.length);
-        if (walletsLength != _reasons.length) revert ArraysLengthMismatch();
-
-        for (uint8 i = 0; i < walletsLength; i++) {
-            _addToBlacklist(_wallets[i], _reasons[i]);
-        }
-
-        return true;
-    }
-
-    function batchRemoveFromBlacklist(address[] calldata _wallets) public onlyTransferAgentOrAbove returns (bool) {
-        uint8 walletsLength = uint8(_wallets.length);
-
-        for (uint8 i = 0; i < walletsLength; i++) {
-            _removeFromBlacklist(_wallets[i]);
-        }
-
-        return true;
-    }
-
-    function _addToBlacklist(address _wallet, string calldata _reason) private {
-        if (_wallet == address(0)) revert ZeroAddressInvalid();
-        if (_blacklistedWallets.contains(_wallet)) revert WalletAlreadyBlacklisted();
-
-        _blacklistedWallets.add(_wallet);
-        _blacklistReasons[_wallet] = _reason;
-
-        emit WalletAddedToBlacklist(_wallet, _reason, msg.sender);
-    }
-
-    function _removeFromBlacklist(address _wallet) private {
-        if (!_blacklistedWallets.contains(_wallet)) revert WalletNotBlacklisted();
-
-        _blacklistedWallets.remove(_wallet);
-        delete _blacklistReasons[_wallet];
-
-        emit WalletRemovedFromBlacklist(_wallet, msg.sender);
-    }
-
-    function _getBlacklistCheckResult(address _to) private view returns (uint256, string memory) {
-        if (isBlacklisted(_to)) {
-            return (100, WALLET_BLACKLISTED);
-        }
-        return (0, "");
     }
 }
