@@ -145,7 +145,7 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
         complianceService
           .connect(transferAgent)
           .addToBlacklist(userAddress, "Second reason"),
-      ).to.be.revertedWith("Wallet already blacklisted");
+      ).to.be.revertedWithCustomError(complianceService, "WalletAlreadyBlacklisted");
     });
 
     it("should reject removal of non-blacklisted wallet", async function () {
@@ -154,7 +154,7 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
         complianceService
           .connect(transferAgent)
           .removeFromBlacklist(userAddress),
-      ).to.be.revertedWith("Wallet not blacklisted");
+      ).to.be.revertedWithCustomError(complianceService, "WalletNotBlacklisted");
     });
 
     it("should reject zero address in blacklist", async function () {
@@ -162,7 +162,7 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
         complianceService
           .connect(transferAgent)
           .addToBlacklist(hre.ethers.ZeroAddress, "Invalid"),
-      ).to.be.revertedWith("Invalid wallet address");
+      ).to.be.revertedWithCustomError(complianceService, "ZeroAddressInvalid");
     });
 
     describe("Access Control", function () {
@@ -237,9 +237,7 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
         complianceService
           .connect(transferAgent)
           .batchAddToBlacklist(wallets, reasons),
-      ).to.be.revertedWith(
-        "Wallets and reasons arrays must have the same length",
-      );
+      ).to.be.revertedWithCustomError(complianceService, "ArraysLengthMismatch");
     });
   });
 
