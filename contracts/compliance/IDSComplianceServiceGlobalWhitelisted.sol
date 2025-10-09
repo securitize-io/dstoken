@@ -32,15 +32,35 @@ interface IDSComplianceServiceGlobalWhitelisted {
     event WalletAddedToBlacklist(address indexed wallet, string reason, address indexed admin);
     event WalletRemovedFromBlacklist(address indexed wallet, address indexed admin);
 
+    // Custom errors
+    /// @dev Thrown when a wallet is already blacklisted
+    /// @custom:selector 0xb59c1958
+    error WalletAlreadyBlacklisted();
+    /// @dev Thrown when a wallet is not blacklisted
+    /// @custom:selector 0xfae0e716
+    error WalletNotBlacklisted();
+    /// @dev Thrown when the zero address is used
+    /// @custom:selector 0x14c880ca
+    error ZeroAddressInvalid();
+    /// @dev Thrown when the lengths of the arrays do not match
+    /// @custom:selector 0xfc235960
+    error ArraysLengthMismatch();
+
     // View functions
     function isBlacklisted(address _wallet) external view returns (bool);
+
     function getBlacklistedWalletsCount() external view returns (uint256);
+
     function getBlacklistedWallets() external view returns (address[] memory);
+
     function getBlacklistReason(address _wallet) external view returns (string memory);
 
     // State-changing functions
     function addToBlacklist(address _wallet, string calldata _reason) external returns (bool);
+
     function removeFromBlacklist(address _wallet) external returns (bool);
+
     function batchAddToBlacklist(address[] calldata _wallets, string[] calldata _reasons) external returns (bool);
+
     function batchRemoveFromBlacklist(address[] calldata _wallets) external returns (bool);
 }

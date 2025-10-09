@@ -32,20 +32,11 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
  *
  * Follows the project's data store pattern for upgradeability and maintainability.
  */
-contract ComplianceServiceGlobalWhitelisted is
-    ComplianceServiceWhitelisted,
-    IDSComplianceServiceGlobalWhitelisted,
-    ComplianceServiceGlobalWhitelistedDataStore
-{
+contract ComplianceServiceGlobalWhitelisted is ComplianceServiceWhitelisted, IDSComplianceServiceGlobalWhitelisted, ComplianceServiceGlobalWhitelistedDataStore {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     // Error messages
     string internal constant WALLET_BLACKLISTED = "Wallet is blacklisted";
-    string internal constant INVALID_WALLET = "Invalid wallet address";
-    string internal constant WALLET_ALREADY_BLACKLISTED = "Wallet already blacklisted";
-    string internal constant WALLET_NOT_BLACKLISTED = "Wallet not blacklisted";
-    string internal constant ARRAYS_LENGTH_MISMATCH = "Wallets and reasons arrays must have the same length";
-    string internal constant INDEX_OUT_OF_BOUNDS = "Index out of bounds";
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -136,7 +127,7 @@ contract ComplianceServiceGlobalWhitelisted is
     }
 
     function batchAddToBlacklist(address[] calldata _wallets, string[] calldata _reasons) public onlyTransferAgentOrAbove returns (bool) {
-        require(_wallets.length == _reasons.length, ARRAYS_LENGTH_MISMATCH);
+        if (_wallets.length != _reasons.length) revert ArraysLengthMismatch();
 
         for (uint256 i = 0; i < _wallets.length; i++) {
             _addToBlacklist(_wallets[i], _reasons[i]);
@@ -154,8 +145,8 @@ contract ComplianceServiceGlobalWhitelisted is
     }
 
     function _addToBlacklist(address _wallet, string memory _reason) private {
-        require(_wallet != address(0), INVALID_WALLET);
-        require(!_blacklistedWallets.contains(_wallet), WALLET_ALREADY_BLACKLISTED);
+        if (_wallet == address(0)) revert ZeroAddressInvalid();
+        if (_blacklistedWallets.contains(_wallet)) revert WalletAlreadyBlacklisted();
 
         _blacklistedWallets.add(_wallet);
         _blacklistReasons[_wallet] = _reason;
@@ -164,7 +155,7 @@ contract ComplianceServiceGlobalWhitelisted is
     }
 
     function _removeFromBlacklist(address _wallet) private {
-        require(_blacklistedWallets.contains(_wallet), WALLET_NOT_BLACKLISTED);
+        if (!_blacklistedWallets.contains(_wallet)) revert WalletNotBlacklisted();
 
         _blacklistedWallets.remove(_wallet);
         delete _blacklistReasons[_wallet];
