@@ -10,7 +10,7 @@ The Digital Securities (DS) Protocol aims to enable and simplify regulation comp
 > More information on Securitize and its Digital Securities protocol can be found at [https://www.securitize.io](https://www.securitize.io).
 
 The DS protocol is based on a set of components, or **services**, each implementing a different aspect required for the security environment.
-The services are accessible from web3 enabled applications. This allows their access by relevant actors, like exchanges, Blockchain Web3 based applications, and platforms that 
+The services are accessible from Web3-enabled applications. This allows their access by relevant actors, like exchanges, blockchain Web3-based applications, and platforms that 
 provide additional services such as instant minting, swap and redemption flows.  
 
 > More in-depth information about the structure of the DS Protocol can be found in its [Whitepaper](https://securitize.io/whitepapers).
@@ -27,16 +27,16 @@ An overview of the DS Token components and reference implementation can be found
 - [DS Protocol — The Trust and Registry Services](https://medium.com/securitize/ds-protocol-the-trust-and-registry-services-91d1c4630f78)
 - [DS Protocol — The Compliance Service](https://medium.com/securitize/ds-protocol-the-compliance-service-b6fe472d625d)
 
-## The Digitial Securities Token contracts
+## The Digital Securities Token contracts
 
 ### Overview
 
 The contracts in this repository are meant to be used either as they are, to provide a Compliance Service-controlled trading environment for a Securities Token Offering (STO), or as a base for creating of more specific tokens, implementing additional functionality.
 
-The design and code of the DStoken implementation is based on the following principles:
+The design and code of the DSToken implementation is based on the following principles:
 
 - **Full Implementation** - An installation of the reference repository contains all the services required for issuance and trading - all of the essential DS Protocol services are implemented.
-- **Fully Contained** - The reference implementation can be installed as a simple migration, or from a factory (to be provided in future code releases). in any case it is a fully contained environment in the blockchain and does not require external contracts or the usage of a utility token.
+- **Fully Contained** - The reference implementation can be installed as a simple migration, or from a factory (to be provided in future code releases). In any case, it is a fully contained environment on the blockchain and does not require external contracts or the usage of a utility token.
 - **Standard Compliant** - The resulting token is a strict superset of ERC20, enabling easy integration into exchanges and Ethereum wallets. More ERC standards will be implemented as they evolve.
 - **Simple** - Trading securities on the Blockchain is a complicated subject. we have tried to keep our implementation as simple as possible to allow adopters to fully understand it, allowing for peace of mind and easy extendability.
 
@@ -53,8 +53,8 @@ More detailed information about the types of data stored in the registry can be 
 The compliance service contracts enforce the actual compliance rules, and can be used by the token (and others) to make sure trades are done in a regulatory-compliant manner.
 The following compliance service types are implemented:
 
-- **Full/Normal** (ESComplianceServiceRegulated) - A full Compliance Service implementing transfer rules common to regulations wordwide, such as: restricting or limiting the number of retail investors, restricting investors from certain countries, requiring accredited investor status or preventing flowback of off-shore tokens.
-- **WhiteList** (ESComplianceServiceWhitelisted.sol) - A simple Compliance Service restricting transfers only based on basic white-listing of investors.
+- **Full/Normal** (ESComplianceServiceRegulated) - A full Compliance Service implementing transfer rules common to regulations worldwide, such as: restricting or limiting the number of retail investors, restricting investors from certain countries, requiring accredited investor status or preventing flowback of off-shore tokens.
+- **Whitelist** (ESComplianceServiceWhitelisted.sol) - A simple Compliance Service restricting transfers only based on basic white-listing of investors.
 
 More detailed information about the Compliance Service can be found in the tutorials above and in the posts linked above.
 
@@ -62,7 +62,7 @@ More detailed information about the Compliance Service can be found in the tutor
 
 The Trust Service is used to control which actors (or DS Apps) have access to the different functionalities of the contracts.
 
-Each method in the DS-Protocol has an assigned permission level, and requires a specific role to be authorized.<br/>
+Each method in the DS Protocol has an assigned permission level, and requires a specific role to be authorized.<br/>
 Each role can have one or more Ethereum accounts (or DSApps) assigned to it, and execution of the contract methods is limited only to wallets of their assigned role (or above).
 
 The following roles are implemented:
@@ -85,12 +85,11 @@ In addition to implementing the DS Protocol, the token also offers the following
   Tokens can be time-locked (for vesting scenarios, call scenarios, and others), or indefinitely locked (if required by the authorities) - in which case they can only be released by the issuer.
   A locked token may not be transferred by the wallet's owner to any other wallet.
 - **Trade pausing** - Trading of the token can be paused and resumed by the _Master_ role.
-- 
 ## Other components
 
 - **Proxy** - The main token contract is deployed behind a proxy, OpenZeppelin's ERC1967 implementation. This allows for seamless upgrade of a deployed token in case a new protocol version is required or a problem is found.
 - **BulkOperator** - Operations can be sent in bulk (tokens issuances and wallet registrations) using the BulkOperator contract
-- **Rebasing provider** - One of the latest additions to the protocol is the Rebasing capability, allowing the token base to be changed uysing a multiplier or a formula. This allows use cases like splits, reverse splits or block-by-block dividend accrual.
+- **Rebasing provider** - The protocol now includes a Rebasing feature, allowing token balances to adjust via a multiplier or formula to support use cases like dividend accrual, splits, and reverse splits efficiently.
 
 ### Installation
 
@@ -121,7 +120,7 @@ To run tests, run:
 npm test
 ```
 
-To verify dsToken, run:
+To verify DSToken, run:
 
 ```
 npx hardhat verify-all --network {network} --token {dsTokenAddress}
@@ -134,7 +133,7 @@ The full token can of course be deployed to mainnet or testnet on any compatible
 
 ### Deployment and migration
 
-We created factory contracts to reduce gas cost significantly. Also, implementation contracts are reused across deployments to further reduce gas costs, 
+We created factory contracts to reduce gas costs significantly. Also, implementation contracts are reused across deployments to further reduce gas costs, 
 and deployments are resilient to transaction failures. They can be resumed and retried after the last successful transaction.
 
 #### DeploymentUtils
@@ -142,18 +141,18 @@ and deployments are resilient to transaction failures. They can be resumed and r
 There are 3 types of functions:
 
 - settings: It is possible to update the addresses of the implementation contracts.
-- deployment: There are a set of methods to deploys proxy contracts, set implementation targets and calls initialize functions.
+- deployment: There are a set of methods to deploy proxy contracts, set implementation targets, and call initialize functions.
 - Token deployment settings: Sets a token calling functions like setRoles, setDSServices and setCountriesCompliance in bulk mode.
 
 The owner of the DeploymentUtils contract must be the **deployment wallet**.
 
-There are deployed tokens in different public networks.
+There are deployments on different public networks.
 
 - Avalanche Fuji Testnet: **0x63705379db29D008d1EBdB0F8e60aD89216927AF** Deployment Account DEV **0xd40D720b1cdC8AeD2a75489F219cA02faF45587C**
 - Polygon Mumbai Testnet: **0x78da8F43717E0fb583028D8F5E2D7D67274Cf65C** Deployment Account DEV **0xD8559dfEd9300775a2DeF456c7BDa65310Ad21E6**
-- Sepolia testnet: **0xC68DFf4D8557727778143a68C66d11430bd9474C** Deployment Account DEV **0xD8559dfEd9300775a2DeF456c7BDa65310Ad21E6**
+- Sepolia Testnet: **0xC68DFf4D8557727778143a68C66d11430bd9474C** Deployment Account DEV **0xD8559dfEd9300775a2DeF456c7BDa65310Ad21E6**
 
-- First we have to set the address of implementation contracts.
+- First, set the addresses of the implementation contracts.
 
 - **Settings functions**
 
@@ -178,7 +177,7 @@ The following initiatives are part of the current roadmap:
 -	**Advanced Rebasing Strategies** — Implement formula-based and performance-linked multipliers, enabling dynamic yield reflection and more sophisticated corporate-action handling.
 -	**Managed DSApp Factories** — Provide fully managed factory contracts for streamlined deployment of DSApps and complete DS Protocol environments.
 -	**Enhanced Reporting and Analytics** — Offer better visibility into rebased balances, capital flows, and compliance-related events.
--	**New DSApps** — Publish additional reference DSApps, along the already available: On / Off-Ramp modules for instant subscriptions and redemptions, and the Bridge DSApp for seamless cross-chain asset transfers.
+-	**New DSApps** — Publish additional reference DSApps, alongside the already available: On-/Off-Ramp modules for instant subscriptions and redemptions, and the Bridge DSApp for seamless cross-chain asset transfers.
 
 ### Security audits
 
@@ -192,7 +191,7 @@ We would be grateful if reports on any security or other issues can be opened on
 
 We would like to extend our thanks to all the wonderful people and projects whose work on the blockchain makes this project and others a reality.
 
-The token code is heavily based on the wonderful base contracts done by the [Open Zeppelin](https://openzeppelin.org/) team (Thank you for that!).
+The token code is heavily based on the wonderful base contracts done by the [OpenZeppelin](https://openzeppelin.org/) team (Thank you for that!).
 
 Code and tests were built using the [Hardhat](https://hardhat.org/) framework.
 
