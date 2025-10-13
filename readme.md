@@ -1,11 +1,11 @@
 
 <img src="https://s3.us-east-2.amazonaws.com/securitize-public-files/securitize_logo+medium.png" alt="Securitize" width="200px"/>
 
-# Digital Securities (DS) Protocol Token
+# Digital Securities (DS) Protocol Token - DSToken v4
 
-The DS Token is a reference implementation of Securitize's Digital Securities Protocol.
+The DS Token is a reference implementation of Securitize's Digital Securities Protocol. This repository contains the latest version of the protocol (DSToken v4). 
 
-The Digital Securities (DS) Protocol aims to enable and simplify regulation compliant lifecycle for securities on the blockchain, from issuance to trading.
+The Digital Securities (DS) Protocol aims to enable and simplify regulation compliant lifecycle for securities on the blockchain, from issuance to trading. This v4 includes major improvements in compliance management, rebasing, and self-service functionality.
 
 > More information on Securitize and its Digital Securities protocol can be found at [https://www.securitize.io](https://www.securitize.io).
 
@@ -70,10 +70,11 @@ The following roles are implemented:
 - **Master** - Usually the owner of the token, used to perform token-wide changes and to designate other roles to Ethereum addresses.
 - **Issuer** - An entity allowed to mint more tokens, burn tokens, etc.
 - **Exchange** - An external exchange interfacing with the token. The exchange is allowed to register investors after having them pass proper KYC/AML and accreditation testing.
+- **Transfer Agent (new in v4)** — Manages compliance rules and token-level configuration, including the ability to freeze/unfreeze the token. This separation ensures that issuance and compliance remain distinct, mirroring traditional securities operations.
 
 ### The DSToken (/contracts/token)
 
-The DSToken is an ERC20 compliant token implementing the DS protocol. It uses the _Registry Service_ and the _Compliance Service_ to make sure its tokens can only reside in ethereum wallets owned by authorized investors (taking into consideration the preper restrictions around KYC/AML validity, accredited investor status, etc.)
+The DSToken is an ERC20 compliant token implementing the DS protocol. It uses the _Registry Service_ and the _Compliance Service_ to make sure its tokens can only reside in EVM wallets owned by authorized investors (taking into consideration the proper restrictions around KYC/AML validity, accredited investor status, etc.)
 
 In addition to implementing the DS Protocol, the token also offers the following functionality (all limited to the _Issuer_ Role):
 
@@ -83,8 +84,13 @@ In addition to implementing the DS Protocol, the token also offers the following
 - **Locking** - The issuer is able to restrict the transfer (lock) tokens - either on issuance or on a later time.
   Tokens can be time-locked (for vesting scenarios, call scenarios, and others), or indefinitely locked (if required by the authorities) - in which case they can only be released by the issuer.
   A locked token may not be transferred by the wallet's owner to any other wallet.
-- **Enumeration** - The token supports the enumeration of all wallets containing it currently (and using the investor registry, all the investors holding it at a specific point in time).
 - **Trade pausing** - Trading of the token can be paused and resumed by the _Master_ role.
+- 
+## Other components
+
+- **Proxy** - The main token contract is deployed behind a proxy, OpenZeppelin's ERC1967 implementation. This allows for seamless upgrade of a deployed token in case a new protocol version is required or a problem is found.
+- **BulkOperator** - Operations can be sent in bulk (tokens issuances and wallet registrations) using the BulkOperator contract
+- **Rebasing provider** - One of the latest additions to the protocol is the Rebasing capability, allowing the token base to be changed uysing a multiplier or a formula. This allows use cases like splits, reverse splits or block-by-block dividend accrual.
 
 ### Installation
 
@@ -121,24 +127,15 @@ To verify dsToken, run:
 npx hardhat verify-all --network {network} --token {dsTokenAddress}
 ```
 
-Tests run on a local Ganache server. A Ganache instance is launched if no instance is running when starting the test.
+Tests run on a local Hardhat node. A Hardhat node instance is launched if none is running when starting the test.
 
-The migration process requires a lot of gas, so we currently recommend running tests on local RPC instances.
-The full token can of course be deployed to mainnet or testnet.
+The migration process requires a lot of gas, which is potentially expensive depending on the network in use. We recommend running tests on local node instances.
+The full token can of course be deployed to mainnet or testnet on any compatible EVM chain. 
 
 ### Deployment and migration
 
-We created factory contracts to reduce significantly gas cost. This allows us to reuse the implementations of contracts.
-
-### Token Issuance\*\*
-
-We have developed a process for auto-deployment contracts.
-
-## Other components
-
-- **Proxy** - The main token contract is deployed behind a proxy, OpenZeppelin's ERC1967 implementation. This allows for seamless upgrade of a deployed token in case a new protocol version is required or a problem is found.
-- **BulkOperator** - Operations can be sent in bulk (tokens issuances and wallet registrations) using the BulkOperator contract
-- **Rebasing provider** - One of the latest additions to the protocol is the Rebasing capability, allowing the token base to be changed uysing a multiplier or a formula. This allows use cases like splits, reverse splits or block-by-block dividend accrual.   
+We created factory contracts to reduce gas cost significantly. Also, implementation contracts are reused across deployments to further reduce gas costs, 
+and deployments are resilient to transaction failures. They can be resumed and retried after the last successful transaction.
 
 #### DeploymentUtils
 
@@ -171,20 +168,21 @@ function setImplementationAddresses(
 ) public restricted;
 ```
 
-## Roadmap and open issues
+## Roadmap
 
-There are many components of the whitepaper which are not fully implemented and several aspects (mainly around deployment) which are not fully optimized.
-That said, We consider the reference implementation ready for production usage and are actively integrating it with security exchanges.
+The **DSToken v4** release marks a major milestone in the evolution of the DS Protocol, introducing new roles, rebasing capabilities, and self-service features that improve operational efficiency and compliance management.
+While the current implementation is live in production and integrated with issuers and partners, ongoing development continues to expand the protocol’s flexibility and automation.
 
-The following items are currently being worked on as part of the reference implementation road-map:
+The following initiatives are part of the current roadmap:
+-	**Expanded Compliance Models** — Extend the compliance framework to support additional asset classes and adapt to jurisdiction-specific regulations.
+-	**Advanced Rebasing Strategies** — Implement formula-based and performance-linked multipliers, enabling dynamic yield reflection and more sophisticated corporate-action handling.
+-	**Managed DSApp Factories** — Provide fully managed factory contracts for streamlined deployment of DSApps and complete DS Protocol environments.
+-	**Enhanced Reporting and Analytics** — Offer better visibility into rebased balances, capital flows, and compliance-related events.
+-	**New DSApps** — Publish additional reference DSApps, along the already available: On / Off-Ramp modules for instant subscriptions and redemptions, and the Bridge DSApp for seamless cross-chain asset transfers.
 
-- **Registry Service Federation** - We aim to provide a Registry Service implementation that supports federation, so that certain entities can keep global investor registries that can be shared accross token issuances.
-- **Self Service Factories** - We aim to add fully managed factory contracts on the blockchain, allowing web-based creation of a full DSProtocol environment.
-- **Dividend issuance and voting** - We plan to write standard DSApps for reference implementation of dividend distribution and voting capabilities.
+### Security audits
 
-### Security audit
-
-An audit of the current implementation was performed by () and can be found (here).
+Independent audits of the current implementation were performed by [Cyfrin](audits/2025-10-10-cyfrin-securitize-dstoken-v4-2.1.pdf) and [Halborn](audits/2025-10-09-Halborn-DSToken_v4_SSC.pdf), and can be found in the /audits folder.  
 
 ### Issue Reporting
 
