@@ -58,8 +58,4 @@ abstract contract IDSBlackListManager {
     function addToBlacklist(address _wallet, string calldata _reason) external virtual returns (bool);
 
     function removeFromBlacklist(address _wallet) external virtual returns (bool);
-
-    function batchAddToBlacklist(address[] calldata _wallets, string[] calldata _reasons) external virtual returns (bool);
-
-    function batchRemoveFromBlacklist(address[] calldata _wallets) external virtual returns (bool);
 }
