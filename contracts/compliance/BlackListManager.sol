@@ -66,27 +66,6 @@ contract BlackListManager is IDSBlackListManager, BlackListManagerDataStore, Bas
         return true;
     }
 
-    function batchAddToBlacklist(address[] calldata _wallets, string[] calldata _reasons) public override onlyTransferAgentOrAbove returns (bool) {
-        uint8 walletsLength = uint8(_wallets.length);
-        if (walletsLength != _reasons.length) revert ArraysLengthMismatch();
-
-        for (uint8 i = 0; i < walletsLength; i++) {
-            _addToBlacklist(_wallets[i], _reasons[i]);
-        }
-
-        return true;
-    }
-
-    function batchRemoveFromBlacklist(address[] calldata _wallets) public override onlyTransferAgentOrAbove returns (bool) {
-        uint8 walletsLength = uint8(_wallets.length);
-
-        for (uint8 i = 0; i < walletsLength; i++) {
-            _removeFromBlacklist(_wallets[i]);
-        }
-
-        return true;
-    }
-
     function _addToBlacklist(address _wallet, string calldata _reason) private {
         if (_wallet == address(0)) revert ZeroAddressInvalid();
         if (_blacklistedWallets.contains(_wallet)) revert WalletAlreadyBlacklisted();

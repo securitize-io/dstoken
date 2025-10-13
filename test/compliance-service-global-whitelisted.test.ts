@@ -87,7 +87,9 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
 
     it("should test onlyProxy modifier behavior with direct deployment", async function () {
       const ComplianceServiceGlobalWhitelisted =
-        await hre.ethers.getContractFactory("ComplianceServiceGlobalWhitelisted");
+        await hre.ethers.getContractFactory(
+          "ComplianceServiceGlobalWhitelisted",
+        );
       const directImplementation =
         await ComplianceServiceGlobalWhitelisted.deploy();
 
@@ -103,16 +105,23 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
 
     it("should revert when _initialize is called outside initialization context", async function () {
       const MockComplianceServiceGlobalWhitelisted =
-        await hre.ethers.getContractFactory("MockComplianceServiceGlobalWhitelisted");
-      const mock = await hre.upgrades.deployProxy(MockComplianceServiceGlobalWhitelisted, [], { initializer: false });
+        await hre.ethers.getContractFactory(
+          "MockComplianceServiceGlobalWhitelisted",
+        );
+      const mock = await hre.upgrades.deployProxy(
+        MockComplianceServiceGlobalWhitelisted,
+        [],
+        { initializer: false },
+      );
 
       // First, initialize properly
       await mock.initialize();
 
       // Now try to call _initialize again outside of initialization
-      await expect(
-        mock.exposedInitialize(),
-      ).to.be.revertedWithCustomError(mock, "NotInitializing");
+      await expect(mock.exposedInitialize()).to.be.revertedWithCustomError(
+        mock,
+        "NotInitializing",
+      );
     });
   });
 
@@ -126,22 +135,30 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
     });
 
     it("Should throw if trying to initialize the implementation contract", async function () {
-      const BlackListManager = await hre.ethers.getContractFactory("BlackListManager");
-      const blmAddress = await hre.upgrades.deployImplementation(BlackListManager);
+      const BlackListManager =
+        await hre.ethers.getContractFactory("BlackListManager");
+      const blmAddress =
+        await hre.upgrades.deployImplementation(BlackListManager);
       const blmImplementation = BlackListManager.attach(blmAddress as string);
-      await expect(blmImplementation.initialize()).to.be.revertedWithCustomError(
+      await expect(
+        blmImplementation.initialize(),
+      ).to.be.revertedWithCustomError(
         blmImplementation,
         "UUPSUnauthorizedCallContext",
       );
     });
 
     it("Should throw if trying to initialize the implementation contract of a proxy", async function () {
-      const implementation = await hre.upgrades.erc1967.getImplementationAddress(
-        await blacklistManager.getAddress(),
-      );
-      const BlackListManager = await hre.ethers.getContractFactory("BlackListManager");
+      const implementation =
+        await hre.upgrades.erc1967.getImplementationAddress(
+          await blacklistManager.getAddress(),
+        );
+      const BlackListManager =
+        await hre.ethers.getContractFactory("BlackListManager");
       const blmImplementation = BlackListManager.attach(implementation);
-      await expect(blmImplementation.initialize()).to.be.revertedWithCustomError(
+      await expect(
+        blmImplementation.initialize(),
+      ).to.be.revertedWithCustomError(
         blmImplementation,
         "UUPSUnauthorizedCallContext",
       );
@@ -194,7 +211,10 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
         blacklistManager
           .connect(transferAgent)
           .addToBlacklist(userAddress, "Second reason"),
-      ).to.be.revertedWithCustomError(blacklistManager, "WalletAlreadyBlacklisted");
+      ).to.be.revertedWithCustomError(
+        blacklistManager,
+        "WalletAlreadyBlacklisted",
+      );
     });
 
     it("should reject removal of non-blacklisted wallet", async function () {
@@ -225,68 +245,7 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
         await expect(
           blacklistManager.connect(user).removeFromBlacklist(userAddress),
         ).to.be.revertedWith(errorMsg);
-
-        await expect(
-          blacklistManager
-            .connect(user)
-            .batchAddToBlacklist([userAddress], [reason]),
-        ).to.be.revertedWith(errorMsg);
-
-        await expect(
-          blacklistManager
-            .connect(user)
-            .batchRemoveFromBlacklist([userAddress]),
-        ).to.be.revertedWith(errorMsg);
       });
-    });
-  });
-
-  describe("Batch Operations", function () {
-    it("should add multiple wallets to blacklist", async function () {
-      const wallets = [userAddress, user2Address];
-      const reasons = ["Reason 1", "Reason 2"];
-
-      await blacklistManager
-        .connect(transferAgent)
-        .batchAddToBlacklist(wallets, reasons);
-
-      for (let i = 0; i < wallets.length; i++) {
-        expect(await blacklistManager.isBlacklisted(wallets[i])).to.be.true;
-        expect(await blacklistManager.getBlacklistReason(wallets[i])).to.equal(
-          reasons[i],
-        );
-      }
-      expect(await blacklistManager.getBlacklistedWalletsCount()).to.equal(2);
-    });
-
-    it("should remove multiple wallets from blacklist", async function () {
-      const wallets = [userAddress, user2Address];
-      const reasons = ["Reason 1", "Reason 2"];
-
-      await blacklistManager
-        .connect(transferAgent)
-        .batchAddToBlacklist(wallets, reasons);
-      expect(await blacklistManager.getBlacklistedWalletsCount()).to.equal(2);
-
-      await blacklistManager
-        .connect(transferAgent)
-        .batchRemoveFromBlacklist(wallets);
-
-      for (const wallet of wallets) {
-        expect(await blacklistManager.isBlacklisted(wallet)).to.be.false;
-      }
-      expect(await blacklistManager.getBlacklistedWalletsCount()).to.equal(0);
-    });
-
-    it("should reject batch operations with mismatched array lengths", async function () {
-      const wallets = [userAddress];
-      const reasons = ["Reason 1", "Reason 2"];
-
-      await expect(
-        blacklistManager
-          .connect(transferAgent)
-          .batchAddToBlacklist(wallets, reasons),
-      ).to.be.revertedWithCustomError(blacklistManager, "ArraysLengthMismatch");
     });
   });
 
