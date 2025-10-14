@@ -65,8 +65,6 @@ The BlackListManager is a dedicated service for managing blacklisted wallets. It
 - Reusability across different compliance services
 - Clear separation between validation logic (ComplianceService) and data management (BlackListManager)
 
-The BlackListManager supports both individual and batch operations for efficient management of restricted wallets.
-
 More detailed information about the Compliance Service can be found in the tutorials above and in the posts linked above.
 
 ### The Trust Service (/contracts/trust)
