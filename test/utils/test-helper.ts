@@ -49,7 +49,7 @@ export const registerInvestor = async (investorId: string, wallet: string | Hard
 };
 
 export const EIP712_TR_NAME = 'TransactionRelayer';
-export const EIP712_TR_VERSION = '5';
+export const EIP712_TR_VERSION = '6';
 export const TR_DOMAIN_DATA = {
   name: EIP712_TR_NAME,
   version: EIP712_TR_VERSION
