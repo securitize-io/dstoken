@@ -16,3 +16,5 @@ export * from './deploy-erc20';
 export * from './deploy-libraries';
 export * from './deploy-rebasing-provider';
 export * from './verify-all';
+export * from './contract-call';
+export * from './deploy-blacklist-manager';

@@ -3,9 +3,10 @@ import { DSConstants } from '../utils/globals';
 
 subtask('set-services', 'Set DS Services')
   .addParam('dsContracts', 'Json DS Contract Addresses', undefined, types.json, false)
+  .addOptionalParam('isGRS', 'Is Global Registry', false, types.boolean)
   .setAction(
     async (args) => {
-      const { dsContracts } = args;
+      const { dsContracts, isGRS } = args;
       const {
         dsToken,
         trustService,
@@ -19,6 +20,7 @@ subtask('set-services', 'Set DS Services')
         transactionRelayer,
         bulkOperator,
         rebasingProvider,
+        blacklistManager,
       } = dsContracts;
 
       // Token
@@ -42,16 +44,20 @@ subtask('set-services', 'Set DS Services')
       await dsToken.setDSService(DSConstants.services.TRANSACTION_RELAYER, transactionRelayer.getAddress())
       console.log('Connecting token to rebasing provider');
       await dsToken.setDSService(DSConstants.services.REBASING_PROVIDER, rebasingProvider.getAddress());
+      console.log('Connecting token to blacklist manager');
+      await dsToken.setDSService(DSConstants.services.BLACKLIST_MANAGER, blacklistManager.getAddress());
 
-      // Registry Service
-      console.log('Connecting registry service to trust service');
-      await registryService.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
-      console.log('Connecting registry service to token');
-      await registryService.setDSService(DSConstants.services.DS_TOKEN, dsToken.getAddress());
-      console.log('Connecting registry service to wallet manager');
-      await registryService.setDSService(DSConstants.services.WALLET_MANAGER, walletManager.getAddress());
-      console.log('Connecting registry service to compliance services');
-      await registryService.setDSService(DSConstants.services.COMPLIANCE_SERVICE, complianceService.getAddress());
+      // Registry Service, only if not GRS (Global Registry Service)
+      if (!isGRS) {
+        console.log('Connecting registry service to trust service');
+        await registryService.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
+        console.log('Connecting registry service to token');
+        await registryService.setDSService(DSConstants.services.DS_TOKEN, dsToken.getAddress());
+        console.log('Connecting registry service to wallet manager');
+        await registryService.setDSService(DSConstants.services.WALLET_MANAGER, walletManager.getAddress());
+        console.log('Connecting registry service to compliance services');
+        await registryService.setDSService(DSConstants.services.COMPLIANCE_SERVICE, complianceService.getAddress());
+      }
 
       // Compliance Configuration Service
       console.log('Connecting compliance configuration to trust service');
@@ -72,6 +78,8 @@ subtask('set-services', 'Set DS Services')
       await complianceService.setDSService(DSConstants.services.REGISTRY_SERVICE, registryService.getAddress());
       console.log('Connecting compliance service to rebasing provider');
       await complianceService.setDSService(DSConstants.services.REBASING_PROVIDER, rebasingProvider.getAddress());
+      console.log('Connecting compliance service to blacklist manager');
+      await complianceService.setDSService(DSConstants.services.BLACKLIST_MANAGER, blacklistManager.getAddress());
 
       // Lock Manager
       console.log('Connecting lock manager to trust service');
@@ -117,5 +125,9 @@ subtask('set-services', 'Set DS Services')
       // Rebasing Provider
       console.log('Connecting rebasing provider to trust service');
       await rebasingProvider.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
+
+      // Blacklist Manager
+      console.log('Connecting blacklist manager to trust service');
+      await blacklistManager.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
     },
   );
