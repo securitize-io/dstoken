@@ -1,61 +1,28 @@
-# QA Task Configuration Files
+# Configuration Files
 
-This folder contains all configuration files (JSON and MD) used by the QA tasks in the `tasks/qa/` folder.
+JSON configuration files for QA tasks with corresponding documentation.
 
-## 📁 Folder Structure
+## Files & Documentation
 
-```
-scripts/config/
-├── README.md                          # This documentation file
-├── create-investor.json               # Configuration for create-investor task
-├── create-investor.example.json       # Example configuration with all options
-├── fund-investor-wallets.json         # Configuration for fund-investor-wallets task
-├── transfer-from-investors.json       # Configuration for transfer-from-investors task
-├── transfer-from-investors.md          # Documentation for transfer-from-investors task
-├── set-compliance-rules.json          # Configuration for set-compliance-rules task
-└── set-compliance-rules.md             # Documentation for set-compliance-rules task
-```
+| JSON File | Documentation | Task | Purpose |
+|-----------|---------------|------|---------|
+| `create-investor.json` | [📖](create-investor.md) | `create-investor` | Create investors with wallets & attributes |
+| `create-investor.example.json` | [📖](create-investor.example.md) | `create-investor` | Example template for investor creation |
+| `issue-tokens.json` | [📖](issue-tokens.md) | `issue-tokens` | Issue tokens with detailed config |
+| `token-issuances.json` | [📖](issue-tokens.md) | `issue-tokens` | Issue tokens with simple config |
+| `set-compliance-rules.json` | [📖](set-compliance-rules.md) | `set-compliance-rules` | Configure compliance parameters |
+| `fund-investor-wallets.json` | [📖](fund-investor-wallets.md) | `fund-investor-wallets` | Fund wallets with ETH for gas |
+| `transfer-from-investors.json` | [📖](transfer-from-investors.md) | `transfer-from-investors` | Test transfers between investors |
 
-## 🎯 Configuration Files by Task
+## Quick Start
 
-### `create-investor` Task
-- **Config**: `create-investor.json` - Main configuration
-- **Example**: `create-investor.example.json` - Full example with all options
+1. **Setup Compliance**: `npx hardhat set-compliance-rules scripts/config/set-compliance-rules.json --network sepolia`
+2. **Create Investors**: `npx hardhat create-investor scripts/config/create-investor.json --generatewallets --network sepolia`
+3. **Fund Wallets**: `npx hardhat fund-investor-wallets --createinvestorfile scripts/output/create-investor+timestamp.json --network sepolia`
+4. **Issue Tokens**: `npx hardhat issue-tokens scripts/output/create-investor+timestamp.json --network sepolia`
+5. **Test Transfers**: `npx hardhat transfer-from-investors --file scripts/config/transfer-from-investors.json --network sepolia`
 
-### `transfer-from-investors` Task  
-- **Config**: `transfer-from-investors.json` - Transfer configurations
-- **Docs**: `transfer-from-investors.md` - Detailed documentation
-
-### `fund-investor-wallets` Task
-- **Config**: `fund-investor-wallets.json` - Wallet funding configurations
-
-### `set-compliance-rules` Task
-- **Config**: `set-compliance-rules.json` - Compliance rules configuration
-- **Docs**: `set-compliance-rules.md` - Detailed documentation
-
-### `get-compliance-rules` Task
-- **Note**: No config file needed - this task reads current on-chain state
-
-## 📊 Output Files
-
-All tasks save their execution results to: `scripts/output/`
-
-Files are named with the pattern: `<taskName>+<timestamp>.json`
-
-## 🔧 Usage
-
-When running QA tasks, reference config files with the new paths:
-
-```bash
-# Examples using new config paths
-npx hardhat create-investor scripts/config/create-investor.json
-npx hardhat transfer-from-investors scripts/config/transfer-from-investors.json
-npx hardhat fund-investor-wallets --file scripts/config/fund-investor-wallets.json
-npx hardhat set-compliance-rules scripts/config/set-compliance-rules.json
-```
-
-## 📂 Related Folders
-
-- `scripts/output/` - Execution results and output files
-- `scripts/compliance-rules/` - Specific compliance test configurations
-- `tasks/qa/` - The actual QA task implementations
+## Notes
+- All tasks support `--dryrun` for testing
+- Output files saved to `scripts/output/` with timestamps
+- Use `npx hardhat help <task-name>` for full parameter lists
