@@ -1,0 +1,18 @@
+[
+  {
+    "investorId": "lau_transfer_EU_035826",
+    "address": "0x74A4f013782BcDffc5D1eD1bD7eAef73dA7335c0",
+    "privateKey": "0xa167721818ce861b9cfde4d4d32d9e519ed3e17eb8c77741f217a3edb0c52901",
+    "mnemonic": "arrive crowd write guilt aisle census wasp ostrich mosquito evil region adult",
+    "fund-wallet": false,
+    "tokens": 5
+  },
+  {
+    "investorId": "lau_transfer_US_008409",
+    "address": "0x448Fe2ec31AD1406bD1A4d8ae158Ddce9B4bd94c",
+    "privateKey": "0xf4a2c0c5e0b6f3d1a2d5c4e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y7z8",
+    "mnemonic": "test mnemonic phrase for second investor wallet generation and recovery",
+    "fund-wallet": false,
+    "tokens": 0
+  }
+]

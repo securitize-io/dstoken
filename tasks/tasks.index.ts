@@ -17,6 +17,9 @@ export * from './deploy-libraries';
 export * from './deploy-rebasing-provider';
 export * from './verify-all';
 
-export * from './create-investor';
-export * from './set-compliance-rules';
-export * from './transfer-from-investors';
+export * from './qa/create-investor';
+export * from './qa/fund-investor-wallets';
+export * from './qa/issue-tokens';
+export * from './qa/set-compliance-rules';
+export * from './qa/transfer-from-investors';
+export * from './qa/get-compliance-rules';

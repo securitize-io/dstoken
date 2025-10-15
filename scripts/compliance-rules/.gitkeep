@@ -1,0 +1,9 @@
+# Compliance Rules Test Configuration Directory
+
+This directory contains focused compliance rule test configurations.
+
+## Current Tests Available:
+- min-tokens: Test minimum token requirements (minUSTokens, minEUTokens, minimumHoldingsPerInvestor)
+
+## Usage:
+npx hardhat test test/compliance-rules/min-tokens.test.ts --network <NETWORK>

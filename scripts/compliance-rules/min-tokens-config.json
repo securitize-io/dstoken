@@ -1,0 +1,25 @@
+{
+  "_description": "Minimum token compliance rules test configuration",
+  "_focus": "Testing minUSTokens, minEUTokens, and minimumHoldingsPerInvestor all set to 3 tokens",
+  "_rules_tested": [
+    "Index 1: minUSTokens = 3000000 (3 tokens with 6 decimals)",
+    "Index 2: minEUTokens = 3000000 (3 tokens with 6 decimals)", 
+    "Index 10: minimumHoldingsPerInvestor = 3000000 (3 tokens global minimum)"
+  ],
+  "complianceRules": {
+    "uintValues": [
+      "0",        
+      "3000000",  
+      "3000000",  
+      "0", "0", "0", "0", "0", "0", "0", 
+      "3000000",  
+      "0", "0", "0", "0", "0"
+    ],
+    "boolValues": [false, false, false, false, false]
+  },
+  "countryCompliance": {
+    "US": 1,
+    "EU": 2,
+    "JP": 8
+  }
+}

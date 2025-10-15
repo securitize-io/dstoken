@@ -61,7 +61,7 @@ function parseDeploymentOutput(text) {
 }
 
 function updateInitFile(addresses) {
-  const initFilePath = path.join(__dirname, 'init.js');
+  const initFilePath = path.join(__dirname, '..', 'console-init.js');
   let content = fs.readFileSync(initFilePath, 'utf8');
   
   // Find the ADDR object and replace it
@@ -154,14 +154,14 @@ function main() {
     console.log(`   ${key}: ${value}`);
   });
   
-  console.log('\n📝 Updating init.js...');
+  console.log('\n📝 Updating console-init.js...');
   
   if (updateInitFile(addresses)) {
-    console.log('✅ Successfully updated scripts/init.js with new addresses!');
+    console.log('✅ Successfully updated scripts/console-init.js with new addresses!');
     console.log('\nYou can now use: npx hardhat console --network arbitrum');
-    console.log('Then: .load scripts/init.js');
+    console.log('Then: .load scripts/console-init.js');
   } else {
-    console.log('❌ Failed to update init.js');
+    console.log('❌ Failed to update console-init.js');
     process.exit(1);
   }
 }
