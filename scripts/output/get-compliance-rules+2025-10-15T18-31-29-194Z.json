@@ -1,0 +1,92 @@
+{
+  "metadata": {
+    "generatedAt": "2025-10-15T18:31:29.193Z",
+    "network": "sepolia",
+    "chainId": 11155111,
+    "signer": "0x56f7b817804AaCBd7dbd5d04b7aA6fEA227fC8a2",
+    "dsTokenAddress": "0xc1A5333f5668280506802fd7be291a9A60960B60",
+    "complianceServiceAddress": "0xe0625E49720bC93Efe9927F9cC50B658d6708156",
+    "compConfigServiceAddress": "0x61393fdA654F00D771822436e64091eCA64e4042",
+    "countries": [
+      "US",
+      "EU",
+      "DE",
+      "FR",
+      "IT",
+      "ES",
+      "JP",
+      "UK"
+    ]
+  },
+  "counters": {
+    "totalInvestorsCount": 2,
+    "usTotalInvestorsCount": 1,
+    "accreditedInvestorsCount": 1,
+    "usAccreditedInvestorsCount": 1,
+    "jpTotalInvestorsCount": 0,
+    "euRetailInvestorsCounts": {
+      "US": 0,
+      "EU": 0,
+      "DE": 0,
+      "FR": 0,
+      "IT": 0,
+      "ES": 0,
+      "JP": 0,
+      "UK": 0
+    }
+  },
+  "limits": {
+    "uintValues": [
+      0,
+      3000000,
+      3000000,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      3000000,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "boolValues": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    "mapped": {
+      "uintValues": {
+        "totalInvestorsLimit": 0,
+        "minUSTokens": 3000000,
+        "minEUTokens": 3000000,
+        "usInvestorsLimit": 0,
+        "usAccreditedInvestorsLimit": 0,
+        "nonAccreditedInvestorsLimit": 0,
+        "maxUSInvestorsPercentage": 0,
+        "blockFlowbackEndTime": 0,
+        "nonUSLockPeriod": 0,
+        "minimumTotalInvestors": 0,
+        "minimumHoldingsPerInvestor": 3000000,
+        "maximumHoldingsPerInvestor": 0,
+        "euRetailInvestorsLimit": 0,
+        "usLockPeriod": 0,
+        "jpInvestorsLimit": 0,
+        "authorizedSecurities": 0
+      },
+      "boolValues": {
+        "forceFullTransfer": false,
+        "forceAccredited": false,
+        "forceAccreditedUS": false,
+        "worldWideForceFullTransfer": false,
+        "disallowBackDating": false
+      }
+    }
+  }
+}

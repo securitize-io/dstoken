@@ -1,0 +1,173 @@
+{
+  "metadata": {
+    "generatedAt": "2025-10-15T18:31:19.689Z",
+    "network": "sepolia",
+    "chainId": 11155111,
+    "signer": "0x56f7b817804AaCBd7dbd5d04b7aA6fEA227fC8a2",
+    "contractAddress": "0x61393fdA654F00D771822436e64091eCA64e4042",
+    "inputFile": "./scripts/compliance-rules/min-tokens-config.json",
+    "dryRun": false
+  },
+  "transaction": {
+    "hash": "0xaee910c33ed27ddc2255624dd8ca7cbe03237d05a23b2e1975c78aca4bcb9544",
+    "blockNumber": 9418877,
+    "gasUsed": "167704",
+    "gasPrice": "50000016",
+    "timestamp": "2025-10-15T18:31:25.697Z"
+  },
+  "complianceRules": {
+    "uintValues": {
+      "values": [
+        "0",
+        "3000000",
+        "3000000",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "3000000",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "names": [
+        "totalInvestorsLimit",
+        "minUSTokens",
+        "minEUTokens",
+        "usInvestorsLimit",
+        "usAccreditedInvestorsLimit",
+        "nonAccreditedInvestorsLimit",
+        "maxUSInvestorsPercentage",
+        "blockFlowbackEndTime",
+        "nonUSLockPeriod",
+        "minimumTotalInvestors",
+        "minimumHoldingsPerInvestor",
+        "maximumHoldingsPerInvestor",
+        "euRetailInvestorsLimit",
+        "usLockPeriod",
+        "jpInvestorsLimit",
+        "authorizedSecurities"
+      ],
+      "mapped": {
+        "totalInvestorsLimit": "0",
+        "minUSTokens": "3000000",
+        "minEUTokens": "3000000",
+        "usInvestorsLimit": "0",
+        "usAccreditedInvestorsLimit": "0",
+        "nonAccreditedInvestorsLimit": "0",
+        "maxUSInvestorsPercentage": "0",
+        "blockFlowbackEndTime": "0",
+        "nonUSLockPeriod": "0",
+        "minimumTotalInvestors": "0",
+        "minimumHoldingsPerInvestor": "3000000",
+        "maximumHoldingsPerInvestor": "0",
+        "euRetailInvestorsLimit": "0",
+        "usLockPeriod": "0",
+        "jpInvestorsLimit": "0",
+        "authorizedSecurities": "0"
+      }
+    },
+    "boolValues": {
+      "values": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "names": [
+        "forceFullTransfer",
+        "forceAccredited",
+        "forceAccreditedUS",
+        "worldWideForceFullTransfer",
+        "disallowBackDating"
+      ],
+      "mapped": {
+        "forceFullTransfer": false,
+        "forceAccredited": false,
+        "forceAccreditedUS": false,
+        "worldWideForceFullTransfer": false,
+        "disallowBackDating": false
+      }
+    }
+  },
+  "changes": {
+    "uintChanges": [],
+    "boolChanges": []
+  },
+  "countryCompliance": {
+    "mappings": {
+      "US": 1,
+      "EU": 2,
+      "JP": 8
+    },
+    "countries": [
+      "US",
+      "EU",
+      "JP"
+    ]
+  },
+  "verification": {
+    "uintValues": {
+      "expected": [
+        "0",
+        "3000000",
+        "3000000",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "3000000",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "actual": [
+        "0",
+        "3000000",
+        "3000000",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "3000000",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "verified": true
+    },
+    "boolValues": {
+      "expected": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "actual": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "verified": true
+    }
+  }
+}

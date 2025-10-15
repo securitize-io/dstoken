@@ -1,0 +1,72 @@
+{
+  "metadata": {
+    "executedAt": "2025-10-15T18:31:29.217Z",
+    "network": "sepolia",
+    "chainId": 11155111,
+    "signer": "0x56f7b817804AaCBd7dbd5d04b7aA6fEA227fC8a2",
+    "contractAddresses": {
+      "regService": "0x193f890709A2005355460964fa31a3DF0c507802",
+      "trustService": "0x21c2A2D08bF7ad46137950bb5BfFd077DB7b8dC4",
+      "compConfigService": "0x61393fdA654F00D771822436e64091eCA64e4042",
+      "compService": "0xe0625E49720bC93Efe9927F9cC50B658d6708156",
+      "walletManager": "0x619Fec23873cc6850671EE405cB7f3480C1D6775",
+      "lockManager": "0x191B40369C87F2F664F945ce6dCe7fB4d28f2BC6",
+      "tokenIssuer": "0x7e9f4a2f4FF3C8438aD90b99cEC7d21E35a8ff0C",
+      "walletRegistrar": "0x456357A72DD81D7AA04AdA9cC5fff36E8fF36875",
+      "transactionRelayer": "0x906B6070d1C1070Cb5d8a12e51974CD38b885C31",
+      "bulkOperator": "0x5Bc0e6225d87Ea16A47B7Ae1d9EFF201C1003F2A",
+      "rebasingProvider": "0x7D17B28db440Dc6193b9a4a37C90289bD311588E",
+      "mockToken": "0x1928ee97f02Ac0197cD8901c4e61afb2101cE1dC",
+      "dsToken": "0xc1A5333f5668280506802fd7be291a9A60960B60"
+    },
+    "flags": {
+      "dryrun": false,
+      "generatewallets": true,
+      "generateuniqueids": true
+    },
+    "inputFile": "./scripts/compliance-rules/min-tokens-investors.json"
+  },
+  "summary": {
+    "totalProcessed": 3,
+    "successCount": 3,
+    "failCount": 0,
+    "generatedWalletsCount": 3
+  },
+  "idMappings": [
+    {
+      "original": "min_tokens_test_us_",
+      "generated": "min_tokens_test_us_404567"
+    },
+    {
+      "original": "min_tokens_test_eu_",
+      "generated": "min_tokens_test_eu_624208"
+    },
+    {
+      "original": "min_tokens_test_jp_",
+      "generated": "min_tokens_test_jp_106939"
+    }
+  ],
+  "generatedWallets": [
+    {
+      "investorId": "min_tokens_test_us_404567",
+      "address": "0x7b2dF34F2372D91e86a940D0d3c4372Dbb1e4C4B",
+      "privateKey": "0xd4d2fbc8dc85a58e4edd95b85ce692104d72879452dc8ca78ec12b54258d47b4",
+      "mnemonic": "tuition unusual picture chief party parrot squeeze harsh student better glance cliff",
+      "tokens": 0
+    },
+    {
+      "investorId": "min_tokens_test_eu_624208",
+      "address": "0x939cFCBd8724A59E741dbf38e5c1F3B0B368DbD1",
+      "privateKey": "0xdb5a7bc155b35c9ab89ff2f0cf5da8865e36e5ba15db3e26ca08fa9c430d7bcc",
+      "mnemonic": "valve exhaust busy across laptop wash grass frozen monitor donate achieve fancy",
+      "tokens": 0
+    },
+    {
+      "investorId": "min_tokens_test_jp_106939",
+      "address": "0x7a6E2A3d0122c18788C1C93b942E2c65126A59c7",
+      "privateKey": "0xa1c7fa8318fa6c3d2fcfd45c73cbc85fabba9caf141313a987ecf03162842205",
+      "mnemonic": "sound chief warfare grunt ability sand pottery math example maximum cement limit",
+      "tokens": 0
+    }
+  ]
+}

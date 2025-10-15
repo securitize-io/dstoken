@@ -35,7 +35,6 @@ interface EnhancedIssuanceData {
   wallets: string[];
   pk: string;
   tokens: number;
-  'fund-wallet': boolean;
   description?: string;
 }
 
@@ -46,7 +45,6 @@ interface CreateInvestorOutput {
     investorId: string;
     address: string;
     privateKey: string;
-    'fund-wallet': boolean;
     tokens: number;
   }>;
 }
@@ -54,15 +52,14 @@ interface CreateInvestorOutput {
 task('issue-tokens', 'Issue tokens to investor wallets from create-investor output')
   .addPositionalParam('file', 'Path to create-investor output JSON file', undefined, types.string)
   .addOptionalParam('tokenaddress', 'Token contract address (overrides task default)', undefined, types.string)
+  .addOptionalParam('tokens', 'Number of tokens to issue to each wallet (overrides JSON file tokens field)', undefined, types.string)
   .addFlag('dryrun', 'Show what would be executed without sending transactions')
   .addFlag('forceonchain', 'Force token issuance on-chain even if expected to fail (for QA evidence)')
-  .addFlag('skipfunding', 'Skip automatic wallet funding even when fund-wallet is true')
-  .addOptionalParam('fundamount', 'Amount of ETH to fund wallets (default: 0.001)', '0.001', types.string)
   .addOptionalParam('gaslimit', 'Gas limit for transactions', '1000000', types.string)
   .addOptionalParam('gasprice', 'Gas price in gwei', undefined, types.string)
   .addOptionalParam('outputDir', 'Directory to save output files', './scripts', types.string)
   .setAction(async (args, hre) => {
-    const { file, tokenaddress, dryrun, forceonchain, skipfunding, fundamount, gaslimit, gasprice, outputDir } = args;
+    const { file, tokenaddress, tokens, dryrun, forceonchain, gaslimit, gasprice, outputDir } = args;
     
     // Load create-investor output file
     if (!fs.existsSync(file)) {
@@ -83,10 +80,8 @@ task('issue-tokens', 'Issue tokens to investor wallets from create-investor outp
     console.log(`👥 Total investors found: ${createInvestorData.generatedWallets.length}`);
     
     const walletsNeedingTokens = createInvestorData.generatedWallets.filter(wallet => wallet.tokens > 0);
-    const walletsNeedingFunding = createInvestorData.generatedWallets.filter(wallet => wallet['fund-wallet'] === true);
     
     console.log(`🪙 Investors needing token issuance: ${walletsNeedingTokens.length}`);
-    console.log(`💰 Wallets needing funding: ${walletsNeedingFunding.length}`);
     
     // Convert create-investor format to processing formats
     const enhancedData = createInvestorData.generatedWallets.map(wallet => ({
@@ -94,8 +89,7 @@ task('issue-tokens', 'Issue tokens to investor wallets from create-investor outp
       collisionHash: wallet.investorId, // Use investorId as collisionHash for compatibility
       wallets: [wallet.address],
       pk: wallet.privateKey,
-      tokens: wallet.tokens || 0,
-      'fund-wallet': wallet['fund-wallet'] || false,
+      tokens: tokens ? parseInt(tokens) : (wallet.tokens || 0), // Use --tokens parameter if provided, otherwise use JSON file value
       description: `Process wallet for ${wallet.investorId}`
     }));
     
@@ -112,6 +106,10 @@ task('issue-tokens', 'Issue tokens to investor wallets from create-investor outp
     console.log(`🌐 Network: ${hre.network.name}`);
     console.log(`🔗 Chain ID: ${hre.network.config.chainId}`);
     console.log(`📥 Input source: create-investor output`);
+    
+    if (tokens) {
+      console.log(`🪙 TOKENS PARAMETER: Overriding JSON file tokens with ${tokens} tokens for ALL wallets`);
+    }
     
     if (dryrun) {
       console.log('\n🔍 DRY RUN - No transactions will be executed\n');
@@ -164,8 +162,7 @@ task('issue-tokens', 'Issue tokens to investor wallets from create-investor outp
       inputSource: 'create-investor output',
       flags: {
         dryrun,
-        forceonchain,
-        skipfunding
+        forceonchain
       },
       inputFile: file,
       gasSettings: {
@@ -274,16 +271,6 @@ task('issue-tokens', 'Issue tokens to investor wallets from create-investor outp
       console.log('\nℹ️  No token issuances to process (tokens: 0 for all investors)');
     }
     
-    // STEP 2: WALLET FUNDING
-    if (!skipfunding && walletsNeedingFunding.length > 0) {
-      console.log('\n💰 Step 2: Funding wallets...');
-      await handleWalletFunding(enhancedData, fundamount, dryrun, hre);
-    } else if (skipfunding && walletsNeedingFunding.length > 0) {
-      console.log(`\n💰 Step 2: Skipping wallet funding for ${walletsNeedingFunding.length} wallets (--skipfunding flag used)`);
-    } else if (walletsNeedingFunding.length === 0) {
-      console.log('\n💰 Step 2: No wallets marked for funding (fund-wallet: false for all)');
-    }
-    
     // Show evidence transactions if any were captured
     if (evidenceTransactions.length > 0) {
       console.log('\n🧾 QA EVIDENCE TRANSACTIONS:');
@@ -305,7 +292,6 @@ task('issue-tokens', 'Issue tokens to investor wallets from create-investor outp
     console.log('='.repeat(80));
     console.log(`👥 Total investors processed: ${createInvestorData.generatedWallets.length}`);
     console.log(`🪙 Token issuances: ${issuanceData.length} (${successCount} successful, ${failCount} failed)`);
-    console.log(`💰 Wallet funding: ${walletsNeedingFunding.length} ${skipfunding ? '(skipped)' : '(processed)'}`);
     
     if (dryrun) {
       console.log('\n💡 This was a DRY RUN - to execute for real, run without --dryrun flag');
@@ -321,10 +307,6 @@ task('issue-tokens', 'Issue tokens to investor wallets from create-investor outp
           successCount,
           failCount,
           totalIssued: ethers.formatUnits(totalIssued, 6)
-        },
-        walletFunding: {
-          totalMarkedForFunding: walletsNeedingFunding.length,
-          skipped: skipfunding
         }
       },
       evidenceTransactions,
@@ -526,93 +508,6 @@ async function handleTokenIssuance(
       throw error; // Re-throw to be handled by outer catch
     }
   }
-}
-
-// Function to handle automatic wallet funding
-async function handleWalletFunding(
-  enhancedData: EnhancedIssuanceData[],
-  fundAmount: string,
-  dryrun: boolean,
-  hre: any
-) {
-  // Filter wallets that need funding
-  const walletsToFund = enhancedData
-    .filter(item => item['fund-wallet'] === true)
-    .map(item => ({
-      address: item.wallets[0],
-      amount: fundAmount,
-      description: `Fund wallet for ${item.id} (${item.tokens} tokens)`
-    }));
-  
-  if (walletsToFund.length === 0) {
-    console.log('ℹ️  No wallets marked for funding (fund-wallet: false for all)');
-    return;
-  }
-  
-  console.log(`\n💰 Automatic Wallet Funding`);
-  console.log('='.repeat(50));
-  console.log(`📋 Found ${walletsToFund.length} wallets to fund`);
-  
-  if (dryrun) {
-    console.log('🔍 [DRY RUN] Would fund the following wallets:');
-    walletsToFund.forEach((wallet, index) => {
-      console.log(`   ${index + 1}. ${wallet.address} - ${wallet.amount} ETH (${wallet.description})`);
-    });
-    return;
-  }
-  
-  // Get signer for funding
-  const [funderSigner] = await hre.ethers.getSigners();
-  const funderAddress = await funderSigner.getAddress();
-  console.log(`👤 Funding from: ${funderAddress}`);
-  
-  // Check funder balance
-  const funderBalance = await hre.ethers.provider.getBalance(funderAddress);
-  console.log(`💳 Funder balance: ${hre.ethers.formatEther(funderBalance)} ETH`);
-  
-  const fundAmountWei = hre.ethers.parseEther(fundAmount);
-  const totalFundingCost = BigInt(walletsToFund.length) * fundAmountWei;
-  
-  if (funderBalance < totalFundingCost) {
-    console.error(`❌ Insufficient balance for funding. Need ${hre.ethers.formatEther(totalFundingCost)} ETH, have ${hre.ethers.formatEther(funderBalance)} ETH`);
-    throw new Error('Insufficient balance for wallet funding');
-  }
-  
-  // Fund each wallet
-  for (let i = 0; i < walletsToFund.length; i++) {
-    const wallet = walletsToFund[i];
-    
-    try {
-      console.log(`\n💰 Funding wallet ${i + 1}/${walletsToFund.length}: ${wallet.address}`);
-      console.log(`   📝 ${wallet.description}`);
-      
-      // Check current balance
-      const currentBalance = await hre.ethers.provider.getBalance(wallet.address);
-      console.log(`   💳 Current balance: ${hre.ethers.formatEther(currentBalance)} ETH`);
-      
-      // Send ETH
-      const fundTx = await funderSigner.sendTransaction({
-        to: wallet.address,
-        value: fundAmountWei,
-        gasLimit: 21000
-      });
-      
-      console.log(`   ⏳ Funding transaction: ${fundTx.hash}`);
-      await fundTx.wait();
-      
-      // Show new balance
-      const newBalance = await hre.ethers.provider.getBalance(wallet.address);
-      console.log(`   ✅ Funded! New balance: ${hre.ethers.formatEther(newBalance)} ETH`);
-      
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`   ❌ Error funding ${wallet.address}: ${errorMessage}`);
-      throw error; // Stop execution on funding failure
-    }
-  }
-  
-  console.log(`\n✅ Successfully funded ${walletsToFund.length} wallets`);
-  console.log('='.repeat(50));
 }
 
 // Function to save comprehensive execution output

@@ -192,7 +192,6 @@ task('create-investor', 'Create investors from JSON file with auto wallet genera
             address: newWallet.address,
             privateKey: newWallet.privateKey,
             mnemonic: newWallet.mnemonic,
-            'fund-wallet': investor['fund-wallet'] || false,
             tokens: 0
           });
           
@@ -284,8 +283,8 @@ task('create-investor', 'Create investors from JSON file with auto wallet genera
     
     if (generatedWallets.length > 0) {
       console.log('\n💡 Next steps:');
-      console.log('   1. Edit the output file to set fund-wallet: true and tokens: X as needed');
-      console.log('   2. Use issue-tokens task to fund wallets and issue tokens:');
+      console.log('   1. Edit the output file to set tokens: X as needed for each investor');
+      console.log('   2. Use issue-tokens task to issue tokens:');
       console.log(`      npx hardhat issue-tokens ${outputFile.replace(process.cwd() + '/', '')}`);
     }
   });
