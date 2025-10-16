@@ -31,7 +31,7 @@ if (!global.ethers) {
     const [signer] = await ethers.getSigners();
     global.signer = signer;
   
-                                                                                                                                        // Attach contracts and expose as globals
+                                                                                                                                                // Attach contracts and expose as globals
     global.dsToken = await ethers.getContractAt("IDSToken", ADDR.dsToken, signer);
     global.regService = await ethers.getContractAt("IDSRegistryService", ADDR.regService, signer);
     global.trustService = await ethers.getContractAt("IDSTrustService", ADDR.trustService, signer);

@@ -7,26 +7,16 @@ const path = require('path');
 
 console.log('🚀 Updating all scripts...\n');
 
-// Check for deployment data sources
+// Check for deployment data
 const jsonFilePath = path.join(__dirname, '..', 'output', 'deploy-all-and-update.json');
-const textFilePath = path.join(__dirname, 'deployment-output.txt');
 
-const hasJsonFile = fs.existsSync(jsonFilePath);
-const hasTextFile = fs.existsSync(textFilePath);
-
-if (!hasJsonFile && !hasTextFile) {
+if (!fs.existsSync(jsonFilePath)) {
   console.error('❌ No deployment data found!');
-  console.log('\nPlease either:');
-  console.log('  1. Run: npx hardhat deploy-all-and-update --network <your-network>');
-  console.log('  2. Or paste deployment output in scripts/update/deployment-output.txt');
+  console.log('\nPlease run: npx hardhat deploy-all-and-update --network <your-network>');
   process.exit(1);
 }
 
-if (hasJsonFile) {
-  console.log('✅ Using deploy-all-and-update.json (structured data)');
-} else {
-  console.log('✅ Using deployment-output.txt (backward compatibility)');
-}
+console.log('✅ Using deploy-all-and-update.json');
 
 try {
   console.log('📝 Step 1: Updating console-init.js...');

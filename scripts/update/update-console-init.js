@@ -1,25 +1,9 @@
 // scripts/update-init.js
-// Parses deployment-output.txt and updates init.js with all contract addresses
+// Parses deploy-all-and-update.json and updates init.js with all contract addresses
 
 const fs = require('fs');
 const path = require('path');
 
-// Mapping from deployment output patterns to our ADDR object keys
-const ADDRESS_MAPPING = {
-  'DSToken Proxy address': 'dsToken',
-  'Registry Service Proxy address': 'regService', 
-  'Wallet Manager Proxy address': 'walletManager',
-  'Compliance Service Proxy address': 'compService',
-  'Compliance Configuration Service Proxy address': 'compConfigService',
-  'Trust Service Proxy address': 'trustService',
-  'Lock Manager Proxy address': 'lockManager',
-  'Token Issuer Proxy address': 'tokenIssuer',
-  'Wallet Registrar Proxy address': 'walletRegistrar',
-  'Transaction Relayer Proxy address': 'transactionRelayer',
-  'Bulk Operator Proxy address': 'bulkOperator',
-  'Rebasing provider Proxy address': 'rebasingProvider',
-  'Mock Token deployed to': 'mockToken'
-};
 
 // Contract interface mapping for getContractAt calls
 const CONTRACT_INTERFACES = {
@@ -38,27 +22,6 @@ const CONTRACT_INTERFACES = {
   mockToken: 'StandardTokenMock'
 };
 
-function parseDeploymentOutput(text) {
-  const addresses = {};
-  const lines = text.split('\n');
-  
-  for (const line of lines) {
-    // Skip comments and empty lines
-    if (line.trim().startsWith('#') || line.trim() === '') continue;
-    
-    for (const [pattern, key] of Object.entries(ADDRESS_MAPPING)) {
-      if (line.includes(pattern)) {
-        // Extract address using regex
-        const addressMatch = line.match(/0x[a-fA-F0-9]{40}/);
-        if (addressMatch) {
-          addresses[key] = addressMatch[0];
-        }
-      }
-    }
-  }
-  
-  return addresses;
-}
 
 function parseDeploymentJSON(jsonFilePath) {
   try {
@@ -140,63 +103,26 @@ function updateInitFile(addresses) {
 
 function main() {
   const jsonFilePath = path.join(__dirname, '..', 'output', 'deploy-all-and-update.json');
-  const textFilePath = path.join(__dirname, 'deployment-output.txt');
   
-  let addresses = {};
-  
-  // Try JSON file first (new approach)
-  if (fs.existsSync(jsonFilePath)) {
-    console.log('📋 Reading deployment addresses from deploy-all-and-update.json...');
-    addresses = parseDeploymentJSON(jsonFilePath);
-    
-    if (Object.keys(addresses).length > 0) {
-      console.log('✅ Found addresses from JSON file:');
-      Object.entries(addresses).forEach(([key, value]) => {
-        console.log(`   ${key}: ${value}`);
-      });
-    } else {
-      console.log('❌ No valid addresses found in JSON file, trying text file...');
-    }
+  if (!fs.existsSync(jsonFilePath)) {
+    console.error('❌ deploy-all-and-update.json not found!');
+    console.log('Please run: npx hardhat deploy-all-and-update --network <your-network>');
+    process.exit(1);
   }
   
-  // Fallback to text file (backward compatibility)
+  console.log('📋 Reading deployment addresses from deploy-all-and-update.json...');
+  const addresses = parseDeploymentJSON(jsonFilePath);
+  
   if (Object.keys(addresses).length === 0) {
-    if (!fs.existsSync(textFilePath)) {
-      console.error('❌ Neither deploy-all-and-update.json nor deployment-output.txt found!');
-      console.log('Please either:');
-      console.log('  1. Run: npx hardhat deploy-all-and-update --network <your-network>');
-      console.log('  2. Or paste deployment output in scripts/update/deployment-output.txt');
-      process.exit(1);
-    }
-    
-    console.log('📋 Reading deployment output from deployment-output.txt...');
-    
-    const deploymentText = fs.readFileSync(textFilePath, 'utf8');
-    
-    // Check if there's actual deployment output (contains addresses)
-    const hasAddresses = /0x[a-fA-F0-9]{40}/.test(deploymentText);
-    
-    if (!hasAddresses) {
-      console.log('❌ No deployment output found in deployment-output.txt');
-      console.log('Please paste your deployment output in the file and run this script again.');
-      process.exit(1);
-    }
-    
-    console.log('🔍 Parsing deployment output...');
-    
-    addresses = parseDeploymentOutput(deploymentText);
-    
-    if (Object.keys(addresses).length === 0) {
-      console.log('❌ No addresses found in the deployment output.');
-      console.log('Make sure you copied the complete deployment output.');
-      process.exit(1);
-    }
-    
-    console.log('✅ Found addresses from text file:');
-    Object.entries(addresses).forEach(([key, value]) => {
-      console.log(`   ${key}: ${value}`);
-    });
+    console.log('❌ No valid addresses found in deploy-all-and-update.json');
+    console.log('Please run: npx hardhat deploy-all-and-update --network <your-network>');
+    process.exit(1);
   }
+  
+  console.log('✅ Found addresses:');
+  Object.entries(addresses).forEach(([key, value]) => {
+    console.log(`   ${key}: ${value}`);
+  });
   
   console.log('\n📝 Updating console-init.js...');
   
@@ -214,4 +140,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { parseDeploymentOutput, updateInitFile };
+module.exports = { parseDeploymentJSON, updateInitFile };
