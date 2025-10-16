@@ -36,7 +36,7 @@ contract TransactionRelayer is BaseDSContract, EIP712Upgradeable {
     // keccak256("ExecutePreApprovedTransaction(address destination,bytes data,uint256 nonce,string senderInvestor,uint256 blockLimit)")
     bytes32 public constant TXTYPE_HASH = 0xa89e47bab73b0e21fa4f8d69171956116faab4bbe8f8162bcc1f27a21f673442;
 
-    string public constant CONTRACT_VERSION = "5";
+    string public constant CONTRACT_VERSION = "6";
 
     mapping(bytes32 investorHash => uint256 nonce) internal noncePerInvestor;
 
