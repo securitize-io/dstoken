@@ -18,7 +18,7 @@ const CONTRACT_ADDRESSES = {
   rebasingProvider: "0x3c75e059Ad038fdB8C11d35CdF12dC770E4cC0A5",
   mockToken: "0x6BF95b896fCdE7A961900e17ccd3AE68bB7D7297",
   dsToken: "0x758460444e70c9e15d069862BD21D7e6461405c0"
-};;;;;;;;
+};;;;;;;;;
 
 // Attribute type constants
 const ATTRIBUTE_TYPES = {

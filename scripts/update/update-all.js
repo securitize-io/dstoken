@@ -8,7 +8,7 @@ const path = require('path');
 console.log('🚀 Updating all scripts...\n');
 
 // Check for deployment data sources
-const jsonFilePath = path.join(__dirname, '..', 'output', 'deployment-addresses.json');
+const jsonFilePath = path.join(__dirname, '..', 'output', 'deploy-all-and-update.json');
 const textFilePath = path.join(__dirname, 'deployment-output.txt');
 
 const hasJsonFile = fs.existsSync(jsonFilePath);
@@ -23,7 +23,7 @@ if (!hasJsonFile && !hasTextFile) {
 }
 
 if (hasJsonFile) {
-  console.log('✅ Using deployment-addresses.json (structured data)');
+  console.log('✅ Using deploy-all-and-update.json (structured data)');
 } else {
   console.log('✅ Using deployment-output.txt (backward compatibility)');
 }

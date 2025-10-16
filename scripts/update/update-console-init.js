@@ -72,7 +72,7 @@ function parseDeploymentJSON(jsonFilePath) {
       // Direct address mapping (legacy support)
       return jsonData;
     } else {
-      console.log('❌ Invalid JSON structure in deployment-addresses.json');
+      console.log('❌ Invalid JSON structure in deploy-all-and-update.json');
       return {};
     }
   } catch (error) {
@@ -139,14 +139,14 @@ function updateInitFile(addresses) {
 }
 
 function main() {
-  const jsonFilePath = path.join(__dirname, '..', 'output', 'deployment-addresses.json');
+  const jsonFilePath = path.join(__dirname, '..', 'output', 'deploy-all-and-update.json');
   const textFilePath = path.join(__dirname, 'deployment-output.txt');
   
   let addresses = {};
   
   // Try JSON file first (new approach)
   if (fs.existsSync(jsonFilePath)) {
-    console.log('📋 Reading deployment addresses from deployment-addresses.json...');
+    console.log('📋 Reading deployment addresses from deploy-all-and-update.json...');
     addresses = parseDeploymentJSON(jsonFilePath);
     
     if (Object.keys(addresses).length > 0) {
@@ -162,7 +162,7 @@ function main() {
   // Fallback to text file (backward compatibility)
   if (Object.keys(addresses).length === 0) {
     if (!fs.existsSync(textFilePath)) {
-      console.error('❌ Neither deployment-addresses.json nor deployment-output.txt found!');
+      console.error('❌ Neither deploy-all-and-update.json nor deployment-output.txt found!');
       console.log('Please either:');
       console.log('  1. Run: npx hardhat deploy-all-and-update --network <your-network>');
       console.log('  2. Or paste deployment output in scripts/update/deployment-output.txt');

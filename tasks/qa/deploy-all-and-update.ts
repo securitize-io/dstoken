@@ -59,7 +59,7 @@ task('deploy-all-and-update', 'Deploy DS Protocol and automatically update all r
         fs.mkdirSync(outputDir, { recursive: true });
       }
       
-      const jsonFilePath = path.join(outputDir, 'deployment-addresses.json');
+      const jsonFilePath = path.join(outputDir, 'deploy-all-and-update.json');
       
       // Add metadata to the JSON file
       const deploymentData = {
