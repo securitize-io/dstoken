@@ -23,3 +23,4 @@ export * from './qa/issue-tokens';
 export * from './qa/set-compliance-rules';
 export * from './qa/transfer-from-investors';
 export * from './qa/get-compliance-rules';
+export * from './qa/deploy-all-and-update';

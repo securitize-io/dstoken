@@ -1,0 +1,82 @@
+{
+  "metadata": {
+    "executedAt": "2025-10-15T20:02:01.560Z",
+    "network": "sepolia",
+    "chainId": 11155111,
+    "signer": "0x56f7b817804AaCBd7dbd5d04b7aA6fEA227fC8a2",
+    "tokenContract": "0xc1A5333f5668280506802fd7be291a9A60960B60",
+    "inputSource": "create-investor output",
+    "flags": {
+      "dryrun": false,
+      "forceonchain": true
+    },
+    "inputFile": "./scripts/output/temp-test-investors.json",
+    "gasSettings": {
+      "gasLimit": "1000000"
+    }
+  },
+  "summary": {
+    "totalInvestors": 3,
+    "tokenIssuance": {
+      "totalProcessed": 3,
+      "successCount": 3,
+      "failCount": 0,
+      "totalIssued": "6.0"
+    }
+  },
+  "evidenceTransactions": [
+    {
+      "issuanceNumber": 1,
+      "investorId": "min_tokens_test_us_941284",
+      "hash": "0x2e193d4584527a683e1d43f204164ad4ef02fef79aa0154236631efdd2b44086",
+      "status": "REVERTED_ON_CHAIN",
+      "walletAddress": "0x5c7EDdFA54A3e22d8955931013726a9Aa98Ad0a7",
+      "tokens": 2,
+      "error": "transaction execution reverted (action=\"sendTransaction\", data=null, reason=null, invocation=null, revert=null, transaction={ \"data\": \"\", \"from\": \"0x56f7b817804AaCBd7dbd5d04b7aA6fEA227fC8a2\", \"to\": \"0x7e9f4a2f4FF3C8438aD90b99cEC7d21E35a8ff0C\" }, receipt={ \"_type\": \"TransactionReceipt\", \"blobGasPrice\": null, \"blobGasUsed\": null, \"blockHash\": \"0xc6ed84e37dc5a3201d6dec89b5e9c8df209bc8c127c9018e6c4c86c523009a0c\", \"blockNumber\": 9419324, \"contractAddress\": null, \"cumulativeGasUsed\": \"8526341\", \"from\": \"0x56f7b817804AaCBd7dbd5d04b7aA6fEA227fC8a2\", \"gasPrice\": \"1000009\", \"gasUsed\": \"237118\", \"hash\": \"0x2e193d4584527a683e1d43f204164ad4ef02fef79aa0154236631efdd2b44086\", \"index\": 65, \"logs\": [  ], \"logsBloom\": \"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\", \"root\": null, \"status\": 0, \"to\": \"0x7e9f4a2f4FF3C8438aD90b99cEC7d21E35a8ff0C\" }, code=CALL_EXCEPTION, version=6.15.0)"
+    },
+    {
+      "issuanceNumber": 2,
+      "investorId": "min_tokens_test_eu_054521",
+      "hash": "0x260ad541cfc196f26d549902e46880ede4624f4ed61b4b017bb6928817004715",
+      "status": "REVERTED_ON_CHAIN",
+      "walletAddress": "0x3ca3a5Eff1Ab073383f51d9eEe7F214908178e44",
+      "tokens": 2,
+      "error": "transaction execution reverted (action=\"sendTransaction\", data=null, reason=null, invocation=null, revert=null, transaction={ \"data\": \"\", \"from\": \"0x56f7b817804AaCBd7dbd5d04b7aA6fEA227fC8a2\", \"to\": \"0x7e9f4a2f4FF3C8438aD90b99cEC7d21E35a8ff0C\" }, receipt={ \"_type\": \"TransactionReceipt\", \"blobGasPrice\": null, \"blobGasUsed\": null, \"blockHash\": \"0x1fb010daff4d6719a121703ae02305169d6928c76ed921db6594b9ef2504825c\", \"blockNumber\": 9419325, \"contractAddress\": null, \"cumulativeGasUsed\": \"8940394\", \"from\": \"0x56f7b817804AaCBd7dbd5d04b7aA6fEA227fC8a2\", \"gasPrice\": \"1000009\", \"gasUsed\": \"234471\", \"hash\": \"0x260ad541cfc196f26d549902e46880ede4624f4ed61b4b017bb6928817004715\", \"index\": 112, \"logs\": [  ], \"logsBloom\": \"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\", \"root\": null, \"status\": 0, \"to\": \"0x7e9f4a2f4FF3C8438aD90b99cEC7d21E35a8ff0C\" }, code=CALL_EXCEPTION, version=6.15.0)"
+    },
+    {
+      "issuanceNumber": 3,
+      "investorId": "min_tokens_test_jp_103348",
+      "hash": "0x9c07cc71937dd834d217c832a0f407c06fc1b3a40930410996b4bfa9023fce1a",
+      "status": "REVERTED_ON_CHAIN",
+      "walletAddress": "0xa54B0Eaab5E7Fe41756C7C77e642E187532338E6",
+      "tokens": 2,
+      "error": "transaction execution reverted (action=\"sendTransaction\", data=null, reason=null, invocation=null, revert=null, transaction={ \"data\": \"\", \"from\": \"0x56f7b817804AaCBd7dbd5d04b7aA6fEA227fC8a2\", \"to\": \"0x7e9f4a2f4FF3C8438aD90b99cEC7d21E35a8ff0C\" }, receipt={ \"_type\": \"TransactionReceipt\", \"blobGasPrice\": null, \"blobGasUsed\": null, \"blockHash\": \"0x32cb0d010b6b736675a35d67e98413646ebad99777d4d3389527f1f1362111c1\", \"blockNumber\": 9419326, \"contractAddress\": null, \"cumulativeGasUsed\": \"18682052\", \"from\": \"0x56f7b817804AaCBd7dbd5d04b7aA6fEA227fC8a2\", \"gasPrice\": \"1000010\", \"gasUsed\": \"232724\", \"hash\": \"0x9c07cc71937dd834d217c832a0f407c06fc1b3a40930410996b4bfa9023fce1a\", \"index\": 98, \"logs\": [  ], \"logsBloom\": \"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\", \"root\": null, \"status\": 0, \"to\": \"0x7e9f4a2f4FF3C8438aD90b99cEC7d21E35a8ff0C\" }, code=CALL_EXCEPTION, version=6.15.0)"
+    }
+  ],
+  "issuanceDetails": [
+    {
+      "issuanceNumber": 1,
+      "investorId": "min_tokens_test_us_941284",
+      "walletAddress": "0x5c7EDdFA54A3e22d8955931013726a9Aa98Ad0a7",
+      "tokens": 2,
+      "description": "Issue 2 tokens to min_tokens_test_us_941284",
+      "txHash": "0x2e193d4584527a683e1d43f204164ad4ef02fef79aa0154236631efdd2b44086"
+    },
+    {
+      "issuanceNumber": 2,
+      "investorId": "min_tokens_test_eu_054521",
+      "walletAddress": "0x3ca3a5Eff1Ab073383f51d9eEe7F214908178e44",
+      "tokens": 2,
+      "description": "Issue 2 tokens to min_tokens_test_eu_054521",
+      "txHash": "0x260ad541cfc196f26d549902e46880ede4624f4ed61b4b017bb6928817004715"
+    },
+    {
+      "issuanceNumber": 3,
+      "investorId": "min_tokens_test_jp_103348",
+      "walletAddress": "0xa54B0Eaab5E7Fe41756C7C77e642E187532338E6",
+      "tokens": 2,
+      "description": "Issue 2 tokens to min_tokens_test_jp_103348",
+      "txHash": "0x9c07cc71937dd834d217c832a0f407c06fc1b3a40930410996b4bfa9023fce1a"
+    }
+  ]
+}

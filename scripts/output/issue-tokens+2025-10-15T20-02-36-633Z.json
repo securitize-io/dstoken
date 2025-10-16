@@ -1,0 +1,79 @@
+{
+  "metadata": {
+    "executedAt": "2025-10-15T20:02:36.633Z",
+    "network": "sepolia",
+    "chainId": 11155111,
+    "signer": "0x56f7b817804AaCBd7dbd5d04b7aA6fEA227fC8a2",
+    "tokenContract": "0xc1A5333f5668280506802fd7be291a9A60960B60",
+    "inputSource": "create-investor output",
+    "flags": {
+      "dryrun": false,
+      "forceonchain": true
+    },
+    "inputFile": "./scripts/output/temp-test-investors.json",
+    "gasSettings": {
+      "gasLimit": "1000000"
+    }
+  },
+  "summary": {
+    "totalInvestors": 3,
+    "tokenIssuance": {
+      "totalProcessed": 3,
+      "successCount": 3,
+      "failCount": 0,
+      "totalIssued": "15.0"
+    }
+  },
+  "evidenceTransactions": [
+    {
+      "issuanceNumber": 1,
+      "investorId": "min_tokens_test_us_941284",
+      "hash": "0x5e6b779ba96f406bea4a821bcedf4c79866a3692f9970ab5d0b3c4b3b7fb9624",
+      "status": "SUCCESS",
+      "walletAddress": "0x5c7EDdFA54A3e22d8955931013726a9Aa98Ad0a7",
+      "tokens": 5
+    },
+    {
+      "issuanceNumber": 2,
+      "investorId": "min_tokens_test_eu_054521",
+      "hash": "0xe6950fab1ac85413cbab2cc958ea3bb8e34b352a6cc2cfb48a65c5ebcb5660e6",
+      "status": "SUCCESS",
+      "walletAddress": "0x3ca3a5Eff1Ab073383f51d9eEe7F214908178e44",
+      "tokens": 5
+    },
+    {
+      "issuanceNumber": 3,
+      "investorId": "min_tokens_test_jp_103348",
+      "hash": "0x7a8f61ab2c4fdef0350f99d9a939dd09860ce505750cc0777b96322bcb785be0",
+      "status": "SUCCESS",
+      "walletAddress": "0xa54B0Eaab5E7Fe41756C7C77e642E187532338E6",
+      "tokens": 5
+    }
+  ],
+  "issuanceDetails": [
+    {
+      "issuanceNumber": 1,
+      "investorId": "min_tokens_test_us_941284",
+      "walletAddress": "0x5c7EDdFA54A3e22d8955931013726a9Aa98Ad0a7",
+      "tokens": 5,
+      "description": "Issue 5 tokens to min_tokens_test_us_941284",
+      "txHash": "0x5e6b779ba96f406bea4a821bcedf4c79866a3692f9970ab5d0b3c4b3b7fb9624"
+    },
+    {
+      "issuanceNumber": 2,
+      "investorId": "min_tokens_test_eu_054521",
+      "walletAddress": "0x3ca3a5Eff1Ab073383f51d9eEe7F214908178e44",
+      "tokens": 5,
+      "description": "Issue 5 tokens to min_tokens_test_eu_054521",
+      "txHash": "0xe6950fab1ac85413cbab2cc958ea3bb8e34b352a6cc2cfb48a65c5ebcb5660e6"
+    },
+    {
+      "issuanceNumber": 3,
+      "investorId": "min_tokens_test_jp_103348",
+      "walletAddress": "0xa54B0Eaab5E7Fe41756C7C77e642E187532338E6",
+      "tokens": 5,
+      "description": "Issue 5 tokens to min_tokens_test_jp_103348",
+      "txHash": "0x7a8f61ab2c4fdef0350f99d9a939dd09860ce505750cc0777b96322bcb785be0"
+    }
+  ]
+}

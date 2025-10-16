@@ -43,6 +43,27 @@ function parseDeploymentOutput(text) {
   return addresses;
 }
 
+function parseDeploymentJSON(jsonFilePath) {
+  try {
+    const jsonData = JSON.parse(fs.readFileSync(jsonFilePath, 'utf8'));
+    
+    // Handle both legacy and new JSON structure
+    if (jsonData.addresses) {
+      // New structure with metadata
+      return jsonData.addresses;
+    } else if (jsonData.dsToken || jsonData.regService) {
+      // Direct address mapping (legacy support)
+      return jsonData;
+    } else {
+      console.log('❌ Invalid JSON structure in deployment-addresses.json');
+      return {};
+    }
+  } catch (error) {
+    console.log(`❌ Error reading JSON file: ${error.message}`);
+    return {};
+  }
+}
+
 function updateContractAddressesInFile(filePath, addresses) {
   if (!fs.existsSync(filePath)) {
     console.log(`⚠️  File not found: ${filePath}`);
@@ -123,41 +144,64 @@ function updateTaskFiles(addresses) {
 }
 
 function main() {
-  const deploymentFilePath = path.join(__dirname, 'deployment-output.txt');
+  const jsonFilePath = path.join(__dirname, '..', 'output', 'deployment-addresses.json');
+  const textFilePath = path.join(__dirname, 'deployment-output.txt');
   
-  if (!fs.existsSync(deploymentFilePath)) {
-    console.error('❌ deployment-output.txt not found!');
-    console.log('Please paste your deployment output in scripts/deployment-output.txt first.');
-    process.exit(1);
+  let addresses = {};
+  
+  // Try JSON file first (new approach)
+  if (fs.existsSync(jsonFilePath)) {
+    console.log('📋 Reading deployment addresses from deployment-addresses.json...');
+    addresses = parseDeploymentJSON(jsonFilePath);
+    
+    if (Object.keys(addresses).length > 0) {
+      console.log('✅ Found addresses from JSON file:');
+      Object.entries(addresses).forEach(([key, value]) => {
+        console.log(`   ${key}: ${value}`);
+      });
+    } else {
+      console.log('❌ No valid addresses found in JSON file, trying text file...');
+    }
   }
   
-  console.log('📋 Reading deployment output from deployment-output.txt...');
-  
-  const deploymentText = fs.readFileSync(deploymentFilePath, 'utf8');
-  
-  // Check if there's actual deployment output (contains addresses)
-  const hasAddresses = /0x[a-fA-F0-9]{40}/.test(deploymentText);
-  
-  if (!hasAddresses) {
-    console.log('❌ No deployment output found in deployment-output.txt');
-    console.log('Please paste your deployment output in the file and run this script again.');
-    process.exit(1);
-  }
-  
-  console.log('🔍 Parsing deployment output...');
-  
-  const addresses = parseDeploymentOutput(deploymentText);
-  
+  // Fallback to text file (backward compatibility)
   if (Object.keys(addresses).length === 0) {
-    console.log('❌ No addresses found in the deployment output.');
-    console.log('Make sure you copied the complete deployment output.');
-    process.exit(1);
+    if (!fs.existsSync(textFilePath)) {
+      console.error('❌ Neither deployment-addresses.json nor deployment-output.txt found!');
+      console.log('Please either:');
+      console.log('  1. Run: npx hardhat deploy-all-and-update --network <your-network>');
+      console.log('  2. Or paste deployment output in scripts/update/deployment-output.txt');
+      process.exit(1);
+    }
+    
+    console.log('📋 Reading deployment output from deployment-output.txt...');
+    
+    const deploymentText = fs.readFileSync(textFilePath, 'utf8');
+    
+    // Check if there's actual deployment output (contains addresses)
+    const hasAddresses = /0x[a-fA-F0-9]{40}/.test(deploymentText);
+    
+    if (!hasAddresses) {
+      console.log('❌ No deployment output found in deployment-output.txt');
+      console.log('Please paste your deployment output in the file and run this script again.');
+      process.exit(1);
+    }
+    
+    console.log('🔍 Parsing deployment output...');
+    
+    addresses = parseDeploymentOutput(deploymentText);
+    
+    if (Object.keys(addresses).length === 0) {
+      console.log('❌ No addresses found in the deployment output.');
+      console.log('Make sure you copied the complete deployment output.');
+      process.exit(1);
+    }
+    
+    console.log('✅ Found addresses from text file:');
+    Object.entries(addresses).forEach(([key, value]) => {
+      console.log(`   ${key}: ${value}`);
+    });
   }
-  
-  console.log('✅ Found addresses:');
-  Object.entries(addresses).forEach(([key, value]) => {
-    console.log(`   ${key}: ${value}`);
-  });
   
   updateTaskFiles(addresses);
   
