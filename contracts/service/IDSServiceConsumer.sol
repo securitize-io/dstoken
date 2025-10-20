@@ -37,7 +37,7 @@ abstract contract IDSServiceConsumer {
     uint256 public constant DEPRECATED_TA_MULTICALL = 0;
     uint256 public constant DEPRECATED_SECURITIZE_SWAP = 16384;
     uint256 public constant REBASING_PROVIDER = 8196;
-    uint256 public constant BLACKLIST_MANAGER = 32768;
+    uint256 public constant BLACKLIST_MANAGER = 8197;
 
     function getDSService(uint256 _serviceId) public view virtual returns (address);
 
