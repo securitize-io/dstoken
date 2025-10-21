@@ -17,10 +17,10 @@ export * from './deploy-libraries';
 export * from './deploy-rebasing-provider';
 export * from './verify-all';
 
-export * from './qa/create-investor';
-export * from './qa/fund-investor-wallets';
-export * from './qa/issue-tokens';
-export * from './qa/set-compliance-rules';
-export * from './qa/transfer-from-investors';
-export * from './qa/get-compliance-rules';
-export * from './qa/deploy-all-and-update';
+export * from '../qa/tasks/create-investor';
+export * from '../qa/tasks/fund-investor-wallets';
+export * from '../qa/tasks/issue-tokens';
+export * from '../qa/tasks/set-compliance-rules';
+export * from '../qa/tasks/transfer-from-investors';
+export * from '../qa/tasks/get-compliance-rules';
+export * from '../qa/tasks/deploy-all-and-update';

@@ -1,0 +1,35 @@
+{
+  "_description": "Token issuance configuration with investor data and wallet funding",
+  "_usage": "npx hardhat issue-tokens qa/tasks/config/issue-tokens.json --network arbitrum",
+  "_note": "When fund-wallet is true, the task will automatically fund the wallet before issuing tokens",
+  "issuances": [
+    {
+      "id": "sample_us_investor_",
+      "collisionHash": "sample_us_investor_",
+      "wallets": ["0x1234567890123456789012345678901234567890"],
+      "pk": "0x1234567890123456789012345678901234567890123456789012345678901234",
+      "tokens": 5,
+      "fund-wallet": true,
+      "description": "US investor - 5 tokens, fund wallet before issuance"
+    },
+    {
+      "id": "sample_eu_investor_",
+      "collisionHash": "sample_eu_investor_", 
+      "wallets": ["0x2345678901234567890123456789012345678901"],
+      "pk": "0x2345678901234567890123456789012345678901234567890123456789012345",
+      "tokens": 3,
+      "fund-wallet": true,
+      "description": "EU investor - 3 tokens, fund wallet before issuance"
+    },
+    {
+      "id": "sample_jp_investor_",
+      "collisionHash": "sample_jp_investor_",
+      "wallets": ["0x3456789012345678901234567890123456789012"],
+      "pk": "0x3456789012345678901234567890123456789012345678901234567890123456",
+      "tokens": 4,
+      "fund-wallet": false,
+      "description": "JP investor - 4 tokens, wallet already funded"
+    }
+  ]
+}
+

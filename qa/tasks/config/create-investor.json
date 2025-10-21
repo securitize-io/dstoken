@@ -1,0 +1,32 @@
+{
+  "investors": [
+    {
+      "id": "lau_transfer_US_",
+      "collisionHash": "lau_transfer_US_",
+      "country": "US",
+      "wallets": [],
+      "attributeIds": [1, 2, 4, 8],
+      "attributeValues": [1, 1, 1, 1],
+      "attributeExpirations": [0, 0, 0, 0]
+    },
+    {
+      "id": "lau_transfer_US_",
+      "collisionHash": "lau_transfer_US_",
+      "country": "US",
+      "wallets": [],
+      "attributeIds": [1, 2, 4, 8],
+      "attributeValues": [1, 0, 1, 1],
+      "attributeExpirations": [0, 0, 0, 0]
+    },
+    {
+      "id": "lau_transfer_EU_",
+      "collisionHash": "lau_transfer_EU_",
+      "country": "EU",
+      "wallets": [],
+      "attributeIds": [1, 2, 4, 8],
+      "attributeValues": [1, 0, 1, 1],
+      "attributeExpirations": [0, 0, 0, 0]
+    }
+  ]
+}
+
