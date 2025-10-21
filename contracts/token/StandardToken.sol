@@ -23,10 +23,25 @@ import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvid
 import {BaseDSContract} from "../utils/BaseDSContract.sol";
 import {RebasingLibrary} from "../rebasing/RebasingLibrary.sol";
 import {IDSToken} from "./IDSToken.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
 
 abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
     event Pause();
     event Unpause();
+
+    /**
+     * @dev Emitted when the token symbol is updated
+     * @param oldSymbol The previous symbol of the token
+     * @param newSymbol The new symbol of the token
+     */
+    event SymbolUpdated(string oldSymbol, string newSymbol);
+
+    /**
+     * @dev Emitted when the token name is updated
+     * @param oldName The previous name of the token
+     * @param newName The new name of the token
+     */
+    event NameUpdated(string oldName, string newName);
 
     modifier whenNotPaused() {
         require(!paused, "Contract is paused");
@@ -54,6 +69,41 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
 
     function isPaused() public view override returns (bool) {
         return paused;
+    }
+
+    /**
+     * @dev Updates the token name and symbol
+     * @param _name New name for the token
+     * @param _symbol New symbol for the token
+     * @notice Only callable by Master role
+     */
+    function updateNameAndSymbol(string calldata _name, string calldata _symbol) external onlyMaster {
+        require(!CommonUtils.isEmptyString(_name), "Name cannot be empty");
+        require(!CommonUtils.isEmptyString(_symbol), "Symbol cannot be empty");
+        if (!CommonUtils.isEqualString(_name, name)) {
+            _updateName(_name);
+        }
+        if (!CommonUtils.isEqualString(_symbol, symbol)) {
+            _updateSymbol(_symbol);
+        }
+    }
+
+    /**
+     * @dev Internal function to update the token name
+     * @param _name New name to set
+     */
+    function _updateName(string calldata _name) private {
+        emit NameUpdated(name, _name);
+        name = _name;
+    }
+
+    /**
+     * @dev Internal function to update the token symbol
+     * @param _symbol New symbol to set
+     */
+    function _updateSymbol(string calldata _symbol) private {
+        emit SymbolUpdated(symbol, _symbol);
+        symbol = _symbol;
     }
 
     /**
