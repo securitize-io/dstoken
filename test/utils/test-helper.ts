@@ -49,11 +49,39 @@ export const registerInvestor = async (investorId: string, wallet: string | Hard
 };
 
 export const EIP712_TR_NAME = 'TransactionRelayer';
-export const EIP712_TR_VERSION = '5';
+export const EIP712_TR_VERSION = '6';
 export const TR_DOMAIN_DATA = {
   name: EIP712_TR_NAME,
   version: EIP712_TR_VERSION
 };
+
+export const buildPermitSignature = async (
+  owner: HardhatEthersSigner,
+  message: any,
+  tokenName: string,
+  tokenAddress: string,
+) => {
+  const domain: ethers.TypedDataDomain = {
+    version: '1',
+    name: tokenName,
+    verifyingContract: tokenAddress,
+    chainId: (await hre.ethers.provider.getNetwork()).chainId,
+  };
+
+  const types = {
+    Permit: [
+      { name: "owner", type: "address" },
+      { name: "spender", type: "address" },
+      { name: "value", type: "uint256" },
+      { name: "nonce", type: "uint256" },
+      { name: "deadline", type: "uint256" },
+    ],
+  };
+
+  const signature = await owner.signTypedData(domain, types, message);
+  const { v, r, s } = ethers.Signature.from(signature);
+  return { v, r, s };
+}
 
 export const transactionRelayerPreApproval = async (
   hsm: HardhatEthersSigner,
@@ -75,15 +103,14 @@ export const transactionRelayerPreApproval = async (
   const types = typesOverride ?? {
     ExecutePreApprovedTransaction: [
       { name: 'destination', type: 'address' },
-      { name: 'data', type: 'bytes32' },
+      { name: 'data', type: 'bytes' },
       { name: 'nonce', type: 'uint256' },
-      { name: 'senderInvestor', type: 'bytes32' },
+      { name: 'senderInvestor', type: 'string' },
       { name: 'blockLimit', type: 'uint256' }
     ]
   };
 
-  const signatureRaw = await hsm.signTypedData(domain, types, message);
-  return ethers.Signature.from(signatureRaw);
+  return hsm.signTypedData(domain, types, message);
 };
 
 

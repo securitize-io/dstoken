@@ -35,7 +35,6 @@
   ],
   "license": "ISC",
   "devDependencies": {
-    "@changesets/cli": "^2.22.0",
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.6",
     "@nomicfoundation/hardhat-ethers": "^3.0.5",
     "@nomicfoundation/hardhat-ignition": "^0.15.2",
@@ -64,7 +63,6 @@
     "eslint-config-standard": "^17.0.0",
     "eslint-plugin-promise": "^6.1.1",
     "ethers": "^6.12.0",
-    "fast-check": "^4.3.0",
     "hardhat": "^2.22.2",
     "hardhat-gas-reporter": "^1.0.10",
     "prettier": "^2.7.1",
@@ -73,7 +71,11 @@
     "solium": "^0.5.5",
     "ts-node": "^10.9.2",
     "typechain": "^8.3.2",
-    "typescript": "^5.4.4"
+    "typescript": "^5.4.4",
+    "@changesets/cli": "^2.22.0"
+
+  },
+  "dependencies": {
   },
   "files": [
     "artifacts",

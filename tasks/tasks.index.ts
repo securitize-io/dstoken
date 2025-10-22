@@ -16,11 +16,5 @@ export * from './deploy-erc20';
 export * from './deploy-libraries';
 export * from './deploy-rebasing-provider';
 export * from './verify-all';
-
-export * from '../qa/tasks/create-investor';
-export * from '../qa/tasks/fund-investor-wallets';
-export * from '../qa/tasks/issue-tokens';
-export * from '../qa/tasks/set-compliance-rules';
-export * from '../qa/tasks/transfer-from-investors';
-export * from '../qa/tasks/get-compliance-rules';
-export * from '../qa/tasks/deploy-all-and-update';
+export * from './contract-call';
+export * from './deploy-blacklist-manager';
