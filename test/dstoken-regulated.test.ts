@@ -8,7 +8,7 @@ import {
   deployDSTokenRegulatedWithRebasingAndSixDecimal,
   INVESTORS,
 } from './utils/fixture';
-import { registerInvestor } from './utils/test-helper';
+import { buildPermitSignature, registerInvestor } from './utils/test-helper';
 
 describe('DS Token Regulated Unit Tests', function() {
   describe('Creation', function() {
@@ -269,6 +269,121 @@ describe('DS Token Regulated Unit Tests', function() {
       // first investor never approved second investor as a spender
       await expect(dsTokenFromInvestor.transferFrom(investor, investor2, valueToTransfer))
         .to.be.revertedWith('Not enough allowance');
+    });
+
+    describe('Permit transfer', async function () {
+      it('Should sets allowance via permit()', async () => {
+        const [owner, spender] = await hre.ethers.getSigners();
+        const { dsToken } = await loadFixture(deployDSTokenRegulated);
+        const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+        const value = 100;
+        const message = {
+          owner: owner.address,
+          spender: spender.address,
+          value,
+          nonce: await dsToken.nonces(owner.address),
+          deadline,
+        };
+        const { v, r, s } = await buildPermitSignature(owner, message, await dsToken.name(), await dsToken.getAddress());
+
+        await dsToken.permit(owner.address, spender.address, value, deadline, v, r, s);
+
+        const allowance = await dsToken.allowance(owner.address, spender.address);
+        expect(allowance).to.equal(value);
+
+        const nonceAfter = await dsToken.nonces(owner.address);
+        expect(nonceAfter).to.equal(1n);
+      });
+
+      it('Should rejects expired permits', async () => {
+        const [owner, spender] = await hre.ethers.getSigners();
+        const { dsToken } = await loadFixture(deployDSTokenRegulated);
+        const value = 100;
+        const deadline = BigInt(Math.floor(Date.now() / 1000) - 10); // expired
+        const message = {
+          owner: owner.address,
+          spender: spender.address,
+          value,
+          nonce: await dsToken.nonces(owner.address),
+          deadline,
+        };
+        const { v, r, s } = await buildPermitSignature(owner, message, await dsToken.name(), await dsToken.getAddress());
+
+        await expect(
+          dsToken.permit(owner.address, spender.address, value, deadline, v, r, s)
+        ).to.be.revertedWith('Permit: expired deadline');
+      });
+
+      it('Should rejects reused signatures (nonce mismatch)', async () => {
+        const [owner, spender] = await hre.ethers.getSigners();
+        const { dsToken } = await loadFixture(deployDSTokenRegulated);
+        const value = 100;
+        const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+        const message = {
+          owner: owner.address,
+          spender: spender.address,
+          value,
+          nonce: await dsToken.nonces(owner.address),
+          deadline,
+        };
+        const { v, r, s } = await buildPermitSignature(owner, message, await dsToken.name(), await dsToken.getAddress());
+
+        // First permit succeeds
+        await dsToken.permit(owner.address, spender.address, value, deadline, v, r, s);
+
+        // Reusing same signature should fail (nonce already used)
+        await expect(
+          dsToken.permit(owner.address, spender.address, value, deadline, v, r, s),
+        ).to.be.revertedWith('Permit: invalid signature');
+      });
+
+      it('Should transferWithPermit() transfers tokens and consumes nonce', async () => {
+        const [owner, spender, recipient] = await hre.ethers.getSigners();
+        const { dsToken, registryService } = await loadFixture(deployDSTokenRegulated);
+        const value = 100;
+        const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+        const message = {
+          owner: owner.address,
+          spender: spender.address,
+          value,
+          nonce: await dsToken.nonces(owner.address),
+          deadline,
+        };
+        const { v, r, s } = await buildPermitSignature(owner, message, await dsToken.name(), await dsToken.getAddress());
+
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, owner, registryService);
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, recipient, registryService);
+
+        await dsToken.issueTokens(owner, value);
+        const balanceBefore = await dsToken.balanceOf(recipient.address);
+
+        await expect(dsToken.connect(spender).transferWithPermit(owner.address, recipient.address, value, deadline, v, r, s))
+          .to.emit(dsToken, 'Transfer').withArgs(owner.address, recipient.address, value);
+
+        const balanceAfter = await dsToken.balanceOf(recipient.address);
+        expect(balanceAfter - balanceBefore).to.equal(value);
+
+        // Allowance should be consumed (since transferFrom reduces it)
+        const allowance = await dsToken.allowance(owner.address, spender.address);
+        expect(allowance).to.equal(0n);
+
+        // owner balance is now zero
+        const ownerBalance = await dsToken.balanceOf(owner.address);
+        expect(ownerBalance).to.equal(0n);
+      });
+
+      it('Should DOMAIN_SEPARATOR matches EIP-712 spec', async () => {
+        const { dsToken } = await loadFixture(deployDSTokenRegulated);
+        const domain = hre.ethers.TypedDataEncoder.hashDomain({
+          version: '1',
+          name: await dsToken.name(),
+          verifyingContract: await dsToken.getAddress(),
+          chainId: (await hre.ethers.provider.getNetwork()).chainId,
+        });
+
+        const separator = await dsToken.DOMAIN_SEPARATOR();
+        expect(separator).to.equal(domain);
+      });
     });
   });
 

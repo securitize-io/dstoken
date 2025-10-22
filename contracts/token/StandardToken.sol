@@ -18,14 +18,15 @@
 
 pragma solidity 0.8.22;
 
-import {TokenDataStore} from "../data-stores/TokenDataStore.sol";
-import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
 import {BaseDSContract} from "../utils/BaseDSContract.sol";
-import {RebasingLibrary} from "../rebasing/RebasingLibrary.sol";
-import {IDSToken} from "./IDSToken.sol";
 import {CommonUtils} from "../utils/CommonUtils.sol";
+import {IDSToken} from "./IDSToken.sol";
+import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
+import {RebasingLibrary} from "../rebasing/RebasingLibrary.sol";
+import {TokenDataStore} from "../data-stores/TokenDataStore.sol";
+import {ERC20PermitMixin} from "./ERC20PermitMixin.sol";
 
-abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
+abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract, ERC20PermitMixin {
     event Pause();
     event Unpause();
 
@@ -53,8 +54,9 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
         _;
     }
 
-    function __StandardToken_init() public onlyProxy onlyInitializing {
+    function __StandardToken_init(string calldata _name) public onlyProxy onlyInitializing {
         __BaseDSContract_init();
+        __ERC20PermitMixin_init(_name);
     }
 
     function pause() public onlyTransferAgentOrAbove whenNotPaused {
@@ -168,9 +170,16 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
     }
 
     function approve(address _spender, uint256 _value) public returns (bool) {
-        allowances[msg.sender][_spender] = _value;
-        emit Approval(msg.sender, _spender, _value);
+        _approve(msg.sender, _spender, _value);
         return true;
+    }
+
+    function _approve(address owner, address spender, uint256 value) internal virtual override {
+        require(owner != address(0), "Approve from zero");
+        require(spender != address(0), "Approve to zero");
+
+        allowances[owner][spender] = value;
+        emit Approval(owner, spender, value);
     }
 
     function allowance(address _owner, address _spender) public view returns (uint256) {
@@ -192,5 +201,32 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract {
         }
         emit Approval(msg.sender, _spender, allowances[msg.sender][_spender]);
         return true;
+    }
+
+    /**********************
+     * PERMIT EXTENSIONS
+     **********************/
+
+    /**
+     * @notice Approve and transfer tokens in one transaction using EIP-2612 signature.
+     * @param from The owner whose tokens will be transferred.
+     * @param to The recipient.
+     * @param value The token amount to transfer.
+     * @param deadline Signature expiry timestamp.
+     * @param v,r,s ECDSA signature components.
+     */
+    function transferWithPermit(
+        address from,
+        address to,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external returns (bool) {
+        // 1. Use EIP-2612 permit to approve msg.sender
+        permit(from, msg.sender, value, deadline, v, r, s);
+        // 2. Perform the actual transferFrom
+        return transferFrom(from, to, value);
     }
 }

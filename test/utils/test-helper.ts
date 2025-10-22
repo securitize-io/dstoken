@@ -55,6 +55,34 @@ export const TR_DOMAIN_DATA = {
   version: EIP712_TR_VERSION
 };
 
+export const buildPermitSignature = async (
+  owner: HardhatEthersSigner,
+  message: any,
+  tokenName: string,
+  tokenAddress: string,
+) => {
+  const domain: ethers.TypedDataDomain = {
+    version: '1',
+    name: tokenName,
+    verifyingContract: tokenAddress,
+    chainId: (await hre.ethers.provider.getNetwork()).chainId,
+  };
+
+  const types = {
+    Permit: [
+      { name: "owner", type: "address" },
+      { name: "spender", type: "address" },
+      { name: "value", type: "uint256" },
+      { name: "nonce", type: "uint256" },
+      { name: "deadline", type: "uint256" },
+    ],
+  };
+
+  const signature = await owner.signTypedData(domain, types, message);
+  const { v, r, s } = ethers.Signature.from(signature);
+  return { v, r, s };
+}
+
 export const transactionRelayerPreApproval = async (
   hsm: HardhatEthersSigner,
   transactionRelayerAddress: string,
