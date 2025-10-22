@@ -1,6 +1,6 @@
 {
   "name": "@securitize/digital_securities",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Digital Securities Reference Implementation",
   "scripts": {
     "test": "hardhat test",
