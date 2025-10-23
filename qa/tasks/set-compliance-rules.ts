@@ -4,20 +4,20 @@ import * as path from "path";
 
 // Contract addresses (auto-updated from deployment)
 const CONTRACT_ADDRESSES = {
-  regService: "0xF965F511856e8F963F6F455F4d48EE4d4c0f6cC1",
-  trustService: "0x24C631eD5Ef434CE93bc2476358d732321d7F9e3",
-  compConfigService: "0xC551dfbEea024F536Da48b3a0F4D671D70813C36",
-  compService: "0xA20D6b350427Ac5864bE23d87CFc8eDe1A9eDC8d",
-  walletManager: "0xD2B2dA929fdc903879158c84C4fCF28504E3d15e",
-  lockManager: "0xFFc82f2D4ac645EE08ed1075287f0CA4FF083900",
-  tokenIssuer: "0x2A643c33a57F7F54dc79611666123F9470cc75D8",
-  walletRegistrar: "0xD4Eb8F12f4cD1718966B2fe613D8f17C3230b7b9",
-  transactionRelayer: "0x7985E2be5Fe02E84De5BBF266367eae927f32c94",
-  bulkOperator: "0x8A9428f1C31F96B5A75C320501e5f514abE9e93A",
-  rebasingProvider: "0x3c75e059Ad038fdB8C11d35CdF12dC770E4cC0A5",
-  mockToken: "0x6BF95b896fCdE7A961900e17ccd3AE68bB7D7297",
-  dsToken: "0x758460444e70c9e15d069862BD21D7e6461405c0"
-};;;;;;;;;;;
+  regService: "0x48B659E52082f59150fF7C04d56bdaA10096e06a",
+  trustService: "0x81828Ee6D5cf26E6608d514c0eBE772CCF060A2c",
+  compConfigService: "0x23B54eC18110f325079D83d8BF72Ca5524dD9f92",
+  compService: "0x3B1685D38BCA0D99e62deCe68b399A6C42eA45b8",
+  walletManager: "0x5Ba6C13F47e11beF5392d0cB8025b6967173bDbb",
+  lockManager: "0x940Db9941e17e2229f03ebD28e1A672b1f1e425b",
+  tokenIssuer: "0x03725C73A7B958d6df41C57A8226bA18a9D78D5b",
+  walletRegistrar: "0x871dB8005F86F7733645910A421aFb9f39C1D366",
+  transactionRelayer: "0x4D0EB693957Fd0db4a6817c26E5eD5F1AFE1f790",
+  bulkOperator: "0x3cAf3a0e7656015b9D50A694a4c60aEF0AC395DE",
+  rebasingProvider: "0xe920FCFcae40ff8F25e6ACfF1ddcF7E38D02cd74",
+  mockToken: "0x712d7d168Da017Fe46759B60B6a347EE2DdDEA92",
+  dsToken: "0x73D0b1CD6439578882FC30fe658c87D8927C79aF"
+};;;;;;;;;;;;;
 
 // Parameter mapping for better readability
 const PARAMETER_NAMES = {

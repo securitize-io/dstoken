@@ -175,7 +175,7 @@ function updateTestFiles(addresses) {
 }
 
 function main() {
-  const jsonFilePath = path.join(__dirname, '..', 'output', 'deploy-all-and-update.json');
+  const jsonFilePath = path.join(__dirname, '..', 'tasks', 'output', 'deploy-all-and-update.json');
   
   if (!fs.existsSync(jsonFilePath)) {
     console.error('❌ deploy-all-and-update.json not found!');

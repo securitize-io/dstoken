@@ -2,6 +2,7 @@ import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@openzeppelin/hardhat-upgrades";
 import "./tasks/tasks.index";
+import "./qa/tasks/tasks.index";
 import "dotenv/config";
 
 const config: HardhatUserConfig = {
@@ -22,7 +23,10 @@ const config: HardhatUserConfig = {
       chainId: 11155111,
       gas: "auto",
       url: process.env.SEPOLIA_RPC_URL ?? "",
-      accounts: [process.env.DEPLOYER_PRIV_KEY!].filter((x) => x),
+      accounts: [
+        process.env.DEPLOYER_PRIV_KEY!,
+        process.env.TEST_WALLET_1_PRIV_KEY!,
+      ].filter((x) => x),
     },
     arbitrum: {
       chainId: 421614,

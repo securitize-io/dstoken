@@ -41,6 +41,22 @@ The `tasks/` directory contains Hardhat tasks for common QA operations:
 ### Usage Examples
 
 ```bash
+# Deploy all contracts and automatically update references
+npx hardhat deploy-all-and-update \
+  --name "My Token" \
+  --symbol "MTK" \
+  --decimals 6 \
+  --compliance REGULATED \
+  --network sepolia
+
+# The deploy-all-and-update task will:
+# 1. Deploy all DSToken contracts
+# 2. Save addresses to qa/tasks/output/deploy-all-and-update.json
+# 3. Automatically update all references in:
+#    - qa/update-contracts-scripts/console-init.js
+#    - qa/tasks/*.ts files
+#    - qa/tests/*.ts files
+
 # Create investors with generated wallets
 npx hardhat create-investor qa/tasks/config/create-investor.json --network sepolia --generatewallets
 

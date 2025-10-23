@@ -52,7 +52,7 @@ task('deploy-all-and-update', 'Deploy DS Protocol and automatically update all r
       // Step 3: Generate JSON file
       console.log('\n📝 Step 3: Generating deployment addresses JSON...');
       
-      const outputDir = path.join(process.cwd(), 'scripts', 'output');
+      const outputDir = path.join(process.cwd(), 'qa', 'tasks', 'output');
       
       // Ensure output directory exists
       if (!fs.existsSync(outputDir)) {

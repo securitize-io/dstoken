@@ -74,7 +74,7 @@ function updateContractAddressesInFile(filePath, addresses) {
 }
 
 function updateTaskFiles(addresses) {
-  const tasksDir = path.join(__dirname, '..', '..', 'tasks');
+  const tasksDir = path.join(__dirname, '..', 'tasks');
   
   if (!fs.existsSync(tasksDir)) {
     console.log('❌ Tasks directory not found!');
@@ -106,7 +106,7 @@ function updateTaskFiles(addresses) {
 }
 
 function main() {
-  const jsonFilePath = path.join(__dirname, '..', 'output', 'deploy-all-and-update.json');
+  const jsonFilePath = path.join(__dirname, '..', 'tasks', 'output', 'deploy-all-and-update.json');
   
   if (!fs.existsSync(jsonFilePath)) {
     console.error('❌ deploy-all-and-update.json not found!');

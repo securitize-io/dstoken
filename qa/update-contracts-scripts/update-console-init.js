@@ -7,7 +7,7 @@ const path = require('path');
 
 // Contract interface mapping for getContractAt calls
 const CONTRACT_INTERFACES = {
-  dsToken: 'IDSToken',
+  dsToken: 'DSToken',
   regService: 'IDSRegistryService',
   walletManager: 'IDSWalletManager',
   compService: 'ComplianceServiceRegulated',
@@ -102,7 +102,7 @@ function updateInitFile(addresses) {
 }
 
 function main() {
-  const jsonFilePath = path.join(__dirname, '..', 'output', 'deploy-all-and-update.json');
+  const jsonFilePath = path.join(__dirname, '..', 'tasks', 'output', 'deploy-all-and-update.json');
   
   if (!fs.existsSync(jsonFilePath)) {
     console.error('❌ deploy-all-and-update.json not found!');

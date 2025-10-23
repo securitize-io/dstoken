@@ -8,7 +8,7 @@ const path = require('path');
 console.log('🚀 Updating all scripts...\n');
 
 // Check for deployment data
-const jsonFilePath = path.join(__dirname, '..', 'output', 'deploy-all-and-update.json');
+const jsonFilePath = path.join(__dirname, '..', 'tasks', 'output', 'deploy-all-and-update.json');
 
 if (!fs.existsSync(jsonFilePath)) {
   console.error('❌ No deployment data found!');

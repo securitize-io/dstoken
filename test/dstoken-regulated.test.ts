@@ -112,6 +112,101 @@ describe('DS Token Regulated Unit Tests', function() {
       expect(await dsToken.name()).equal('Token Example 1');
       expect(await dsToken.symbol()).equal('TX1');
     });
+
+    it('Should handle multiple sequential updates correctly', async function() {
+      const { dsToken } = await loadFixture(deployDSTokenRegulated);
+      
+      // Initial state
+      expect(await dsToken.name()).equal('Token Example 1');
+      expect(await dsToken.symbol()).equal('TX1');
+      
+      // First update: Original → Version A
+      await expect(dsToken.updateNameAndSymbol('Version A', 'VA'))
+        .to.emit(dsToken, 'NameUpdated').withArgs('Token Example 1', 'Version A')
+        .to.emit(dsToken, 'SymbolUpdated').withArgs('TX1', 'VA');
+      
+      expect(await dsToken.name()).equal('Version A');
+      expect(await dsToken.symbol()).equal('VA');
+      
+      // Second update: Version A → Version B
+      await expect(dsToken.updateNameAndSymbol('Version B', 'VB'))
+        .to.emit(dsToken, 'NameUpdated').withArgs('Version A', 'Version B')
+        .to.emit(dsToken, 'SymbolUpdated').withArgs('VA', 'VB');
+      
+      expect(await dsToken.name()).equal('Version B');
+      expect(await dsToken.symbol()).equal('VB');
+      
+      // Third update: Version B → Final
+      await expect(dsToken.updateNameAndSymbol('Final Name', 'FIN'))
+        .to.emit(dsToken, 'NameUpdated').withArgs('Version B', 'Final Name')
+        .to.emit(dsToken, 'SymbolUpdated').withArgs('VB', 'FIN');
+      
+      expect(await dsToken.name()).equal('Final Name');
+      expect(await dsToken.symbol()).equal('FIN');
+    });
+
+    it('Should allow no-op calls with identical values (no events emitted)', async function() {
+      const { dsToken } = await loadFixture(deployDSTokenRegulated);
+      
+      const currentName = await dsToken.name();  // 'Token Example 1'
+      const currentSymbol = await dsToken.symbol();  // 'TX1'
+      
+      // Call with exact same values
+      const tx = await dsToken.updateNameAndSymbol(currentName, currentSymbol);
+      const receipt = await tx.wait();
+      
+      // Transaction should succeed
+      expect(receipt.status).to.equal(1);
+      
+      // But NO events should be emitted (gas optimization)
+      const nameUpdatedEvents = receipt.logs.filter((log: any) => {
+        try {
+          const parsed = dsToken.interface.parseLog(log);
+          return parsed?.name === 'NameUpdated';
+        } catch { return false; }
+      });
+      
+      const symbolUpdatedEvents = receipt.logs.filter((log: any) => {
+        try {
+          const parsed = dsToken.interface.parseLog(log);
+          return parsed?.name === 'SymbolUpdated';
+        } catch { return false; }
+      });
+      
+      expect(nameUpdatedEvents).to.have.length(0);
+      expect(symbolUpdatedEvents).to.have.length(0);
+      
+      // State unchanged
+      expect(await dsToken.name()).equal(currentName);
+      expect(await dsToken.symbol()).equal(currentSymbol);
+    });
+
+    it('Should handle partial no-op (name changes, symbol same)', async function() {
+      const { dsToken } = await loadFixture(deployDSTokenRegulated);
+      
+      const currentSymbol = await dsToken.symbol();  // 'TX1'
+      
+      // Update name but keep symbol same
+      const tx = await dsToken.updateNameAndSymbol('New Name', currentSymbol);
+      const receipt = await tx.wait();
+      
+      // Should emit NameUpdated but NOT SymbolUpdated
+      await expect(tx)
+        .to.emit(dsToken, 'NameUpdated')
+        .withArgs('Token Example 1', 'New Name');
+      
+      const symbolUpdatedEvents = receipt.logs.filter((log: any) => {
+        try {
+          const parsed = dsToken.interface.parseLog(log);
+          return parsed?.name === 'SymbolUpdated';
+        } catch { return false; }
+      });
+      
+      expect(symbolUpdatedEvents).to.have.length(0);
+      
+      expect(await dsToken.name()).equal('New Name');
+      expect(await dsToken.symbol()).equal(currentSymbol);
+    });
   });
 
   describe('Features flag', function() {
