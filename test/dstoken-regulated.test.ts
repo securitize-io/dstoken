@@ -112,6 +112,73 @@ describe('DS Token Regulated Unit Tests', function() {
       expect(await dsToken.name()).equal('Token Example 1');
       expect(await dsToken.symbol()).equal('TX1');
     });
+
+    it('Should handle multiple sequential updates correctly', async function() {
+      const { dsToken } = await loadFixture(deployDSTokenRegulated);
+
+      await expect(dsToken.updateNameAndSymbol('Version A', 'VA'))
+        .to.emit(dsToken, 'NameUpdated').withArgs('Token Example 1', 'Version A')
+        .to.emit(dsToken, 'SymbolUpdated').withArgs('TX1', 'VA');
+      expect(await dsToken.name()).equal('Version A');
+      expect(await dsToken.symbol()).equal('VA');
+
+      await expect(dsToken.updateNameAndSymbol('Version B', 'VB'))
+        .to.emit(dsToken, 'NameUpdated').withArgs('Version A', 'Version B')
+        .to.emit(dsToken, 'SymbolUpdated').withArgs('VA', 'VB');
+      expect(await dsToken.name()).equal('Version B');
+      expect(await dsToken.symbol()).equal('VB');
+
+      await expect(dsToken.updateNameAndSymbol('Final Name', 'FIN'))
+        .to.emit(dsToken, 'NameUpdated').withArgs('Version B', 'Final Name')
+        .to.emit(dsToken, 'SymbolUpdated').withArgs('VB', 'FIN');
+      expect(await dsToken.name()).equal('Final Name');
+      expect(await dsToken.symbol()).equal('FIN');
+    });
+
+    it('Should allow no-op calls with identical values (no events emitted)', async function() {
+      const { dsToken } = await loadFixture(deployDSTokenRegulated);
+
+      const tx = await dsToken.updateNameAndSymbol('Token Example 1', 'TX1');
+      const receipt = await tx.wait();
+
+      const nameUpdatedEvents = receipt.logs.filter((log: any) => {
+        try {
+          const parsed = dsToken.interface.parseLog(log);
+          return parsed?.name === 'NameUpdated';
+        } catch { return false; }
+      });
+      const symbolUpdatedEvents = receipt.logs.filter((log: any) => {
+        try {
+          const parsed = dsToken.interface.parseLog(log);
+          return parsed?.name === 'SymbolUpdated';
+        } catch { return false; }
+      });
+
+      expect(nameUpdatedEvents).to.have.length(0);
+      expect(symbolUpdatedEvents).to.have.length(0);
+      expect(await dsToken.name()).equal('Token Example 1');
+      expect(await dsToken.symbol()).equal('TX1');
+    });
+
+    it('Should handle partial no-op (name changes, symbol same)', async function() {
+      const { dsToken } = await loadFixture(deployDSTokenRegulated);
+
+      const tx = await dsToken.updateNameAndSymbol('New Name', 'TX1');
+      const receipt = await tx.wait();
+
+      await expect(tx).to.emit(dsToken, 'NameUpdated').withArgs('Token Example 1', 'New Name');
+
+      const symbolUpdatedEvents = receipt.logs.filter((log: any) => {
+        try {
+          const parsed = dsToken.interface.parseLog(log);
+          return parsed?.name === 'SymbolUpdated';
+        } catch { return false; }
+      });
+
+      expect(symbolUpdatedEvents).to.have.length(0);
+      expect(await dsToken.name()).equal('New Name');
+      expect(await dsToken.symbol()).equal('TX1');
+    });
   });
 
   describe('Features flag', function() {
