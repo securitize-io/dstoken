@@ -22,6 +22,7 @@ import { BaseDSContract } from "./BaseDSContract.sol";
 import { CommonUtils } from "./CommonUtils.sol";
 import { EIP712Upgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 /**
@@ -30,13 +31,14 @@ import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 contract TransactionRelayer is BaseDSContract, EIP712Upgradeable {
     using Address for address;
+    using Strings for uint256;
 
     string public constant NAME = "TransactionRelayer";
 
     // keccak256("ExecutePreApprovedTransaction(address destination,bytes data,uint256 nonce,string senderInvestor,uint256 blockLimit)")
     bytes32 public constant TXTYPE_HASH = 0xa89e47bab73b0e21fa4f8d69171956116faab4bbe8f8162bcc1f27a21f673442;
 
-    string public constant CONTRACT_VERSION = "6";
+    uint256 public constant CONTRACT_VERSION = 6;
 
     mapping(bytes32 investorHash => uint256 nonce) internal noncePerInvestor;
 
@@ -56,7 +58,7 @@ contract TransactionRelayer is BaseDSContract, EIP712Upgradeable {
 
     function initialize() public onlyProxy initializer {
         __BaseDSContract_init();
-        __EIP712_init(NAME, CONTRACT_VERSION);
+        __EIP712_init(NAME, CONTRACT_VERSION.toString()); // we keep version as uint for backward compatibility
     }
 
     // Note that address recovered from signatures must be strictly increasing, in order to prevent duplicates
