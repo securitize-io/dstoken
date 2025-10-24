@@ -1,11 +1,17 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@openzeppelin/hardhat-upgrades";
+import "hardhat-tracer";
 import "./tasks/tasks.index";
 import "./qa/tasks/tasks.index";
 import "dotenv/config";
 
 const config: HardhatUserConfig = {
+  tracer: {
+    enabled: true,
+    showAddresses: true,
+    gasCost: true,
+  },
   mocha: {
     parallel: false,
   },
