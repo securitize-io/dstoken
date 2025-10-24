@@ -1,0 +1,16 @@
+{
+  "testName": "Permits zero value (increments nonce, sets allowance to 0)",
+  "testNumber": 8,
+  "network": "sepolia",
+  "dsTokenAddress": "0xbA5a5EFDf79F63B5cD413AC88daf7251B29cA5EB",
+  "transactionHash": "0xe87c837d67384690b942f5f67a62a146009dac74a1eaf26dc5d6e789da081425",
+  "blockNumber": 9482033,
+  "gasUsed": "46800",
+  "owner": "0x56f7b817804AaCBd7dbd5d04b7aA6fEA227fC8a2",
+  "spender": "0xEf4491ea9660212cc1b630d309698875C121C7D5",
+  "value": 0,
+  "nonceBefore": 2,
+  "nonceAfter": 3,
+  "timestamp": "2025-10-24T18:57:49.821Z",
+  "status": "PASSED"
+}

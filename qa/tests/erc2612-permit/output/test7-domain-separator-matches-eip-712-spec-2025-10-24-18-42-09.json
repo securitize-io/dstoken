@@ -1,0 +1,9 @@
+{
+  "testName": "DOMAIN_SEPARATOR matches EIP-712 spec",
+  "testNumber": 7,
+  "network": "sepolia",
+  "dsTokenAddress": "0xbA5a5EFDf79F63B5cD413AC88daf7251B29cA5EB",
+  "timestamp": "2025-10-24T18:42:09.895Z",
+  "status": "PASSED",
+  "additionalNotes": "DOMAIN_SEPARATOR: 0x73ecb9264bcf1492b0383cb45722b945bf880dbd706074010648acaf5c90233c"
+}

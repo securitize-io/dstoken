@@ -1,0 +1,17 @@
+{
+  "testName": "Nonces are wallet-specific (independent per user)",
+  "testNumber": 12,
+  "network": "sepolia",
+  "dsTokenAddress": "0xbA5a5EFDf79F63B5cD413AC88daf7251B29cA5EB",
+  "transactionHash": "0x0d4b09e5ade18adc0d86fc3dd506ba25428144e39998e205621b49cf82fa7c37",
+  "blockNumber": 9482338,
+  "gasUsed": "51600",
+  "owner": "0x56f7b817804AaCBd7dbd5d04b7aA6fEA227fC8a2",
+  "spender": "0xE526804Ff3E551020Ac321949eBC33feaE60E7a8",
+  "recipient": "0xEf4491ea9660212cc1b630d309698875C121C7D5",
+  "nonceBefore": 13,
+  "nonceAfter": 16,
+  "timestamp": "2025-10-24T19:59:25.114Z",
+  "status": "PASSED",
+  "additionalNotes": "User1 nonce: 13 → 16 (+3 permits). User2 nonce unchanged: 0 (proves nonces are wallet-specific)"
+}

@@ -1,0 +1,15 @@
+{
+  "testName": "Emits Approval before Transfer (event order verification)",
+  "testNumber": 14,
+  "network": "sepolia",
+  "dsTokenAddress": "0xbA5a5EFDf79F63B5cD413AC88daf7251B29cA5EB",
+  "transactionHash": "0xb94b59548256bf3f44c1db62cc776933beaa881102c3c30587644ba012eba96f",
+  "blockNumber": 9482419,
+  "gasUsed": "379229",
+  "owner": "0x56f7b817804AaCBd7dbd5d04b7aA6fEA227fC8a2",
+  "spender": "0xEf4491ea9660212cc1b630d309698875C121C7D5",
+  "recipient": "0xE526804Ff3E551020Ac321949eBC33feaE60E7a8",
+  "timestamp": "2025-10-24T20:15:12.993Z",
+  "status": "PASSED",
+  "additionalNotes": "Approval event at index 0, Transfer at index 1"
+}

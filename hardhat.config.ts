@@ -14,6 +14,7 @@ const config: HardhatUserConfig = {
   },
   mocha: {
     parallel: false,
+    timeout: 600000, // 10 minutes (600,000ms) for testnet deployments
   },
   solidity: {
     version: "0.8.22",
@@ -32,6 +33,7 @@ const config: HardhatUserConfig = {
       accounts: [
         process.env.DEPLOYER_PRIV_KEY!,
         process.env.TEST_WALLET_1_PRIV_KEY!,
+        process.env.TEST_WALLET_2_PRIV_KEY!,
       ].filter((x) => x),
     },
     arbitrum: {

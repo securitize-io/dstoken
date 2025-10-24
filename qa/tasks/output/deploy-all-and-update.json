@@ -1,28 +1,28 @@
 {
   "metadata": {
-    "deployedAt": "2025-10-22T19:28:25.067Z",
+    "deployedAt": "2025-10-24T14:06:24.713Z",
     "deploymentTask": "deploy-all-and-update",
     "parameters": {
-      "name": "Your Token Name",
-      "symbol": "SYM",
-      "decimals": 6,
+      "name": "QA Token ERC2612",
+      "symbol": "QAEX",
+      "decimals": 2,
       "compliance": "REGULATED",
       "multiplier": "1000000000000000000"
     }
   },
   "addresses": {
-    "dsToken": "0x73D0b1CD6439578882FC30fe658c87D8927C79aF",
-    "regService": "0x48B659E52082f59150fF7C04d56bdaA10096e06a",
-    "trustService": "0x81828Ee6D5cf26E6608d514c0eBE772CCF060A2c",
-    "compService": "0x3B1685D38BCA0D99e62deCe68b399A6C42eA45b8",
-    "walletManager": "0x5Ba6C13F47e11beF5392d0cB8025b6967173bDbb",
-    "lockManager": "0x940Db9941e17e2229f03ebD28e1A672b1f1e425b",
-    "compConfigService": "0x23B54eC18110f325079D83d8BF72Ca5524dD9f92",
-    "tokenIssuer": "0x03725C73A7B958d6df41C57A8226bA18a9D78D5b",
-    "walletRegistrar": "0x871dB8005F86F7733645910A421aFb9f39C1D366",
-    "transactionRelayer": "0x4D0EB693957Fd0db4a6817c26E5eD5F1AFE1f790",
-    "bulkOperator": "0x3cAf3a0e7656015b9D50A694a4c60aEF0AC395DE",
-    "rebasingProvider": "0xe920FCFcae40ff8F25e6ACfF1ddcF7E38D02cd74",
-    "mockToken": "0x712d7d168Da017Fe46759B60B6a347EE2DdDEA92"
+    "dsToken": "0xbA5a5EFDf79F63B5cD413AC88daf7251B29cA5EB",
+    "regService": "0x472c1AbE5e54e56480f78C96bF05436B3ACF4606",
+    "trustService": "0xDC06cdD538F4E5A08F6009011EBa941d1d16e869",
+    "compService": "0x389629Fd1f3BDDC051d9458E0B043606928D24D1",
+    "walletManager": "0xb1916a151Ad7ecEA8c62b8aF5a2505b0EFC9A6C3",
+    "lockManager": "0x9B79cf4F3D56e87837B9434b09EdF5972e82eB4b",
+    "compConfigService": "0xAB6257058319aeF98E19680DDFfc748F7a387313",
+    "tokenIssuer": "0x263b1B606C40bdA91966F5723CB8D9DdF26eA6C6",
+    "walletRegistrar": "0x36dfD20EAD02ed688a6Bf9e8F73F21932D1C321b",
+    "transactionRelayer": "0xa05474C1Bfd5006dAC55384b6E1dFFB9413FfdCB",
+    "bulkOperator": "0xe3F0B5a7c70B006D41c06f3F3f8735B8Fc15e73f",
+    "rebasingProvider": "0x15eaaC206Dfe731664Ef1dE25bCD139b7C01D52d",
+    "mockToken": "0x42b2c2bc9d97de30bCe0f06327655C5988D9c982"
   }
 }

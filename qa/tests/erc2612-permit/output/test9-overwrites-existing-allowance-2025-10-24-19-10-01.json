@@ -1,0 +1,15 @@
+{
+  "testName": "Overwrites existing allowance",
+  "testNumber": 9,
+  "network": "sepolia",
+  "dsTokenAddress": "0xbA5a5EFDf79F63B5cD413AC88daf7251B29cA5EB",
+  "transactionHash": "0xfe9a3524ec8c3eedad24e7d509bad9f0e64267e79a458025c753822d8fce19d8",
+  "blockNumber": 9482093,
+  "gasUsed": "51612",
+  "owner": "0x56f7b817804AaCBd7dbd5d04b7aA6fEA227fC8a2",
+  "spender": "0xEf4491ea9660212cc1b630d309698875C121C7D5",
+  "allowanceSet": 200,
+  "timestamp": "2025-10-24T19:10:01.084Z",
+  "status": "PASSED",
+  "additionalNotes": "Previous allowance of 50 was overwritten to 200"
+}
