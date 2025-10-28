@@ -1,6 +1,6 @@
 {
   "name": "@securitize/digital_securities",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "description": "Digital Securities Reference Implementation",
   "scripts": {
     "test": "hardhat test",
@@ -73,10 +73,8 @@
     "typechain": "^8.3.2",
     "typescript": "^5.4.4",
     "@changesets/cli": "^2.22.0"
-
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "files": [
     "artifacts",
     "contracts",
