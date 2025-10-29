@@ -754,6 +754,37 @@ describe('DS Token Regulated Unit Tests', function() {
         const nonceAfter = await dsToken.nonces(owner.address);
         expect(nonceAfter).to.equal(nonceBefore + 1n);
       });
+
+      it('Should demonstrate front-running attack on transferWithPermit', async () => {
+        const [owner, spender, recipient, attacker] = await hre.ethers.getSigners();
+        const { dsToken, registryService } = await loadFixture(deployDSTokenRegulated);
+        const value = 100;
+        const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+
+        const message = {
+          owner: owner.address,
+          spender: spender.address,
+          value,
+          nonce: await dsToken.nonces(owner.address),
+          deadline,
+        };
+        const { v, r, s } = await buildPermitSignature(owner, message, await dsToken.name(), await dsToken.getAddress());
+
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, owner, registryService);
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, recipient, registryService);
+        await dsToken.issueTokens(owner, value);
+
+        await dsToken.connect(attacker).permit(owner.address, spender.address, value, deadline, v, r, s);
+
+        await expect(
+          dsToken.connect(spender).transferWithPermit(owner.address, recipient.address, value, deadline, v, r, s)
+        ).to.be.revertedWith('Permit: invalid signature');
+
+        expect(await dsToken.allowance(owner.address, spender.address)).to.equal(value);
+        expect(await dsToken.balanceOf(recipient.address)).to.equal(0);
+        expect(await dsToken.balanceOf(owner.address)).to.equal(value);
+        expect(await dsToken.nonces(owner.address)).to.equal(1n);
+      });
     });
   });
 
