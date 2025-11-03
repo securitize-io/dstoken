@@ -229,7 +229,12 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract, ERC
         bytes32 s
     ) external returns (bool) {
         // 1. Use EIP-2612 permit to approve msg.sender
-        permit(from, msg.sender, value, deadline, v, r, s);
+        try this.permit(from, msg.sender, value, deadline, v, r, s) {
+            // Permit succeeded
+        } catch {
+            // Verify we have sufficient allowance to proceed
+            require(allowance(from, msg.sender) >= value, "Insufficient allowance");
+        }
         // 2. Perform the actual transferFrom
         return transferFrom(from, to, value);
     }
