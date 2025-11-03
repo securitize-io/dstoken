@@ -53,8 +53,8 @@ contract ComplianceServiceGlobalWhitelisted is ComplianceServiceWhitelisted {
         uint256 _balanceFrom,
         bool _pausedToken
     ) public view virtual override returns (uint256 code, string memory reason) {
-        // First check if recipient is blacklisted
-        if (getBlackListManager().isBlacklisted(_to)) {
+        // First check if the senders or the recipient is blacklisted
+        if (getBlackListManager().isBlacklisted(_to) || getBlackListManager().isBlacklisted(_from)) {
             return (100, WALLET_BLACKLISTED);
         }
 
@@ -63,8 +63,8 @@ contract ComplianceServiceGlobalWhitelisted is ComplianceServiceWhitelisted {
     }
 
     function preTransferCheck(address _from, address _to, uint256 _value) public view virtual override returns (uint256 code, string memory reason) {
-        // First check if recipient is blacklisted
-        if (getBlackListManager().isBlacklisted(_to)) {
+        // First check if the senders or the recipient is blacklisted
+        if (getBlackListManager().isBlacklisted(_to) || getBlackListManager().isBlacklisted(_from)) {
             return (100, WALLET_BLACKLISTED);
         }
 
