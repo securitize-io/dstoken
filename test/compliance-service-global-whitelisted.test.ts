@@ -330,4 +330,33 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
       expect(result[1]).to.equal("Wallet is blacklisted");
     });
   });
+
+  describe("Transferable Tokens", function () {
+    it("should return transferable tokens for non-blacklisted wallets", async function () {
+      const currentTime = await hre.ethers.provider.getBlock("latest").then(block => block!.timestamp);
+      const transferableTokens = await complianceService.getComplianceTransferableTokens(
+        userAddress,
+        currentTime + 1,
+        0,
+      );
+
+      // Can transfer all tokens as not blacklisted
+      expect(transferableTokens).to.equal(1000);
+    });
+
+    it("should return 0 transferable tokens for blacklisted wallets", async function () {
+      await blacklistManager
+        .connect(transferAgent)
+        .addToBlacklist(userAddress, reason);
+
+      const currentTime = await hre.ethers.provider.getBlock("latest").then(block => block!.timestamp);
+      const transferableTokens = await complianceService.getComplianceTransferableTokens(
+        userAddress,
+        currentTime + 1,
+        0,
+      );
+
+      expect(transferableTokens).to.equal(0);
+    });
+  });
 });
