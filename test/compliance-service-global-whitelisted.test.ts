@@ -297,6 +297,30 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
       expect(result2[1]).to.equal("Wallet is blacklisted");
     });
 
+    it("should reject transfers from blacklisted wallets", async function () {
+      await blacklistManager
+        .connect(transferAgent)
+        .addToBlacklist(userAddress, reason);
+
+      const result1 = await complianceService.preTransferCheck(
+        userAddress,
+        user2Address,
+        1000,
+      );
+      expect(result1[0]).to.equal(100);
+      expect(result1[1]).to.equal("Wallet is blacklisted");
+
+      const result2 = await complianceService.newPreTransferCheck(
+        userAddress,
+        user2Address,
+        1000,
+        1000,
+        false,
+      );
+      expect(result2[0]).to.equal(100);
+      expect(result2[1]).to.equal("Wallet is blacklisted");
+    });
+
     it("should override whitelist check for blacklisted wallets", async function () {
       await blacklistManager
         .connect(transferAgent)
