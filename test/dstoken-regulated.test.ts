@@ -384,6 +384,67 @@ describe('DS Token Regulated Unit Tests', function() {
         const separator = await dsToken.DOMAIN_SEPARATOR();
         expect(separator).to.equal(domain);
       });
+
+      it('Should permit works OK after name change', async function() {
+        const [owner, spender] = await hre.ethers.getSigners();
+        const { dsToken } = await loadFixture(deployDSTokenRegulated);
+
+        // Initial state: Token name is "Token Example 1"
+        const originalName = await dsToken.name();
+        expect(originalName).to.equal('Token Example 1');
+
+        // Permit works BEFORE name change
+        console.log('\n--- BEFORE NAME CHANGE ---');
+        const deadline1 = BigInt(Math.floor(Date.now() / 1000) + 3600);
+        const value = 100;
+        const message1 = {
+          owner: owner.address,
+          spender: spender.address,
+          value,
+          nonce: await dsToken.nonces(owner.address),
+          deadline: deadline1,
+        };
+
+        // User signs with original name "Token Example 1"
+        const sig1 = await buildPermitSignature(
+          owner,
+          message1,
+          originalName, // Uses "Token Example 1"
+          await dsToken.getAddress(),
+        );
+
+        // Permit succeeds with original name
+        await dsToken.permit(owner.address, spender.address, value, deadline1, sig1.v, sig1.r, sig1.s);
+        expect(await dsToken.allowance(owner.address, spender.address)).to.equal(value);
+
+        // Master updates token name
+        const newName = 'Token Example 2 - Updated';
+        await dsToken.updateNameAndSymbol(newName, 'TX2');
+        expect(await dsToken.name()).to.equal(newName);
+
+        // STEP 3: Permit continues working after name change
+        const deadline2 = BigInt(Math.floor(Date.now() / 1000) + 3600);
+        const message2 = {
+          owner: owner.address,
+          spender: spender.address,
+          value: 200,
+          nonce: await dsToken.nonces(owner.address),
+          deadline: deadline2,
+        };
+
+        // User's wallet fetches current name and generates signature
+        const currentName = await dsToken.name(); // Returns "Token Example 2 - Updated"
+
+        const sig2 = await buildPermitSignature(
+          owner,
+          message2,
+          currentName, // Uses NEW name "Token Example 2 - Updated"
+          await dsToken.getAddress(),
+        );
+
+        // Permit does not fail
+        await dsToken.permit(owner.address, spender.address, 200, deadline2, sig2.v, sig2.r, sig2.s);
+      });
     });
   });
 

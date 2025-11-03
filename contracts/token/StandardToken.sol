@@ -54,9 +54,9 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract, ERC
         _;
     }
 
-    function __StandardToken_init(string calldata _name) public onlyProxy onlyInitializing {
+    function __StandardToken_init(string calldata name_) public onlyProxy onlyInitializing {
         __BaseDSContract_init();
-        __ERC20PermitMixin_init(_name);
+        __ERC20PermitMixin_init(name_);
     }
 
     function pause() public onlyTransferAgentOrAbove whenNotPaused {
@@ -75,15 +75,15 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract, ERC
 
     /**
      * @dev Updates the token name and symbol
-     * @param _name New name for the token
+     * @param _newName New name for the token
      * @param _symbol New symbol for the token
      * @notice Only callable by Master role
      */
-    function updateNameAndSymbol(string calldata _name, string calldata _symbol) external onlyMaster {
-        require(!CommonUtils.isEmptyString(_name), "Name cannot be empty");
+    function updateNameAndSymbol(string calldata _newName, string calldata _symbol) external onlyMaster {
+        require(!CommonUtils.isEmptyString(_newName), "Name cannot be empty");
         require(!CommonUtils.isEmptyString(_symbol), "Symbol cannot be empty");
-        if (!CommonUtils.isEqualString(_name, name)) {
-            _updateName(_name);
+        if (!CommonUtils.isEqualString(_newName, name)) {
+            _updateName(_newName);
         }
         if (!CommonUtils.isEqualString(_symbol, symbol)) {
             _updateSymbol(_symbol);
@@ -92,11 +92,11 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract, ERC
 
     /**
      * @dev Internal function to update the token name
-     * @param _name New name to set
+     * @param _newName New name to set
      */
-    function _updateName(string calldata _name) private {
-        emit NameUpdated(name, _name);
-        name = _name;
+    function _updateName(string calldata _newName) private {
+        emit NameUpdated(name, _newName);
+        name = _newName;
     }
 
     /**
@@ -180,6 +180,10 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract, ERC
 
         allowances[owner][spender] = value;
         emit Approval(owner, spender, value);
+    }
+
+    function _name() internal view virtual override returns (string memory) {
+        return name;
     }
 
     function allowance(address _owner, address _spender) public view returns (uint256) {
