@@ -91,4 +91,19 @@ contract ComplianceServiceGlobalWhitelisted is ComplianceServiceWhitelisted {
         // Then perform the standard whitelist check
         return super.preIssuanceCheck(_to, _value);
     }
+
+    function getComplianceTransferableTokens(
+        address _who,
+        uint256 _time,
+        uint64 /*_lockTime*/
+    ) public view virtual override returns (uint256) {
+        require(_time > 0, "Time must be greater than zero");
+
+        // Check if the user is blacklisted
+        if (getBlackListManager().isBlacklisted(_who)) {
+            return 0;
+        }
+
+        return getLockManager().getTransferableTokens(_who, _time);
+    }
 }
