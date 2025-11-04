@@ -19,6 +19,7 @@
 pragma solidity 0.8.22;
 
 import {ComplianceServiceWhitelisted} from "./ComplianceServiceWhitelisted.sol";
+import {IDSBlackListManager} from "./IDSBlackListManager.sol";
 
 /**
  * @title Compliance service with blacklist functionality
@@ -53,8 +54,11 @@ contract ComplianceServiceGlobalWhitelisted is ComplianceServiceWhitelisted {
         uint256 _balanceFrom,
         bool _pausedToken
     ) public view virtual override returns (uint256 code, string memory reason) {
+        // Cache BlackListManager to avoid multiple external calls
+        IDSBlackListManager blackListManager = getBlackListManager();
+
         // First check if the senders or the recipient is blacklisted
-        if (getBlackListManager().isBlacklisted(_to) || getBlackListManager().isBlacklisted(_from)) {
+        if (blackListManager.isBlacklisted(_to) || blackListManager.isBlacklisted(_from)) {
             return (100, WALLET_BLACKLISTED);
         }
 
