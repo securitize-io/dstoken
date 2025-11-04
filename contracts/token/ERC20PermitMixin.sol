@@ -56,6 +56,15 @@ abstract contract ERC20PermitMixin is Initializable, EIP712Upgradeable, IERC20Pe
     }
 
     /**
+     * @dev Returns the name that will be used for EIP712 domain separation.
+     * @notice Overrides the default EIP712 name implementation to use the token's actual name.
+     * @return The token name as a string, retrieved via the abstract _name() function.
+     */
+    function _EIP712Name() internal view virtual override returns (string memory) {
+        return _name();  // Calls abstract function implemented by StandardToken
+    }
+
+    /**
      * @inheritdoc IERC20Permit
      */
     function permit(
@@ -94,4 +103,9 @@ abstract contract ERC20PermitMixin is Initializable, EIP712Upgradeable, IERC20Pe
      * @dev Must be implemented by the inheriting token (e.g., StandardToken) to actually update allowances.
      */
     function _approve(address owner, address spender, uint256 value) internal virtual;
+
+    /**
+     * @dev Must be implemented by the inheriting token (e.g., StandardToken) to get name.
+     */
+    function _name() internal view virtual returns (string memory);
 }

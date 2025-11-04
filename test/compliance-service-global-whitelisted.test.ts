@@ -297,6 +297,30 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
       expect(result2[1]).to.equal("Wallet is blacklisted");
     });
 
+    it("should reject transfers from blacklisted wallets", async function () {
+      await blacklistManager
+        .connect(transferAgent)
+        .addToBlacklist(userAddress, reason);
+
+      const result1 = await complianceService.preTransferCheck(
+        userAddress,
+        user2Address,
+        1000,
+      );
+      expect(result1[0]).to.equal(100);
+      expect(result1[1]).to.equal("Wallet is blacklisted");
+
+      const result2 = await complianceService.newPreTransferCheck(
+        userAddress,
+        user2Address,
+        1000,
+        1000,
+        false,
+      );
+      expect(result2[0]).to.equal(100);
+      expect(result2[1]).to.equal("Wallet is blacklisted");
+    });
+
     it("should override whitelist check for blacklisted wallets", async function () {
       await blacklistManager
         .connect(transferAgent)
@@ -328,6 +352,35 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
       );
       expect(result[0]).to.equal(100);
       expect(result[1]).to.equal("Wallet is blacklisted");
+    });
+  });
+
+  describe("Transferable Tokens", function () {
+    it("should return transferable tokens for non-blacklisted wallets", async function () {
+      const currentTime = await hre.ethers.provider.getBlock("latest").then(block => block!.timestamp);
+      const transferableTokens = await complianceService.getComplianceTransferableTokens(
+        userAddress,
+        currentTime + 1,
+        0,
+      );
+
+      // Can transfer all tokens as not blacklisted
+      expect(transferableTokens).to.equal(1000);
+    });
+
+    it("should return 0 transferable tokens for blacklisted wallets", async function () {
+      await blacklistManager
+        .connect(transferAgent)
+        .addToBlacklist(userAddress, reason);
+
+      const currentTime = await hre.ethers.provider.getBlock("latest").then(block => block!.timestamp);
+      const transferableTokens = await complianceService.getComplianceTransferableTokens(
+        userAddress,
+        currentTime + 1,
+        0,
+      );
+
+      expect(transferableTokens).to.equal(0);
     });
   });
 });
