@@ -551,6 +551,66 @@ describe('DS Token Regulated Unit Tests', function() {
         expect(allowance).to.equal(100);
       });
 
+      it('Should permit works OK after name change', async function() {
+        const [owner, spender] = await hre.ethers.getSigners();
+        const { dsToken } = await loadFixture(deployDSTokenRegulated);
+
+        // Initial state: Token name is "Token Example 1"
+        const originalName = await dsToken.name();
+        expect(originalName).to.equal('Token Example 1');
+
+        // Permit works BEFORE name change
+        const deadline1 = BigInt(Math.floor(Date.now() / 1000) + 3600);
+        const value = 100;
+        const message1 = {
+          owner: owner.address,
+          spender: spender.address,
+          value,
+          nonce: await dsToken.nonces(owner.address),
+          deadline: deadline1,
+        };
+
+        // User signs with original name "Token Example 1"
+        const sig1 = await buildPermitSignature(
+          owner,
+          message1,
+          originalName, // Uses "Token Example 1"
+          await dsToken.getAddress(),
+        );
+
+        // Permit succeeds with original name
+        await dsToken.permit(owner.address, spender.address, value, deadline1, sig1.v, sig1.r, sig1.s);
+        expect(await dsToken.allowance(owner.address, spender.address)).to.equal(value);
+
+        // Master updates token name
+        const newName = 'Token Example 2 - Updated';
+        await dsToken.updateNameAndSymbol(newName, 'TX2');
+        expect(await dsToken.name()).to.equal(newName);
+
+        // STEP 3: Permit continues working after name change
+        const deadline2 = BigInt(Math.floor(Date.now() / 1000) + 3600);
+        const message2 = {
+          owner: owner.address,
+          spender: spender.address,
+          value: 200,
+          nonce: await dsToken.nonces(owner.address),
+          deadline: deadline2,
+        };
+
+        // User's wallet fetches current name and generates signature
+        const currentName = await dsToken.name(); // Returns "Token Example 2 - Updated"
+
+        const sig2 = await buildPermitSignature(
+          owner,
+          message2,
+          currentName, // Uses NEW name "Token Example 2 - Updated"
+          await dsToken.getAddress(),
+        );
+
+        // Permit does not fail
+        await dsToken.permit(owner.address, spender.address, 200, deadline2, sig2.v, sig2.r, sig2.s);
+      });
+
       it('Should increment nonces monotonically', async () => {
         const [owner, spender1, spender2] = await hre.ethers.getSigners();
         const { dsToken } = await loadFixture(deployDSTokenRegulated);
@@ -659,9 +719,11 @@ describe('DS Token Regulated Unit Tests', function() {
         await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, recipient, registryService);
         await dsToken.issueTokens(owner, value);
 
+        // With mitigation: permit() fails due to expired deadline, but since there's no existing allowance,
+        // transferWithPermit reverts with "Insufficient allowance"
         await expect(
           dsToken.connect(spender).transferWithPermit(owner.address, recipient.address, value, deadline, v, r, s)
-        ).to.be.revertedWith('Permit: expired deadline');
+        ).to.be.revertedWith('Insufficient allowance');
 
         expect(await dsToken.balanceOf(recipient.address)).to.equal(0);
         expect(await dsToken.balanceOf(owner.address)).to.equal(value);
@@ -717,9 +779,11 @@ describe('DS Token Regulated Unit Tests', function() {
         expect(await dsToken.balanceOf(recipient.address)).to.equal(100);
         expect(await dsToken.balanceOf(owner.address)).to.equal(100);
 
+        // With mitigation: permit() fails due to nonce already consumed, but since allowance was consumed
+        // by the first transferFrom, transferWithPermit reverts with "Insufficient allowance"
         await expect(
           dsToken.connect(spender).transferWithPermit(owner.address, recipient.address, value, deadline, v, r, s)
-        ).to.be.revertedWith('Permit: invalid signature');
+        ).to.be.revertedWith('Insufficient allowance');
 
         expect(await dsToken.balanceOf(recipient.address)).to.equal(100);
         expect(await dsToken.balanceOf(owner.address)).to.equal(100);
@@ -774,16 +838,22 @@ describe('DS Token Regulated Unit Tests', function() {
         await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, recipient, registryService);
         await dsToken.issueTokens(owner, value);
 
+        // ATTACK SCENARIO: Attacker front-runs by calling permit() directly
         await dsToken.connect(attacker).permit(owner.address, spender.address, value, deadline, v, r, s);
 
+        // With mitigation: transferWithPermit() should SUCCEED because:
+        // 1. permit() fails (nonce already consumed), but...
+        // 2. allowance was set by attacker's permit() call
+        // 3. transferFrom proceeds successfully
         await expect(
           dsToken.connect(spender).transferWithPermit(owner.address, recipient.address, value, deadline, v, r, s)
-        ).to.be.revertedWith('Permit: invalid signature');
+        ).to.emit(dsToken, 'Transfer').withArgs(owner.address, recipient.address, value);
 
-        expect(await dsToken.allowance(owner.address, spender.address)).to.equal(value);
-        expect(await dsToken.balanceOf(recipient.address)).to.equal(0);
-        expect(await dsToken.balanceOf(owner.address)).to.equal(value);
-        expect(await dsToken.nonces(owner.address)).to.equal(1n);
+        // Verify the transfer succeeded despite the front-running attack
+        expect(await dsToken.balanceOf(recipient.address)).to.equal(value);
+        expect(await dsToken.balanceOf(owner.address)).to.equal(0);
+        expect(await dsToken.allowance(owner.address, spender.address)).to.equal(0); // Consumed by transferFrom
+        expect(await dsToken.nonces(owner.address)).to.equal(1n); // Nonce consumed by attacker's permit()
       });
     });
   });
