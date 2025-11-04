@@ -68,18 +68,16 @@ contract BlackListManager is IDSBlackListManager, BlackListManagerDataStore, Bas
 
     function _addToBlacklist(address _wallet, string calldata _reason) private {
         if (_wallet == address(0)) revert ZeroAddressInvalid();
-        if (_blacklistedWallets.contains(_wallet)) revert WalletAlreadyBlacklisted();
+        if (!_blacklistedWallets.add(_wallet)) revert WalletAlreadyBlacklisted();
 
-        _blacklistedWallets.add(_wallet);
         _blacklistReasons[_wallet] = _reason;
 
         emit WalletAddedToBlacklist(_wallet, _reason, msg.sender);
     }
 
     function _removeFromBlacklist(address _wallet) private {
-        if (!_blacklistedWallets.contains(_wallet)) revert WalletNotBlacklisted();
+        if (!_blacklistedWallets.remove(_wallet)) revert WalletNotBlacklisted();
 
-        _blacklistedWallets.remove(_wallet);
         delete _blacklistReasons[_wallet];
 
         emit WalletRemovedFromBlacklist(_wallet, msg.sender);
