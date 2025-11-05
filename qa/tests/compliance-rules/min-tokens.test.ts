@@ -204,7 +204,7 @@ describe('Compliance Rules: Minimum Token Requirements', function() {
       const { ethers } = hre;
       const [signer] = await ethers.getSigners();
       
-      const compService = await ethers.getContractAt("ComplianceServiceRegulated", "0x389629Fd1f3BDDC051d9458E0B043606928D24D1", 
+      const compService = await ethers.getContractAt("ComplianceServiceRegulated", "0x1B1eA586261fD2343C8979BD125c25FeE8D68818", 
         signer
       );
       

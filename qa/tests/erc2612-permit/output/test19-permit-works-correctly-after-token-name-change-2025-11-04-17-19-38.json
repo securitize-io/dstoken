@@ -1,0 +1,22 @@
+{
+  "testName": "Permit works correctly after token name change",
+  "testNumber": 19,
+  "network": "sepolia",
+  "dsTokenAddress": "0x696636c032cCBb81932d9aeB176992CfAf264d32",
+  "transactionHash": "0x2823f9a8e51f72bc99db78d3583b03663bd97318eb91896775e17ce18189c98a",
+  "blockNumber": 9560217,
+  "gasUsed": "85791",
+  "owner": "0x56f7b817804AaCBd7dbd5d04b7aA6fEA227fC8a2",
+  "spender": "0xEf4491ea9660212cc1b630d309698875C121C7D5",
+  "originalName": "QA Token ERC2612",
+  "newName": "Token Example 2 - Updated",
+  "firstPermitValue": 100,
+  "secondPermitValue": 200,
+  "nonceBefore1": 0,
+  "nonceAfter1": 1,
+  "nonceBefore2": 1,
+  "nonceAfter2": 2,
+  "timestamp": "2025-11-04T17:19:38.064Z",
+  "status": "PASSED",
+  "additionalNotes": "Permit succeeded with original name \"QA Token ERC2612\" (tx: 0x2823f9a8e51f72bc99db78d3583b03663bd97318eb91896775e17ce18189c98a). Name updated to \"Token Example 2 - Updated\". Permit continued working after name change (tx: 0x14e8ccee96d78a642bf5f125aec48bc4d1538a26bc4be59c4bf124929c6630a8)."
+}

@@ -34,6 +34,7 @@ const config: HardhatUserConfig = {
         process.env.DEPLOYER_PRIV_KEY!,
         process.env.TEST_WALLET_1_PRIV_KEY!,
         process.env.TEST_WALLET_2_PRIV_KEY!,
+        process.env.TEST_WALLET_3_PRIV_KEY!
       ].filter((x) => x),
     },
     arbitrum: {
