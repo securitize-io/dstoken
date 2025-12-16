@@ -17,7 +17,6 @@ task("permit-signature")
     );
 
     const tokenName = await contract.name();
-    taskArgs.tokenName = tokenName;
     console.log(`Token name: ${tokenName}`);
 
     // const nonceCo = await contract.nonces(taskArgs.owner);
@@ -27,7 +26,7 @@ task("permit-signature")
 
     const domain: ethers.TypedDataDomain = {
       version: "1",
-      name: taskArgs.tokenName,
+      name: tokenName,
       verifyingContract: taskArgs.tokenAddress,
       chainId: taskArgs.chainId,
     };

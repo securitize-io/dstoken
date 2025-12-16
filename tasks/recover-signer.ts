@@ -12,12 +12,13 @@ task("recover-signer")
   .addParam("deadline", "The deadline")
   .addParam("tokenName", "The token name")
   .addParam("tokenAddress", "The token address")
+  .addParam("chainId", "The chain ID")
   .setAction(async (taskArgs, { ethers: hardhatEthers }) => {
     const domain = {
       version: "1",
       name: taskArgs.tokenName,
       verifyingContract: taskArgs.tokenAddress,
-      chainId: (await hardhatEthers.provider.getNetwork()).chainId,
+      chainId: taskArgs.chainId,
     };
 
     const types = {
@@ -44,5 +45,5 @@ task("recover-signer")
       ethers.toBeHex(parseInt(taskArgs.v), 1),
     ]);
     const signer = ethers.verifyTypedData(domain, types, message, sigBytes);
-    console.log(signer);
+    console.log("signer:", signer);
   });
