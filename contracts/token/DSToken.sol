@@ -40,7 +40,7 @@ contract DSToken is StandardToken {
         string calldata _symbol,
         uint8 _decimals
         ) public virtual override onlyProxy initializer {
-        __StandardToken_init();
+        __StandardToken_init(_name);
 
         name = _name;
         symbol = _symbol;

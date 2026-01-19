@@ -19,6 +19,13 @@ export const deployDSTokenWhitelisted = () => {
   return hre.run('deploy-all', { name, symbol, decimals: 2, compliance });
 };
 
+export const deployDSTokenGlobalWhitelisted = () => {
+  const name = 'Token Example 1';
+  const symbol = 'TX1';
+  const compliance = 'GLOBAL_WHITELISTED';
+  return hre.run('deploy-all', { name, symbol, decimals: 2, compliance });
+};
+
 export const deployDSTokenRegulatedWithRebasing = async () => {
   const name = 'Token Example 1';
   const symbol = 'TX1';

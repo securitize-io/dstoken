@@ -27,6 +27,16 @@ abstract contract IDSToken is IERC20, Initializable {
     event TxShares(address indexed from, address indexed to, uint256 shares, uint256 multiplier);
     event Burn(address indexed burner, uint256 value, string reason);
     event Seize(address indexed from, address indexed to, uint256 value, string reason);
+    // TBE Backward compatibility ===
+    event OmnibusDeposit(address indexed omnibusWallet, address to, uint256 value, uint8 assetTrackingMode);
+    event OmnibusWithdraw(address indexed omnibusWallet, address from, uint256 value, uint8 assetTrackingMode);
+    event OmnibusSeize(address indexed omnibusWallet, address from, uint256 value, string reason, uint8 assetTrackingMode);
+    event OmnibusBurn(address indexed omnibusWallet, address who, uint256 value, string reason, uint8 assetTrackingMode);
+    event OmnibusTransfer(address indexed omnibusWallet, address from, address to, uint256 value, uint8 assetTrackingMode);
+    event OmnibusTBEOperation(address indexed omnibusWallet, int256 totalDelta, int256 accreditedDelta,
+        int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta);
+    event OmnibusTBETransfer(address omnibusWallet, string externalId);
+    // ==============================
 
     event WalletAdded(address wallet);
     event WalletRemoved(address wallet);
