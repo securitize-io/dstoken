@@ -29,11 +29,9 @@ import {IDSRegistryService} from "../registry/IDSRegistryService.sol";
 import {IDSTrustService} from "../trust/IDSTrustService.sol";
 import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-
-
+import {IDSBlackListManager} from "../compliance/IDSBlackListManager.sol";
 
 abstract contract ServiceConsumer is IDSServiceConsumer, ServiceConsumerDataStore, OwnableUpgradeable {
-
     // Bring role constants to save gas both in deployment (less bytecode) and usage
     uint8 public constant ROLE_NONE = 0;
     uint8 public constant ROLE_MASTER = 1;
@@ -46,13 +44,13 @@ abstract contract ServiceConsumer is IDSServiceConsumer, ServiceConsumerDataStor
     }
 
     modifier onlyMaster {
-        if(owner() != msg.sender) require(getTrustService().getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
+        if (owner() != msg.sender) require(getTrustService().getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
         _;
     }
 
     /**
-   * @dev Allow invoking functions only by the users who have the MASTER role or the ISSUER role or the TRANSFER AGENT role.
-   */
+     * @dev Allow invoking functions only by the users who have the MASTER role or the ISSUER role or the TRANSFER AGENT role.
+     */
     modifier onlyIssuerOrTransferAgentOrAbove() {
         IDSTrustService trustManager = getTrustService();
         uint8 role = trustManager.getRole(msg.sender);
@@ -155,5 +153,9 @@ abstract contract ServiceConsumer is IDSServiceConsumer, ServiceConsumerDataStor
 
     function getRebasingProvider() internal view returns (ISecuritizeRebasingProvider) {
         return ISecuritizeRebasingProvider(getDSService(REBASING_PROVIDER));
+    }
+
+    function getBlackListManager() internal view returns (IDSBlackListManager) {
+        return IDSBlackListManager(getDSService(BLACKLIST_MANAGER));
     }
 }

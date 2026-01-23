@@ -3,15 +3,15 @@
 
 # Digital Securities (DS) Protocol Token - DSToken v4
 
-The DS Token is a reference implementation of Securitize's Digital Securities Protocol. This repository contains the latest version of the protocol (DSToken v4). 
+The DS Token is a reference implementation of Securitize's Digital Securities Protocol. This repository contains the latest version of the protocol (DSToken v4).
 
 The Digital Securities (DS) Protocol aims to enable and simplify regulation compliant lifecycle for securities on the blockchain, from issuance to trading. This v4 includes major improvements in compliance management, rebasing, and self-service functionality.
 
 > More information on Securitize and its Digital Securities protocol can be found at [https://www.securitize.io](https://www.securitize.io).
 
 The DS protocol is based on a set of components, or **services**, each implementing a different aspect required for the security environment.
-The services are accessible from Web3-enabled applications. This allows their access by relevant actors, like exchanges, blockchain Web3-based applications, and platforms that 
-provide additional services such as instant minting, swap and redemption flows.  
+The services are accessible from Web3-enabled applications. This allows their access by relevant actors, like exchanges, blockchain Web3-based applications, and platforms that
+provide additional services such as instant minting, swap and redemption flows.
 
 > More in-depth information about the structure of the DS Protocol can be found in its [Whitepaper](https://securitize.io/whitepapers).
 
@@ -53,8 +53,17 @@ More detailed information about the types of data stored in the registry can be 
 The compliance service contracts enforce the actual compliance rules, and can be used by the token (and others) to make sure trades are done in a regulatory-compliant manner.
 The following compliance service types are implemented:
 
-- **Full/Normal** (ESComplianceServiceRegulated) - A full Compliance Service implementing transfer rules common to regulations worldwide, such as: restricting or limiting the number of retail investors, restricting investors from certain countries, requiring accredited investor status or preventing flowback of off-shore tokens.
-- **Whitelist** (ESComplianceServiceWhitelisted.sol) - A simple Compliance Service restricting transfers only based on basic white-listing of investors.
+- **Full/Normal** (ComplianceServiceRegulated) - A full Compliance Service implementing transfer rules common to regulations worldwide, such as: restricting or limiting the number of retail investors, restricting investors from certain countries, requiring accredited investor status or preventing flowback of off-shore tokens.
+- **WhiteList** (ComplianceServiceWhitelisted.sol) - A simple Compliance Service restricting transfers only based on basic white-listing of investors.
+- **Global Whitelisted with Blacklist** (ComplianceServiceGlobalWhitelisted) - A Compliance Service that combines global whitelisting with a dedicated blacklist functionality. This service validates transfers and issuances against both whitelist rules and a separate blacklist of restricted wallets.
+
+#### BlackListManager (/contracts/compliance)
+
+The BlackListManager is a dedicated service for managing blacklisted wallets. It provides functionality to add, remove, and query blacklisted addresses with associated reasons. This separation of concerns allows for:
+
+- Independent management of blacklist operations
+- Reusability across different compliance services
+- Clear separation between validation logic (ComplianceService) and data management (BlackListManager)
 
 More detailed information about the Compliance Service can be found in the tutorials above and in the posts linked above.
 
@@ -129,11 +138,11 @@ npx hardhat verify-all --network {network} --token {dsTokenAddress}
 Tests run on a local Hardhat node. A Hardhat node instance is launched if none is running when starting the test.
 
 The migration process requires a lot of gas, which is potentially expensive depending on the network in use. We recommend running tests on local node instances.
-The full token can of course be deployed to mainnet or testnet on any compatible EVM chain. 
+The full token can of course be deployed to mainnet or testnet on any compatible EVM chain.
 
 ### Deployment and migration
 
-We created factory contracts to reduce gas costs significantly. Also, implementation contracts are reused across deployments to further reduce gas costs, 
+We created factory contracts to reduce gas costs significantly. Also, implementation contracts are reused across deployments to further reduce gas costs,
 and deployments are resilient to transaction failures. They can be resumed and retried after the last successful transaction.
 
 #### DeploymentUtils
@@ -158,12 +167,12 @@ There are deployments on different public networks.
 
 ```solidity
 function setImplementationAddress(
-  uint8 service,
-  address implementationAddress
+    uint8 service,
+    address implementationAddress
 ) public restricted;
 function setImplementationAddresses(
-  uint8[] memory services,
-  address[] memory addresses
+    uint8[] memory services,
+    address[] memory addresses
 ) public restricted;
 ```
 
@@ -181,7 +190,7 @@ The following initiatives are part of the current roadmap:
 
 ### Security audits
 
-Independent audits of the current implementation were performed by [Cyfrin](audits/2025-10-10-cyfrin-securitize-dstoken-v4-2.1.pdf) and [Halborn](audits/2025-10-09-Halborn-DSToken_v4_SSC.pdf), and can be found in the /audits folder.  
+Independent audits of the current implementation were performed by [Cyfrin](audits/2025-10-10-cyfrin-securitize-dstoken-v4-2.1.pdf) and [Halborn](audits/2025-10-09-Halborn-DSToken_v4_SSC.pdf), and can be found in the /audits folder.
 
 ### Issue Reporting
 
