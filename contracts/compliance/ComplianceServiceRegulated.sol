@@ -205,6 +205,23 @@ library ComplianceServiceLibrary {
             return (15, NOT_ENOUGH_TOKENS);
         }
 
+        // Check if sender is a platform wallet (exempt from lock checks)
+        if (!IDSWalletManager(_services[WALLET_MANAGER]).isPlatformWallet(_from)) {
+            // Get investor IDs to check for locks
+            (string memory investorFrom, string memory investorTo) = IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestors(_from, _to);
+
+            // Check for FULL investor lock - blocks ALL transfers including reallocations
+            if (!CommonUtils.isEmptyString(investorFrom) && IDSLockManager(_services[LOCK_MANAGER]).isInvestorLocked(investorFrom)) {
+                return (16, TOKENS_LOCKED);
+            }
+
+            // Check transferable tokens (only for non-reallocations with partial locks)
+            bool isReallocation = !CommonUtils.isEmptyString(investorFrom) && CommonUtils.isEqualString(investorFrom, investorTo);
+            if (!isReallocation && IDSLockManager(_services[LOCK_MANAGER]).getTransferableTokens(_from, block.timestamp) < _value) {
+                return (16, TOKENS_LOCKED);
+            }
+        }
+
         uint256 fromInvestorBalance = balanceOfInvestor(_services, _from); // tokens
         uint256 fromRegion = getCountryCompliance(_services, _from);
         bool isPlatformWalletTo = IDSWalletManager(_services[WALLET_MANAGER]).isPlatformWallet(_to);
@@ -253,12 +270,6 @@ library ComplianceServiceLibrary {
         }
 
         bool isPlatformWalletFrom = IDSWalletManager(_services[WALLET_MANAGER]).isPlatformWallet(_args.from);
-        if (
-            !isPlatformWalletFrom &&
-        IDSLockManager(_services[LOCK_MANAGER]).getTransferableTokens(_args.from, block.timestamp) < _args.value
-        ) {
-            return (16, TOKENS_LOCKED);
-        }
 
         if (_args.fromRegion == US) {
             if (checkHoldUp(_services, _args.from, _args.value, true, isPlatformWalletFrom)) {
@@ -526,7 +537,7 @@ library ComplianceServiceLibrary {
                 balanceOfInvestorTo + _value < complianceConfigurationService.getMinUSTokens()
             ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
-            }            
+            }
         } else if (toRegion == EU) {
             // Check regional minimum holdings requirements
             if (
@@ -535,7 +546,7 @@ library ComplianceServiceLibrary {
             ) {
                 return (51, AMOUNT_OF_TOKENS_UNDER_MIN);
             }
-        }        
+        }
 
         // Check global minimum holdings requirement (enforced for all regions)
         if (
