@@ -22,7 +22,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: rm package-lock.json && npm install
 
       - name: Build
         run: npm run compile
@@ -35,3 +35,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Sync master back to dev
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          git fetch origin dev
+          git checkout dev
+          git merge master --no-edit
+          git push origin dev
