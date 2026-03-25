@@ -1,6 +1,6 @@
 {
   "name": "@securitize/digital_securities",
-  "version": "4.1.1",
+  "version": "4.1.0",
   "description": "Digital Securities Reference Implementation",
   "scripts": {
     "test": "hardhat test",
@@ -40,8 +40,9 @@
     "@nomicfoundation/hardhat-network-helpers": "^1.0.10",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@nomicfoundation/hardhat-verify": "^2.0.14",
-    "@openzeppelin/contracts": "^5.4.0",
-    "@openzeppelin/contracts-upgradeable": "^5.4.0",
+    "@nomicfoundation/ignition-core": "^0.15.2",
+    "@openzeppelin/contracts": "5.4.0",
+    "@openzeppelin/contracts-upgradeable": "5.4.0",
     "@openzeppelin/hardhat-upgrades": "^3.9.1",
     "@typechain/ethers-v6": "^0.5.1",
     "@typechain/hardhat": "^9.1.0",
