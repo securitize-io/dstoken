@@ -1204,6 +1204,67 @@ describe('Compliance Service Regulated Unit Tests', function() {
       const dsTokenFromInvestor = dsToken.connect(investor);
       await expect(dsTokenFromInvestor.transfer(platformWallet, 50)).revertedWith('Only full transfer');
     });
+
+    it('Pre transfer check with fully locked investor to regular wallet', async function() {
+      const [wallet, wallet2] = await hre.ethers.getSigners();
+      const { registryService, complianceService, dsToken, lockManager } = await loadFixture(deployDSTokenRegulated);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
+      await dsToken.issueTokens(wallet, 100);
+
+      await lockManager.lockInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+
+      const res = await complianceService.preTransferCheck(wallet, wallet2, 10);
+      expect(res[0]).equal(16);
+      expect(res[1]).equal('Tokens locked');
+    });
+
+    it('Pre transfer check with fully locked investor to platform wallet', async function() {
+      const [wallet, platformWallet] = await hre.ethers.getSigners();
+      const { registryService, complianceService, dsToken, lockManager, walletManager } = await loadFixture(deployDSTokenRegulated);
+
+      await walletManager.addPlatformWallet(platformWallet);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+      await dsToken.issueTokens(wallet, 100);
+
+      await lockManager.lockInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+
+      const res = await complianceService.preTransferCheck(wallet, platformWallet, 10);
+      expect(res[0]).equal(16);
+      expect(res[1]).equal('Tokens locked');
+    });
+
+    it('Pre transfer check with fully locked investor reallocation', async function() {
+      const [wallet, wallet2] = await hre.ethers.getSigners();
+      const { registryService, complianceService, dsToken, lockManager } = await loadFixture(deployDSTokenRegulated);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+      await registryService.addWallet(wallet2, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await dsToken.issueTokens(wallet, 100);
+
+      await lockManager.lockInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+
+      const res = await complianceService.preTransferCheck(wallet, wallet2, 10);
+      expect(res[0]).equal(16);
+      expect(res[1]).equal('Tokens locked');
+    });
+
+    it('Pre transfer check with unlocked investor after full lock', async function() {
+      const [wallet, wallet2] = await hre.ethers.getSigners();
+      const { registryService, complianceService, dsToken, lockManager } = await loadFixture(deployDSTokenRegulated);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
+      await dsToken.issueTokens(wallet, 100);
+
+      await lockManager.lockInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await lockManager.unlockInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+
+      const res = await complianceService.preTransferCheck(wallet, wallet2, 10);
+      expect(res[0]).equal(0);
+      expect(res[1]).equal('Valid');
+    });
   });
 
   describe('Pre issuance check', function () {
