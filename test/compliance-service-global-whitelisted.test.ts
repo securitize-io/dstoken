@@ -328,6 +328,69 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
 
       expect(await complianceService.checkWhitelisted(userAddress)).to.be.false;
     });
+
+    it("should reject transfer from fully locked investor to regular wallet", async function () {
+      const { lockManager, trustService, dsToken, registryService, complianceService: cs } = await loadFixture(deployDSTokenGlobalWhitelisted);
+      const [master, ta, w1, w2] = await hre.ethers.getSigners();
+      await trustService.connect(master).setRole(ta, DSConstants.roles.TRANSFER_AGENT);
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_2);
+      await registryService.addWallet(w1, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await registryService.addWallet(w2, INVESTORS.INVESTOR_ID.INVESTOR_ID_2);
+      await dsToken.issueTokens(w1, 100);
+      await lockManager.connect(ta).lockInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+
+      const res = await cs.preTransferCheck(w1, w2, 50);
+      expect(res[0]).to.equal(16);
+      expect(res[1]).to.equal("Tokens Locked");
+    });
+
+    it("should reject transfer from fully locked investor to platform wallet", async function () {
+      const { lockManager, walletManager, trustService, dsToken, registryService, complianceService: cs } = await loadFixture(deployDSTokenGlobalWhitelisted);
+      const [master, ta, w1, , platformWallet] = await hre.ethers.getSigners();
+      await trustService.connect(master).setRole(ta, DSConstants.roles.TRANSFER_AGENT);
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
+      await registryService.addWallet(w1, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await dsToken.issueTokens(w1, 100);
+      await walletManager.addPlatformWallet(platformWallet);
+      await lockManager.connect(ta).lockInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+
+      const res = await cs.preTransferCheck(w1, platformWallet, 50);
+      expect(res[0]).to.equal(16);
+      expect(res[1]).to.equal("Tokens Locked");
+    });
+
+    it("should reject transfer from fully locked investor reallocation", async function () {
+      const { lockManager, registryService, trustService, dsToken, complianceService: cs } = await loadFixture(deployDSTokenGlobalWhitelisted);
+      const [master, ta, w1, , , wallet2] = await hre.ethers.getSigners();
+      await trustService.connect(master).setRole(ta, DSConstants.roles.TRANSFER_AGENT);
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
+      await registryService.addWallet(w1, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await registryService.addWallet(wallet2, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await dsToken.issueTokens(w1, 100);
+      await lockManager.connect(ta).lockInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+
+      const res = await cs.preTransferCheck(w1, wallet2, 50);
+      expect(res[0]).to.equal(16);
+      expect(res[1]).to.equal("Tokens Locked");
+    });
+
+    it("should allow transfer after unlocking investor", async function () {
+      const { lockManager, trustService, dsToken, registryService, complianceService: cs } = await loadFixture(deployDSTokenGlobalWhitelisted);
+      const [master, ta, w1, w2] = await hre.ethers.getSigners();
+      await trustService.connect(master).setRole(ta, DSConstants.roles.TRANSFER_AGENT);
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_2);
+      await registryService.addWallet(w1, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await registryService.addWallet(w2, INVESTORS.INVESTOR_ID.INVESTOR_ID_2);
+      await dsToken.issueTokens(w1, 100);
+      await lockManager.connect(ta).lockInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await lockManager.connect(ta).unlockInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+
+      const res = await cs.preTransferCheck(w1, w2, 50);
+      expect(res[0]).to.equal(0);
+      expect(res[1]).to.equal("Valid");
+    });
   });
 
   describe("Issuance Validation", function () {
