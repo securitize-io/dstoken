@@ -11,6 +11,8 @@ export const printContractAddresses = async (name: string, contract: Contract, h
 
 export const getTokenContractName = (complianceType: string): string => {
   switch (complianceType) {
+    case 'INJECTIVE_MTS':
+      return 'DSTokenMTS';
     default:
       return 'DSToken';
   }

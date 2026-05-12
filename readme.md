@@ -129,6 +129,10 @@ To run tests, run:
 npm test
 ```
 
+The Injective MTS integration test requires a real local `injectived` node, not
+the default Hardhat network. See
+[docs/injective-mts-manual-test.md](docs/injective-mts-manual-test.md).
+
 To verify DSToken, run:
 
 ```
