@@ -113,7 +113,7 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract, ERC
      * @param _owner The address to query the the balance of.
      * @return An uint256 representing the amount owned by the passed address.
      */
-    function balanceOf(address _owner) public view returns (uint256) {
+    function balanceOf(address _owner) public view virtual returns (uint256) {
         ISecuritizeRebasingProvider rebasingProvider = ISecuritizeRebasingProvider(getDSService(REBASING_PROVIDER));
         uint256 shares = tokenData.walletsBalances[_owner];
 
@@ -122,7 +122,7 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract, ERC
         return tokens;
     }
 
-    function totalSupply() public view returns (uint256) {
+    function totalSupply() public view virtual returns (uint256) {
         ISecuritizeRebasingProvider rebasingProvider = ISecuritizeRebasingProvider(getDSService(REBASING_PROVIDER));
 
         uint256 totalSupplyTokens = rebasingProvider.convertSharesToTokens(tokenData.totalSupply);

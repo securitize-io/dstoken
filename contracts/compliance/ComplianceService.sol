@@ -74,6 +74,14 @@ abstract contract ComplianceService is IDSComplianceService, ComplianceServiceDa
         return recordTransfer(_from,_to, _value);
     }
 
+    function recordTransferFromTokenHook(
+        address _from,
+        address _to,
+        uint256 _value
+    ) public override onlyToken returns (bool) {
+        return recordTransfer(_from, _to, _value);
+    }
+
     function validateIssuance(
         address _to,
         uint256 _value,

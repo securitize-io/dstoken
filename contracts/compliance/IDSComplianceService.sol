@@ -68,6 +68,12 @@ abstract contract IDSComplianceService {
         uint256 _balanceFrom
     ) public virtual returns (bool);
 
+    function recordTransferFromTokenHook(
+        address _from,
+        address _to,
+        uint256 _value
+    ) public virtual returns (bool);
+
     function validateIssuance(
         address _to,
         uint256 _value,
