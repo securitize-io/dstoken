@@ -113,10 +113,6 @@ npm install
 npx hardhat deploy-all --name <token name> --symbol <token symbol> --decimals <token decimals> [--compliance TYPE]
 # --compliance: REGULATED (default), PARTITIONED, WHITELISTED, PERMISSIONLESS
 
-# To deploy a Permissionless token (no on-chain investor identity):
-npx hardhat deploy-permissionless --name <token name> --symbol <token symbol> --decimals <token decimals>
-# deploy-permissionless is equivalent to: deploy-all --compliance PERMISSIONLESS
-
 ```
 
 For example, to install a standard DSToken (with default compliance manager and lock manager), run:

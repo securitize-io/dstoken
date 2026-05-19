@@ -12,6 +12,10 @@ task('deploy-all', 'Deploy DS Protocol')
   .setAction(async (args, { run, ethers }) => {
     await run("compile");
 
+    if (args.compliance === 'PERMISSIONLESS' && args.registryType === 'REGULATED') {
+      args.registryType = 'STUB';
+    }
+
     const dsToken = await run('deploy-token', args);
     const trustService = await run('deploy-trust-service');
 
