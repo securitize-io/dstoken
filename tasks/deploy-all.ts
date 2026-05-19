@@ -8,6 +8,7 @@ task('deploy-all', 'Deploy DS Protocol')
   .addParam('compliance', 'Compliance Type', 'REGULATED', types.string)
   .addOptionalParam('multiplier', 'Rebasing Multiplier', '1000000000000000000', types.string)
   .addOptionalParam('globalRegistryService', 'Global Registry Service Address', undefined, types.string)
+  .addOptionalParam('registryType', 'Registry type: REGULATED or STUB', 'REGULATED', types.string)
   .setAction(async (args, { run, ethers }) => {
     await run("compile");
 
@@ -18,6 +19,9 @@ task('deploy-all', 'Deploy DS Protocol')
     if (args.globalRegistryService) {
       console.log(`Using global registry service at address: ${args.globalRegistryService}`);
       registryService = await ethers.getContractAt('RegistryService', args.globalRegistryService);
+    } else if (args.registryType === 'STUB') {
+      console.log('Deploying stub registry service');
+      registryService = await run('deploy-stub-registry-service');
     } else {
       console.log('Deploying new registry service');
       registryService = await run('deploy-registry-service');

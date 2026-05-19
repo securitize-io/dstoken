@@ -18,3 +18,5 @@ export * from './deploy-rebasing-provider';
 export * from './verify-all';
 export * from './contract-call';
 export * from './deploy-blacklist-manager';
+export * from './deploy-stub-registry-service';
+export * from './deploy-permissionless';

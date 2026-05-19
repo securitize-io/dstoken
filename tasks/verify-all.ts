@@ -77,5 +77,27 @@ task('verify-all', 'Verify DS Protocol')
       constructorArguments: [],
     });
 
+    const rebasingProviderAddr = await dsToken.getDSService(8196);
+    if (rebasingProviderAddr !== ethers.ZeroAddress) {
+      const rebasingProvider = await ethers.getContractAt('BaseDSContract', rebasingProviderAddr);
+      const rebasingProviderImplementation = await rebasingProvider.getImplementationAddress();
+      console.log(`Verifying rebasingProvider implementation ${rebasingProviderImplementation}`);
+      await run("verify:verify", {
+        address: rebasingProviderImplementation,
+        constructorArguments: [],
+      });
+    }
+
+    const blacklistManagerAddr = await dsToken.getDSService(8197);
+    if (blacklistManagerAddr !== ethers.ZeroAddress) {
+      const blacklistManager = await ethers.getContractAt('BaseDSContract', blacklistManagerAddr);
+      const blacklistManagerImplementation = await blacklistManager.getImplementationAddress();
+      console.log(`Verifying blacklistManager implementation ${blacklistManagerImplementation}`);
+      await run("verify:verify", {
+        address: blacklistManagerImplementation,
+        constructorArguments: [],
+      });
+    }
+
     return;
   });

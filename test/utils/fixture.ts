@@ -26,6 +26,18 @@ export const deployDSTokenGlobalWhitelisted = () => {
   return hre.run('deploy-all', { name, symbol, decimals: 2, compliance });
 };
 
+export const deployDSTokenPermissionless = () => {
+  const name = 'Token Example 1';
+  const symbol = 'TX1';
+  return hre.run('deploy-all', {
+    name,
+    symbol,
+    decimals: 2,
+    compliance: 'PERMISSIONLESS',
+    registryType: 'STUB',
+  });
+};
+
 export const deployDSTokenRegulatedWithRebasing = async () => {
   const name = 'Token Example 1';
   const symbol = 'TX1';

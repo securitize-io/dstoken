@@ -56,6 +56,7 @@ The following compliance service types are implemented:
 - **Full/Normal** (ComplianceServiceRegulated) - A full Compliance Service implementing transfer rules common to regulations worldwide, such as: restricting or limiting the number of retail investors, restricting investors from certain countries, requiring accredited investor status or preventing flowback of off-shore tokens.
 - **WhiteList** (ComplianceServiceWhitelisted.sol) - A simple Compliance Service restricting transfers only based on basic white-listing of investors.
 - **Global Whitelisted with Blacklist** (ComplianceServiceGlobalWhitelisted) - A Compliance Service that combines global whitelisting with a dedicated blacklist functionality. This service validates transfers and issuances against both whitelist rules and a separate blacklist of restricted wallets.
+- **Permissionless** (ComplianceServicePermissionless) - A compliance model where any wallet can hold and transfer tokens with no on-chain investor identity. KYC and investor identity remain off-chain at Securitize. On-chain restrictions are limited to a wallet-level blacklist (`BlackListManager`) and a configurable lockup period for newly-issued tokens (`ComplianceConfigurationService.setNonUSLockPeriod`). Designed for use alongside `StubRegistryService`, which provides a no-op registry implementation.
 
 #### BlackListManager (/contracts/compliance)
 
@@ -109,8 +110,12 @@ npm install
 
 # or if using yarn: yarn install
 
-npx hardhat deploy-all --name <token name> --symbol <token symbol> --decimals <token decimals>
---compliance TYPE - compliance service type (REGULATED, PARTITIONED, WHITELISTED) - if omitted, REGULATED is selected
+npx hardhat deploy-all --name <token name> --symbol <token symbol> --decimals <token decimals> [--compliance TYPE]
+# --compliance: REGULATED (default), PARTITIONED, WHITELISTED, PERMISSIONLESS
+
+# To deploy a Permissionless token (no on-chain investor identity):
+npx hardhat deploy-permissionless --name <token name> --symbol <token symbol> --decimals <token decimals>
+# deploy-permissionless is equivalent to: deploy-all --compliance PERMISSIONLESS
 
 ```
 
@@ -182,7 +187,7 @@ The **DSToken v4** release marks a major milestone in the evolution of the DS Pr
 While the current implementation is live in production and integrated with issuers and partners, ongoing development continues to expand the protocol’s flexibility and automation.
 
 The following initiatives are part of the current roadmap:
--	**Expanded Compliance Models** — Extend the compliance framework to support additional asset classes and adapt to jurisdiction-specific regulations.
+-	**Expanded Compliance Models** — Extend the compliance framework to support additional asset classes and adapt to jurisdiction-specific regulations. The new `ComplianceServicePermissionless` model is now available for token deployments that require no on-chain investor identity.
 -	**Advanced Rebasing Strategies** — Implement formula-based and performance-linked multipliers, enabling dynamic yield reflection and more sophisticated corporate-action handling.
 -	**Managed DSApp Factories** — Provide fully managed factory contracts for streamlined deployment of DSApps and complete DS Protocol environments.
 -	**Enhanced Reporting and Analytics** — Offer better visibility into rebased balances, capital flows, and compliance-related events.
