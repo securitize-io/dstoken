@@ -25,6 +25,19 @@ Use the Permissionless model when:
 
 Do **not** use this model if you need: country-based rules, accreditation checks, investor count caps, holdings limits, flow-back rules, or any on-chain investor identity.
 
+### Compliance check result codes
+
+| Code | Meaning | Triggered by |
+|---|---|---|
+| 0 | Valid — operation allowed | — |
+| 10 | Token paused | `isPaused() == true` |
+| 15 | Insufficient balance | `balanceOf(sender) < value` |
+| 16 | Tokens locked | Transfer value exceeds unlocked balance within lockup window |
+| 100 | Wallet blacklisted | Sender or recipient is in `BlackListManager` |
+| 101 | Zero address | Issuance to `address(0)` |
+
+These codes are returned by `preTransferCheck` and `preIssuanceCheck` — both are `view` functions that simulate the compliance outcome without executing the operation.
+
 ---
 
 ## 2. Prerequisites
@@ -41,33 +54,22 @@ Do **not** use this model if you need: country-based rules, accreditation checks
 Run the following command to deploy the full Permissionless stack:
 
 ```bash
-npx hardhat deploy-permissionless \
-  --name "My Token" \
-  --symbol TKN \
-  --decimals 2 \
-  --network <network>
-
-# Optional: custom rebasing multiplier (default: 1e18 = 1:1)
-npx hardhat deploy-permissionless \
-  --name "My Token" \
-  --symbol TKN \
-  --decimals 2 \
-  --multiplier 1000000000000000000 \
-  --network <network>
-```
-
-Alternatively, using `deploy-all` directly (equivalent):
-
-```bash
 npx hardhat deploy-all \
   --name "My Token" \
   --symbol TKN \
   --decimals 2 \
   --compliance PERMISSIONLESS \
   --network <network>
-```
 
-`deploy-permissionless` is a thin wrapper around `deploy-all --compliance PERMISSIONLESS`.
+# Optional: custom rebasing multiplier (default: 1e18 = 1:1)
+npx hardhat deploy-all \
+  --name "My Token" \
+  --symbol TKN \
+  --decimals 2 \
+  --compliance PERMISSIONLESS \
+  --multiplier 1000000000000000000 \
+  --network <network>
+```
 
 This task deploys and wires the following contracts in sequence:
 
@@ -170,6 +172,7 @@ complianceConfigurationService.setNonUSLockPeriod(0);
 - Tokens received via transfer (not issuance) are never locked
 - Platform wallets are exempt from lockup tracking (issuance creates no record)
 - Maximum 30 issuance records per wallet — expired records are swept automatically on the next issuance
+- Issuance records are stored in **shares** (not tokens) — locked amounts scale correctly when the rebasing multiplier changes, in the same way that wallet balances do
 
 ---
 
@@ -188,7 +191,7 @@ complianceConfigurationService.setNonUSLockPeriod(0);
 - **Do not** call any state-changing method on `StubRegistryService` (`registerInvestor`, `addWallet`, `setCountry`, etc.) — they will revert with `"Permissionless: registry disabled"`. This is intentional and catches misconfiguration.
 - **Do not** call `TokenIssuer.issueTokens` directly or via `bulkRegisterAndIssuance` — it will call `StubRegistryService.registerInvestor`, which reverts with `RegistryDisabled()`. `TokenIssuer` is deployed and wired automatically but must not be used.
 - **Do not** call `bulkRegisterAndIssuance` — see above.
-- `balanceOfInvestor(string)` always returns 0 — any off-chain tooling relying on it will see 0. Use `balanceOf(address)` instead.
+- `balanceOfInvestor(string)` always returns 0 — **any off-chain dashboard, report, or auxiliary contract relying on it will see 0 for every investor ID**. This is expected behavior under the Permissionless model. Use `balanceOf(address)` for balance queries instead.
 
 ---
 
