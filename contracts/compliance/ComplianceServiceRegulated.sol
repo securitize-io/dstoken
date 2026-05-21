@@ -901,6 +901,8 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
 
         uint256 time = block.timestamp;
 
+        if (lockTime > time) return;
+
         uint256 currentIssuancesCount = issuancesCounters[investor];
         uint256 currentIndex = 0;
 
