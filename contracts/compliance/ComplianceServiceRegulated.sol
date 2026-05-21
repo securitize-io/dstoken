@@ -161,12 +161,12 @@ library ComplianceServiceLibrary {
         uint256 toInvestorBalance
     ) internal view returns (bool) {
         uint256 nonAccreditedInvestorLimit = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit();
+        uint256 totalInvestors_ = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getTotalInvestorsCount();
+        uint256 accreditedInvestors_ = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getAccreditedInvestorsCount();
+        uint256 nonAccreditedInvestors = totalInvestors_ > accreditedInvestors_ ? totalInvestors_ - accreditedInvestors_ : 0;
         return
         nonAccreditedInvestorLimit != 0 &&
-        ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getTotalInvestorsCount() -
-            ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getAccreditedInvestorsCount()
-        >=
-        nonAccreditedInvestorLimit &&
+        nonAccreditedInvestors >= nonAccreditedInvestorLimit &&
         isNewInvestor(toInvestorBalance) &&
         (isAccredited(_services, _from) || fromInvestorBalance > _value);
     }
@@ -479,10 +479,12 @@ library ComplianceServiceLibrary {
         if (isNewInvestor(balanceOfInvestorTo)) {
             // verify global non accredited limit
             if (!isAccreditedTo) {
+                uint256 totalInvestors_ = complianceService.getTotalInvestorsCount();
+                uint256 accreditedInvestors_ = complianceService.getAccreditedInvestorsCount();
+                uint256 nonAccreditedInvestors = totalInvestors_ > accreditedInvestors_ ? totalInvestors_ - accreditedInvestors_ : 0;
                 if (
                     complianceConfigurationService.getNonAccreditedInvestorsLimit() != 0 &&
-                    complianceService.getTotalInvestorsCount() - complianceService.getAccreditedInvestorsCount() >=
-                    complianceConfigurationService.getNonAccreditedInvestorsLimit()
+                    nonAccreditedInvestors >= complianceConfigurationService.getNonAccreditedInvestorsLimit()
                 ) {
                     return (40, MAX_INVESTORS_IN_CATEGORY);
                 }
@@ -692,7 +694,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     ) internal {
         uint256 countryCompliance = getComplianceConfigurationService().getCountryCompliance(_country);
 
-        if (getRegistryService().isAccreditedInvestor(_id)) {
+        if (countryCompliance != 0 && getRegistryService().isAccreditedInvestor(_id)) {
             if(_increase == CommonUtils.IncDec.Increase) {
                 accreditedInvestorsCount++;
             }
@@ -852,24 +854,31 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function setTotalInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+        require(_value >= accreditedInvestorsCount, "Total must be >= accredited");
+        require(_value >= usInvestorsCount, "Total must be >= US investors");
         totalInvestors = _value;
 
         return true;
     }
 
     function setUSInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+        require(_value <= totalInvestors, "US investors must be <= total");
+        require(_value >= usAccreditedInvestorsCount, "US investors must be >= US accredited");
         usInvestorsCount = _value;
 
         return true;
     }
 
     function setUSAccreditedInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+        require(_value <= usInvestorsCount, "US accredited must be <= US investors");
+        require(_value <= accreditedInvestorsCount, "US accredited must be <= accredited");
         usAccreditedInvestorsCount = _value;
 
         return true;
     }
 
     function setAccreditedInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+        require(_value <= totalInvestors, "Accredited must be <= total");
         accreditedInvestorsCount = _value;
 
         return true;

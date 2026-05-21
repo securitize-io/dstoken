@@ -1813,3 +1813,121 @@ describe('Compliance Service Regulated Unit Tests', function() {
       });
     });
   });
+
+  describe('Investor counter integrity', function () {
+    describe('Lifecycle ordering: issueTokens before setCountry for accredited investor', function () {
+      it('should not double-increment accreditedInvestorsCount when issueTokens precedes setCountry', async function () {
+        const [wallet] = await hre.ethers.getSigners();
+        const { dsToken, registryService, complianceService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);
+
+        await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+
+        await registryService.registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, '');
+        await registryService.setAttribute(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, DSConstants.attributeType.ACCREDITED, DSConstants.attributeStatus.APPROVED, 0, '');
+        await registryService.addWallet(wallet, INVESTORS.INVESTOR_ID.US_INVESTOR_ID);
+        await dsToken.issueTokens(wallet, 100);
+
+        // Empty country: accredited branch is skipped, totalInvestors increments normally
+        expect(await complianceService.getTotalInvestorsCount()).to.equal(1);
+        expect(await complianceService.getAccreditedInvestorsCount()).to.equal(0);
+
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, INVESTORS.Country.USA);
+
+        // setCountry fires adjustInvestorCountsAfterCountryChange — accredited increments exactly once
+        expect(await complianceService.getTotalInvestorsCount()).to.equal(1);
+        expect(await complianceService.getAccreditedInvestorsCount()).to.equal(1);
+        expect(await complianceService.getUSInvestorsCount()).to.equal(1);
+        expect(await complianceService.getUSAccreditedInvestorsCount()).to.equal(1);
+      });
+
+      it('should not brick non-accredited onboarding after accredited investor uses issueTokens-before-setCountry lifecycle', async function () {
+        const [accWallet, nonAccWallet] = await hre.ethers.getSigners();
+        const { dsToken, registryService, complianceService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);
+
+        await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+        await complianceConfigurationService.setNonAccreditedInvestorsLimit(100);
+
+        await registryService.registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, '');
+        await registryService.setAttribute(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, DSConstants.attributeType.ACCREDITED, DSConstants.attributeStatus.APPROVED, 0, '');
+        await registryService.addWallet(accWallet, INVESTORS.INVESTOR_ID.US_INVESTOR_ID);
+        await dsToken.issueTokens(accWallet, 100);
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, INVESTORS.Country.USA);
+
+        // Invariant must hold: accredited <= total
+        expect(await complianceService.getTotalInvestorsCount()).to.equal(1);
+        expect(await complianceService.getAccreditedInvestorsCount()).to.equal(1);
+
+        // Non-accredited onboarding must not panic with Panic(0x11)
+        await registryService.registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID_2, INVESTORS.Country.USA);
+        await registryService.addWallet(nonAccWallet, INVESTORS.INVESTOR_ID.US_INVESTOR_ID_2);
+        await expect(dsToken.issueTokens(nonAccWallet, 100)).to.not.be.reverted;
+      });
+    });
+
+    describe('Recovery setter bounds checks', function () {
+      it('setAccreditedInvestorsCount reverts when value exceeds total', async function () {
+        const { complianceService } = await loadFixture(deployDSTokenRegulated);
+
+        await complianceService.setTotalInvestorsCount(5);
+        await expect(complianceService.setAccreditedInvestorsCount(6)).to.be.revertedWith('Accredited must be <= total');
+        await expect(complianceService.setAccreditedInvestorsCount(5)).to.not.be.reverted;
+      });
+
+      it('setTotalInvestorsCount reverts when value falls below accredited count', async function () {
+        const { complianceService } = await loadFixture(deployDSTokenRegulated);
+
+        await complianceService.setTotalInvestorsCount(5);
+        await complianceService.setAccreditedInvestorsCount(3);
+        await expect(complianceService.setTotalInvestorsCount(2)).to.be.revertedWith('Total must be >= accredited');
+        await expect(complianceService.setTotalInvestorsCount(3)).to.not.be.reverted;
+      });
+
+      it('setTotalInvestorsCount reverts when value falls below US investors count', async function () {
+        const { complianceService } = await loadFixture(deployDSTokenRegulated);
+
+        await complianceService.setTotalInvestorsCount(5);
+        await complianceService.setUSInvestorsCount(4);
+        await expect(complianceService.setTotalInvestorsCount(3)).to.be.revertedWith('Total must be >= US investors');
+        await expect(complianceService.setTotalInvestorsCount(4)).to.not.be.reverted;
+      });
+
+      it('setUSInvestorsCount reverts when value exceeds total', async function () {
+        const { complianceService } = await loadFixture(deployDSTokenRegulated);
+
+        await complianceService.setTotalInvestorsCount(5);
+        await expect(complianceService.setUSInvestorsCount(6)).to.be.revertedWith('US investors must be <= total');
+        await expect(complianceService.setUSInvestorsCount(5)).to.not.be.reverted;
+      });
+
+      it('setUSInvestorsCount reverts when value falls below US accredited count', async function () {
+        const { complianceService } = await loadFixture(deployDSTokenRegulated);
+
+        await complianceService.setTotalInvestorsCount(5);
+        await complianceService.setAccreditedInvestorsCount(3);
+        await complianceService.setUSInvestorsCount(4);
+        await complianceService.setUSAccreditedInvestorsCount(3);
+        await expect(complianceService.setUSInvestorsCount(2)).to.be.revertedWith('US investors must be >= US accredited');
+        await expect(complianceService.setUSInvestorsCount(3)).to.not.be.reverted;
+      });
+
+      it('setUSAccreditedInvestorsCount reverts when value exceeds US investors count', async function () {
+        const { complianceService } = await loadFixture(deployDSTokenRegulated);
+
+        await complianceService.setTotalInvestorsCount(5);
+        await complianceService.setAccreditedInvestorsCount(5);
+        await complianceService.setUSInvestorsCount(4);
+        await expect(complianceService.setUSAccreditedInvestorsCount(5)).to.be.revertedWith('US accredited must be <= US investors');
+        await expect(complianceService.setUSAccreditedInvestorsCount(4)).to.not.be.reverted;
+      });
+
+      it('setUSAccreditedInvestorsCount reverts when value exceeds accredited count', async function () {
+        const { complianceService } = await loadFixture(deployDSTokenRegulated);
+
+        await complianceService.setTotalInvestorsCount(5);
+        await complianceService.setAccreditedInvestorsCount(3);
+        await complianceService.setUSInvestorsCount(5);
+        await expect(complianceService.setUSAccreditedInvestorsCount(4)).to.be.revertedWith('US accredited must be <= accredited');
+        await expect(complianceService.setUSAccreditedInvestorsCount(3)).to.not.be.reverted;
+      });
+    });
+  });
