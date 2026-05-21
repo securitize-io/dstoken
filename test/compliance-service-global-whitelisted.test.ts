@@ -391,6 +391,36 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
       expect(res[0]).to.equal(0);
       expect(res[1]).to.equal("Valid");
     });
+
+    it("should allow transfer from platform wallet sender", async function () {
+      const { walletManager, registryService, dsToken, complianceService: cs } = await loadFixture(deployDSTokenGlobalWhitelisted);
+      const [, , , , platformWallet, investorWallet] = await hre.ethers.getSigners();
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
+      await registryService.addWallet(investorWallet, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await walletManager.addPlatformWallet(platformWallet);
+      await dsToken.issueTokens(platformWallet, 100);
+
+      const res = await cs.preTransferCheck(platformWallet, investorWallet, 50);
+      expect(res[0]).to.equal(0);
+      expect(res[1]).to.equal("Valid");
+    });
+
+    it("should allow same-investor reallocation under active partial lock", async function () {
+      const { lockManager, registryService, trustService, dsToken, complianceService: cs } = await loadFixture(deployDSTokenGlobalWhitelisted);
+      const [master, ta, w1, , , w2] = await hre.ethers.getSigners();
+      await trustService.connect(master).setRole(ta, DSConstants.roles.TRANSFER_AGENT);
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_COLLISION_HASH_1);
+      await registryService.addWallet(w1, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await registryService.addWallet(w2, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await dsToken.issueTokens(w1, 100);
+
+      const releaseTime = await hre.ethers.provider.getBlock("latest").then(block => block!.timestamp) + 24 * 60 * 60;
+      await lockManager.connect(ta).addManualLockRecord(w1, 100, "partial lock", releaseTime);
+
+      const res = await cs.preTransferCheck(w1, w2, 100);
+      expect(res[0]).to.equal(0);
+      expect(res[1]).to.equal("Valid");
+    });
   });
 
   describe("Issuance Validation", function () {
