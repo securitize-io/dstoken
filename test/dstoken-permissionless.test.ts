@@ -64,14 +64,14 @@ describe("DSToken Permissionless — End-to-End", function () {
       expect(await registryService.getInvestor(user1Address)).to.equal("");
     });
 
-    it("stub registry: state-changing calls revert with RegistryDisabled", async function () {
+    it("stub registry: state-changing calls are no-ops and return true", async function () {
       const { registryService } = await fixture();
-      await expect(
-        registryService.registerInvestor(
+      expect(
+        await registryService.registerInvestor.staticCall(
           "inv-001",
           "0x0000000000000000000000000000000000000000000000000000000000000000",
         ),
-      ).to.be.revertedWithCustomError(registryService, "RegistryDisabled");
+      ).to.equal(true);
     });
 
     it("compliance service is deployed and wired", async function () {
@@ -266,8 +266,8 @@ describe("DSToken Permissionless — End-to-End", function () {
       expect(await dsToken.balanceOf(user2Address)).to.equal(150);
     });
 
-    it("bulkRegisterAndIssuance reverts with RegistryDisabled", async function () {
-      const { bulkOperator, registryService, user1Address } = await fixture();
+    it("bulkRegisterAndIssuance issues tokens — registry calls are no-ops", async function () {
+      const { bulkOperator, dsToken, user1Address } = await fixture();
       const entry = {
         id: "inv-001",
         to: user1Address,
@@ -279,8 +279,8 @@ describe("DSToken Permissionless — End-to-End", function () {
         attributeValues: [1, 1, 1],
         attributeExpirations: [0, 0, 0],
       };
-      await expect(bulkOperator.bulkRegisterAndIssuance([entry]))
-        .to.be.revertedWithCustomError(registryService, "RegistryDisabled");
+      await expect(bulkOperator.bulkRegisterAndIssuance([entry])).to.not.be.reverted;
+      expect(await dsToken.balanceOf(user1Address)).to.equal(100);
     });
   });
 

@@ -112,42 +112,42 @@ describe("StubRegistryService", function () {
     });
   });
 
-  describe("State-changing functions revert with RegistryDisabled", function () {
-    it("registerInvestor reverts", async function () {
+  describe("State-changing functions are no-ops — return true", function () {
+    it("registerInvestor returns true", async function () {
       const { stub } = await loadFixture(fixture);
-      await expect(stub.registerInvestor("id", "hash")).to.be.revertedWithCustomError(stub, "RegistryDisabled");
+      expect(await stub.registerInvestor.staticCall("id", "hash")).to.equal(true);
     });
 
-    it("updateInvestor reverts", async function () {
+    it("updateInvestor returns true", async function () {
       const { stub } = await loadFixture(fixture);
-      await expect(stub.updateInvestor("id", "hash", "US", [], [], [], [])).to.be.revertedWithCustomError(stub, "RegistryDisabled");
+      expect(await stub.updateInvestor.staticCall("id", "hash", "US", [], [], [], [])).to.equal(true);
     });
 
-    it("removeInvestor reverts", async function () {
+    it("removeInvestor returns true", async function () {
       const { stub } = await loadFixture(fixture);
-      await expect(stub.removeInvestor("id")).to.be.revertedWithCustomError(stub, "RegistryDisabled");
+      expect(await stub.removeInvestor.staticCall("id")).to.equal(true);
     });
 
-    it("setCountry reverts", async function () {
+    it("setCountry returns true", async function () {
       const { stub } = await loadFixture(fixture);
-      await expect(stub.setCountry("id", "US")).to.be.revertedWithCustomError(stub, "RegistryDisabled");
+      expect(await stub.setCountry.staticCall("id", "US")).to.equal(true);
     });
 
-    it("setAttribute reverts", async function () {
+    it("setAttribute returns true", async function () {
       const { stub } = await loadFixture(fixture);
-      await expect(stub.setAttribute("id", 1, 1, 0, "hash")).to.be.revertedWithCustomError(stub, "RegistryDisabled");
+      expect(await stub.setAttribute.staticCall("id", 1, 1, 0, "hash")).to.equal(true);
     });
 
-    it("addWallet reverts", async function () {
+    it("addWallet returns true", async function () {
       const { stub } = await loadFixture(fixture);
       const [signer] = await hre.ethers.getSigners();
-      await expect(stub.addWallet(await signer.getAddress(), "id")).to.be.revertedWithCustomError(stub, "RegistryDisabled");
+      expect(await stub.addWallet.staticCall(await signer.getAddress(), "id")).to.equal(true);
     });
 
-    it("removeWallet reverts", async function () {
+    it("removeWallet returns true", async function () {
       const { stub } = await loadFixture(fixture);
       const [signer] = await hre.ethers.getSigners();
-      await expect(stub.removeWallet(await signer.getAddress(), "id")).to.be.revertedWithCustomError(stub, "RegistryDisabled");
+      expect(await stub.removeWallet.staticCall(await signer.getAddress(), "id")).to.equal(true);
     });
   });
 });

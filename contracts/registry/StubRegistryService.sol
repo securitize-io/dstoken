@@ -26,14 +26,10 @@ import {BaseDSContract} from "../utils/BaseDSContract.sol";
  *
  * A no-op registry for permissionless tokens. All getters return empty/false so that
  * the existing `if (!isEmptyString(investor))` guards in DSToken/TokenLibrary make all
- * investor-keyed bookkeeping a no-op. State-changing functions revert loudly to catch
- * misconfiguration.
+ * investor-keyed bookkeeping a no-op. State-changing functions return true silently,
+ * allowing flows like TokenIssuer.issueTokens to complete without registry side-effects.
  */
 contract StubRegistryService is IDSRegistryService, BaseDSContract {
-    // Custom errors
-    /// @dev Thrown when a state-changing registry call is made on a permissionless token
-    /// @custom:selector 0xf513fcbb
-    error RegistryDisabled();
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -44,37 +40,37 @@ contract StubRegistryService is IDSRegistryService, BaseDSContract {
         __BaseDSContract_init();
     }
 
-    // ─── State-changing functions — all revert ────────────────────────────────
+    // ─── State-changing functions — all no-op, return true ───────────────────
 
     function registerInvestor(string calldata, string calldata) public pure override returns (bool) {
-        revert RegistryDisabled();
+        return true;
     }
 
     function updateInvestor(
         string calldata, string calldata, string memory,
         address[] memory, uint8[] memory, uint256[] memory, uint256[] memory
     ) public pure override returns (bool) {
-        revert RegistryDisabled();
+        return true;
     }
 
     function removeInvestor(string calldata) public pure override returns (bool) {
-        revert RegistryDisabled();
+        return true;
     }
 
     function setCountry(string calldata, string memory) public pure override returns (bool) {
-        revert RegistryDisabled();
+        return true;
     }
 
     function setAttribute(string calldata, uint8, uint256, uint256, string memory) public pure override returns (bool) {
-        revert RegistryDisabled();
+        return true;
     }
 
     function addWallet(address, string memory) public pure override returns (bool) {
-        revert RegistryDisabled();
+        return true;
     }
 
     function removeWallet(address, string memory) public pure override returns (bool) {
-        revert RegistryDisabled();
+        return true;
     }
 
     // ─── View functions — all return empty/false ──────────────────────────────
