@@ -1931,3 +1931,76 @@ describe('Compliance Service Regulated Unit Tests', function() {
       });
     });
   });
+
+  describe('EU retail cap same-country transfer paths (M-4 fix)', function () {
+    async function setupEuRetailCapFixture() {
+      const [retailInvestor1, retailInvestor2, qualifiedInvestor, freshRetailRecipient] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService, complianceService } =
+        await loadFixture(deployDSTokenRegulated);
+
+      // EU retail limit = 2, Germany = EU; disable all other limits
+      await complianceConfigurationService.setAll(
+        [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2, 0, 0, 0],
+        [false, false, false, false, false]
+      );
+      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.GERMANY, INVESTORS.Compliance.EU);
+
+      // Register retail investors (no QUALIFIED attribute → isRetail = true)
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, retailInvestor1.address, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, retailInvestor2.address, registryService);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.GERMANY);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.GERMANY);
+
+      // Register qualified investor (QUALIFIED attribute → isRetail = false)
+      await registerInvestor(INVESTORS.INVESTOR_ID.GERMANY_INVESTOR_ID, qualifiedInvestor.address, registryService);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.GERMANY_INVESTOR_ID, INVESTORS.Country.GERMANY);
+      await registryService.setAttribute(
+        INVESTORS.INVESTOR_ID.GERMANY_INVESTOR_ID,
+        DSConstants.attributeType.QUALIFIED,
+        DSConstants.attributeStatus.APPROVED,
+        0,
+        ''
+      );
+
+      // Register fresh retail recipient (no tokens yet)
+      await registerInvestor(INVESTORS.INVESTOR_ID.GERMANY_INVESTOR_ID_2, freshRetailRecipient.address, registryService);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.GERMANY_INVESTOR_ID_2, INVESTORS.Country.GERMANY);
+
+      // Issue tokens: retail × 2 fills the EU retail cap; qualified issuance does not affect retail count
+      await dsToken.issueTokens(retailInvestor1.address, 200);
+      await dsToken.issueTokens(retailInvestor2.address, 100);
+      await dsToken.issueTokens(qualifiedInvestor.address, 200);
+
+      expect(await complianceService.getEURetailInvestorsCount(INVESTORS.Country.GERMANY)).to.equal(2);
+
+      return { dsToken, complianceService, retailInvestor1, retailInvestor2, qualifiedInvestor, freshRetailRecipient };
+    }
+
+    it('same-country retail sender depleting full balance → allowed (genuine offset)', async function () {
+      const { dsToken, retailInvestor1, freshRetailRecipient } = await setupEuRetailCapFixture();
+      // retailInvestor1 transfers entire balance → leaves EU retail pool; cap not exceeded
+      await expect(dsToken.connect(retailInvestor1).transfer(freshRetailRecipient.address, 200))
+        .to.not.be.reverted;
+    });
+
+    it('same-country retail sender retaining balance → blocked (cap still exceeded)', async function () {
+      const { dsToken, retailInvestor1, freshRetailRecipient } = await setupEuRetailCapFixture();
+      // Partial transfer: retailInvestor1 stays in pool → recipient would be third EU retail investor
+      await expect(dsToken.connect(retailInvestor1).transfer(freshRetailRecipient.address, 100))
+        .to.be.revertedWith('Max investors in category');
+    });
+
+    it('same-country qualified sender depleting full balance → blocked (M-4 bug fix)', async function () {
+      const { dsToken, qualifiedInvestor, freshRetailRecipient } = await setupEuRetailCapFixture();
+      // Before fix: qualified sender always bypassed EU retail cap check (&&-bug). After fix: blocked.
+      await expect(dsToken.connect(qualifiedInvestor).transfer(freshRetailRecipient.address, 200))
+        .to.be.revertedWith('Max investors in category');
+    });
+
+    it('same-country qualified sender retaining balance → blocked (M-4 bug fix)', async function () {
+      const { dsToken, qualifiedInvestor, freshRetailRecipient } = await setupEuRetailCapFixture();
+      // Before fix: qualified partial sender also bypassed cap. After fix: blocked.
+      await expect(dsToken.connect(qualifiedInvestor).transfer(freshRetailRecipient.address, 100))
+        .to.be.revertedWith('Max investors in category');
+    });
+  });

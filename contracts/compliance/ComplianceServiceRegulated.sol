@@ -344,7 +344,8 @@ library ComplianceServiceLibrary {
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getEURetailInvestorsLimit() &&
                 isNewInvestor(toInvestorBalance) &&
                 (!CommonUtils.isEqualString(getCountry(_services, _args.from), toCountry) ||
-                (_args.fromInvestorBalance > _args.value && isRetail(_services, _args.from)))
+                !isRetail(_services, _args.from) ||
+                _args.fromInvestorBalance > _args.value)
             ) {
                 return (40, MAX_INVESTORS_IN_CATEGORY);
             }
