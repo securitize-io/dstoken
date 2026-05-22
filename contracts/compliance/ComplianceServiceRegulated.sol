@@ -632,6 +632,9 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         if (compareInvestorBalance(investorTo, _value, 0)) {
             adjustTotalInvestorsCounts(_to, CommonUtils.IncDec.Increase);
         }
+        if (CommonUtils.isEmptyString(investorTo)) {
+            return true;
+        }
         uint256 shares = getRebasingProvider().convertTokensToShares(_value);
 
         cleanupInvestorIssuances(investorTo);
