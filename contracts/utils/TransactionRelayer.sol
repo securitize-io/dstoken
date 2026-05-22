@@ -109,7 +109,7 @@ contract TransactionRelayer is BaseDSContract, EIP712Upgradeable {
     /**
      * @notice Executes a pre-approved transaction that has been signed by an authorized signer
      * @dev The transaction must be executed before the block limit and use the correct nonce
-     * @param signature The signature of the transaction data signed by an authorized signer (issuer or master)
+     * @param signature The signature of the transaction data signed by an authorized signer (issuer or exchange)
      * @param txData The transaction data struct containing:
      *        - destination: Target contract address
      *        - data: The call data to be executed
