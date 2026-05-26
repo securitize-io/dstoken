@@ -1369,6 +1369,52 @@ describe('Compliance Service Regulated Unit Tests', function() {
       await expect(dsToken.issueTokens(platformWallet, 1000)).not.to.be.reverted;
     });
 
+    it('should allow platform wallet issuance when forceAccredited is enabled', async function () {
+      const [, platformWallet] = await hre.ethers.getSigners();
+      const { dsToken, complianceService, complianceConfigurationService, walletManager } = await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setForceAccredited(true);
+      await walletManager.addPlatformWallet(platformWallet);
+
+      // Platform wallet has no investor record → isAccredited returns false, but the
+      // forceAccredited gate must not fire for platform wallet destinations
+      const res = await complianceService.preIssuanceCheck(platformWallet, 100);
+      expect(res[0]).equal(0);
+      expect(res[1]).equal('Valid');
+
+      await expect(dsToken.issueTokens(platformWallet, 100)).not.to.be.reverted;
+    });
+
+    it('should allow platform wallet issuance when total investors cap is full', async function () {
+      const [investor, platformWallet] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService, walletManager } = await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setTotalInvestorsLimit(1);
+      await walletManager.addPlatformWallet(platformWallet);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor.address, registryService);
+      await dsToken.issueTokens(investor.address, 100);
+      // cap is now full (totalInvestorsCount = 1 = limit)
+
+      // Platform wallet issuance must not be blocked by the investor cap
+      await expect(dsToken.issueTokens(platformWallet.address, 200)).not.to.be.reverted;
+    });
+
+    it('should allow platform wallet issuance when non-accredited investors cap is full', async function () {
+      const [investor, platformWallet] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService, walletManager } = await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setNonAccreditedInvestorsLimit(1);
+      await walletManager.addPlatformWallet(platformWallet);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor.address, registryService);
+      await dsToken.issueTokens(investor.address, 100);
+      // non-accredited cap is now full (nonAccreditedInvestorsCount = 1 = limit)
+
+      // Platform wallet issuance must not be blocked by the non-accredited cap
+      await expect(dsToken.issueTokens(platformWallet.address, 200)).not.to.be.reverted;
+    });
+
     it('should not issue tokens to a new investor if investor limit is exceeded', async function () {
       const [wallet, wallet2] = await hre.ethers.getSigners();
       const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);

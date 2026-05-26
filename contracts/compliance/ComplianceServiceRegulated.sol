@@ -456,6 +456,10 @@ library ComplianceServiceLibrary {
             return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
         }
 
+        if (IDSWalletManager(_services[WALLET_MANAGER]).isPlatformWallet(_to)) {
+            return (0, VALID);
+        }
+
         IDSComplianceConfigurationService complianceConfigurationService = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]);
         string memory toCountry = IDSRegistryService(_services[REGISTRY_SERVICE]).getCountry(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to));
         uint256 toRegion = complianceConfigurationService.getCountryCompliance(toCountry);
