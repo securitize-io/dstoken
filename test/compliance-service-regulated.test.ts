@@ -2004,3 +2004,81 @@ describe('Compliance Service Regulated Unit Tests', function() {
         .to.be.revertedWith('Max investors in category');
     });
   });
+
+  describe('Platform wallet sender investor cap enforcement', function () {
+    it('should block transfer from platform wallet to new investor when total investors cap is full', async function () {
+      const [investor, platformWallet, freshInvestor] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService, walletManager } =
+        await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setTotalInvestorsLimit(1);
+      await walletManager.addPlatformWallet(platformWallet.address);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor.address, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, freshInvestor.address, registryService);
+
+      // Issue to platform wallet first (totalCount still 0, cap not yet full)
+      await dsToken.issueTokens(platformWallet.address, 200);
+      // Issue to regular investor — fills the cap (totalCount = 1 = limit)
+      await dsToken.issueTokens(investor.address, 100);
+
+      // Platform wallet attempts to distribute to a new investor → must be blocked
+      await expect(dsToken.connect(platformWallet).transfer(freshInvestor.address, 100))
+        .to.be.revertedWith('Max investors in category');
+    });
+
+    it('should still allow full-balance transfer from regular investor to new investor when total cap is full (genuine offset)', async function () {
+      const [investor, freshInvestor] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService } =
+        await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setTotalInvestorsLimit(1);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor.address, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, freshInvestor.address, registryService);
+
+      await dsToken.issueTokens(investor.address, 100);
+
+      // Regular investor depletes entire balance → exits the pool → net zero change → allowed
+      await expect(dsToken.connect(investor).transfer(freshInvestor.address, 100))
+        .to.not.be.reverted;
+    });
+
+    it('should block transfer from platform wallet to new non-accredited investor when non-accredited cap is full', async function () {
+      const [investor, platformWallet, freshInvestor] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService, walletManager } =
+        await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setNonAccreditedInvestorsLimit(1);
+      await walletManager.addPlatformWallet(platformWallet.address);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor.address, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, freshInvestor.address, registryService);
+
+      // Issue to platform wallet first (not counted as non-accredited, cap still 0/1)
+      await dsToken.issueTokens(platformWallet.address, 200);
+      // Issue to non-accredited investor — fills the cap (nonAccreditedCount = 1 = limit)
+      await dsToken.issueTokens(investor.address, 100);
+
+      // Platform wallet attempts to distribute to a new non-accredited investor → must be blocked
+      await expect(dsToken.connect(platformWallet).transfer(freshInvestor.address, 100))
+        .to.be.revertedWith('Max investors in category');
+    });
+
+    it('should still allow full-balance transfer from non-accredited investor to new investor when non-accredited cap is full (genuine offset)', async function () {
+      const [investor, freshInvestor] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService } =
+        await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setNonAccreditedInvestorsLimit(1);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor.address, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, freshInvestor.address, registryService);
+
+      await dsToken.issueTokens(investor.address, 100);
+
+      // Non-accredited investor depletes entire balance → exits the pool → net zero → allowed
+      await expect(dsToken.connect(investor).transfer(freshInvestor.address, 100))
+        .to.not.be.reverted;
+    });
+  });

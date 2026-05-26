@@ -158,7 +158,8 @@ library ComplianceServiceLibrary {
         address _from,
         uint256 _value,
         uint256 fromInvestorBalance,
-        uint256 toInvestorBalance
+        uint256 toInvestorBalance,
+        bool isPlatformWalletFrom
     ) internal view returns (bool) {
         uint256 nonAccreditedInvestorLimit = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit();
         uint256 totalInvestors_ = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getTotalInvestorsCount();
@@ -168,7 +169,7 @@ library ComplianceServiceLibrary {
         nonAccreditedInvestorLimit != 0 &&
         nonAccreditedInvestors >= nonAccreditedInvestorLimit &&
         isNewInvestor(toInvestorBalance) &&
-        (isAccredited(_services, _from) || fromInvestorBalance > _value);
+        (isPlatformWalletFrom || isAccredited(_services, _from) || fromInvestorBalance > _value);
     }
 
     function newPreTransferCheck(
@@ -392,14 +393,14 @@ library ComplianceServiceLibrary {
         }
 
         if (!isAccreditedTo) {
-            if (maxInvestorsInCategoryForNonAccredited(_services, _args.from, _args.value, _args.fromInvestorBalance, toInvestorBalance)) {
+            if (maxInvestorsInCategoryForNonAccredited(_services, _args.from, _args.value, _args.fromInvestorBalance, toInvestorBalance, isPlatformWalletFrom)) {
                 return (40, MAX_INVESTORS_IN_CATEGORY);
             }
         }
 
         if (
             IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getTotalInvestorsLimit() != 0 &&
-            _args.fromInvestorBalance > _args.value &&
+            (isPlatformWalletFrom || _args.fromInvestorBalance > _args.value) &&
             ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getTotalInvestorsCount() >=
             IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getTotalInvestorsLimit() &&
             isNewInvestor(toInvestorBalance)
