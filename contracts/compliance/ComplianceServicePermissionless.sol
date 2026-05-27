@@ -208,7 +208,8 @@ contract ComplianceServicePermissionless is ComplianceService, ComplianceService
 
         uint256 totalLockedShares = 0;
         for (uint256 i = 0; i < count; i++) {
-            if (walletIssuancesTimestamps[_wallet][i] + lockPeriod > _time) {
+            uint256 ts = walletIssuancesTimestamps[_wallet][i];
+            if (ts > _time || lockPeriod > _time - ts) {
                 totalLockedShares += walletIssuancesValues[_wallet][i];
             }
         }
@@ -227,10 +228,12 @@ contract ComplianceServicePermissionless is ComplianceService, ComplianceService
         uint256 currentCount = walletIssuancesCounters[_wallet];
 
         if (currentCount == 0) return;
+        if (lockPeriod > block.timestamp) return;
 
         uint256 currentIndex = 0;
         while (currentIndex < currentCount) {
-            if (walletIssuancesTimestamps[_wallet][currentIndex] + lockPeriod <= block.timestamp) {
+            uint256 ts = walletIssuancesTimestamps[_wallet][currentIndex];
+            if (ts <= block.timestamp - lockPeriod) {
                 if (currentIndex != currentCount - 1) {
                     walletIssuancesTimestamps[_wallet][currentIndex] = walletIssuancesTimestamps[_wallet][currentCount - 1];
                     walletIssuancesValues[_wallet][currentIndex] = walletIssuancesValues[_wallet][currentCount - 1];
