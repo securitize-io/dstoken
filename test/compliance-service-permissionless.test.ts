@@ -303,6 +303,51 @@ describe("ComplianceServicePermissionless", function () {
       expect(await complianceService.lockedAt(user1Address, now + 1)).to.equal(0);
     });
 
+    it("overflow-safe lockup: enormous lockPeriod does not brick transfers (lockedAt)", async function () {
+      // Regression for: ts + lockPeriod overflow in _lockedAt when lockPeriod is near uint256 max.
+      // With Solidity 0.8 checked arithmetic the addition reverts, permanently bricking preTransferCheck.
+      // Fix: replace `ts + lockPeriod > _time` with `lockPeriod > _time - ts` (no addition).
+      const contracts = await loadFixture(deployDSTokenPermissionless);
+      const { dsToken, complianceService, complianceConfigurationService } = contracts;
+      const user = (await hre.ethers.getSigners())[6];
+      const recipient = (await hre.ethers.getSigners())[7];
+      const userAddress = await user.getAddress();
+
+      // Set an astronomically large lock period that would overflow uint256 when added to any timestamp
+      const HUGE_LOCK_PERIOD = hre.ethers.MaxUint256;
+      await complianceConfigurationService.setNonUSLockPeriod(HUGE_LOCK_PERIOD);
+      await dsToken.issueTokens(userAddress, 500);
+
+      // _lockedAt must not revert — everything is locked (can't transfer any amount)
+      const now = (await hre.ethers.provider.getBlock("latest"))!.timestamp;
+      const locked = await complianceService.lockedAt(userAddress, now + 1);
+      expect(locked).to.equal(500); // entire balance locked
+
+      const check = await complianceService.preTransferCheck(userAddress, await recipient.getAddress(), 1);
+      expect(check[0]).to.equal(16); // 16 = tokens locked — must not revert
+    });
+
+    it("overflow-safe lockup: enormous lockPeriod does not brick issuance (cleanupIssuances)", async function () {
+      // Regression for: ts + lockPeriod overflow in _cleanupIssuances when lockPeriod is near uint256 max.
+      // Fix: early return `if (lockPeriod > block.timestamp) return` and rewrite condition to `ts <= block.timestamp - lockPeriod`.
+      const contracts = await loadFixture(deployDSTokenPermissionless);
+      const { dsToken, complianceService, complianceConfigurationService } = contracts;
+      const user = (await hre.ethers.getSigners())[6];
+      const userAddress = await user.getAddress();
+
+      const HUGE_LOCK_PERIOD = hre.ethers.MaxUint256;
+      await complianceConfigurationService.setNonUSLockPeriod(HUGE_LOCK_PERIOD);
+
+      // First issuance records a lockup entry
+      await dsToken.issueTokens(userAddress, 100);
+      expect(await complianceService.issuancesCount(userAddress)).to.equal(1);
+
+      // Second issuance runs _cleanupIssuances — must not revert due to overflow
+      await expect(dsToken.issueTokens(userAddress, 100)).to.not.be.reverted;
+      // Nothing was cleaned up (huge lockPeriod → nothing expires) → count grows to 2
+      expect(await complianceService.issuancesCount(userAddress)).to.equal(2);
+    });
+
     it("issuance cap: reverts when MAX_ISSUANCES_PER_WALLET (30) exceeded", async function () {
       const contracts = await loadFixture(deployDSTokenPermissionless);
       const { dsToken, complianceConfigurationService, trustService } = contracts;
