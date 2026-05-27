@@ -1812,4 +1812,49 @@ describe('Compliance Service Regulated Unit Tests', function() {
         expect(issuancesCount).to.equal(0); // All expired issuances cleaned
       });
     });
+
+    describe('Large lock period — underflow guard', function() {
+      it('transfer does not revert with arithmetic panic when lock period exceeds block.timestamp', async function() {
+        const [wallet, wallet2] = await hre.ethers.getSigners();
+        const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);
+
+        await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.USA);
+
+        await dsToken.issueTokens(wallet, 1000);
+
+        // lockPeriod > block.timestamp — would cause (time - lockTime) underflow before fix
+        const hugeLockPeriod = hre.ethers.MaxUint256 / 2n;
+        await complianceConfigurationService.setUSLockPeriod(hugeLockPeriod);
+
+        // should revert with "Under lock-up", NOT with arithmetic panic
+        await expect(dsToken.connect(wallet).transfer(wallet2, 100))
+          .to.be.revertedWith('Under lock-up');
+      });
+
+      it('issuance does not revert with arithmetic panic when lock period exceeds block.timestamp', async function() {
+        const [wallet] = await hre.ethers.getSigners();
+        const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployWithMockCompliance);
+
+        await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
+
+        await dsToken.issueTokens(wallet, 500);
+
+        // lockPeriod > block.timestamp — cleanupInvestorIssuances would underflow before fix
+        const hugeLockPeriod = hre.ethers.MaxUint256 / 2n;
+        await complianceConfigurationService.setUSLockPeriod(hugeLockPeriod);
+
+        // second issuance triggers cleanupInvestorIssuances — should not panic
+        await expect(dsToken.issueTokens(wallet, 200)).to.not.be.reverted;
+
+        // both issuance records remain (cleanup skipped — nothing can have expired)
+        const issuancesCount = await complianceService.getIssuancesCount(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+        expect(issuancesCount).to.equal(2); // 2 = neither record expired under huge lockPeriod
+      });
+    });
   });
