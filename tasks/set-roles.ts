@@ -14,7 +14,7 @@ subtask('set-roles', 'Set roles')
       tx = await dsContracts.trustService.setRole(await dsContracts.walletRegistrar.getAddress(), DSConstants.roles.ISSUER);
       await tx.wait();
       console.log(`Granting issuer permissions to Transaction Relayer`);
-      tx = await dsContracts.trustService.setRole(await dsContracts.transactionRelayer.getAddress(), DSConstants.roles.ISSUER);
+      tx = await dsContracts.trustService.setRole(await dsContracts.transactionRelayer.getAddress(), DSConstants.roles.EXCHANGE);
       await tx.wait();
       console.log(`Granting issuer permissions to Bulk Operator`);
       tx = await dsContracts.trustService.setRole(await dsContracts.bulkOperator.getAddress(), DSConstants.roles.ISSUER);

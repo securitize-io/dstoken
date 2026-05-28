@@ -57,3 +57,4 @@ deployments-zk/
 
 exported-abi-bytecodes/
 CLAUDE.md
+.claude/settings.local.json

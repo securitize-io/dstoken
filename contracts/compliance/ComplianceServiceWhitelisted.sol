@@ -111,8 +111,17 @@ contract ComplianceServiceWhitelisted is ComplianceService {
             return (15, NOT_ENOUGH_TOKENS);
         }
 
-        if (getLockManager().getTransferableTokens(_from, block.timestamp) < _value) {
-            return (16, TOKENS_LOCKED);
+        if (!getWalletManager().isPlatformWallet(_from)) {
+            (string memory investorFrom, string memory investorTo) = getRegistryService().getInvestors(_from, _to);
+
+            if (!CommonUtils.isEmptyString(investorFrom) && getLockManager().isInvestorLocked(investorFrom)) {
+                return (16, TOKENS_LOCKED);
+            }
+
+            bool isReallocation = !CommonUtils.isEmptyString(investorFrom) && CommonUtils.isEqualString(investorFrom, investorTo);
+            if (!isReallocation && getLockManager().getTransferableTokens(_from, block.timestamp) < _value) {
+                return (16, TOKENS_LOCKED);
+            }
         }
 
         return checkTransfer(_from, _to, _value);

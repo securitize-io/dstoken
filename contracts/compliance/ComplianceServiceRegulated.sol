@@ -158,17 +158,18 @@ library ComplianceServiceLibrary {
         address _from,
         uint256 _value,
         uint256 fromInvestorBalance,
-        uint256 toInvestorBalance
+        uint256 toInvestorBalance,
+        bool isPlatformWalletFrom
     ) internal view returns (bool) {
         uint256 nonAccreditedInvestorLimit = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getNonAccreditedInvestorsLimit();
+        uint256 totalInvestors_ = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getTotalInvestorsCount();
+        uint256 accreditedInvestors_ = ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getAccreditedInvestorsCount();
+        uint256 nonAccreditedInvestors = totalInvestors_ > accreditedInvestors_ ? totalInvestors_ - accreditedInvestors_ : 0;
         return
         nonAccreditedInvestorLimit != 0 &&
-        ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getTotalInvestorsCount() -
-            ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getAccreditedInvestorsCount()
-        >=
-        nonAccreditedInvestorLimit &&
+        nonAccreditedInvestors >= nonAccreditedInvestorLimit &&
         isNewInvestor(toInvestorBalance) &&
-        (isAccredited(_services, _from) || fromInvestorBalance > _value);
+        (isPlatformWalletFrom || isAccredited(_services, _from) || fromInvestorBalance > _value);
     }
 
     function newPreTransferCheck(
@@ -344,7 +345,8 @@ library ComplianceServiceLibrary {
                 IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getEURetailInvestorsLimit() &&
                 isNewInvestor(toInvestorBalance) &&
                 (!CommonUtils.isEqualString(getCountry(_services, _args.from), toCountry) ||
-                (_args.fromInvestorBalance > _args.value && isRetail(_services, _args.from)))
+                !isRetail(_services, _args.from) ||
+                _args.fromInvestorBalance > _args.value)
             ) {
                 return (40, MAX_INVESTORS_IN_CATEGORY);
             }
@@ -391,14 +393,14 @@ library ComplianceServiceLibrary {
         }
 
         if (!isAccreditedTo) {
-            if (maxInvestorsInCategoryForNonAccredited(_services, _args.from, _args.value, _args.fromInvestorBalance, toInvestorBalance)) {
+            if (maxInvestorsInCategoryForNonAccredited(_services, _args.from, _args.value, _args.fromInvestorBalance, toInvestorBalance, isPlatformWalletFrom)) {
                 return (40, MAX_INVESTORS_IN_CATEGORY);
             }
         }
 
         if (
             IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getTotalInvestorsLimit() != 0 &&
-            _args.fromInvestorBalance > _args.value &&
+            (isPlatformWalletFrom || _args.fromInvestorBalance > _args.value) &&
             ComplianceServiceRegulated(_services[COMPLIANCE_SERVICE]).getTotalInvestorsCount() >=
             IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]).getTotalInvestorsLimit() &&
             isNewInvestor(toInvestorBalance)
@@ -454,6 +456,10 @@ library ComplianceServiceLibrary {
             return (20, WALLET_NOT_IN_REGISTRY_SERVICE);
         }
 
+        if (IDSWalletManager(_services[WALLET_MANAGER]).isPlatformWallet(_to)) {
+            return (0, VALID);
+        }
+
         IDSComplianceConfigurationService complianceConfigurationService = IDSComplianceConfigurationService(_services[COMPLIANCE_CONFIGURATION_SERVICE]);
         string memory toCountry = IDSRegistryService(_services[REGISTRY_SERVICE]).getCountry(IDSRegistryService(_services[REGISTRY_SERVICE]).getInvestor(_to));
         uint256 toRegion = complianceConfigurationService.getCountryCompliance(toCountry);
@@ -479,10 +485,12 @@ library ComplianceServiceLibrary {
         if (isNewInvestor(balanceOfInvestorTo)) {
             // verify global non accredited limit
             if (!isAccreditedTo) {
+                uint256 totalInvestors_ = complianceService.getTotalInvestorsCount();
+                uint256 accreditedInvestors_ = complianceService.getAccreditedInvestorsCount();
+                uint256 nonAccreditedInvestors = totalInvestors_ > accreditedInvestors_ ? totalInvestors_ - accreditedInvestors_ : 0;
                 if (
                     complianceConfigurationService.getNonAccreditedInvestorsLimit() != 0 &&
-                    complianceService.getTotalInvestorsCount() - complianceService.getAccreditedInvestorsCount() >=
-                    complianceConfigurationService.getNonAccreditedInvestorsLimit()
+                    nonAccreditedInvestors >= complianceConfigurationService.getNonAccreditedInvestorsLimit()
                 ) {
                     return (40, MAX_INVESTORS_IN_CATEGORY);
                 }
@@ -629,6 +637,9 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         if (compareInvestorBalance(investorTo, _value, 0)) {
             adjustTotalInvestorsCounts(_to, CommonUtils.IncDec.Increase);
         }
+        if (CommonUtils.isEmptyString(investorTo)) {
+            return true;
+        }
         uint256 shares = getRebasingProvider().convertTokensToShares(_value);
 
         cleanupInvestorIssuances(investorTo);
@@ -692,7 +703,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     ) internal {
         uint256 countryCompliance = getComplianceConfigurationService().getCountryCompliance(_country);
 
-        if (getRegistryService().isAccreditedInvestor(_id)) {
+        if (countryCompliance != 0 && getRegistryService().isAccreditedInvestor(_id)) {
             if(_increase == CommonUtils.IncDec.Increase) {
                 accreditedInvestorsCount++;
             }
@@ -852,24 +863,31 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
     }
 
     function setTotalInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+        require(_value >= accreditedInvestorsCount, "Total must be >= accredited");
+        require(_value >= usInvestorsCount, "Total must be >= US investors");
         totalInvestors = _value;
 
         return true;
     }
 
     function setUSInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+        require(_value <= totalInvestors, "US investors must be <= total");
+        require(_value >= usAccreditedInvestorsCount, "US investors must be >= US accredited");
         usInvestorsCount = _value;
 
         return true;
     }
 
     function setUSAccreditedInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+        require(_value <= usInvestorsCount, "US accredited must be <= US investors");
+        require(_value <= accreditedInvestorsCount, "US accredited must be <= accredited");
         usAccreditedInvestorsCount = _value;
 
         return true;
     }
 
     function setAccreditedInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+        require(_value <= totalInvestors, "Accredited must be <= total");
         accreditedInvestorsCount = _value;
 
         return true;
