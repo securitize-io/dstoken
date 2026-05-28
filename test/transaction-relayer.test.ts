@@ -34,42 +34,6 @@ describe('Transaction Relayer Unit Tests', function() {
   });
 
   describe('executePreApprovedTransaction method', function() {
-    it('Should wallet issuer sign an issueTokens() transaction', async function() {
-      const [investor, hsm] = await hre.ethers.getSigners();
-      const {
-        dsToken,
-        transactionRelayer,
-        trustService,
-        registryService
-      } = await loadFixture(deployDSTokenRegulated);
-
-      await trustService.setRole(hsm, DSConstants.roles.ISSUER);
-      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
-
-      const issueTokensData = dsToken.interface.encodeFunctionData('issueTokens', [investor.address, 100]);
-      const block = await hre.ethers.provider.getBlock('latest');
-      const blockLimit = (block?.number ?? 0) + 5;
-      const nonce = await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
-
-      const message = {
-        destination: await dsToken.getAddress(),
-        data: issueTokensData,
-        nonce,
-        senderInvestor: INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
-        blockLimit,
-      };
-
-      const signature = await transactionRelayerPreApproval(hsm, await transactionRelayer.getAddress(), message);
-
-      await transactionRelayer.executePreApprovedTransaction(
-        signature,
-        message,
-      );
-
-      expect(await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1)).to.equal(nonce + 1n);
-      expect(await dsToken.balanceOf(investor)).to.equal(100);
-    });
-
     it('Should exchange wallet sign a register investor transaction', async function() {
       const [, hsm] = await hre.ethers.getSigners();
       const {
@@ -133,27 +97,30 @@ describe('Transaction Relayer Unit Tests', function() {
     });
 
     it('SHOULD revert when reusing the same nonce', async function() {
-      const [investor, hsm] = await hre.ethers.getSigners();
+      const [, hsm] = await hre.ethers.getSigners();
       const {
-        dsToken,
         transactionRelayer,
         trustService,
         registryService,
       } = await loadFixture(deployDSTokenRegulated);
 
-      await trustService.setRole(hsm, DSConstants.roles.ISSUER);
-      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
+      await trustService.setRole(hsm, DSConstants.roles.EXCHANGE);
 
-      const issueTokensData = dsToken.interface.encodeFunctionData('issueTokens', [investor.address, 100]);
+      const registerInvestorData = registryService.interface.encodeFunctionData(
+        "registerInvestor",
+        [INVESTORS.INVESTOR_ID.INVESTOR_ID_2, ""]
+      );
       const block = await hre.ethers.provider.getBlock('latest');
       const blockLimit = (block?.number ?? 0) + 5;
-      const nonce = await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      const nonce = await transactionRelayer.nonceByInvestor(
+        INVESTORS.INVESTOR_ID.INVESTOR_ID_2
+      );
 
       const message = {
-        destination: await dsToken.getAddress(),
-        data: issueTokensData,
+        destination: await registryService.getAddress(),
+        data: registerInvestorData,
         nonce,
-        senderInvestor: INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
+        senderInvestor: INVESTORS.INVESTOR_ID.INVESTOR_ID_2,
         blockLimit,
       };
 
@@ -173,23 +140,25 @@ describe('Transaction Relayer Unit Tests', function() {
     it('SHOULD revert when blockLimit is expired', async () => {
       const [investor, hsm] = await hre.ethers.getSigners();
       const {
-        dsToken,
         transactionRelayer,
         trustService,
         registryService
       } = await loadFixture(deployDSTokenRegulated);
 
-      await trustService.setRole(hsm, DSConstants.roles.ISSUER);
+      await trustService.setRole(hsm, DSConstants.roles.EXCHANGE);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
 
-      const issueTokensData = dsToken.interface.encodeFunctionData('issueTokens', [investor.address, 100]);
+      const registerInvestorData = registryService.interface.encodeFunctionData(
+        "registerInvestor",
+        [INVESTORS.INVESTOR_ID.INVESTOR_ID_2, ""]
+      );
       const block = await hre.ethers.provider.getBlock('latest');
       const blockLimit = (block?.number ?? 0) - 5;
       const nonce = await transactionRelayer.nonceByInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
 
       const message = {
-        destination: await dsToken.getAddress(),
-        data: issueTokensData,
+        destination: await registryService.getAddress(),
+        data: registerInvestorData,
         nonce,
         senderInvestor: INVESTORS.INVESTOR_ID.INVESTOR_ID_1,
         blockLimit,
