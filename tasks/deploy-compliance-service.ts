@@ -6,7 +6,8 @@ subtask('deploy-compliance-service', 'Deploy Compliance Service')
   .setAction(
     async (args, hre, run) => {
       const libraries: Record<string, any> = {};
-      if (args.compliance !== 'WHITELISTED' && args.compliance !== 'GLOBAL_WHITELISTED') {
+      const noLibTypes = ['WHITELISTED', 'GLOBAL_WHITELISTED', 'BLACKLISTED', 'PERMISSIONLESS'];
+      if (!noLibTypes.includes(args.compliance)) {
         const ComplianceLib = await hre.ethers.getContractFactory('ComplianceServiceLibrary');
         const complianceLib = await ComplianceLib.deploy();
 

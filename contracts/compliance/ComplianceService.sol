@@ -115,7 +115,7 @@ abstract contract ComplianceService is IDSComplianceService, ComplianceServiceDa
      * @param _issuanceTime.
      * @return issuanceTime
      */
-    function validateIssuanceTime(uint256 _issuanceTime) public view override returns (uint256 issuanceTime) {
+    function validateIssuanceTime(uint256 _issuanceTime) public view virtual override returns (uint256 issuanceTime) {
         if (!getComplianceConfigurationService().getDisallowBackDating()) {
             return _issuanceTime;
         }
