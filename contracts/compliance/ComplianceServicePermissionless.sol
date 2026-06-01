@@ -145,6 +145,10 @@ contract ComplianceServicePermissionless is ComplianceService, ComplianceService
             return true;
         }
 
+        if (getComplianceConfigurationService().getNonUSLockPeriod() == 0) {
+            return true;
+        }
+
         _cleanupIssuances(_to);
 
         require(walletIssuancesCounters[_to] < MAX_ISSUANCES_PER_WALLET, "Issuance cap reached");
