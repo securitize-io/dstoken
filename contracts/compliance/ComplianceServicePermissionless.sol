@@ -74,12 +74,15 @@ contract ComplianceServicePermissionless is ComplianceService, ComplianceService
         (code, reason) = checkTransfer(_from, _to, _value);
         if (code != 0) return (code, reason);
 
-        // Lockup check — skip for platform wallets
-        if (!getWalletManager().isPlatformWallet(_from)) {
-            uint256 locked = _lockedAt(_from, block.timestamp);
-            if (locked > 0 && _value > _balanceFrom - locked) {
-                return (16, TOKENS_LOCKED);
-            }
+        // Lockup check — applied unconditionally, including platform wallets.
+        // The platform-wallet bypass was removed (BC-2190): under StubRegistryService
+        // getInvestor() always returns "" so the guard in WalletManager.setSpecialWallet
+        // is inert, letting an Issuer label any locked wallet as platform and escape the
+        // lockup. Legitimate platform wallets are unaffected because recordIssuance already
+        // skips writing lockup records for them, so _lockedAt always returns 0 for them.
+        uint256 locked = _lockedAt(_from, block.timestamp);
+        if (locked > 0 && _value > _balanceFrom - locked) {
+            return (16, TOKENS_LOCKED);
         }
 
         return (0, VALID);
