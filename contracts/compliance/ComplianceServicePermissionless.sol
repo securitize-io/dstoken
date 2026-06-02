@@ -99,6 +99,11 @@ contract ComplianceServicePermissionless is ComplianceService, ComplianceService
         address _to,
         uint256 /*_value*/
     ) public view virtual override returns (uint256 code, string memory reason) {
+        // FR-4: issuances must be rejected while the token is paused, same as transfers.
+        if (getToken().isPaused()) {
+            return (10, TOKEN_PAUSED);
+        }
+
         if (_to == address(0)) {
             return (101, "Zero address");
         }

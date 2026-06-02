@@ -126,6 +126,40 @@ describe("ComplianceServicePermissionless", function () {
       expect(check[1]).to.equal("Zero address");
     });
 
+    describe("BC-2192: issuance blocked while token is paused (FR-4)", function () {
+      it("rejects issuance when token is paused (code 10)", async function () {
+        const { dsToken, complianceService, user2Address } = await fixture();
+        await dsToken.pause();
+
+        // preIssuanceCheck is a view — simulates compliance outcome without minting tokens
+        const check = await complianceService.preIssuanceCheck(user2Address, 500);
+        expect(check[0]).to.equal(10); // 10 = token paused
+        expect(check[1]).to.equal("Token Paused");
+      });
+
+      it("issueTokens reverts while token is paused", async function () {
+        const { dsToken, user2Address } = await fixture();
+        await dsToken.pause();
+
+        await expect(dsToken.issueTokens(user2Address, 500)).to.be.reverted;
+      });
+
+      it("issuance resumes after unpause", async function () {
+        const { dsToken, complianceService, user2Address } = await fixture();
+        await dsToken.pause();
+
+        let check = await complianceService.preIssuanceCheck(user2Address, 500);
+        expect(check[0]).to.equal(10); // 10 = token paused
+
+        await dsToken.unpause();
+
+        check = await complianceService.preIssuanceCheck(user2Address, 500);
+        expect(check[0]).to.equal(0); // 0 = valid after unpause
+        await expect(dsToken.issueTokens(user2Address, 500)).to.not.be.reverted;
+        expect(await dsToken.balanceOf(user2Address)).to.equal(500);
+      });
+    });
+
     it("returns full balance as transferable when no lockup configured", async function () {
       const { complianceService, user1Address } = await fixture();
       const currentTime = (await hre.ethers.provider.getBlock("latest"))!.timestamp;
