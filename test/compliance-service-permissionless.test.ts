@@ -373,6 +373,50 @@ describe("ComplianceServicePermissionless", function () {
       await expect(dsToken.issueTokens(userAddress, 1)).to.be.revertedWith("Issuance cap reached");
     });
 
+    describe("BC-2189: validateIssuanceTime respects disallowBackDating in Permissionless", function () {
+      it("with disallowBackDating=true, a MaxUint256 issuance time is capped to block.timestamp", async function () {
+        // Variant B: issuer passes type(uint256).max as issuanceTime.
+        // With disallowBackDating=true the base class always returns block.timestamp,
+        // so the record is written at now, not MaxUint256 — lockup expires normally.
+        const contracts = await loadFixture(deployDSTokenPermissionless);
+        const { dsToken, complianceService, complianceConfigurationService } = contracts;
+        const user = (await hre.ethers.getSigners())[6];
+        const userAddress = await user.getAddress();
+
+        await complianceConfigurationService.setNonUSLockPeriod(30 * DAYS);
+        await complianceConfigurationService.setDisallowBackDating(true);
+
+        await dsToken.issueTokensCustom(userAddress, 100, hre.ethers.MaxUint256, 0, '', 0);
+        expect(await dsToken.balanceOf(userAddress)).to.equal(100);
+
+        // Within the lockup window the tokens are locked
+        expect(await complianceService.lockedAt(userAddress, await time.latest())).to.equal(100);
+
+        // After the lockup window expires the wallet is free — proving the timestamp was capped
+        await time.increase(30 * DAYS + 1);
+        expect(await complianceService.lockedAt(userAddress, await time.latest())).to.equal(0);
+      });
+
+      it("with disallowBackDating=false (default), a backdated issuance time is preserved", async function () {
+        // Backdating is intentional: issuance time reflects when the investment was made off-chain.
+        // A past issuance time 31 days ago makes the 30-day lockup already expired at mint time.
+        const contracts = await loadFixture(deployDSTokenPermissionless);
+        const { dsToken, complianceService, complianceConfigurationService } = contracts;
+        const user = (await hre.ethers.getSigners())[6];
+        const userAddress = await user.getAddress();
+
+        await complianceConfigurationService.setNonUSLockPeriod(30 * DAYS);
+        // disallowBackDating = false by default
+
+        const pastIssuanceTime = (await time.latest()) - 31 * DAYS;
+        await dsToken.issueTokensCustom(userAddress, 100, pastIssuanceTime, 0, '', 0);
+        expect(await dsToken.balanceOf(userAddress)).to.equal(100);
+
+        // Lockup already expired because the backdated timestamp is 31 days in the past
+        expect(await complianceService.lockedAt(userAddress, await time.latest())).to.equal(0);
+      });
+    });
+
     it("period-0 mint writes no record — enabling lockup later does not retroactively lock the holder", async function () {
       // Regression for BC-2187: recordIssuance unconditionally wrote a record even when
       // lockPeriod == 0, causing _lockedAt to retroactively lock the holder when a TA
