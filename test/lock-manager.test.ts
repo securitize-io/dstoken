@@ -30,7 +30,9 @@ describe('Lock Manager Unit Tests', function() {
   describe('Add Manual Lock Record', function() {
     it('Should revert due to valueLocked = 0', async function() {
       const [ investor ] = await hre.ethers.getSigners();
-      const { lockManager } = await loadFixture(deployDSTokenRegulated);
+      const { lockManager, registryService } = await loadFixture(deployDSTokenRegulated);
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await registryService.addWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
       await expect(lockManager.addManualLockRecord(
         investor,
         0,
@@ -41,7 +43,9 @@ describe('Lock Manager Unit Tests', function() {
 
     it('Should revert due to release time < now && > 0', async function() {
       const [ investor ] = await hre.ethers.getSigners();
-      const { lockManager } = await loadFixture(deployDSTokenRegulated);
+      const { lockManager, registryService } = await loadFixture(deployDSTokenRegulated);
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await registryService.addWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
       await expect(lockManager.addManualLockRecord(
         investor,
         100,
@@ -124,7 +128,9 @@ describe('Lock Manager Unit Tests', function() {
   describe('Remove Lock Record:', function() {
     it('Should revert due to lockIndex > lastLockNumber', async function() {
       const [ investor ] = await hre.ethers.getSigners();
-      const { lockManager } = await loadFixture(deployDSTokenRegulated);
+      const { lockManager, registryService } = await loadFixture(deployDSTokenRegulated);
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await registryService.addWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
       await lockManager.addManualLockRecord(
         investor,
         100,
@@ -138,7 +144,9 @@ describe('Lock Manager Unit Tests', function() {
 
     it('Should revert when trying to Remove ManualLock Record with NONE permissions', async function() {
       const [ investor, unauthorizedWallet ] = await hre.ethers.getSigners();
-      const { lockManager } = await loadFixture(deployDSTokenRegulated);
+      const { lockManager, registryService } = await loadFixture(deployDSTokenRegulated);
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await registryService.addWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
       await lockManager.addManualLockRecord(
         investor,
         100,
@@ -152,7 +160,9 @@ describe('Lock Manager Unit Tests', function() {
 
     it('Should revert when trying to Remove ManualLock Record with EXCHANGE permissions', async function() {
       const [ investor, exchangeWallet ] = await hre.ethers.getSigners();
-      const { lockManager, trustService } = await loadFixture(deployDSTokenRegulated);
+      const { lockManager, trustService, registryService } = await loadFixture(deployDSTokenRegulated);
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await registryService.addWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
       await trustService.setRole(exchangeWallet, DSConstants.roles.EXCHANGE);
       await lockManager.addManualLockRecord(
         investor,
@@ -167,7 +177,9 @@ describe('Lock Manager Unit Tests', function() {
 
     it('Should revert when trying to Remove ManualLock Record with ISSUER permissions', async function() {
       const [ investor, issuerWallet ] = await hre.ethers.getSigners();
-      const { lockManager, trustService } = await loadFixture(deployDSTokenRegulated);
+      const { lockManager, trustService, registryService } = await loadFixture(deployDSTokenRegulated);
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await registryService.addWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
       await trustService.setRole(issuerWallet, DSConstants.roles.ISSUER);
       await lockManager.addManualLockRecord(
         investor,
@@ -225,7 +237,9 @@ describe('Lock Manager Unit Tests', function() {
 
     it('Should return 1', async function() {
       const [ investor ] = await hre.ethers.getSigners();
-      const { lockManager } = await loadFixture(deployDSTokenRegulated);
+      const { lockManager, registryService } = await loadFixture(deployDSTokenRegulated);
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await registryService.addWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
       await lockManager.addManualLockRecord(
         investor,
         100,
@@ -251,7 +265,9 @@ describe('Lock Manager Unit Tests', function() {
 
     it('Should check lock info', async function () {
       const [ investor ] = await hre.ethers.getSigners();
-      const { lockManager } = await loadFixture(deployDSTokenRegulated);
+      const { lockManager, registryService } = await loadFixture(deployDSTokenRegulated);
+      await registryService.registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await registryService.addWallet(investor, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
       const releaseTime = await time.latest() + 1000;
       await lockManager.addManualLockRecord(
         investor,
