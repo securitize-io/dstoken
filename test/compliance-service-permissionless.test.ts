@@ -156,9 +156,16 @@ describe("ComplianceServicePermissionless", function () {
     const LOCK_PERIOD = 30 * DAYS;
 
     async function fixtureWithLockup() {
-      const f = await fixture();
-      await f.complianceConfigurationService.setNonUSLockPeriod(LOCK_PERIOD);
-      return f;
+      const contracts = await loadFixture(deployDSTokenPermissionless);
+      const { dsToken, trustService, complianceService, blacklistManager, complianceConfigurationService } = contracts;
+      const [master, transferAgent, user1, user2, platformWallet] = await hre.ethers.getSigners();
+      await trustService.connect(master).setRole(transferAgent, DSConstants.roles.TRANSFER_AGENT);
+      const user1Address = await user1.getAddress();
+      const user2Address = await user2.getAddress();
+      // Set lockup BEFORE issuance so the record is written and tokens are correctly locked
+      await complianceConfigurationService.setNonUSLockPeriod(LOCK_PERIOD);
+      await dsToken.issueTokens(user1Address, 1_000);
+      return { dsToken, complianceService, blacklistManager, complianceConfigurationService, transferAgent, user1, user2, user1Address, user2Address, platformWallet };
     }
 
     it("tokens are locked immediately after issuance during lockup window", async function () {
@@ -364,6 +371,55 @@ describe("ComplianceServicePermissionless", function () {
 
       // 31st issuance should revert
       await expect(dsToken.issueTokens(userAddress, 1)).to.be.revertedWith("Issuance cap reached");
+    });
+
+    it("period-0 mint writes no record — enabling lockup later does not retroactively lock the holder", async function () {
+      // Regression for BC-2187: recordIssuance unconditionally wrote a record even when
+      // lockPeriod == 0, causing _lockedAt to retroactively lock the holder when a TA
+      // later enables a non-zero lockup anchored to the original mint timestamp.
+      const contracts = await loadFixture(deployDSTokenPermissionless);
+      const { dsToken, complianceService, complianceConfigurationService, trustService } = contracts;
+      const [master, transferAgent, user1, user2] = await hre.ethers.getSigners();
+      await trustService.connect(master).setRole(transferAgent, DSConstants.roles.TRANSFER_AGENT);
+      const user1Address = await user1.getAddress();
+      const user2Address = await user2.getAddress();
+
+      // Mint while lockPeriod == 0 — no record should be written
+      expect(await complianceConfigurationService.getNonUSLockPeriod()).to.equal(0);
+      await dsToken.issueTokens(user1Address, 1_000);
+      expect(await complianceService.issuancesCount(user1Address)).to.equal(0);
+
+      // Transfer Agent enables a 30-day lockup for go-forward issuances
+      await time.increase(1 * DAYS);
+      await complianceConfigurationService.connect(transferAgent).setNonUSLockPeriod(30 * DAYS);
+
+      // The period-0 mint must NOT be retroactively locked
+      const check = await complianceService.preTransferCheck(user1Address, user2Address, 1_000);
+      expect(check[0]).to.equal(0); // 0 = valid — old mint is unaffected by new lockup
+      expect(check[1]).to.equal("Valid");
+      await dsToken.connect(user1).transfer(user2Address, 1_000);
+      expect(await dsToken.balanceOf(user2Address)).to.equal(1_000);
+    });
+
+    it("period-0 mint writes no record — new mints after lockup is enabled are correctly locked", async function () {
+      // Confirms the fix is scoped: only period-0 mints skip the record.
+      // Mints after a non-zero lockup is configured must still create records and lock tokens.
+      const contracts = await loadFixture(deployDSTokenPermissionless);
+      const { dsToken, complianceService, complianceConfigurationService, trustService } = contracts;
+      const [master, transferAgent, user1, user2] = await hre.ethers.getSigners();
+      await trustService.connect(master).setRole(transferAgent, DSConstants.roles.TRANSFER_AGENT);
+      const user1Address = await user1.getAddress();
+      const user2Address = await user2.getAddress();
+
+      // Enable lockup first, then mint
+      await complianceConfigurationService.connect(transferAgent).setNonUSLockPeriod(30 * DAYS);
+      await dsToken.issueTokens(user1Address, 1_000);
+
+      // Record must exist and tokens must be locked
+      expect(await complianceService.issuancesCount(user1Address)).to.equal(1);
+      const check = await complianceService.preTransferCheck(user1Address, user2Address, 1_000);
+      expect(check[0]).to.equal(16); // 16 = tokens locked
+      expect(check[1]).to.equal("Tokens Locked");
     });
 
     describe("BC-2190: platform wallet label does not bypass active lockup", function () {
