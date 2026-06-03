@@ -113,12 +113,6 @@ contract ComplianceServicePermissionless is ComplianceService, ComplianceService
         return (0, VALID);
     }
 
-    // Returns _issuanceTime unchanged — no disallowBackDating enforcement
-    function validateIssuanceTime(uint256 _issuanceTime)
-        public view virtual override returns (uint256) {
-        return _issuanceTime;
-    }
-
     // ─── Transferable tokens ──────────────────────────────────────────────────
 
     function getComplianceTransferableTokens(
