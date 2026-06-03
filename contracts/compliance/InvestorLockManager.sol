@@ -23,6 +23,7 @@ import {InvestorLockManagerBase} from "./InvestorLockManagerBase.sol";
 import {InvestorLockManagerDataStore} from "../data-stores/InvestorLockManagerDataStore.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {BaseDSContract} from "../utils/BaseDSContract.sol";
+import {CommonUtils} from "../utils/CommonUtils.sol";
 
 contract InvestorLockManager is InvestorLockManagerBase {
     uint256 constant MAX_LOCKS_PER_INVESTOR = 30;
@@ -57,7 +58,9 @@ contract InvestorLockManager is InvestorLockManagerBase {
     }
 
     function createLock(address _to, uint256 _valueLocked, uint256 _reasonCode, string calldata _reasonString, uint256 _releaseTime) internal {
-        createLockForInvestor(getRegistryService().getInvestor(_to), _valueLocked, _reasonCode, _reasonString, _releaseTime);
+        string memory investor = getRegistryService().getInvestor(_to);
+        if (CommonUtils.isEmptyString(investor)) return;
+        createLockForInvestor(investor, _valueLocked, _reasonCode, _reasonString, _releaseTime);
         emit Locked(_to, _valueLocked, _reasonCode, _reasonString, _releaseTime);
     }
 
