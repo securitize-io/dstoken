@@ -421,5 +421,56 @@ describe("ComplianceServicePermissionless", function () {
       expect(check[0]).to.equal(16); // 16 = tokens locked
       expect(check[1]).to.equal("Tokens Locked");
     });
+
+    describe("BC-2190: platform wallet label does not bypass active lockup", function () {
+      it("labeling a locked wallet as platform does not let it transfer locked tokens", async function () {
+        // Attack: wallet receives tokens (lockup records written), then Issuer calls addPlatformWallet
+        // to escape the lockup via the isPlatformWallet bypass that was removed.
+        const contracts = await loadFixture(deployDSTokenPermissionless);
+        const { dsToken, complianceService, complianceConfigurationService, walletManager } = contracts;
+        const user = (await hre.ethers.getSigners())[6];
+        const recipient = (await hre.ethers.getSigners())[7];
+        const userAddress = await user.getAddress();
+        const recipientAddress = await recipient.getAddress();
+
+        await complianceConfigurationService.setNonUSLockPeriod(30 * DAYS);
+        await dsToken.issueTokens(userAddress, 100);
+
+        // Tokens are locked
+        let check = await complianceService.preTransferCheck(userAddress, recipientAddress, 1);
+        expect(check[0]).to.equal(16); // 16 = tokens locked
+
+        // Issuer labels the wallet as platform (guard is inert under StubRegistryService)
+        await walletManager.addPlatformWallet(userAddress);
+        expect(await walletManager.isPlatformWallet(userAddress)).to.equal(true);
+
+        // Lockup is still enforced — labeling as platform does not bypass existing lockup records
+        check = await complianceService.preTransferCheck(userAddress, recipientAddress, 1);
+        expect(check[0]).to.equal(16); // 16 = tokens locked — bypass closed
+      });
+
+      it("legitimate platform wallet (registered before issuance) has no lockup records and transfers freely", async function () {
+        // A wallet added as platform BEFORE receiving tokens has no lockup records because
+        // recordIssuance skips writing records for platform wallets.
+        // Confirms the fix does not break the intended platform wallet exemption.
+        const contracts = await loadFixture(deployDSTokenPermissionless);
+        const { dsToken, complianceService, complianceConfigurationService, walletManager } = contracts;
+        const platformWallet = (await hre.ethers.getSigners())[6];
+        const recipient = (await hre.ethers.getSigners())[7];
+        const platformWalletAddress = await platformWallet.getAddress();
+        const recipientAddress = await recipient.getAddress();
+
+        await complianceConfigurationService.setNonUSLockPeriod(30 * DAYS);
+
+        // Register as platform BEFORE issuance — no lockup records will be written
+        await walletManager.addPlatformWallet(platformWalletAddress);
+        await dsToken.issueTokens(platformWalletAddress, 100);
+
+        // No lockup records — _lockedAt returns 0 — transfer is free
+        expect(await complianceService.issuancesCount(platformWalletAddress)).to.equal(0);
+        const check = await complianceService.preTransferCheck(platformWalletAddress, recipientAddress, 100);
+        expect(check[0]).to.equal(0); // 0 = valid — no lockup records, transfers freely
+      });
+    });
   });
 });
