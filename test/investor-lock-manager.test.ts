@@ -147,5 +147,44 @@ describe('Investor Lock Unit Tests', function() {
       ).to.not.be.reverted;
       expect(await lockManager.lockCountForInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1)).to.equal(1);
     });
+
+    it('createLockForInvestor("") called directly by a privileged role still writes into the shared "" bucket', async function () {
+      // The BC-2188 fix is in createLock (internal path). The public createLockForInvestor
+      // has no equivalent guard — a TA can still call it directly with "".
+      // This test documents the residual surface: it requires intentional misuse by a trusted
+      // role and does NOT affect transfer validation under Permissionless (see next test).
+      const { lockManager } = await loadFixture(deployDSTokenPermissionless);
+      const releaseTime = (await time.latest()) + 30 * DAYS;
+
+      expect(await lockManager.lockCountForInvestor('')).to.equal(0);
+      await lockManager.createLockForInvestor('', 100, 0, 'direct-call', releaseTime);
+      expect(await lockManager.lockCountForInvestor('')).to.equal(1);
+    });
+
+    it('transfers under Permissionless are unaffected even when investorsLocks[""] bucket is full', async function () {
+      // ComplianceServicePermissionless never consults InvestorLockManager — transfer validation
+      // reads solely from ComplianceServicePermissionless.walletIssuances.
+      // Even if a TA fills the "" bucket to the cap via direct createLockForInvestor("") calls,
+      // holder transfers proceed normally and issuances without locks are also unaffected.
+      const { dsToken, lockManager } = await loadFixture(deployDSTokenPermissionless);
+      const [, , user, recipient] = await hre.ethers.getSigners();
+      const userAddress = await user.getAddress();
+      const recipientAddress = await recipient.getAddress();
+      const releaseTime = (await time.latest()) + 30 * DAYS;
+
+      // Fill the "" bucket to the cap via direct privileged calls
+      for (let i = 0; i < 30; i++) {
+        await lockManager.createLockForInvestor('', 1, 0, `lock-${i}`, releaseTime);
+      }
+      expect(await lockManager.lockCountForInvestor('')).to.equal(30);
+
+      // Issuance without a lock param succeeds — addManualLockRecord is not called
+      await dsToken.issueTokens(userAddress, 1_000);
+      expect(await dsToken.balanceOf(userAddress)).to.equal(1_000);
+
+      // Transfer succeeds — InvestorLockManager is never consulted under Permissionless
+      await dsToken.connect(user).transfer(recipientAddress, 500);
+      expect(await dsToken.balanceOf(recipientAddress)).to.equal(500);
+    });
   });
 });
