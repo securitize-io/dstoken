@@ -38,10 +38,40 @@ contract TokenDataStore is ServiceConsumerDataStore {
     TokenLibrary.SupportedFeatures public supportedFeatures;
     bool internal paused;
 
+    // ─── Mint throttle & over-cap timelock (BC-2132) ─────────────────────────
+    // Storage appended here, consuming 7 slots from __gap (35 → 28). Safe for
+    // existing proxy upgrades: all new vars default to 0, which means cap
+    // disabled and no pending mints — identical behaviour to pre-upgrade state.
+
+    /// @dev Packed: address (20 bytes) + executed bool (1 byte) + cancelled bool (1 byte) = 22/32 bytes in slot 0.
+    struct PendingMint {
+        address to;
+        bool executed;
+        bool cancelled;
+        uint256 amount;
+        uint256 readyAt;
+        uint256 expiresAt; // 0 = never expires
+    }
+
+    /// @notice Maximum tokens mintable in a single window. 0 = throttle disabled.
+    uint256 public mintCapAmount;
+    /// @notice Duration of each tumbling window in seconds. Must be > 0 when mintCapAmount > 0.
+    uint256 public mintCapWindow;
+    /// @notice Timestamp when the current mint window started.
+    uint256 public windowStart;
+    /// @notice Tokens already minted in the current window.
+    uint256 public mintedInWindow;
+    /// @notice Seconds between scheduling and executing an over-cap mint. 0 = no wait.
+    uint256 public overCapDelay;
+    /// @notice Seconds after readyAt before a scheduled mint expires. 0 = never expires.
+    uint256 public l;
+    /// @notice Pending over-cap mints keyed by operationId.
+    mapping(bytes32 => PendingMint) public pendingMints;
+
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint256[35] private __gap;
+    uint256[28] private __gap;
 }
