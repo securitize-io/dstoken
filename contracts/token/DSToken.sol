@@ -382,7 +382,7 @@ contract DSToken is StandardToken, IDSMintThrottle {
     /// @inheritdoc IDSMintThrottle
     function executeOverCapMint(bytes32 _operationId) external override onlyIssuerOrAbove {
         PendingMint storage op = pendingMints[_operationId];
-        if (op.readyAt == 0)                                      revert OverCapMintInvalidState(_operationId);
+        if (op.readyAt == 0)                                       revert OverCapMintInvalidState(_operationId);
         if (op.executed)                                           revert OverCapMintInvalidState(_operationId);
         if (op.cancelled)                                          revert OverCapMintInvalidState(_operationId);
         if (block.timestamp < op.readyAt)                          revert OverCapMintNotReady(op.readyAt, block.timestamp);

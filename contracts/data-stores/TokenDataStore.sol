@@ -64,7 +64,7 @@ contract TokenDataStore is ServiceConsumerDataStore {
     /// @notice Seconds between scheduling and executing an over-cap mint. 0 = no wait.
     uint256 public overCapDelay;
     /// @notice Seconds after readyAt before a scheduled mint expires. 0 = never expires.
-    uint256 public l;
+    uint256 public overCapGracePeriod;
     /// @notice Pending over-cap mints keyed by operationId.
     mapping(bytes32 => PendingMint) public pendingMints;
 
