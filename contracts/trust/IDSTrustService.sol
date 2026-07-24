@@ -35,6 +35,10 @@ abstract contract IDSTrustService {
      * @dev Should be emitted when a role is removed for a user.
      */
     event DSTrustServiceRoleRemoved(address targetAddress, uint8 role, address sender);
+    /**
+     * @dev Should be emitted when the roles governor (roles timelock) is set or cleared.
+     */
+    event DSTrustServiceRolesGovernorSet(address previousGovernor, address newGovernor, address sender);
 
     // Role constants
     uint8 public constant NONE = 0;
@@ -89,5 +93,21 @@ abstract contract IDSTrustService {
      * @return A boolean that indicates if the operation was successful.
      */
     function getRole(address _address) public view virtual returns (uint8);
+
+    /**
+     * @dev Sets or clears the roles governor (typically a TimelockController).
+     * @dev While set, setRole/setRoles/removeRole can only be called by the governor or MASTER.
+     * @dev Setting address(0) disables governance gating and restores legacy role management.
+     * @param _address The governor address, or address(0) to disable.
+     * @return A boolean that indicates if the operation was successful.
+     */
+    function setRolesGovernor(
+        address _address /*onlyMaster*/
+    ) public virtual returns (bool);
+
+    /**
+     * @dev Gets the roles governor. address(0) means role governance is not enabled.
+     */
+    function getRolesGovernor() public view virtual returns (address);
 
 }

@@ -38,6 +38,9 @@ abstract contract IDSServiceConsumer {
     uint256 public constant DEPRECATED_SECURITIZE_SWAP = 16384;
     uint256 public constant REBASING_PROVIDER = 8196;
     uint256 public constant BLACKLIST_MANAGER = 8197;
+    uint256 public constant MASTER_TIMELOCK = 8198;
+    uint256 public constant COMPLIANCE_RULES_TIMELOCK = 8199;
+    uint256 public constant ROLES_TIMELOCK = 8200;
 
     function getDSService(uint256 _serviceId) public view virtual returns (address);
 
