@@ -361,7 +361,7 @@ contract DSToken is StandardToken, IDSMintThrottle {
         require(_amount > 0, "Amount is zero");
 
         operationId = keccak256(abi.encode(_to, _amount, _salt, block.timestamp));
-        if (pendingMints[operationId].readyAt != 0) revert OverCapMintInvalidState(operationId);
+        require(pendingMints[operationId].readyAt == 0, "Operation already scheduled");
 
         uint256 readyAt = block.timestamp + overCapDelay;
         // overCapGracePeriod == 0 means no expiry; store expiresAt = 0 as the sentinel.
@@ -382,11 +382,11 @@ contract DSToken is StandardToken, IDSMintThrottle {
     /// @inheritdoc IDSMintThrottle
     function executeOverCapMint(bytes32 _operationId) external override onlyIssuerOrAbove {
         PendingMint storage op = pendingMints[_operationId];
-        if (op.readyAt == 0)                                       revert OverCapMintInvalidState(_operationId);
-        if (op.executed)                                           revert OverCapMintInvalidState(_operationId);
-        if (op.cancelled)                                          revert OverCapMintInvalidState(_operationId);
-        if (block.timestamp < op.readyAt)                          revert OverCapMintNotReady(op.readyAt, block.timestamp);
-        if (op.expiresAt != 0 && block.timestamp >= op.expiresAt)  revert OverCapMintExpired(_operationId);
+        require(op.readyAt != 0, "Operation does not exist");
+        require(!op.executed, "Operation already executed");
+        require(!op.cancelled, "Operation already cancelled");
+        require(block.timestamp >= op.readyAt, "Operation not ready");
+        require(op.expiresAt == 0 || block.timestamp < op.expiresAt, "Operation expired");
 
         // CEI: mark executed before any external call to prevent reentrancy.
         op.executed = true;
@@ -397,9 +397,9 @@ contract DSToken is StandardToken, IDSMintThrottle {
     /// @inheritdoc IDSMintThrottle
     function cancelOverCapMint(bytes32 _operationId) external override onlyMaster {
         PendingMint storage op = pendingMints[_operationId];
-        if (op.readyAt == 0)  revert OverCapMintInvalidState(_operationId);
-        if (op.executed)       revert OverCapMintInvalidState(_operationId);
-        if (op.cancelled)      revert OverCapMintInvalidState(_operationId);
+        require(op.readyAt != 0, "Operation does not exist");
+        require(!op.executed, "Operation already executed");
+        require(!op.cancelled, "Operation already cancelled");
 
         op.cancelled = true;
         emit OverCapMintCancelled(_operationId);
@@ -416,7 +416,7 @@ contract DSToken is StandardToken, IDSMintThrottle {
         // Defensive subtraction: handles the edge case where mintCapAmount was lowered
         // below mintedInWindow via setMintCap (which resets the window, making this 0).
         uint256 remaining = mintedInWindow >= mintCapAmount ? 0 : mintCapAmount - mintedInWindow;
-        if (_amount > remaining) revert MintCapExceeded(_amount, remaining);
+        require(_amount <= remaining, "Mint cap exceeded");
         mintedInWindow += _amount;
         emit MintCapConsumed(_amount, mintedInWindow, windowStart);
     }

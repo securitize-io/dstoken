@@ -85,7 +85,7 @@ ISSUER → issueTokens(to2, 10_000_000)
 ISSUER → issueTokens(to3, 1)
   → _checkThrottle(1)
        remaining = 20M - 20M = 0
-       1 > 0  → revert MintCapExceeded(1, 0)
+       require(1 <= 0, ...)  → FAILS → revert "Mint cap exceeded"
 ```
 
 **Result:** Third mint reverts. Cap is exhausted for this window.
@@ -100,7 +100,7 @@ State: mintCapAmount=20M, mintedInWindow=0
 ISSUER → issueTokens(to, 25_000_000)
   → _checkThrottle(25_000_000)
        remaining = 20M - 0 = 20M
-       25M > 20M  → revert MintCapExceeded(25_000_000, 20_000_000)
+       require(25M <= 20M, ...)  → FAILS → revert "Mint cap exceeded"
 ```
 
 **Result:** Reverts immediately. No partial mints. Caller must either:
@@ -188,11 +188,10 @@ ISSUER → scheduleOverCapIssuance(to, 500M, salt)  → readyAt = now + 5h
 
 // 2 hours later:
 ISSUER → executeOverCapMint(operationId)
-  check: block.timestamp >= op.readyAt  → FAIL (3h remaining)
-  revert OverCapMintNotReady(readyAt, block.timestamp)
+  require(block.timestamp >= op.readyAt, "Operation not ready")  → FAILS (3h remaining)
 ```
 
-**Result:** Reverts with the ready timestamp so caller knows how long to wait.
+**Result:** Reverts with `"Operation not ready"`. The plain revert string doesn't carry the timestamp (unlike the earlier custom-error design) — caller reads `pendingMints(operationId).readyAt` separately to know how long to wait.
 
 ---
 
@@ -204,10 +203,11 @@ ISSUER → scheduleOverCapIssuance(to, 500M, salt)
 
 // 30 hours later (overCapDelay + gracePeriod + 1h):
 ISSUER → executeOverCapMint(operationId)
-  check: !op.executed && !op.cancelled     → OK
-  check: block.timestamp >= op.readyAt    → OK (T+30h >= T+5h)
-  check: block.timestamp < op.expiresAt   → FAIL (T+30h >= T+29h)
-  revert OverCapMintExpired(operationId)
+  require(op.readyAt != 0, "Operation does not exist")                              → OK
+  require(!op.executed, "Operation already executed")                              → OK
+  require(!op.cancelled, "Operation already cancelled")                            → OK
+  require(block.timestamp >= op.readyAt, "Operation not ready")                     → OK (T+30h >= T+5h)
+  require(op.expiresAt == 0 || block.timestamp < op.expiresAt, "Operation expired") → FAILS (T+30h >= T+29h)
 ```
 
 **Result:** Stale scheduled mints cannot be executed. Must reschedule with a new `scheduleOverCapIssuance` call.
@@ -229,8 +229,9 @@ MASTER → cancelOverCapMint(operationId)
 
 // Later:
 ISSUER → executeOverCapMint(operationId)
-  check: !op.executed && !op.cancelled  → FAIL (cancelled = true)
-  revert OverCapMintInvalidState(operationId)
+  require(op.readyAt != 0, "Operation does not exist")  → OK
+  require(!op.executed, "Operation already executed")   → OK
+  require(!op.cancelled, "Operation already cancelled") → FAILS (cancelled = true)
 ```
 
 **Result:** Unauthorized scheduled mint is neutralized. MASTER can cancel at any time, even after `readyAt`.
@@ -247,8 +248,7 @@ ISSUER → scheduleOverCapIssuance(to, 500M, salt=0xABC)
 // T=100 (same block, same params, same salt):
 ISSUER → scheduleOverCapIssuance(to, 500M, salt=0xABC)
   operationId = keccak256(abi.encode(to, 500M, 0xABC, 100))  → 0xDEF... (same!)
-  check: pendingMints[0xDEF].readyAt == 0  → FAIL (already exists)
-  revert OverCapMintInvalidState(operationId)
+  require(pendingMints[0xDEF].readyAt == 0, "Operation already scheduled")  → FAILS (already exists)
 ```
 
 **Result:** Cannot schedule two ops with the same `(to, amount, salt)` in the same block.
@@ -316,8 +316,7 @@ Next mint of 1:
 ```
 
 > **Implementation note:** `_checkThrottle` must handle `mintedInWindow > mintCapAmount` gracefully.
-> Use: `if (mintedInWindow >= mintCapAmount) revert MintCapExceeded(amount, 0)`
-> or: `uint256 remaining = mintCapAmount > mintedInWindow ? mintCapAmount - mintedInWindow : 0`
+> Implemented as: `uint256 remaining = mintedInWindow >= mintCapAmount ? 0 : mintCapAmount - mintedInWindow;` then `require(_amount <= remaining, "Mint cap exceeded")`.
 
 **Recommendation:** Cap parameter changes also reset the window (`windowStart = block.timestamp`, `mintedInWindow = 0`). Prevents the underflow edge case and gives a clean start. Document in NatSpec.
 
@@ -331,7 +330,7 @@ Tx1: ISSUER(bridge) → issueTokens(toA, 8M)
   _checkThrottle(8M): mintedInWindow=0 → 8M <= 20M → OK, mintedInWindow=8M
 
 Tx2 (same block, sequential): ISSUER(bridge) → issueTokens(toB, 15M)
-  _checkThrottle(15M): remaining = 20M-8M = 12M → 15M > 12M → revert MintCapExceeded(15M, 12M)
+  _checkThrottle(15M): remaining = 20M-8M = 12M → require(15M <= 12M, ...) → FAILS → revert "Mint cap exceeded"
 ```
 
 **Result:** Tx2 reverts. EVM is single-threaded — no race condition, but the bridge caller must handle revert and retry in the next window or use the over-cap path for large cross-chain mints.
@@ -406,21 +405,27 @@ _issueUncapped(op.to, op.amount);      // interaction
 
 ---
 
-## Events & Errors Summary
+## Events & Revert Messages Summary
+
+Custom errors were replaced with `require(condition, "message")` to match this repo's dominant convention (see the mint-throttle memory / PR history for the rationale).
 
 ```solidity
 // Throttle
 event MintCapConsumed(uint256 amount, uint256 totalInWindow, uint256 windowStart);
-error MintCapExceeded(uint256 requested, uint256 remaining);
+// require(_amount <= remaining, "Mint cap exceeded");
 
 // Over-cap timelock
 event OverCapMintScheduled(bytes32 indexed operationId, address indexed to, uint256 amount, uint256 readyAt);
 event OverCapMintExecuted(bytes32 indexed operationId);
 event OverCapMintCancelled(bytes32 indexed operationId);
 
-error OverCapMintNotReady(uint256 readyAt, uint256 current);
-error OverCapMintExpired(bytes32 operationId);
-error OverCapMintInvalidState(bytes32 operationId);  // covers: duplicate, already executed, already cancelled
+// require(...) messages used across scheduleOverCapIssuance / executeOverCapMint / cancelOverCapMint:
+//   "Operation already scheduled"   — duplicate operationId at schedule time
+//   "Operation does not exist"      — readyAt == 0 (never scheduled, or a bogus operationId)
+//   "Operation already executed"
+//   "Operation already cancelled"
+//   "Operation not ready"           — block.timestamp < readyAt
+//   "Operation expired"             — expiresAt != 0 && block.timestamp >= expiresAt
 ```
 
 ---

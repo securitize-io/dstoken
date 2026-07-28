@@ -57,26 +57,6 @@ interface IDSMintThrottle {
     /// @notice Emitted when a scheduled over-cap mint is cancelled.
     event OverCapMintCancelled(bytes32 indexed operationId);
 
-    // ─── Errors ───────────────────────────────────────────────────────────────
-
-    /// @notice Thrown when a mint would exceed the remaining cap in the current window.
-    /// @param requested Amount of tokens the caller tried to mint.
-    /// @param remaining Available cap remaining in the current window.
-    error MintCapExceeded(uint256 requested, uint256 remaining);
-
-    /// @notice Thrown when attempting to execute an over-cap mint before its readyAt timestamp.
-    /// @param readyAt  Timestamp from which the operation can be executed.
-    /// @param current  Current block.timestamp at the time of the call.
-    error OverCapMintNotReady(uint256 readyAt, uint256 current);
-
-    /// @notice Thrown when attempting to execute an over-cap mint after it has expired.
-    error OverCapMintExpired(bytes32 operationId);
-
-    /// @notice Thrown for any state violation on a pending mint:
-    ///         operation does not exist, is already executed, is already cancelled,
-    ///         or an identical operationId was already scheduled in the same block.
-    error OverCapMintInvalidState(bytes32 operationId);
-
     // ─── Functions ────────────────────────────────────────────────────────────
 
     /// @notice Pre-schedules a mint that exceeds the current cap.

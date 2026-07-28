@@ -135,8 +135,7 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
     it('reverts when a single mint exceeds the cap', async function () {
       const { dsToken, master, recipient } = await fixtureWithCap();
       await expect(dsToken.connect(master).issueTokens(recipient, CAP_AMOUNT + 1n))
-        .to.be.revertedWithCustomError(dsToken, 'MintCapExceeded')
-        .withArgs(CAP_AMOUNT + 1n, CAP_AMOUNT);
+        .to.be.revertedWith('Mint cap exceeded');
     });
 
     it('accumulates two mints in the same window correctly', async function () {
@@ -150,8 +149,7 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       const { dsToken, master, recipient } = await fixtureWithCap();
       await dsToken.connect(master).issueTokens(recipient, 600n);
       await expect(dsToken.connect(master).issueTokens(recipient, 401n))
-        .to.be.revertedWithCustomError(dsToken, 'MintCapExceeded')
-        .withArgs(401n, 400n);
+        .to.be.revertedWith('Mint cap exceeded');
     });
 
     it('resets the window automatically after CAP_WINDOW elapses (tumbling window)', async function () {
@@ -173,7 +171,7 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       await time.increase(CAP_WINDOW / 2n);
 
       await expect(dsToken.connect(master).issueTokens(recipient, 401n))
-        .to.be.revertedWithCustomError(dsToken, 'MintCapExceeded');
+        .to.be.revertedWith('Mint cap exceeded');
     });
 
     it('emits MintCapConsumed on every successful throttled mint', async function () {
@@ -187,7 +185,7 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
     it('issuer role is also subject to the cap', async function () {
       const { dsToken, issuer, recipient } = await fixtureWithCap();
       await expect(dsToken.connect(issuer).issueTokens(recipient, CAP_AMOUNT + 1n))
-        .to.be.revertedWithCustomError(dsToken, 'MintCapExceeded');
+        .to.be.revertedWith('Mint cap exceeded');
     });
   });
 
@@ -333,8 +331,7 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
 
       const op = await dsToken.pendingMints(operationId);
       await expect(dsToken.connect(master).executeOverCapMint(operationId))
-        .to.be.revertedWithCustomError(dsToken, 'OverCapMintNotReady')
-        .withArgs(op.readyAt, (_ts: bigint) => _ts < op.readyAt);
+        .to.be.revertedWith('Operation not ready');
     });
 
     it('reverts when the operation has expired', async function () {
@@ -342,8 +339,7 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       await time.increase(OVER_CAP_DELAY + OVER_CAP_GRACE + 1n);
 
       await expect(dsToken.connect(master).executeOverCapMint(operationId))
-        .to.be.revertedWithCustomError(dsToken, 'OverCapMintExpired')
-        .withArgs(operationId);
+        .to.be.revertedWith('Operation expired');
     });
 
     it('never expires when overCapGracePeriod is 0', async function () {
@@ -364,8 +360,7 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       await dsToken.connect(master).executeOverCapMint(operationId);
 
       await expect(dsToken.connect(master).executeOverCapMint(operationId))
-        .to.be.revertedWithCustomError(dsToken, 'OverCapMintInvalidState')
-        .withArgs(operationId);
+        .to.be.revertedWith('Operation already executed');
     });
 
     it('reverts when the operation was cancelled', async function () {
@@ -374,16 +369,14 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       await time.increase(OVER_CAP_DELAY + 1n);
 
       await expect(dsToken.connect(master).executeOverCapMint(operationId))
-        .to.be.revertedWithCustomError(dsToken, 'OverCapMintInvalidState')
-        .withArgs(operationId);
+        .to.be.revertedWith('Operation already cancelled');
     });
 
     it('reverts on a non-existent operationId', async function () {
       const { dsToken, master } = await fixtureScheduled();
       const bogusId = ethers.id('does-not-exist');
       await expect(dsToken.connect(master).executeOverCapMint(bogusId))
-        .to.be.revertedWithCustomError(dsToken, 'OverCapMintInvalidState')
-        .withArgs(bogusId);
+        .to.be.revertedWith('Operation does not exist');
     });
 
     it('does not count toward mintedInWindow (bypasses cap counter)', async function () {
@@ -440,7 +433,7 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       await time.increase(OVER_CAP_DELAY + 1n);
 
       await expect(dsToken.connect(master).executeOverCapMint(operationId))
-        .to.be.revertedWithCustomError(dsToken, 'OverCapMintInvalidState');
+        .to.be.revertedWith('Operation already cancelled');
     });
 
     it('can cancel after readyAt (within grace period)', async function () {
@@ -455,7 +448,7 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       await dsToken.connect(master).executeOverCapMint(operationId);
 
       await expect(dsToken.connect(master).cancelOverCapMint(operationId))
-        .to.be.revertedWithCustomError(dsToken, 'OverCapMintInvalidState');
+        .to.be.revertedWith('Operation already executed');
     });
 
     it('reverts when cancelling an already-cancelled operation', async function () {
@@ -463,14 +456,14 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       await dsToken.connect(master).cancelOverCapMint(operationId);
 
       await expect(dsToken.connect(master).cancelOverCapMint(operationId))
-        .to.be.revertedWithCustomError(dsToken, 'OverCapMintInvalidState');
+        .to.be.revertedWith('Operation already cancelled');
     });
 
     it('reverts on a non-existent operationId', async function () {
       const { dsToken, master } = await fixtureScheduled();
       const bogusId = ethers.id('does-not-exist');
       await expect(dsToken.connect(master).cancelOverCapMint(bogusId))
-        .to.be.revertedWithCustomError(dsToken, 'OverCapMintInvalidState');
+        .to.be.revertedWith('Operation does not exist');
     });
 
     it('reverts from issuer (not MASTER)', async function () {
@@ -557,7 +550,7 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
 
       await expect(
         dsToken.connect(master).issueTokensCustom(recipient, CAP_AMOUNT + 1n, 0n, 0n, '', 0n)
-      ).to.be.revertedWithCustomError(dsToken, 'MintCapExceeded');
+      ).to.be.revertedWith('Mint cap exceeded');
     });
 
     it('issueTokensWithMultipleLocks is also throttled', async function () {
@@ -566,7 +559,7 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
 
       await expect(
         dsToken.connect(master).issueTokensWithMultipleLocks(recipient, CAP_AMOUNT + 1n, 0n, [], '', [])
-      ).to.be.revertedWithCustomError(dsToken, 'MintCapExceeded');
+      ).to.be.revertedWith('Mint cap exceeded');
     });
   });
 });
