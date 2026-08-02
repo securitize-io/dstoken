@@ -19,13 +19,14 @@
 pragma solidity 0.8.22;
 
 import {IDSToken} from "./IDSToken.sol";
+import {IDSMintThrottle} from "./IDSMintThrottle.sol";
 import {StandardToken} from "./StandardToken.sol";
 import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
 import {RebasingLibrary} from "../rebasing/RebasingLibrary.sol";
 import {TokenLibrary} from "./TokenLibrary.sol";
 import {CommonUtils} from "../utils/CommonUtils.sol";
 
-contract DSToken is StandardToken {
+contract DSToken is StandardToken, IDSMintThrottle {
     // using FeaturesLibrary for SupportedFeatures;
     using TokenLibrary for TokenLibrary.SupportedFeatures;
     uint256 internal constant DEPRECATED_OMNIBUS_NO_ACTION = 0;  // Deprecated, kept for backward compatibility
@@ -123,6 +124,12 @@ contract DSToken is StandardToken {
     onlyIssuerOrAbove
     returns (bool)
     {
+        _checkThrottle(_value);
+        _issue(_to, _value, _issuanceTime, _valuesLocked, _reason, _releaseTimes);
+        return true;
+    }
+
+    function _issue(address _to, uint256 _value, uint256 _issuanceTime, uint256[] memory _valuesLocked, string memory _reason, uint64[] memory _releaseTimes) internal {
         ISecuritizeRebasingProvider rebasingProvider = getRebasingProvider();
         TokenLibrary.IssueParams memory params = TokenLibrary.IssueParams({
             _to: _to,
@@ -144,7 +151,6 @@ contract DSToken is StandardToken {
         emit TxShares(address(0), _to, shares, rebasingProvider.multiplier());
 
         checkWalletsForList(address(0), _to);
-        return true;
     }
 
     //*********************
@@ -318,5 +324,112 @@ contract DSToken is StandardToken {
         services[0] = getDSService(COMPLIANCE_SERVICE);
         services[1] = getDSService(REGISTRY_SERVICE);
         return services;
+    }
+
+    /******************************
+       MINT THROTTLE (BC-2132)
+    *******************************/
+
+    /// @inheritdoc IDSMintThrottle
+    function setMintCap(uint256 _mintCapAmount, uint256 _mintCapWindow) external override onlyMaster {
+        require(_mintCapAmount == 0 || _mintCapWindow > 0, "Window must be > 0 when cap is active");
+        mintCapAmount = _mintCapAmount;
+        mintCapWindow = _mintCapWindow;
+        // Always reset the window on parameter change to avoid mid-window underflow
+        // and to give a clean slate from the new configuration.
+        windowStart = block.timestamp;
+        mintedInWindow = 0;
+        emit MintCapUpdated(_mintCapAmount, _mintCapWindow);
+    }
+
+    /// @inheritdoc IDSMintThrottle
+    function setOverCapDelay(uint256 _overCapDelay) external override onlyMaster {
+        overCapDelay = _overCapDelay;
+        emit OverCapDelayUpdated(_overCapDelay);
+    }
+
+    /// @inheritdoc IDSMintThrottle
+    function setOverCapGracePeriod(uint256 _overCapGracePeriod) external override onlyMaster {
+        overCapGracePeriod = _overCapGracePeriod;
+        emit OverCapGracePeriodUpdated(_overCapGracePeriod);
+    }
+
+    /// @inheritdoc IDSMintThrottle
+    function scheduleOverCapIssuance(address _to, uint256 _amount, bytes32 _salt)
+        external
+        override
+        onlyIssuerOrAbove
+        returns (bytes32 operationId)
+    {
+        require(_to != address(0), "Invalid address");
+        require(_amount > 0, "Amount is zero");
+
+        operationId = keccak256(abi.encode(_to, _amount, _salt, block.timestamp));
+        require(pendingMints[operationId].readyAt == 0, "Operation already scheduled");
+
+        uint256 readyAt = block.timestamp + overCapDelay;
+        // overCapGracePeriod == 0 means no expiry; store expiresAt = 0 as the sentinel.
+        uint256 expiresAt = overCapGracePeriod > 0 ? readyAt + overCapGracePeriod : 0;
+
+        pendingMints[operationId] = PendingMint({
+            to: _to,
+            executed: false,
+            cancelled: false,
+            amount: _amount,
+            readyAt: readyAt,
+            expiresAt: expiresAt
+        });
+
+        emit OverCapMintScheduled(operationId, _to, _amount, readyAt);
+    }
+
+    /// @inheritdoc IDSMintThrottle
+    function executeOverCapMint(bytes32 _operationId) external override onlyIssuerOrAbove {
+        PendingMint storage op = pendingMints[_operationId];
+        require(op.readyAt != 0, "Operation does not exist");
+        require(!op.executed, "Operation already executed");
+        require(!op.cancelled, "Operation already cancelled");
+        require(block.timestamp >= op.readyAt, "Operation not ready");
+        require(op.expiresAt == 0 || block.timestamp < op.expiresAt, "Operation expired");
+
+        // CEI: mark executed before any external call to prevent reentrancy.
+        op.executed = true;
+        emit OverCapMintExecuted(_operationId);
+        _issueUncapped(op.to, op.amount);
+    }
+
+    /// @inheritdoc IDSMintThrottle
+    function cancelOverCapMint(bytes32 _operationId) external override onlyMaster {
+        PendingMint storage op = pendingMints[_operationId];
+        require(op.readyAt != 0, "Operation does not exist");
+        require(!op.executed, "Operation already executed");
+        require(!op.cancelled, "Operation already cancelled");
+
+        op.cancelled = true;
+        emit OverCapMintCancelled(_operationId);
+    }
+
+    /// @dev Checks the tumbling-window mint cap and updates state. Called by issueTokensWithMultipleLocks.
+    ///      mintCapAmount == 0 is the fast-exit (disabled) path — single SLOAD.
+    function _checkThrottle(uint256 _amount) internal {
+        if (mintCapAmount == 0) return;
+        if (block.timestamp >= windowStart + mintCapWindow) {
+            windowStart = block.timestamp;
+            mintedInWindow = 0;
+        }
+        // Defensive subtraction: handles the edge case where mintCapAmount was lowered
+        // below mintedInWindow via setMintCap (which resets the window, making this 0).
+        uint256 remaining = mintedInWindow >= mintCapAmount ? 0 : mintCapAmount - mintedInWindow;
+        require(_amount <= remaining, "Mint cap exceeded");
+        mintedInWindow += _amount;
+        emit MintCapConsumed(_amount, mintedInWindow, windowStart);
+    }
+
+    /// @dev Mints tokens bypassing the cap check. Used by executeOverCapMint.
+    ///      Compliance (validateIssuance) is still enforced — recipient status is
+    ///      re-validated at execution time, not at schedule time.
+    ///      No locks are applied; over-cap mints are always unlocked.
+    function _issueUncapped(address _to, uint256 _value) internal {
+        _issue(_to, _value, block.timestamp, new uint256[](0), "", new uint64[](0));
     }
 }
