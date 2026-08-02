@@ -125,6 +125,11 @@ contract DSToken is StandardToken, IDSMintThrottle {
     returns (bool)
     {
         _checkThrottle(_value);
+        _issue(_to, _value, _issuanceTime, _valuesLocked, _reason, _releaseTimes);
+        return true;
+    }
+
+    function _issue(address _to, uint256 _value, uint256 _issuanceTime, uint256[] memory _valuesLocked, string memory _reason, uint64[] memory _releaseTimes) internal {
         ISecuritizeRebasingProvider rebasingProvider = getRebasingProvider();
         TokenLibrary.IssueParams memory params = TokenLibrary.IssueParams({
             _to: _to,
@@ -146,7 +151,6 @@ contract DSToken is StandardToken, IDSMintThrottle {
         emit TxShares(address(0), _to, shares, rebasingProvider.multiplier());
 
         checkWalletsForList(address(0), _to);
-        return true;
     }
 
     //*********************
@@ -426,24 +430,6 @@ contract DSToken is StandardToken, IDSMintThrottle {
     ///      re-validated at execution time, not at schedule time.
     ///      No locks are applied; over-cap mints are always unlocked.
     function _issueUncapped(address _to, uint256 _value) internal {
-        ISecuritizeRebasingProvider rebasingProvider = getRebasingProvider();
-        TokenLibrary.IssueParams memory params = TokenLibrary.IssueParams({
-            _to: _to,
-            _value: _value,
-            _issuanceTime: block.timestamp,
-            _valuesLocked: new uint256[](0),
-            _releaseTimes: new uint64[](0),
-            _reason: "",
-            _rebasingProvider: rebasingProvider
-        });
-        uint256 shares = TokenLibrary.issueTokensCustom(
-            tokenData,
-            getCommonServices(),
-            getLockManager(),
-            params
-        );
-        emit Transfer(address(0), _to, _value);
-        emit TxShares(address(0), _to, shares, rebasingProvider.multiplier());
-        checkWalletsForList(address(0), _to);
+        _issue(_to, _value, block.timestamp, new uint256[](0), "", new uint64[](0));
     }
 }
