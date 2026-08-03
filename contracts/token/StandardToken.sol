@@ -64,7 +64,7 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract, ERC
         emit Pause();
     }
 
-    function unpause() public onlyTransferAgentOrAbove whenPaused {
+    function unpause() public onlyMaster whenPaused {
         paused = false;
         emit Unpause();
     }

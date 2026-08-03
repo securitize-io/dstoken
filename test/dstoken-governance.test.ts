@@ -304,7 +304,25 @@ describe('DSToken Governance (BC-2133)', function () {
 
       await contracts.dsToken.connect(transferAgent).pause();
       expect(await contracts.dsToken.isPaused()).to.equal(true);
-      await contracts.dsToken.connect(transferAgent).unpause();
+    });
+
+    it('Should require MASTER for unpause() even with governance fully active (TA can freeze, only Master can lift it)', async function () {
+      const contracts = await loadFixture(deployDSTokenRegulated);
+      const [master, proposer, transferAgent] = await hre.ethers.getSigners();
+      const timelock = await hre.ethers.deployContract('TimelockController', [
+        MIN_DELAY, [proposer.address], [proposer.address], master.address,
+      ]);
+      await contracts.trustService.setRole(transferAgent, DSConstants.roles.TRANSFER_AGENT);
+      await contracts.trustService.setRolesGovernor(timelock);
+      await contracts.complianceConfigurationService.setDSService(DSConstants.services.COMPLIANCE_RULES_TIMELOCK, timelock);
+
+      await contracts.dsToken.connect(transferAgent).pause();
+      expect(await contracts.dsToken.isPaused()).to.equal(true);
+
+      await expect(contracts.dsToken.connect(transferAgent).unpause())
+        .revertedWith('Insufficient trust level');
+
+      await contracts.dsToken.connect(master).unpause();
       expect(await contracts.dsToken.isPaused()).to.equal(false);
     });
   });
