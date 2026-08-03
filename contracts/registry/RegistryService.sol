@@ -65,7 +65,7 @@ contract RegistryService is IDSRegistryService, RegistryServiceDataStore, BaseDS
         uint8[] memory _attributeIds,
         uint256[] memory _attributeValues,
         uint256[] memory _attributeExpirations
-    ) public override onlyIssuerOrTransferAgentOrAbove returns (bool) {
+    ) public override onlyExchangeOrAbove returns (bool) {
         require(_attributeValues.length == _attributeIds.length, "Wrong length of parameters");
         require(_attributeIds.length == _attributeExpirations.length, "Wrong length of parameters");
 

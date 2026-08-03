@@ -1204,6 +1204,67 @@ describe('Compliance Service Regulated Unit Tests', function() {
       const dsTokenFromInvestor = dsToken.connect(investor);
       await expect(dsTokenFromInvestor.transfer(platformWallet, 50)).revertedWith('Only full transfer');
     });
+
+    it('Pre transfer check with fully locked investor to regular wallet', async function() {
+      const [wallet, wallet2] = await hre.ethers.getSigners();
+      const { registryService, complianceService, dsToken, lockManager } = await loadFixture(deployDSTokenRegulated);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
+      await dsToken.issueTokens(wallet, 100);
+
+      await lockManager.lockInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+
+      const res = await complianceService.preTransferCheck(wallet, wallet2, 10);
+      expect(res[0]).equal(16);
+      expect(res[1]).equal('Tokens locked');
+    });
+
+    it('Pre transfer check with fully locked investor to platform wallet', async function() {
+      const [wallet, platformWallet] = await hre.ethers.getSigners();
+      const { registryService, complianceService, dsToken, lockManager, walletManager } = await loadFixture(deployDSTokenRegulated);
+
+      await walletManager.addPlatformWallet(platformWallet);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+      await dsToken.issueTokens(wallet, 100);
+
+      await lockManager.lockInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+
+      const res = await complianceService.preTransferCheck(wallet, platformWallet, 10);
+      expect(res[0]).equal(16);
+      expect(res[1]).equal('Tokens locked');
+    });
+
+    it('Pre transfer check with fully locked investor reallocation', async function() {
+      const [wallet, wallet2] = await hre.ethers.getSigners();
+      const { registryService, complianceService, dsToken, lockManager } = await loadFixture(deployDSTokenRegulated);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+      await registryService.addWallet(wallet2, INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await dsToken.issueTokens(wallet, 100);
+
+      await lockManager.lockInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+
+      const res = await complianceService.preTransferCheck(wallet, wallet2, 10);
+      expect(res[0]).equal(16);
+      expect(res[1]).equal('Tokens locked');
+    });
+
+    it('Pre transfer check with unlocked investor after full lock', async function() {
+      const [wallet, wallet2] = await hre.ethers.getSigners();
+      const { registryService, complianceService, dsToken, lockManager } = await loadFixture(deployDSTokenRegulated);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
+      await dsToken.issueTokens(wallet, 100);
+
+      await lockManager.lockInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+      await lockManager.unlockInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+
+      const res = await complianceService.preTransferCheck(wallet, wallet2, 10);
+      expect(res[0]).equal(0);
+      expect(res[1]).equal('Valid');
+    });
   });
 
   describe('Pre issuance check', function () {
@@ -1306,6 +1367,52 @@ describe('Compliance Service Regulated Unit Tests', function() {
       expect(largeIssuance[1]).equal('Valid');
 
       await expect(dsToken.issueTokens(platformWallet, 1000)).not.to.be.reverted;
+    });
+
+    it('should allow platform wallet issuance when forceAccredited is enabled', async function () {
+      const [, platformWallet] = await hre.ethers.getSigners();
+      const { dsToken, complianceService, complianceConfigurationService, walletManager } = await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setForceAccredited(true);
+      await walletManager.addPlatformWallet(platformWallet);
+
+      // Platform wallet has no investor record → isAccredited returns false, but the
+      // forceAccredited gate must not fire for platform wallet destinations
+      const res = await complianceService.preIssuanceCheck(platformWallet, 100);
+      expect(res[0]).equal(0);
+      expect(res[1]).equal('Valid');
+
+      await expect(dsToken.issueTokens(platformWallet, 100)).not.to.be.reverted;
+    });
+
+    it('should allow platform wallet issuance when total investors cap is full', async function () {
+      const [investor, platformWallet] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService, walletManager } = await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setTotalInvestorsLimit(1);
+      await walletManager.addPlatformWallet(platformWallet);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor.address, registryService);
+      await dsToken.issueTokens(investor.address, 100);
+      // cap is now full (totalInvestorsCount = 1 = limit)
+
+      // Platform wallet issuance must not be blocked by the investor cap
+      await expect(dsToken.issueTokens(platformWallet.address, 200)).not.to.be.reverted;
+    });
+
+    it('should allow platform wallet issuance when non-accredited investors cap is full', async function () {
+      const [investor, platformWallet] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService, walletManager } = await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setNonAccreditedInvestorsLimit(1);
+      await walletManager.addPlatformWallet(platformWallet);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor.address, registryService);
+      await dsToken.issueTokens(investor.address, 100);
+      // non-accredited cap is now full (nonAccreditedInvestorsCount = 1 = limit)
+
+      // Platform wallet issuance must not be blocked by the non-accredited cap
+      await expect(dsToken.issueTokens(platformWallet.address, 200)).not.to.be.reverted;
     });
 
     it('should not issue tokens to a new investor if investor limit is exceeded', async function () {
@@ -1750,5 +1857,319 @@ describe('Compliance Service Regulated Unit Tests', function() {
         issuancesCount = await complianceService.getIssuancesCount(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
         expect(issuancesCount).to.equal(0); // All expired issuances cleaned
       });
+    });
+
+    describe('Large lock period — underflow guard', function() {
+      it('transfer does not revert with arithmetic panic when lock period exceeds block.timestamp', async function() {
+        const [wallet, wallet2] = await hre.ethers.getSigners();
+        const { dsToken, registryService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);
+
+        await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, wallet2, registryService);
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.USA);
+
+        await dsToken.issueTokens(wallet, 1000);
+
+        // lockPeriod > block.timestamp — would cause (time - lockTime) underflow before fix
+        const hugeLockPeriod = hre.ethers.MaxUint256 / 2n;
+        await complianceConfigurationService.setUSLockPeriod(hugeLockPeriod);
+
+        // should revert with "Under lock-up", NOT with arithmetic panic
+        await expect(dsToken.connect(wallet).transfer(wallet2, 100))
+          .to.be.revertedWith('Under lock-up');
+      });
+
+      it('issuance does not revert with arithmetic panic when lock period exceeds block.timestamp', async function() {
+        const [wallet] = await hre.ethers.getSigners();
+        const { dsToken, registryService, complianceConfigurationService, complianceService } = await loadFixture(deployWithMockCompliance);
+
+        await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+        await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, wallet, registryService);
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.USA);
+
+        await dsToken.issueTokens(wallet, 500);
+
+        // lockPeriod > block.timestamp — cleanupInvestorIssuances would underflow before fix
+        const hugeLockPeriod = hre.ethers.MaxUint256 / 2n;
+        await complianceConfigurationService.setUSLockPeriod(hugeLockPeriod);
+
+        // second issuance triggers cleanupInvestorIssuances — should not panic
+        await expect(dsToken.issueTokens(wallet, 200)).to.not.be.reverted;
+
+        // both issuance records remain (cleanup skipped — nothing can have expired)
+        const issuancesCount = await complianceService.getIssuancesCount(INVESTORS.INVESTOR_ID.INVESTOR_ID_1);
+        expect(issuancesCount).to.equal(2); // 2 = neither record expired under huge lockPeriod
+      });
+    });
+  });
+
+  describe('Investor counter integrity', function () {
+    describe('Lifecycle ordering: issueTokens before setCountry for accredited investor', function () {
+      it('should not double-increment accreditedInvestorsCount when issueTokens precedes setCountry', async function () {
+        const [wallet] = await hre.ethers.getSigners();
+        const { dsToken, registryService, complianceService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);
+
+        await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+
+        await registryService.registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, '');
+        await registryService.setAttribute(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, DSConstants.attributeType.ACCREDITED, DSConstants.attributeStatus.APPROVED, 0, '');
+        await registryService.addWallet(wallet, INVESTORS.INVESTOR_ID.US_INVESTOR_ID);
+        await dsToken.issueTokens(wallet, 100);
+
+        // Empty country: accredited branch is skipped, totalInvestors increments normally
+        expect(await complianceService.getTotalInvestorsCount()).to.equal(1);
+        expect(await complianceService.getAccreditedInvestorsCount()).to.equal(0);
+
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, INVESTORS.Country.USA);
+
+        // setCountry fires adjustInvestorCountsAfterCountryChange — accredited increments exactly once
+        expect(await complianceService.getTotalInvestorsCount()).to.equal(1);
+        expect(await complianceService.getAccreditedInvestorsCount()).to.equal(1);
+        expect(await complianceService.getUSInvestorsCount()).to.equal(1);
+        expect(await complianceService.getUSAccreditedInvestorsCount()).to.equal(1);
+      });
+
+      it('should not brick non-accredited onboarding after accredited investor uses issueTokens-before-setCountry lifecycle', async function () {
+        const [accWallet, nonAccWallet] = await hre.ethers.getSigners();
+        const { dsToken, registryService, complianceService, complianceConfigurationService } = await loadFixture(deployDSTokenRegulated);
+
+        await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.USA, INVESTORS.Compliance.US);
+        await complianceConfigurationService.setNonAccreditedInvestorsLimit(100);
+
+        await registryService.registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, '');
+        await registryService.setAttribute(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, DSConstants.attributeType.ACCREDITED, DSConstants.attributeStatus.APPROVED, 0, '');
+        await registryService.addWallet(accWallet, INVESTORS.INVESTOR_ID.US_INVESTOR_ID);
+        await dsToken.issueTokens(accWallet, 100);
+        await registryService.setCountry(INVESTORS.INVESTOR_ID.US_INVESTOR_ID, INVESTORS.Country.USA);
+
+        // Invariant must hold: accredited <= total
+        expect(await complianceService.getTotalInvestorsCount()).to.equal(1);
+        expect(await complianceService.getAccreditedInvestorsCount()).to.equal(1);
+
+        // Non-accredited onboarding must not panic with Panic(0x11)
+        await registryService.registerInvestor(INVESTORS.INVESTOR_ID.US_INVESTOR_ID_2, INVESTORS.Country.USA);
+        await registryService.addWallet(nonAccWallet, INVESTORS.INVESTOR_ID.US_INVESTOR_ID_2);
+        await expect(dsToken.issueTokens(nonAccWallet, 100)).to.not.be.reverted;
+      });
+    });
+
+    describe('Recovery setter bounds checks', function () {
+      it('setAccreditedInvestorsCount reverts when value exceeds total', async function () {
+        const { complianceService } = await loadFixture(deployDSTokenRegulated);
+
+        await complianceService.setTotalInvestorsCount(5);
+        await expect(complianceService.setAccreditedInvestorsCount(6)).to.be.revertedWith('Accredited must be <= total');
+        await expect(complianceService.setAccreditedInvestorsCount(5)).to.not.be.reverted;
+      });
+
+      it('setTotalInvestorsCount reverts when value falls below accredited count', async function () {
+        const { complianceService } = await loadFixture(deployDSTokenRegulated);
+
+        await complianceService.setTotalInvestorsCount(5);
+        await complianceService.setAccreditedInvestorsCount(3);
+        await expect(complianceService.setTotalInvestorsCount(2)).to.be.revertedWith('Total must be >= accredited');
+        await expect(complianceService.setTotalInvestorsCount(3)).to.not.be.reverted;
+      });
+
+      it('setTotalInvestorsCount reverts when value falls below US investors count', async function () {
+        const { complianceService } = await loadFixture(deployDSTokenRegulated);
+
+        await complianceService.setTotalInvestorsCount(5);
+        await complianceService.setUSInvestorsCount(4);
+        await expect(complianceService.setTotalInvestorsCount(3)).to.be.revertedWith('Total must be >= US investors');
+        await expect(complianceService.setTotalInvestorsCount(4)).to.not.be.reverted;
+      });
+
+      it('setUSInvestorsCount reverts when value exceeds total', async function () {
+        const { complianceService } = await loadFixture(deployDSTokenRegulated);
+
+        await complianceService.setTotalInvestorsCount(5);
+        await expect(complianceService.setUSInvestorsCount(6)).to.be.revertedWith('US investors must be <= total');
+        await expect(complianceService.setUSInvestorsCount(5)).to.not.be.reverted;
+      });
+
+      it('setUSInvestorsCount reverts when value falls below US accredited count', async function () {
+        const { complianceService } = await loadFixture(deployDSTokenRegulated);
+
+        await complianceService.setTotalInvestorsCount(5);
+        await complianceService.setAccreditedInvestorsCount(3);
+        await complianceService.setUSInvestorsCount(4);
+        await complianceService.setUSAccreditedInvestorsCount(3);
+        await expect(complianceService.setUSInvestorsCount(2)).to.be.revertedWith('US investors must be >= US accredited');
+        await expect(complianceService.setUSInvestorsCount(3)).to.not.be.reverted;
+      });
+
+      it('setUSAccreditedInvestorsCount reverts when value exceeds US investors count', async function () {
+        const { complianceService } = await loadFixture(deployDSTokenRegulated);
+
+        await complianceService.setTotalInvestorsCount(5);
+        await complianceService.setAccreditedInvestorsCount(5);
+        await complianceService.setUSInvestorsCount(4);
+        await expect(complianceService.setUSAccreditedInvestorsCount(5)).to.be.revertedWith('US accredited must be <= US investors');
+        await expect(complianceService.setUSAccreditedInvestorsCount(4)).to.not.be.reverted;
+      });
+
+      it('setUSAccreditedInvestorsCount reverts when value exceeds accredited count', async function () {
+        const { complianceService } = await loadFixture(deployDSTokenRegulated);
+
+        await complianceService.setTotalInvestorsCount(5);
+        await complianceService.setAccreditedInvestorsCount(3);
+        await complianceService.setUSInvestorsCount(5);
+        await expect(complianceService.setUSAccreditedInvestorsCount(4)).to.be.revertedWith('US accredited must be <= accredited');
+        await expect(complianceService.setUSAccreditedInvestorsCount(3)).to.not.be.reverted;
+      });
+    });
+  });
+
+  describe('EU retail cap same-country transfer paths (M-4 fix)', function () {
+    async function setupEuRetailCapFixture() {
+      const [retailInvestor1, retailInvestor2, qualifiedInvestor, freshRetailRecipient] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService, complianceService } =
+        await loadFixture(deployDSTokenRegulated);
+
+      // EU retail limit = 2, Germany = EU; disable all other limits
+      await complianceConfigurationService.setAll(
+        [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2, 0, 0, 0],
+        [false, false, false, false, false]
+      );
+      await complianceConfigurationService.setCountryCompliance(INVESTORS.Country.GERMANY, INVESTORS.Compliance.EU);
+
+      // Register retail investors (no QUALIFIED attribute → isRetail = true)
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, retailInvestor1.address, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, retailInvestor2.address, registryService);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, INVESTORS.Country.GERMANY);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, INVESTORS.Country.GERMANY);
+
+      // Register qualified investor (QUALIFIED attribute → isRetail = false)
+      await registerInvestor(INVESTORS.INVESTOR_ID.GERMANY_INVESTOR_ID, qualifiedInvestor.address, registryService);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.GERMANY_INVESTOR_ID, INVESTORS.Country.GERMANY);
+      await registryService.setAttribute(
+        INVESTORS.INVESTOR_ID.GERMANY_INVESTOR_ID,
+        DSConstants.attributeType.QUALIFIED,
+        DSConstants.attributeStatus.APPROVED,
+        0,
+        ''
+      );
+
+      // Register fresh retail recipient (no tokens yet)
+      await registerInvestor(INVESTORS.INVESTOR_ID.GERMANY_INVESTOR_ID_2, freshRetailRecipient.address, registryService);
+      await registryService.setCountry(INVESTORS.INVESTOR_ID.GERMANY_INVESTOR_ID_2, INVESTORS.Country.GERMANY);
+
+      // Issue tokens: retail × 2 fills the EU retail cap; qualified issuance does not affect retail count
+      await dsToken.issueTokens(retailInvestor1.address, 200);
+      await dsToken.issueTokens(retailInvestor2.address, 100);
+      await dsToken.issueTokens(qualifiedInvestor.address, 200);
+
+      expect(await complianceService.getEURetailInvestorsCount(INVESTORS.Country.GERMANY)).to.equal(2);
+
+      return { dsToken, complianceService, retailInvestor1, retailInvestor2, qualifiedInvestor, freshRetailRecipient };
+    }
+
+    it('same-country retail sender depleting full balance → allowed (genuine offset)', async function () {
+      const { dsToken, retailInvestor1, freshRetailRecipient } = await setupEuRetailCapFixture();
+      // retailInvestor1 transfers entire balance → leaves EU retail pool; cap not exceeded
+      await expect(dsToken.connect(retailInvestor1).transfer(freshRetailRecipient.address, 200))
+        .to.not.be.reverted;
+    });
+
+    it('same-country retail sender retaining balance → blocked (cap still exceeded)', async function () {
+      const { dsToken, retailInvestor1, freshRetailRecipient } = await setupEuRetailCapFixture();
+      // Partial transfer: retailInvestor1 stays in pool → recipient would be third EU retail investor
+      await expect(dsToken.connect(retailInvestor1).transfer(freshRetailRecipient.address, 100))
+        .to.be.revertedWith('Max investors in category');
+    });
+
+    it('same-country qualified sender depleting full balance → blocked (M-4 bug fix)', async function () {
+      const { dsToken, qualifiedInvestor, freshRetailRecipient } = await setupEuRetailCapFixture();
+      // Before fix: qualified sender always bypassed EU retail cap check (&&-bug). After fix: blocked.
+      await expect(dsToken.connect(qualifiedInvestor).transfer(freshRetailRecipient.address, 200))
+        .to.be.revertedWith('Max investors in category');
+    });
+
+    it('same-country qualified sender retaining balance → blocked (M-4 bug fix)', async function () {
+      const { dsToken, qualifiedInvestor, freshRetailRecipient } = await setupEuRetailCapFixture();
+      // Before fix: qualified partial sender also bypassed cap. After fix: blocked.
+      await expect(dsToken.connect(qualifiedInvestor).transfer(freshRetailRecipient.address, 100))
+        .to.be.revertedWith('Max investors in category');
+    });
+  });
+
+  describe('Platform wallet sender investor cap enforcement', function () {
+    it('should block transfer from platform wallet to new investor when total investors cap is full', async function () {
+      const [investor, platformWallet, freshInvestor] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService, walletManager } =
+        await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setTotalInvestorsLimit(1);
+      await walletManager.addPlatformWallet(platformWallet.address);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor.address, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, freshInvestor.address, registryService);
+
+      // Issue to platform wallet first (totalCount still 0, cap not yet full)
+      await dsToken.issueTokens(platformWallet.address, 200);
+      // Issue to regular investor — fills the cap (totalCount = 1 = limit)
+      await dsToken.issueTokens(investor.address, 100);
+
+      // Platform wallet attempts to distribute to a new investor → must be blocked
+      await expect(dsToken.connect(platformWallet).transfer(freshInvestor.address, 100))
+        .to.be.revertedWith('Max investors in category');
+    });
+
+    it('should still allow full-balance transfer from regular investor to new investor when total cap is full (genuine offset)', async function () {
+      const [investor, freshInvestor] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService } =
+        await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setTotalInvestorsLimit(1);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor.address, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, freshInvestor.address, registryService);
+
+      await dsToken.issueTokens(investor.address, 100);
+
+      // Regular investor depletes entire balance → exits the pool → net zero change → allowed
+      await expect(dsToken.connect(investor).transfer(freshInvestor.address, 100))
+        .to.not.be.reverted;
+    });
+
+    it('should block transfer from platform wallet to new non-accredited investor when non-accredited cap is full', async function () {
+      const [investor, platformWallet, freshInvestor] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService, walletManager } =
+        await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setNonAccreditedInvestorsLimit(1);
+      await walletManager.addPlatformWallet(platformWallet.address);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor.address, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, freshInvestor.address, registryService);
+
+      // Issue to platform wallet first (not counted as non-accredited, cap still 0/1)
+      await dsToken.issueTokens(platformWallet.address, 200);
+      // Issue to non-accredited investor — fills the cap (nonAccreditedCount = 1 = limit)
+      await dsToken.issueTokens(investor.address, 100);
+
+      // Platform wallet attempts to distribute to a new non-accredited investor → must be blocked
+      await expect(dsToken.connect(platformWallet).transfer(freshInvestor.address, 100))
+        .to.be.revertedWith('Max investors in category');
+    });
+
+    it('should still allow full-balance transfer from non-accredited investor to new investor when non-accredited cap is full (genuine offset)', async function () {
+      const [investor, freshInvestor] = await hre.ethers.getSigners();
+      const { dsToken, registryService, complianceConfigurationService } =
+        await loadFixture(deployDSTokenRegulated);
+
+      await complianceConfigurationService.setNonAccreditedInvestorsLimit(1);
+
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor.address, registryService);
+      await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, freshInvestor.address, registryService);
+
+      await dsToken.issueTokens(investor.address, 100);
+
+      // Non-accredited investor depletes entire balance → exits the pool → net zero → allowed
+      await expect(dsToken.connect(investor).transfer(freshInvestor.address, 100))
+        .to.not.be.reverted;
     });
   });
