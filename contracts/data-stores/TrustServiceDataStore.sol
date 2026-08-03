@@ -25,11 +25,12 @@ contract TrustServiceDataStore {
     mapping(address owner => string entityId) internal DEPRECATED_ownersEntities;
     mapping(address operator => string entityId) internal DEPRECATED_operatorsEntities;
     mapping(address resource => string entityId) internal DEPRECATED_resourcesEntities;
+    address internal rolesGovernor;
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint256[44] private __gap;
+    uint256[43] private __gap;
 }
