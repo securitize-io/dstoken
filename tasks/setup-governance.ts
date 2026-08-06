@@ -1,5 +1,6 @@
 import { task, types } from 'hardhat/config';
 import { DSConstants } from '../utils/globals';
+import { resolveSigner } from './utils/task.helper';
 
 const OWNABLE_ABI = [
   'function owner() view returns (address)',
@@ -37,32 +38,50 @@ task('setup-governance', 'Wire BC-2133 timelocks into a deployed DS token suite'
   .addParam('complianceTimelock', 'Compliance rules timelock address', undefined, types.string)
   .addParam('rolesTimelock', 'Roles timelock address', undefined, types.string)
   .addOptionalParam('handover', 'Also transfer MASTER and every owner() to the master timelock', false, types.boolean)
+  .addOptionalParam('signer', 'Signer index or address holding MASTER (defaults to signer 0)', undefined, types.string)
   .setAction(async (args, hre) => {
-    const dsToken = await hre.ethers.getContractAt('DSToken', args.token);
-    const trustService = await hre.ethers.getContractAt('TrustService', await dsToken.getDSService(DSConstants.services.TRUST_SERVICE));
+    // BC-2329 requires the gas cost of both modes for production budgeting.
+    let totalGas = 0n;
+    const track = async (label: string, tx: any) => {
+      const receipt = await tx.wait();
+      totalGas += receipt.gasUsed;
+      console.log(`  gas ${label}: ${receipt.gasUsed}`);
+      return receipt;
+    };
+
+    // Every write here is onlyMaster. On a pre-existing token MASTER is often not signer 0.
+    const signer = await resolveSigner(hre, args.signer);
+    console.log(`Signing as ${signer.address}`);
+
+    const dsToken = await hre.ethers.getContractAt('DSToken', args.token, signer);
+    const trustService = await hre.ethers.getContractAt(
+      'TrustService',
+      await dsToken.getDSService(DSConstants.services.TRUST_SERVICE),
+      signer,
+    );
     const complianceConfigurationService = await hre.ethers.getContractAt(
       'ComplianceConfigurationService',
       await dsToken.getDSService(DSConstants.services.COMPLIANCE_CONFIGURATION_SERVICE),
+      signer,
     );
 
     console.log('Registering timelock discovery entries on the token registry');
     let tx = await dsToken.setDSService(DSConstants.services.MASTER_TIMELOCK, args.masterTimelock);
-    await tx.wait();
+    await track('setDSService(MASTER_TIMELOCK)', tx);
     tx = await dsToken.setDSService(DSConstants.services.COMPLIANCE_RULES_TIMELOCK, args.complianceTimelock);
-    await tx.wait();
+    await track('setDSService(COMPLIANCE_RULES_TIMELOCK)', tx);
     tx = await dsToken.setDSService(DSConstants.services.ROLES_TIMELOCK, args.rolesTimelock);
-    await tx.wait();
+    await track('setDSService(ROLES_TIMELOCK)', tx);
 
     console.log('Registering compliance rules timelock on the compliance configuration service (enforcement)');
     tx = await complianceConfigurationService.setDSService(DSConstants.services.COMPLIANCE_RULES_TIMELOCK, args.complianceTimelock);
-    await tx.wait();
+    await track('CCS.setDSService(COMPLIANCE_RULES_TIMELOCK)', tx);
 
     console.log('Setting roles governor on the trust service (enforcement)');
     tx = await trustService.setRolesGovernor(args.rolesTimelock);
-    await tx.wait();
+    await track('TrustService.setRolesGovernor', tx);
 
     if (args.handover) {
-      const [signer] = await hre.ethers.getSigners();
       console.log(`\nHandover: transferring ownership to master timelock ${args.masterTimelock}`);
 
       const owned: { name: string; address: string }[] = [{ name: 'DS_TOKEN', address: args.token }];
@@ -75,7 +94,7 @@ task('setup-governance', 'Wire BC-2133 timelocks into a deployed DS token suite'
       for (const { name, address } of owned) {
         if (transferred.has(address.toLowerCase())) continue;
         transferred.add(address.toLowerCase());
-        const ownable = await hre.ethers.getContractAt(OWNABLE_ABI, address);
+        const ownable = await hre.ethers.getContractAt(OWNABLE_ABI, address, signer);
         try {
           const currentOwner = await ownable.owner();
           if (currentOwner.toLowerCase() !== signer.address.toLowerCase()) {
@@ -83,7 +102,7 @@ task('setup-governance', 'Wire BC-2133 timelocks into a deployed DS token suite'
             continue;
           }
           tx = await ownable.transferOwnership(args.masterTimelock);
-          await tx.wait();
+          await track(`${name}.transferOwnership`, tx);
           console.log(`  ${name} (${address}): owner() -> master timelock`);
         } catch {
           console.log(`  ${name} (${address}): not Ownable, skipping`);
@@ -92,8 +111,10 @@ task('setup-governance', 'Wire BC-2133 timelocks into a deployed DS token suite'
 
       console.log('Transferring TrustService MASTER to the master timelock (final step, irreversible for this signer)');
       tx = await trustService.setServiceOwner(args.masterTimelock);
-      await tx.wait();
+      await track('TrustService.setServiceOwner', tx);
     }
+
+    console.log(`\nTotal gas for setup-governance (${args.handover ? 'handover' : 'wiring-only'} mode): ${totalGas}`);
 
     await hre.run('verify-governance', {
       token: args.token,
