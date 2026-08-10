@@ -191,7 +191,7 @@ The following initiatives are part of the current roadmap:
 
 ### Security audits
 
-Independent audits of the current implementation were performed by [Cyfrin](audits/2025-10-10-cyfrin-securitize-dstoken-v4-2.1.pdf) and [Halborn](audits/2025-10-09-Halborn-DSToken_v4_SSC.pdf), and can be found in the /audits folder.
+Independent audits of the current implementation were performed by Cyfrin [[4.1](audits/2025-10-10-cyfrin-securitize-dstoken-v4-2.1.pdf) and its follow ups, [1](audits/2026-05-29-cyfrin-securitize-full-investor-locks-v2.0.pdf) and [2](audits/2026-06-04-cyfrin-securitize-compliance-permissionless-diff-v2.0.pdf)], and [Halborn](audits/2025-10-09-Halborn-DSToken_v4_SSC.pdf), and can be found in the /audits folder.
 
 ### Issue Reporting
 
