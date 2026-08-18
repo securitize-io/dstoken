@@ -36,6 +36,7 @@ import {ComplianceServicePermissionlessDataStore} from "../data-stores/Complianc
  */
 contract ComplianceServicePermissionless is ComplianceService, ComplianceServicePermissionlessDataStore {
     string internal constant WALLET_BLACKLISTED = "Wallet is blacklisted";
+    string internal constant WALLET_GLOBALLY_DENYLISTED = "Wallet is globally denylisted";
 
     uint256 internal constant MAX_ISSUANCES_PER_WALLET = 30;
 
@@ -106,7 +107,11 @@ contract ComplianceServicePermissionless is ComplianceService, ComplianceService
             return (101, "Zero address");
         }
 
-        if (getBlackListManager().isBlacklisted(_to)) {
+        if (_isGloballyDenylisted(_to)) {
+            return (102, WALLET_GLOBALLY_DENYLISTED);
+        }
+
+        if (_isLocallyBlacklisted(_to)) {
             return (100, WALLET_BLACKLISTED);
         }
 
@@ -122,7 +127,7 @@ contract ComplianceServicePermissionless is ComplianceService, ComplianceService
     ) public view virtual override returns (uint256) {
         require(_time > 0, "Time must be greater than zero");
 
-        if (getBlackListManager().isBlacklisted(_who)) {
+        if (_isGloballyDenylisted(_who) || _isLocallyBlacklisted(_who)) {
             return 0;
         }
 
@@ -190,10 +195,39 @@ contract ComplianceServicePermissionless is ComplianceService, ComplianceService
         address _to,
         uint256 /*_value*/
     ) internal view virtual override returns (uint256 code, string memory reason) {
-        if (getBlackListManager().isBlacklisted(_from) || getBlackListManager().isBlacklisted(_to)) {
+        if (_isGloballyDenylisted(_from) || _isGloballyDenylisted(_to)) {
+            return (102, WALLET_GLOBALLY_DENYLISTED);
+        }
+
+        if (_isLocallyBlacklisted(_from) || _isLocallyBlacklisted(_to)) {
             return (100, WALLET_BLACKLISTED);
         }
+
         return (0, VALID);
+    }
+
+    /**
+     * @dev Global denylist check, consulted before the local one on every compliance path
+     * (BC-2349). Fail-open only when the service slot is unset (address(0)) — documented,
+     * deliberate. If the configured GlobalDenyListManager reverts, this call reverts too:
+     * fail-closed is the accepted-risk choice for this ticket (the manager is a
+     * Securitize-controlled proxy), so a broken global manager blocks transfers/issuances
+     * on every wired token rather than silently letting a denylisted wallet through.
+     */
+    function _isGloballyDenylisted(address _wallet) internal view returns (bool) {
+        if (getDSService(GLOBAL_DENYLIST_MANAGER) == address(0)) return false;
+        return getGlobalDenyListManager().isGloballyDenylisted(_wallet);
+    }
+
+    /**
+     * @dev Local blacklist check, fixing BC-1646: calling isBlacklisted() through an
+     * interface pointed at an unset (address(0)) BlackListManager reverts on ABI decode,
+     * since there's no code at that address. Fail open instead — a token with no local
+     * blacklist deployed relies solely on the global list (or neither, if that is unset too).
+     */
+    function _isLocallyBlacklisted(address _wallet) internal view returns (bool) {
+        if (getDSService(BLACKLIST_MANAGER) == address(0)) return false;
+        return getBlackListManager().isBlacklisted(_wallet);
     }
 
     function _lockedAt(address _wallet, uint256 _time) internal view returns (uint256) {
