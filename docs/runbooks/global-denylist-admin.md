@@ -75,59 +75,34 @@ transient incident, not a steady state.
 Distinct codes let Ops/Support tell "blocked by the platform-wide list" apart from
 "blocked by this specific issuer" without querying on-chain state for both contracts.
 
-## Cross-repo integration test
+## Testing strategy: mock only, no cross-repo dependency
 
-`test/integration/global-denylist-manager-integration.test.ts` deploys the **real**
-`GlobalDenyListManager` contract (not the local `GlobalDenyListManagerMock` used by the
-rest of the `compliance-service-permissionless.test.ts` suite) and wires it into a real
-permissionless `DSToken`, end to end. This catches drift between the mock's assumed
-behavior and the sibling repo's actual ABI/behavior.
+`dstoken`'s own tests (`test/compliance-service-permissionless.test.ts`, "Global denylist
+(BC-2349)" section) validate `ComplianceServicePermissionless`'s logic — short-circuit
+ordering, distinct rejection codes, fail-open/fail-closed, burn/seize bypassing compliance —
+against `contracts/mocks/GlobalDenyListManagerMock.sol`, a trivial settable stand-in with no
+access control of its own.
 
-The real contract's source is **vendored** (copied in directly) under
-`contracts/vendor/global-denylist-manager/`:
+This repo deliberately does **not** deploy the real `GlobalDenyListManager` contract to
+verify it end-to-end. Two earlier approaches were tried and dropped:
 
-- `GlobalDenyListManager.sol`
-- `IGlobalDenyListManager.sol`
-- `GlobalDenyListManagerDataStore.sol`
-- `BaseRBACContract.sol`
+1. A git `devDependency` pulling `bc-global-denylist-manager-sc#dev` directly (`npm install`
+   fetching it via `git+ssh`, plus a Solidity import shim) — gave automatic drift detection,
+   but CI runners have SSH access to `dstoken` only, not to the sibling repo, so `npm install`
+   failed there.
+2. Vendoring (copying) the real contract's source into `contracts/vendor/` — worked in CI,
+   but meant carrying ~600 lines of another repo's code inside `dstoken`, needing manual
+   re-sync whenever the sibling repo changed, with no automatic signal if that sync was
+   forgotten.
 
-Each file's header records the exact source commit it was copied from
-(`bc-global-denylist-manager-sc`, e.g. `d96f85cfad7a5dfc390e5b56d1ea5aa70caa257a`).
-
-**This used to be a `git+ssh` devDependency** (`npm install` fetching
-`bc-global-denylist-manager-sc#dev` directly, with a Solidity import shim re-exporting it
-from `node_modules/`) — that gave automatic drift detection on every `npm install`, but
-required SSH access to a *second* private repo. CI runners clone `dstoken` but have no
-credentials for the sibling repo, so `npm install` failed there with:
-
-```
-npm error command git --no-replace-objects ls-remote ssh://git@github.com/securitize-io/bc-global-denylist-manager-sc.git
-npm error git@github.com: Permission denied (publickey).
-```
-
-Vendoring trades away the automatic drift detection (this test now only catches drift
-against whatever commit was last copied in, not the sibling repo's live tip) for a build
-that actually works in CI.
-
-### How to re-sync the vendored copy
-
-There's no `npm install` step anymore — do it by hand when the sibling repo changes:
-
-1. In `bc-global-denylist-manager-sc`, note the commit you want to sync to.
-2. Copy the 4 files listed above from that commit into
-   `dstoken/contracts/vendor/global-denylist-manager/`, flattening them into that one
-   folder (no subfolders) — update each file's relative imports to `./` accordingly if the
-   sibling repo's own folder structure changed.
-3. Update the `Commit:` line in each file's "VENDORED COPY" header to the new commit hash.
-4. Recompile and re-run the integration test:
-
-```bash
-npx hardhat compile
-npx hardhat test test/integration/global-denylist-manager-integration.test.ts
-```
-
-5. Commit the diff — that diff *is* the record of "we bumped to commit X of the sibling
-   repo."
+**Current decision: rely on the mock only.** `bc-global-denylist-manager-sc` has its own
+independent test suite (48/48 passing as of this writing) covering its actual
+`AccessControl`/pause/idempotency behavior — that's not `dstoken`'s job to re-verify.
+`dstoken` only needs to prove that `ComplianceServicePermissionless` correctly calls
+whatever address is wired into the `GLOBAL_DENYLIST_MANAGER` slot, which the mock-based
+tests already do. The trade-off: a real ABI-incompatible change in the sibling repo
+wouldn't be caught by `dstoken`'s test suite — only by actually deploying against it (see
+`docs/runbooks/permissionless.md` / manual Sepolia testing).
 
 ## Audit
 
