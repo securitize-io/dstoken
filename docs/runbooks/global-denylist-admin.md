@@ -80,70 +80,54 @@ Distinct codes let Ops/Support tell "blocked by the platform-wide list" apart fr
 `test/integration/global-denylist-manager-integration.test.ts` deploys the **real**
 `GlobalDenyListManager` contract (not the local `GlobalDenyListManagerMock` used by the
 rest of the `compliance-service-permissionless.test.ts` suite) and wires it into a real
-permissionless `DSToken`, end to end. This is a drift-detector: if
-`bc-global-denylist-manager-sc` ever changes its ABI or behavior incompatibly, this test
-(not just the mock-based ones) fails.
+permissionless `DSToken`, end to end. This catches drift between the mock's assumed
+behavior and the sibling repo's actual ABI/behavior.
 
-This works via a `devDependency` in `package.json`:
+The real contract's source is **vendored** (copied in directly) under
+`contracts/vendor/global-denylist-manager/`:
 
-```json
-"bc-global-denylist-manager-sc": "git+ssh://git@github.com/securitize-io/bc-global-denylist-manager-sc.git#dev"
+- `GlobalDenyListManager.sol`
+- `IGlobalDenyListManager.sol`
+- `GlobalDenyListManagerDataStore.sol`
+- `BaseRBACContract.sol`
+
+Each file's header records the exact source commit it was copied from
+(`bc-global-denylist-manager-sc`, e.g. `d96f85cfad7a5dfc390e5b56d1ea5aa70caa257a`).
+
+**This used to be a `git+ssh` devDependency** (`npm install` fetching
+`bc-global-denylist-manager-sc#dev` directly, with a Solidity import shim re-exporting it
+from `node_modules/`) — that gave automatic drift detection on every `npm install`, but
+required SSH access to a *second* private repo. CI runners clone `dstoken` but have no
+credentials for the sibling repo, so `npm install` failed there with:
+
+```
+npm error command git --no-replace-objects ls-remote ssh://git@github.com/securitize-io/bc-global-denylist-manager-sc.git
+npm error git@github.com: Permission denied (publickey).
 ```
 
-and a Solidity import shim, `contracts/integration/GlobalDenyListManagerImport.sol`, that
-re-exports `GlobalDenyListManager` from that package's `contracts/` folder so Hardhat
-compiles the real bytecode into this repo's own artifacts (the same mechanism used for
-`@openzeppelin/contracts` imports — Solidity resolves a bare import specifier by looking in
-`node_modules/<package>/...`).
+Vendoring trades away the automatic drift detection (this test now only catches drift
+against whatever commit was last copied in, not the sibling repo's live tip) for a build
+that actually works in CI.
 
-### How this stays (or doesn't stay) up to date
+### How to re-sync the vendored copy
 
-**`npm install` does NOT automatically re-fetch the latest `dev` commit.** The first
-install resolves `#dev` to a specific commit SHA and pins it in `package-lock.json`:
+There's no `npm install` step anymore — do it by hand when the sibling repo changes:
 
-```json
-"node_modules/bc-global-denylist-manager-sc": {
-  "resolved": "git+ssh://git@github.com/securitize-io/bc-global-denylist-manager-sc.git#<commit-sha>"
-}
-```
-
-Every subsequent plain `npm install` reuses that pinned SHA — on purpose, for reproducible
-builds (you don't want the build to silently change because someone pushed to the other
-repo). To actually pull the latest `dev` commit:
-
-```bash
-npm install bc-global-denylist-manager-sc@git+ssh://git@github.com/securitize-io/bc-global-denylist-manager-sc.git#dev
-```
-
-This re-resolves `dev` to its current tip, updates the pinned SHA in `package-lock.json`,
-and re-downloads into `node_modules/`. Then re-run the integration test to confirm nothing
-broke:
+1. In `bc-global-denylist-manager-sc`, note the commit you want to sync to.
+2. Copy the 4 files listed above from that commit into
+   `dstoken/contracts/vendor/global-denylist-manager/`, flattening them into that one
+   folder (no subfolders) — update each file's relative imports to `./` accordingly if the
+   sibling repo's own folder structure changed.
+3. Update the `Commit:` line in each file's "VENDORED COPY" header to the new commit hash.
+4. Recompile and re-run the integration test:
 
 ```bash
 npx hardhat compile
 npx hardhat test test/integration/global-denylist-manager-integration.test.ts
 ```
 
-Commit the resulting `package-lock.json` diff (it's just the updated `resolved` SHA) —
-that diff *is* the record of "we bumped to commit X of the sibling repo."
-
-To pin to something other than the `dev` branch tip (a tag, a specific commit, or later a
-release branch once one exists), replace the whole dependency string, e.g.:
-
-```json
-"bc-global-denylist-manager-sc": "git+ssh://git@github.com/securitize-io/bc-global-denylist-manager-sc.git#v1.0.0"
-```
-
-then `npm install` and re-run the integration test as above.
-
-### CI note
-
-This dependency is fetched via `git+ssh`, not the npm registry — whatever runs
-`npm install` (your machine, or a CI runner) needs valid SSH access to the
-`bc-global-denylist-manager-sc` GitHub repo specifically, not just to `dstoken`. If CI
-clones `dstoken`
-via a deploy key, that same key (or an equivalent one) needs read access to the sibling repo
-too, or `npm install` will fail there even though it succeeds locally.
+5. Commit the diff — that diff *is* the record of "we bumped to commit X of the sibling
+   repo."
 
 ## Audit
 

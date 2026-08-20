@@ -4,19 +4,22 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { DSConstants } from "../../utils/globals";
 
 /**
- * Cross-repo integration test (BC-2349): deploys the REAL GlobalDenyListManager from
- * bc-global-denylist-manager-sc (a git devDependency tracking its `dev` branch — see
- * package.json / contracts/integration/GlobalDenyListManagerImport.sol) instead of the
- * trivial GlobalDenyListManagerMock used by the rest of the compliance-service-permissionless
- * suite. Every other BC-2349 test validates ComplianceServicePermissionless's OWN logic
- * against a mock; this file validates that the real sibling contract's actual ABI/behavior
- * (its own OPERATOR_ROLE/ADMIN handover flow, idempotency, pause) works correctly when
- * wired end-to-end into a real permissionless DSToken.
+ * Cross-repo integration test (BC-2349): deploys the REAL GlobalDenyListManager, vendored
+ * verbatim into contracts/vendor/global-denylist-manager/ from bc-global-denylist-manager-sc
+ * (see the "VENDORED COPY" header on each of those 4 files for the exact source commit),
+ * instead of the trivial GlobalDenyListManagerMock used by the rest of the
+ * compliance-service-permissionless suite. Every other BC-2349 test validates
+ * ComplianceServicePermissionless's OWN logic against a mock; this file validates that the
+ * real sibling contract's actual ABI/behavior (its own OPERATOR_ROLE/ADMIN handover flow,
+ * idempotency, pause) works correctly when wired end-to-end into a real permissionless
+ * DSToken.
  *
- * `npm install` re-resolves the git dependency's `dev` branch, so this test always runs
- * against the latest committed state of the sibling repo — a real drift-detector: if that
- * repo's ABI or behavior ever changes incompatibly, this file (not just the mock-based
- * tests) will fail.
+ * This used to be a git devDependency (`npm install` re-resolving the sibling repo's `dev`
+ * branch on demand), which gave automatic drift detection but required SSH access to a
+ * second private repo — CI runners don't have that, so `npm install` failed there. Vendoring
+ * trades that automatic drift detection for a CI that actually works: this test only catches
+ * drift against whatever commit was last vendored in, not the sibling repo's live tip. See
+ * docs/runbooks/global-denylist-admin.md for how to re-sync the vendored copy.
  */
 describe("GlobalDenyListManager integration (real contract from bc-global-denylist-manager-sc)", function () {
   async function fixture() {
