@@ -9,6 +9,7 @@ task('deploy-all', 'Deploy DS Protocol')
   .addOptionalParam('multiplier', 'Rebasing Multiplier', '1000000000000000000', types.string)
   .addOptionalParam('globalRegistryService', 'Global Registry Service Address', undefined, types.string)
   .addOptionalParam('registryType', 'Registry type: REGULATED or STUB', 'REGULATED', types.string)
+  .addOptionalParam('globalDenylistManagerAddress', 'Address of a pre-existing shared Global Denylist Manager to wire in (deployment lives outside this repo)', undefined, types.string)
   .setAction(async (args, { run, ethers }) => {
     await run("compile");
 
@@ -42,6 +43,19 @@ task('deploy-all', 'Deploy DS Protocol')
     const navProviderMock = await ethers.deployContract('SecuritizeInternalNavProviderMock', [1]);
     const rebasingProvider = await run('deploy-rebasing-provider', { multiplier: args.multiplier, decimals: args.decimals });
     const blacklistManager = await run('deploy-blacklist-manager');
+
+    // GlobalDenyListManager is deployed and administered outside this repo — deploy-all
+    // only wires an already-existing instance in, if one is given. Left undefined, the
+    // GLOBAL_DENYLIST_MANAGER service stays unset (address(0)), which
+    // ComplianceServicePermissionless treats as fail-open (see docs/runbooks/global-denylist-admin.md).
+    let globalDenylistManager;
+    if (args.globalDenylistManagerAddress) {
+      console.log(`Using existing shared Global Denylist Manager at address: ${args.globalDenylistManagerAddress}`);
+      // Typed against the local interface only — the concrete contract (with its own
+      // AccessControl/admin API) lives in bc-global-denylist-manager-sc, not this repo.
+      globalDenylistManager = await ethers.getContractAt('IDSGlobalDenyListManager', args.globalDenylistManagerAddress);
+    }
+
     const usdcMock = await run('deploy-erc20',
       {
         name: 'USDC',
@@ -65,7 +79,8 @@ task('deploy-all', 'Deploy DS Protocol')
       usdcMock,
       navProviderMock,
       rebasingProvider,
-      blacklistManager
+      blacklistManager,
+      globalDenylistManager
     };
 
     await run("set-roles", { dsContracts });

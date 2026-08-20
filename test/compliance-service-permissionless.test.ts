@@ -1,7 +1,7 @@
 import hre from "hardhat";
 import { expect } from "chai";
 import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { deployDSTokenPermissionless, DAYS } from "./utils/fixture";
+import { deployDSTokenPermissionless, deployDSTokenPermissionlessWithGlobalDenylist, DAYS } from "./utils/fixture";
 import { DSConstants } from "../utils/globals";
 
 describe("ComplianceServicePermissionless", function () {
@@ -515,6 +515,247 @@ describe("ComplianceServicePermissionless", function () {
         const check = await complianceService.preTransferCheck(platformWalletAddress, recipientAddress, 100);
         expect(check[0]).to.equal(0); // 0 = valid — no lockup records, transfers freely
       });
+    });
+  });
+
+  // ─── BC-2349: Global denylist ───────────────────────────────────────────
+
+  describe("Global denylist (BC-2349)", function () {
+    async function fixtureWithGlobalDenylist() {
+      const contracts = await loadFixture(deployDSTokenPermissionlessWithGlobalDenylist);
+      const { dsToken, trustService, complianceService, walletManager, blacklistManager, globalDenylistManager } = contracts;
+      const [master, transferAgent, user1, user2, issuerWallet] = await hre.ethers.getSigners();
+      await trustService.connect(master).setRole(transferAgent, DSConstants.roles.TRANSFER_AGENT);
+      await walletManager.addIssuerWallet(issuerWallet);
+      const user1Address = await user1.getAddress();
+      const user2Address = await user2.getAddress();
+      const issuerWalletAddress = await issuerWallet.getAddress();
+
+      await dsToken.issueTokens(user1Address, 1_000);
+
+      return {
+        dsToken,
+        complianceService,
+        blacklistManager,
+        globalDenylistManager,
+        transferAgent,
+        user1,
+        user2,
+        user1Address,
+        user2Address,
+        issuerWalletAddress,
+      };
+    }
+
+    it("global denylist hit short-circuits before the local check runs", async function () {
+      // Point BLACKLIST_MANAGER at a contract with no isBlacklisted() function at all — if
+      // the local check ran, the call would revert (no matching function, no fallback).
+      // The transfer must still be rejected cleanly with code 102, proving the global hit
+      // short-circuits before the local check is ever consulted.
+      const { dsToken, complianceService, globalDenylistManager, user1Address, user2Address } = await fixtureWithGlobalDenylist();
+
+      const revertingMock = await hre.ethers.deployContract("RevertingGlobalDenyListManagerMock");
+      await complianceService.setDSService(DSConstants.services.BLACKLIST_MANAGER, await revertingMock.getAddress());
+
+      await globalDenylistManager.setGloballyDenylisted(user1Address, true);
+
+      const check = await complianceService.preTransferCheck(user1Address, user2Address, 100);
+      expect(check[0]).to.equal(102);
+      expect(check[1]).to.equal("Wallet is globally denylisted");
+    });
+
+    it("newPreTransferCheck rejects with 102 when sender is globally denylisted", async function () {
+      const { complianceService, globalDenylistManager, user1Address, user2Address } = await fixtureWithGlobalDenylist();
+      await globalDenylistManager.setGloballyDenylisted(user1Address, true);
+
+      const check = await complianceService.newPreTransferCheck(user1Address, user2Address, 100, 1_000, false);
+      expect(check[0]).to.equal(102);
+      expect(check[1]).to.equal("Wallet is globally denylisted");
+    });
+
+    it("newPreTransferCheck rejects with 102 when recipient is globally denylisted", async function () {
+      const { complianceService, globalDenylistManager, user1Address, user2Address } = await fixtureWithGlobalDenylist();
+      await globalDenylistManager.setGloballyDenylisted(user2Address, true);
+
+      const check = await complianceService.newPreTransferCheck(user1Address, user2Address, 100, 1_000, false);
+      expect(check[0]).to.equal(102);
+      expect(check[1]).to.equal("Wallet is globally denylisted");
+    });
+
+    it("preTransferCheck rejects with 102 when sender is globally denylisted", async function () {
+      const { complianceService, globalDenylistManager, user1Address, user2Address } = await fixtureWithGlobalDenylist();
+      await globalDenylistManager.setGloballyDenylisted(user1Address, true);
+
+      const check = await complianceService.preTransferCheck(user1Address, user2Address, 100);
+      expect(check[0]).to.equal(102);
+      expect(check[1]).to.equal("Wallet is globally denylisted");
+    });
+
+    it("transfer() reverts end-to-end when either party is globally denylisted", async function () {
+      const { dsToken, globalDenylistManager, user1, user1Address, user2Address } = await fixtureWithGlobalDenylist();
+      await globalDenylistManager.setGloballyDenylisted(user2Address, true);
+
+      await expect(dsToken.connect(user1).transfer(user2Address, 100)).to.be.revertedWith("Wallet is globally denylisted");
+      expect(await dsToken.balanceOf(user1Address)).to.equal(1_000);
+    });
+
+    it("preIssuanceCheck rejects issuance to a globally denylisted recipient with code 102", async function () {
+      const { complianceService, globalDenylistManager, user2Address } = await fixtureWithGlobalDenylist();
+      await globalDenylistManager.setGloballyDenylisted(user2Address, true);
+
+      const check = await complianceService.preIssuanceCheck(user2Address, 500);
+      expect(check[0]).to.equal(102);
+      expect(check[1]).to.equal("Wallet is globally denylisted");
+    });
+
+    it("creates no lockup record when issuance is rejected for global denylist", async function () {
+      const { dsToken, complianceService, globalDenylistManager, user2Address } = await fixtureWithGlobalDenylist();
+      await globalDenylistManager.setGloballyDenylisted(user2Address, true);
+
+      await expect(dsToken.issueTokens(user2Address, 500)).to.be.reverted;
+      expect(await complianceService.issuancesCount(user2Address)).to.equal(0);
+    });
+
+    it("getComplianceTransferableTokens returns 0 for a globally denylisted wallet with zero lockup configured", async function () {
+      const { complianceService, globalDenylistManager, user1Address } = await fixtureWithGlobalDenylist();
+      await globalDenylistManager.setGloballyDenylisted(user1Address, true);
+
+      const currentTime = (await hre.ethers.provider.getBlock("latest"))!.timestamp;
+      const transferable = await complianceService.getComplianceTransferableTokens(user1Address, currentTime + 1, 0);
+      expect(transferable).to.equal(0);
+    });
+
+    it("getComplianceTransferableTokens returns 0 for a globally denylisted wallet regardless of active lockup", async function () {
+      const contracts = await loadFixture(deployDSTokenPermissionlessWithGlobalDenylist);
+      const { dsToken, complianceService, complianceConfigurationService, globalDenylistManager } = contracts;
+      const user = (await hre.ethers.getSigners())[6];
+      const userAddress = await user.getAddress();
+
+      await complianceConfigurationService.setNonUSLockPeriod(30 * DAYS);
+      await dsToken.issueTokens(userAddress, 500);
+      await globalDenylistManager.setGloballyDenylisted(userAddress, true);
+
+      const now = (await hre.ethers.provider.getBlock("latest"))!.timestamp;
+      expect(await complianceService.getComplianceTransferableTokens(userAddress, now + 1, 0)).to.equal(0);
+    });
+
+    it("both sender and recipient are checked — denylisting only the recipient still rejects with 102", async function () {
+      const { complianceService, globalDenylistManager, user1Address, user2Address } = await fixtureWithGlobalDenylist();
+      await globalDenylistManager.setGloballyDenylisted(user2Address, true);
+
+      const check = await complianceService.preTransferCheck(user1Address, user2Address, 100);
+      expect(check[0]).to.equal(102);
+    });
+
+    it("burn() succeeds against a globally denylisted wallet", async function () {
+      const { dsToken, globalDenylistManager, user1Address } = await fixtureWithGlobalDenylist();
+      await globalDenylistManager.setGloballyDenylisted(user1Address, true);
+
+      await expect(dsToken.burn(user1Address, 100, "seize sanctioned wallet")).to.not.be.reverted;
+      expect(await dsToken.balanceOf(user1Address)).to.equal(900);
+    });
+
+    it("seize() succeeds moving tokens from a globally denylisted wallet", async function () {
+      const { dsToken, globalDenylistManager, user1Address, issuerWalletAddress } = await fixtureWithGlobalDenylist();
+      await globalDenylistManager.setGloballyDenylisted(user1Address, true);
+
+      await expect(dsToken.seize(user1Address, issuerWalletAddress, 100, "seize sanctioned wallet")).to.not.be.reverted;
+      expect(await dsToken.balanceOf(issuerWalletAddress)).to.equal(100);
+    });
+
+    it("global manager unset (address(0)) falls back to local-only check", async function () {
+      // deployDSTokenPermissionless (no global manager wired) — GLOBAL_DENYLIST_MANAGER stays address(0).
+      const contracts = await loadFixture(deployDSTokenPermissionless);
+      const { dsToken, trustService, complianceService, blacklistManager } = contracts;
+      const [master, transferAgent, user1, user2] = await hre.ethers.getSigners();
+      await trustService.connect(master).setRole(transferAgent, DSConstants.roles.TRANSFER_AGENT);
+      const user1Address = await user1.getAddress();
+      const user2Address = await user2.getAddress();
+      await dsToken.issueTokens(user1Address, 1_000);
+
+      await blacklistManager.connect(transferAgent).addToBlacklist(user1Address, "local reason");
+
+      const check = await complianceService.preTransferCheck(user1Address, user2Address, 100);
+      expect(check[0]).to.equal(100); // local hit, not 102 — proves fail-open on unset global
+      expect(check[1]).to.equal("Wallet is blacklisted");
+    });
+
+    it("local manager unset (address(0)) does not revert — BC-1646 fix", async function () {
+      const { dsToken, complianceService, user1, user1Address, user2Address } = await fixtureWithGlobalDenylist();
+
+      await complianceService.setDSService(DSConstants.services.BLACKLIST_MANAGER, hre.ethers.ZeroAddress);
+
+      const check = await complianceService.preTransferCheck(user1Address, user2Address, 100);
+      expect(check[0]).to.equal(0); // valid — must not revert despite local manager being unset
+      expect(check[1]).to.equal("Valid");
+
+      const issuanceCheck = await complianceService.preIssuanceCheck(user2Address, 100);
+      expect(issuanceCheck[0]).to.equal(0);
+
+      const transferable = await complianceService.getComplianceTransferableTokens(
+        user1Address,
+        (await hre.ethers.provider.getBlock("latest"))!.timestamp + 1,
+        0
+      );
+      expect(transferable).to.equal(1_000);
+
+      await expect(dsToken.connect(user1).transfer(user2Address, 100)).to.not.be.reverted;
+    });
+
+    it("both global and local unset — full fail-open, everything valid", async function () {
+      const contracts = await loadFixture(deployDSTokenPermissionless);
+      const { dsToken, complianceService } = contracts;
+      const [, , user1, user2] = await hre.ethers.getSigners();
+      const user1Address = await user1.getAddress();
+      const user2Address = await user2.getAddress();
+      await dsToken.issueTokens(user1Address, 1_000);
+
+      // GLOBAL_DENYLIST_MANAGER was never wired by deployDSTokenPermissionless, and we
+      // explicitly unset BLACKLIST_MANAGER too.
+      await complianceService.setDSService(DSConstants.services.BLACKLIST_MANAGER, hre.ethers.ZeroAddress);
+
+      const check = await complianceService.preTransferCheck(user1Address, user2Address, 500);
+      expect(check[0]).to.equal(0);
+      expect(check[1]).to.equal("Valid");
+      await expect(dsToken.connect(user1).transfer(user2Address, 500)).to.not.be.reverted;
+    });
+
+    it("global set + local unset — global denylist is still enforced", async function () {
+      const { complianceService, globalDenylistManager, user1Address, user2Address } = await fixtureWithGlobalDenylist();
+
+      await complianceService.setDSService(DSConstants.services.BLACKLIST_MANAGER, hre.ethers.ZeroAddress);
+      await globalDenylistManager.setGloballyDenylisted(user1Address, true);
+
+      const check = await complianceService.preTransferCheck(user1Address, user2Address, 100);
+      expect(check[0]).to.equal(102); // global still enforced — local-unset fail-open doesn't mask it
+    });
+
+    it("global manager reverting on isGloballyDenylisted causes the whole transfer to revert (accepted-risk, fail-closed)", async function () {
+      const { dsToken, complianceService, user1, user1Address, user2Address } = await fixtureWithGlobalDenylist();
+
+      const revertingMock = await hre.ethers.deployContract("RevertingGlobalDenyListManagerMock");
+      await complianceService.setDSService(DSConstants.services.GLOBAL_DENYLIST_MANAGER, await revertingMock.getAddress());
+
+      await expect(complianceService.preTransferCheck(user1Address, user2Address, 100)).to.be.reverted;
+      await expect(dsToken.connect(user1).transfer(user2Address, 100)).to.be.reverted;
+    });
+
+    it("distinct rejection codes — 100 for a local-only hit, 102 for a global hit", async function () {
+      const { complianceService, blacklistManager, globalDenylistManager, transferAgent, user1Address, user2Address } =
+        await fixtureWithGlobalDenylist();
+
+      await blacklistManager.connect(transferAgent).addToBlacklist(user1Address, "local-only reason");
+      const localOnlyCheck = await complianceService.preTransferCheck(user1Address, user2Address, 100);
+      expect(localOnlyCheck[0]).to.equal(100);
+      expect(localOnlyCheck[1]).to.equal("Wallet is blacklisted");
+
+      // user1 stays the funded sender (avoids an insufficient-balance false negative);
+      // user2 is now hit on the global list too — global short-circuits ahead of user1's
+      // pre-existing local hit, so the code flips from 100 to 102.
+      await globalDenylistManager.setGloballyDenylisted(user2Address, true);
+      const globalCheck = await complianceService.preTransferCheck(user1Address, user2Address, 100);
+      expect(globalCheck[0]).to.equal(102);
+      expect(globalCheck[1]).to.equal("Wallet is globally denylisted");
     });
   });
 });

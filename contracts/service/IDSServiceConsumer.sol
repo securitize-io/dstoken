@@ -41,6 +41,7 @@ abstract contract IDSServiceConsumer {
     uint256 public constant MASTER_TIMELOCK = 8198;
     uint256 public constant COMPLIANCE_RULES_TIMELOCK = 8199;
     uint256 public constant ROLES_TIMELOCK = 8200;
+    uint256 public constant GLOBAL_DENYLIST_MANAGER = 8201;
 
     function getDSService(uint256 _serviceId) public view virtual returns (address);
 

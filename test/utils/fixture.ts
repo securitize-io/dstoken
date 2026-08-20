@@ -38,6 +38,32 @@ export const deployDSTokenPermissionless = () => {
   });
 };
 
+// Same as deployDSTokenPermissionless, but wires a global-denylist stand-in into the
+// token's compliance service (BC-2349). The real GlobalDenyListManager (AccessControl,
+// idempotent bulk ops, etc.) lives in a separate repo
+// (https://github.com/securitize-io/bc-global-denylist-manager-sc) and is tested there —
+// dstoken only needs *something* implementing IDSGlobalDenyListManager to exercise
+// ComplianceServicePermissionless's own integration logic (short-circuit ordering, distinct
+// codes, fail-open/fail-closed), so this fixture uses the trivial settable
+// GlobalDenyListManagerMock instead of pulling in the real contract's admin machinery.
+export const deployDSTokenPermissionlessWithGlobalDenylist = async () => {
+  const name = 'Token Example 1';
+  const symbol = 'TX1';
+
+  const globalDenylistManager = await hre.ethers.deployContract('GlobalDenyListManagerMock');
+  await globalDenylistManager.waitForDeployment();
+
+  const contracts = await hre.run('deploy-all', {
+    name,
+    symbol,
+    decimals: 2,
+    compliance: 'PERMISSIONLESS',
+    registryType: 'STUB',
+    globalDenylistManagerAddress: await globalDenylistManager.getAddress(),
+  });
+  return { ...contracts, globalDenylistManager };
+};
+
 export const deployDSTokenRegulatedWithRebasing = async () => {
   const name = 'Token Example 1';
   const symbol = 'TX1';

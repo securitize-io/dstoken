@@ -21,6 +21,7 @@ subtask('set-services', 'Set DS Services')
         bulkOperator,
         rebasingProvider,
         blacklistManager,
+        globalDenylistManager,
       } = dsContracts;
 
       // Token
@@ -57,6 +58,11 @@ subtask('set-services', 'Set DS Services')
       console.log('Connecting token to blacklist manager');
       tx = await dsToken.setDSService(DSConstants.services.BLACKLIST_MANAGER, blacklistManager.getAddress());
       await tx.wait();
+      if (globalDenylistManager) {
+        console.log('Connecting token to global denylist manager');
+        tx = await dsToken.setDSService(DSConstants.services.GLOBAL_DENYLIST_MANAGER, globalDenylistManager.getAddress());
+        await tx.wait();
+      }
 
       // Registry Service, only if not GRS (Global Registry Service)
       if (!isGRS) {
@@ -106,6 +112,11 @@ subtask('set-services', 'Set DS Services')
       console.log('Connecting compliance service to blacklist manager');
       tx = await complianceService.setDSService(DSConstants.services.BLACKLIST_MANAGER, blacklistManager.getAddress());
       await tx.wait();
+      if (globalDenylistManager) {
+        console.log('Connecting compliance service to global denylist manager');
+        tx = await complianceService.setDSService(DSConstants.services.GLOBAL_DENYLIST_MANAGER, globalDenylistManager.getAddress());
+        await tx.wait();
+      }
 
       // Lock Manager
       console.log('Connecting lock manager to trust service');

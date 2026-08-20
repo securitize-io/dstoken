@@ -21,6 +21,7 @@ export const DSConstants = {
     MASTER_TIMELOCK: 8198,
     COMPLIANCE_RULES_TIMELOCK: 8199,
     ROLES_TIMELOCK: 8200,
+    GLOBAL_DENYLIST_MANAGER: 8201,
   },
   roles: {
     NONE: 0,
