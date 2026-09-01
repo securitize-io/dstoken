@@ -80,7 +80,10 @@ interface IDSMintThrottle {
     function executeOverCapMint(bytes32 operationId) external;
 
     /// @notice Cancels a pending over-cap mint before it is executed.
-    /// @dev Only callable by MASTER. Can be called after readyAt (even within grace period).
+    /// @dev Callable by ISSUER, TRANSFER_AGENT or MASTER. Deliberately not MASTER-only: once
+    /// governance is handed over MASTER is the master timelock, so a cancel would be a queued
+    /// operation maturing after a shorter overCapDelay had already let the mint execute.
+    /// Can be called after readyAt (even within grace period).
     /// @param operationId The identifier returned by scheduleOverCapIssuance.
     function cancelOverCapMint(bytes32 operationId) external;
 

@@ -157,20 +157,20 @@ ISSUER → scheduleOverCapIssuance(to, 500_000_000, salt)
   pendingMints[operationId] = PendingMint {
       to: to,
       amount: 500_000_000,
-      readyAt:   now + overCapDelay,    // e.g. now + 5h
-      expiresAt: now + overCapDelay + overCapGracePeriod,  // e.g. now + 29h
+      readyAt:   now + overCapDelay,    // e.g. now + overCapDelay
+      expiresAt: now + overCapDelay + overCapGracePeriod
       executed: false,
       cancelled: false
   }
   emit OverCapMintScheduled(operationId, to, 500M, readyAt)
 
---- wait overCapDelay (5 hours) ---
+--- wait overCapDelay ---
 
 Step 2: Execute
 ISSUER → executeOverCapMint(operationId)
   op = pendingMints[operationId]
   check: !op.executed && !op.cancelled     → OK
-  check: block.timestamp >= op.readyAt    → OK (5h passed)
+  check: block.timestamp >= op.readyAt    → OK (delay elapsed)
   check: block.timestamp < op.expiresAt   → OK (within 24h grace)
   op.executed = true                      // mark BEFORE external call (CEI)
   _issueUncapped(op.to, op.amount)        // bypasses _checkThrottle
@@ -184,7 +184,7 @@ ISSUER → executeOverCapMint(operationId)
 ## Flow 8 — Over-cap: execute too early
 
 ```
-ISSUER → scheduleOverCapIssuance(to, 500M, salt)  → readyAt = now + 5h
+ISSUER → scheduleOverCapIssuance(to, 500M, salt)  → readyAt = now + overCapDelay
 
 // 2 hours later:
 ISSUER → executeOverCapMint(operationId)
@@ -199,14 +199,14 @@ ISSUER → executeOverCapMint(operationId)
 
 ```
 ISSUER → scheduleOverCapIssuance(to, 500M, salt)
-         readyAt = T+5h, expiresAt = T+5h+24h = T+29h
+         readyAt = T+delay, expiresAt = T+delay+24h = T+29h
 
 // 30 hours later (overCapDelay + gracePeriod + 1h):
 ISSUER → executeOverCapMint(operationId)
   require(op.readyAt != 0, "Operation does not exist")                              → OK
   require(!op.executed, "Operation already executed")                              → OK
   require(!op.cancelled, "Operation already cancelled")                            → OK
-  require(block.timestamp >= op.readyAt, "Operation not ready")                     → OK (T+30h >= T+5h)
+  require(block.timestamp >= op.readyAt, "Operation not ready")                     → OK (T+30h >= T+delay)
   require(op.expiresAt == 0 || block.timestamp < op.expiresAt, "Operation expired") → FAILS (T+30h >= T+29h)
 ```
 
@@ -218,7 +218,7 @@ The old operationId is permanently tombstoned in `pendingMints` — cannot be re
 ## Flow 10 — Over-cap: cancelled before execution
 
 ```
-ISSUER → scheduleOverCapIssuance(to, 500M, salt)  → operationId stored, readyAt = T+5h
+ISSUER → scheduleOverCapIssuance(to, 500M, salt)  → operationId stored, readyAt = T+delay
 
 // Any time before execution:
 MASTER → cancelOverCapMint(operationId)

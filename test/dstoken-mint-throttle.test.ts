@@ -14,13 +14,22 @@ const SALT = ethers.ZeroHash;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Deploys the token, wires an issuer role, and returns key handles. */
-async function fixture() {
+/**
+ * Deploys the token, wires an issuer role, and returns key handles.
+ *
+ * The over-cap delay is set up front because setMintCap now refuses to enable the cap while the
+ * delay is zero (a zero delay makes the over-cap path schedule-and-execute in one block, i.e. an
+ * unconditional bypass of the allowance). Pass false to get a token in the raw post-upgrade state.
+ */
+async function fixture(withOverCapDelay = true) {
   const contracts = await loadFixture(deployDSTokenPermissionless);
   const { dsToken, trustService } = contracts;
   const [master, issuer, recipient, unauthorized] = await hre.ethers.getSigners();
 
   await trustService.connect(master).setRole(issuer, DSConstants.roles.ISSUER);
+  if (withOverCapDelay) {
+    await dsToken.connect(master).setOverCapDelay(OVER_CAP_DELAY);
+  }
 
   return { dsToken, master, issuer, recipient, unauthorized };
 }
@@ -466,10 +475,29 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
         .to.be.revertedWith('Operation does not exist');
     });
 
-    it('reverts from issuer (not MASTER)', async function () {
+    it('allows issuer to cancel (cancelling must not itself be a queued master operation)', async function () {
+      // Audit #3: while cancelOverCapMint was onlyMaster, cancelling after handover meant a
+      // master-timelock op maturing after a shorter overCapDelay had already let the mint execute.
+      // ISSUER already schedules and executes over-cap mints, so it gains nothing here.
       const { dsToken, issuer, operationId } = await fixtureScheduled();
+
       await expect(dsToken.connect(issuer).cancelOverCapMint(operationId))
-        .to.be.revertedWith('Insufficient trust level');
+        .to.emit(dsToken, 'OverCapMintCancelled')
+        .withArgs(operationId);
+    });
+
+    it('allows a transfer agent to cancel, giving a canceller outside the issuer set', async function () {
+      // Covers the compromised-issuer case: the responder must not have to be an issuer.
+      const { dsToken, master, unauthorized, operationId } = await fixtureScheduled();
+      const trustService: any = await hre.ethers.getContractAt(
+        'TrustService',
+        await dsToken.getDSService(DSConstants.services.TRUST_SERVICE),
+      );
+      await trustService.connect(master).setRole(unauthorized, DSConstants.roles.TRANSFER_AGENT);
+
+      await expect(dsToken.connect(unauthorized).cancelOverCapMint(operationId))
+        .to.emit(dsToken, 'OverCapMintCancelled')
+        .withArgs(operationId);
     });
 
     it('reverts from unauthorized caller', async function () {
@@ -535,13 +563,36 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       await expect(dsToken.connect(master).issueTokens(recipient, 500n)).to.not.be.reverted;
     });
 
-    it('overCapDelay = 0 allows immediate execution (useful for testing)', async function () {
-      const { dsToken, master, recipient } = await fixture();
-      // overCapDelay defaults to 0; no wait needed
-      const recipientAddress = await recipient.getAddress();
-      const operationId = await schedule(dsToken, master, recipientAddress, 500n);
+    it('cannot enable the cap while overCapDelay is 0, so the over-cap path is never instant', async function () {
+      // Audit #3: a zero delay made schedule-and-execute possible in one block, i.e. an
+      // unconditional bypass of the allowance for any ROLE_ISSUER holder.
+      const { dsToken, master } = await fixture(false);
+      expect(await dsToken.overCapDelay()).to.equal(0n);
 
-      await expect(dsToken.connect(master).executeOverCapMint(operationId)).to.not.be.reverted;
+      await expect(dsToken.connect(master).setMintCap(CAP_AMOUNT, CAP_WINDOW))
+        .to.be.revertedWith('Over-cap delay must be set when cap is active');
+    });
+
+    it('cannot zero the delay while the cap is active', async function () {
+      const { dsToken, master } = await fixture();
+      await dsToken.connect(master).setMintCap(CAP_AMOUNT, CAP_WINDOW);
+
+      await expect(dsToken.connect(master).setOverCapDelay(0n))
+        .to.be.revertedWith('Over-cap delay must be > 0 while cap is active');
+    });
+
+    it('supports the documented enable and disable ordering', async function () {
+      const { dsToken, master } = await fixture(false);
+
+      // enable: delay first, then cap
+      await dsToken.connect(master).setOverCapDelay(OVER_CAP_DELAY);
+      await dsToken.connect(master).setMintCap(CAP_AMOUNT, CAP_WINDOW);
+      expect(await dsToken.mintCapAmount()).to.equal(CAP_AMOUNT);
+
+      // disable: cap first, then delay
+      await dsToken.connect(master).setMintCap(0n, 0n);
+      await dsToken.connect(master).setOverCapDelay(0n);
+      expect(await dsToken.overCapDelay()).to.equal(0n);
     });
 
     it('issueTokensCustom is also throttled', async function () {

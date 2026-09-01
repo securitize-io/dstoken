@@ -18,6 +18,30 @@ Each DSToken deployment gets **three** OpenZeppelin `TimelockController` instanc
 
 `seize` is `onlyTransferAgentOrAbove`; `burn` is `onlyIssuerOrTransferAgentOrAbove`. Both are deliberately instant so that an emergency response is not itself delayed, and neither consumes the BC-2132 mint allowance. The consequence is that any contract still holding `ROLE_ISSUER` or `ROLE_TRANSFER_AGENT` after a governance handover keeps an un-delayed path to move or destroy holder balances — which is why the handover has to account for *every* role holder, not just the ones reachable by service id. See [`tasks/README.md`](../../tasks/README.md).
 
+## Mint controls (BC-2132)
+
+Configure these before enabling the allowance. `setMintCap` refuses to enable a cap while
+`overCapDelay` is zero, because a zero delay lets the over-cap path schedule and execute in one
+block — an unconditional bypass for any `ROLE_ISSUER` holder. Order therefore matters:
+
+```bash
+# enable: delay first, then the cap
+setOverCapDelay(<seconds>)
+setMintCap(<amount>, <windowSeconds>)
+
+# disable: cap first, then the delay
+setMintCap(0, 0)
+setOverCapDelay(0)
+```
+
+`overCapDelay` only has to exceed detection and human response time. It does **not** need to
+outrun the master timelock delay: `cancelOverCapMint` is `onlyIssuerOrTransferAgentOrAbove`, so a
+cancel is a direct transaction rather than a queued master operation, and TRANSFER_AGENT provides a
+canceller outside the issuer set.
+
+Note that `pause()` does **not** stop a pending over-cap mint. The paused flag is only consulted on
+the transfer path, not on issuance, so cancellation is the intervention — not pausing.
+
 ## Deployment & handover
 
 ```bash

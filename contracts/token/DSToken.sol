@@ -333,6 +333,10 @@ contract DSToken is StandardToken, IDSMintThrottle {
     /// @inheritdoc IDSMintThrottle
     function setMintCap(uint256 _mintCapAmount, uint256 _mintCapWindow) external override onlyMaster {
         require(_mintCapAmount == 0 || _mintCapWindow > 0, "Window must be > 0 when cap is active");
+        // Without a delay the over-cap path is schedule-and-execute in one block, i.e. an
+        // unconditional bypass of the allowance. Enable order is therefore setOverCapDelay first,
+        // then setMintCap; disabling reverses it.
+        require(_mintCapAmount == 0 || overCapDelay > 0, "Over-cap delay must be set when cap is active");
         mintCapAmount = _mintCapAmount;
         mintCapWindow = _mintCapWindow;
         // Always reset the window on parameter change to avoid mid-window underflow
@@ -344,6 +348,7 @@ contract DSToken is StandardToken, IDSMintThrottle {
 
     /// @inheritdoc IDSMintThrottle
     function setOverCapDelay(uint256 _overCapDelay) external override onlyMaster {
+        require(_overCapDelay > 0 || mintCapAmount == 0, "Over-cap delay must be > 0 while cap is active");
         overCapDelay = _overCapDelay;
         emit OverCapDelayUpdated(_overCapDelay);
     }
@@ -399,7 +404,13 @@ contract DSToken is StandardToken, IDSMintThrottle {
     }
 
     /// @inheritdoc IDSMintThrottle
-    function cancelOverCapMint(bytes32 _operationId) external override onlyMaster {
+    // Not onlyMaster: after governance handover MASTER is the master timelock, so cancelling would
+    // itself be a queued operation and would mature long after a shorter overCapDelay had already
+    // let the mint execute. ISSUER already controls the whole over-cap flow (it schedules and
+    // executes), so it gains nothing here; TRANSFER_AGENT adds a canceller outside the issuer set,
+    // which is what covers a compromised issuer key. Cancelling is fail-safe — the mint can be
+    // rescheduled — whereas a missed cancel is unbounded issuance.
+    function cancelOverCapMint(bytes32 _operationId) external override onlyIssuerOrTransferAgentOrAbove {
         PendingMint storage op = pendingMints[_operationId];
         require(op.readyAt != 0, "Operation does not exist");
         require(!op.executed, "Operation already executed");
