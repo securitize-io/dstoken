@@ -98,8 +98,11 @@ task('setup-governance', 'Wire BC-2133 timelocks into a deployed DS token suite'
         try {
           currentOwner = await (await hre.ethers.getContractAt(OWNABLE_ABI, address)).owner();
         } catch {
-          // No owner() at all, so no owner-based upgrade path to close.
-          console.log(`  ${name} (${address}): not Ownable, skipping`);
+          // Every transferable entry is expected to be an Ownable BaseDSContract. One that is not
+          // means the registered address is not the contract we think it is, which is a finding in
+          // itself rather than something to pass over quietly. (Legitimately non-Ownable services
+          // are declared transferable: false and never reach here.)
+          blockers.push(`${name} (${address}) has no owner() — expected an Ownable BaseDSContract`);
           continue;
         }
 
@@ -125,8 +128,30 @@ task('setup-governance', 'Wire BC-2133 timelocks into a deployed DS token suite'
         const ownable = await hre.ethers.getContractAt(OWNABLE_ABI, address);
         tx = await ownable.transferOwnership(args.masterTimelock);
         await tx.wait();
+
+        // Re-read rather than trusting the receipt: surrendering MASTER is only safe once every
+        // owner is known to have actually moved.
+        const confirmed = await ownable.owner();
+        if (confirmed.toLowerCase() !== String(args.masterTimelock).toLowerCase()) {
+          throw new Error(
+            `Aborting before handover: ${name} (${address}) still reports owner ${confirmed} after ` +
+              `transferOwnership. ROLE_MASTER has NOT been surrendered.`,
+          );
+        }
         console.log(`  ${name} (${address}): owner() -> master timelock`);
       }
+
+      // Full checklist while the signer still holds MASTER, so a failure here blocks the
+      // irreversible step instead of merely reporting it afterwards.
+      console.log('\nPre-handover verification (MASTER not yet surrendered)');
+      await hre.run('verify-governance', {
+        token: args.token,
+        masterTimelock: args.masterTimelock,
+        complianceTimelock: args.complianceTimelock,
+        rolesTimelock: args.rolesTimelock,
+        ownersHandedOver: true,
+        skipServices: args.skipServices,
+      });
 
       console.log('Transferring TrustService MASTER to the master timelock (final step, irreversible for this signer)');
       tx = await trustService.setServiceOwner(args.masterTimelock);

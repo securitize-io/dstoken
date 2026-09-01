@@ -18,6 +18,14 @@ task('verify-governance', 'Verify BC-2133 governance wiring for a deployed DS to
   .addOptionalParam('rolesTimelock', 'Expected roles timelock address', undefined, types.string)
   .addOptionalParam('handedOver', 'Expect MASTER and owner() to be the master timelock', false, types.boolean)
   .addOptionalParam(
+    'ownersHandedOver',
+    'Assert owner() is the master timelock without also expecting ROLE_MASTER to have moved. Lets the ' +
+      'checklist run before setServiceOwner, so a failure prevents the irreversible step instead of ' +
+      'merely recording that it already happened. Defaults to the value of --handed-over.',
+    undefined,
+    types.boolean,
+  )
+  .addOptionalParam(
     'skipServices',
     'Comma-separated service names deliberately excluded from the handover; reported, not asserted',
     '',
@@ -90,8 +98,9 @@ task('verify-governance', 'Verify BC-2133 governance wiring for a deployed DS to
       if (address === hre.ethers.ZeroAddress) continue;
       try {
         const owner = await (await hre.ethers.getContractAt(OWNABLE_ABI, address)).owner();
+        const expectOwners = args.ownersHandedOver ?? args.handedOver;
         const asserted = transferable && !skipped.has(name.toUpperCase());
-        if (args.handedOver && args.masterTimelock && asserted) {
+        if (expectOwners && args.masterTimelock && asserted) {
           check(`${name} owner() is the master timelock`, same(owner, args.masterTimelock), owner);
         } else {
           // Report-only entries are shared/externally administered, so the master timelock owning

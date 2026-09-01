@@ -75,6 +75,25 @@ The only complete enumeration is a replay of `DSTrustServiceRoleAdded` / `DSTrus
 from the TrustService, folded into the current role-holder set, resolving each holder's `owner()`.
 Treat the id list as a convenience, not a safety property.
 
+## Handover ordering
+
+`ROLE_MASTER` is surrendered last, and only if everything before it succeeded. `--handover` runs in
+this order:
+
+1. **Pre-flight.** Resolve the expected owner of every target. Nothing is sent yet. If any
+   transferable contract is owned by someone other than the signer — or turns out not to be Ownable
+   at all — the task aborts with the complete list, while the signer still holds `ROLE_MASTER` and
+   can act on it.
+2. **Transfer.** Move each `owner()` to the master timelock, re-reading `owner()` afterwards rather
+   than trusting the receipt, and aborting if any of them did not actually move.
+3. **Pre-handover verification.** Run the full checklist while the signer is still MASTER, so a
+   failure blocks the irreversible step rather than reporting it afterwards.
+4. **`setServiceOwner`.** Surrender `ROLE_MASTER`. Irreversible for the signer.
+5. **Post-handover verification.** Re-run the checklist against the final state.
+
+The property that matters: **there is no path where `ROLE_MASTER` moves while an ownership transfer
+is outstanding.** Anything that stops the run leaves the signer able to fix it.
+
 ## Contracts that must NOT be handed over
 
 Some services are **shared across tokens** and administered by RBAC under an admin that is not this

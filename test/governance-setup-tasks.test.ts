@@ -110,6 +110,34 @@ describe('Governance setup tasks (BC-2133)', function () {
     expect(await bulkOperator.owner()).to.equal(proposer.address);
   });
 
+  it('Should not surrender ROLE_MASTER when an owner transfer cannot be completed', async function () {
+    // Audit #2: the irreversible step must be gated on the rest having succeeded. Previously the
+    // skipped entry was only reported by the post-handover verification, once the signer had
+    // already lost the standing to fix it.
+    const { dsToken, trustService, walletRegistrar, masterTimelock, complianceTimelock, rolesTimelock, proposer } =
+      await loadFixture(deployWithTimelocks);
+    const [master] = await hre.ethers.getSigners();
+
+    // mirrors live state: a registered service owned by an unrelated key
+    await walletRegistrar.transferOwnership(proposer.address);
+
+    await expect(
+      hre.run('setup-governance', {
+        token: await dsToken.getAddress(),
+        masterTimelock: await masterTimelock.getAddress(),
+        complianceTimelock: await complianceTimelock.getAddress(),
+        rolesTimelock: await rolesTimelock.getAddress(),
+        handover: true,
+      }),
+    ).rejectedWith(/Refusing to hand over[\s\S]*WALLET_REGISTRAR/);
+
+    // the signer retains MASTER, so the mismatch is still fixable
+    expect(await trustService.getRole(master)).to.equal(DSConstants.roles.MASTER);
+    expect(await trustService.getRole(await masterTimelock.getAddress())).to.equal(DSConstants.roles.NONE);
+    // and nothing was transferred, so there is no half-applied state to unpick
+    expect(await dsToken.owner()).to.equal(master.address);
+  });
+
   it('Should fail verification when enforcement and discovery drift', async function () {
     const { dsToken, complianceConfigurationService, masterTimelock, complianceTimelock, rolesTimelock } =
       await loadFixture(deployWithTimelocks);
