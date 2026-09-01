@@ -1,5 +1,6 @@
 import { task, types } from 'hardhat/config';
 import { DSConstants } from '../utils/globals';
+import { GOVERNED_SERVICES } from './utils/governed-services';
 
 const OWNABLE_ABI = ['function owner() view returns (address)'];
 const TIMELOCK_ABI = ['function getMinDelay() view returns (uint256)'];
@@ -16,6 +17,12 @@ task('verify-governance', 'Verify BC-2133 governance wiring for a deployed DS to
   .addOptionalParam('complianceTimelock', 'Expected compliance rules timelock address', undefined, types.string)
   .addOptionalParam('rolesTimelock', 'Expected roles timelock address', undefined, types.string)
   .addOptionalParam('handedOver', 'Expect MASTER and owner() to be the master timelock', false, types.boolean)
+  .addOptionalParam(
+    'skipServices',
+    'Comma-separated service names deliberately excluded from the handover; reported, not asserted',
+    '',
+    types.string,
+  )
   .setAction(async (args, hre) => {
     const failures: string[] = [];
     const check = (label: string, ok: boolean, detail: string) => {
@@ -67,28 +74,34 @@ task('verify-governance', 'Verify BC-2133 governance wiring for a deployed DS to
         `getRole(masterTimelock)=${masterRole}${args.handedOver ? '' : ' (handover not requested)'}`,
       );
     }
-    const ownedIds: [string, number][] = [
-      ['DS_TOKEN', DSConstants.services.DS_TOKEN],
-      ['REGISTRY_SERVICE', DSConstants.services.REGISTRY_SERVICE],
-      ['COMPLIANCE_SERVICE', DSConstants.services.COMPLIANCE_SERVICE],
-      ['WALLET_MANAGER', DSConstants.services.WALLET_MANAGER],
-      ['LOCK_MANAGER', DSConstants.services.LOCK_MANAGER],
-      ['COMPLIANCE_CONFIGURATION_SERVICE', DSConstants.services.COMPLIANCE_CONFIGURATION_SERVICE],
-      ['TOKEN_ISSUER', DSConstants.services.TOKEN_ISSUER],
-      ['WALLET_REGISTRAR', DSConstants.services.WALLET_REGISTRAR],
-      ['TRANSACTION_RELAYER', DSConstants.services.TRANSACTION_RELAYER],
-      ['REBASING_PROVIDER', DSConstants.services.REBASING_PROVIDER],
-      ['BLACKLIST_MANAGER', DSConstants.services.BLACKLIST_MANAGER],
+    const ownedIds: { name: string; serviceId: number | null; transferable: boolean }[] = [
+      { name: 'DS_TOKEN', serviceId: null, transferable: true },
+      ...GOVERNED_SERVICES.map((svc) => ({ name: svc.name, serviceId: svc.serviceId, transferable: svc.transferable })),
     ];
-    for (const [name, serviceId] of ownedIds) {
-      const address = name === 'DS_TOKEN' ? args.token : await dsToken.getDSService(serviceId);
+    const skipped = new Set(
+      String(args.skipServices || '')
+        .split(',')
+        .map((v: string) => v.trim().toUpperCase())
+        .filter(Boolean),
+    );
+
+    for (const { name, serviceId, transferable } of ownedIds) {
+      const address = serviceId === null ? args.token : await dsToken.getDSService(serviceId);
       if (address === hre.ethers.ZeroAddress) continue;
       try {
         const owner = await (await hre.ethers.getContractAt(OWNABLE_ABI, address)).owner();
-        if (args.handedOver && args.masterTimelock) {
+        const asserted = transferable && !skipped.has(name.toUpperCase());
+        if (args.handedOver && args.masterTimelock && asserted) {
           check(`${name} owner() is the master timelock`, same(owner, args.masterTimelock), owner);
         } else {
-          console.log(`  ${name} owner(): ${owner}`);
+          // Report-only entries are shared/externally administered, so the master timelock owning
+          // them would be wrong, not right — print the owner instead of asserting on it.
+          const why = !transferable
+            ? ' (report-only, not part of this handover)'
+            : skipped.has(name.toUpperCase())
+              ? ' (explicitly skipped via --skip-services)'
+              : '';
+          console.log(`  ${name} owner(): ${owner}${why}`);
         }
       } catch {
         console.log(`  ${name} (${address}): not Ownable`);

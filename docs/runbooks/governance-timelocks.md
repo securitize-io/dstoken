@@ -14,7 +14,9 @@ Each DSToken deployment gets **three** OpenZeppelin `TimelockController` instanc
 
 **Backward compatibility:** while the enforcement slot for a domain is `address(0)`, behavior is exactly legacy (`onlyTransferAgentOrAbove` for compliance rules; master/issuer/TA + same-role rules for roles). Existing tokens are unaffected until explicitly wired.
 
-**Instant emergency toolbox (unchanged, by design):** `pause()`/`unpause()`, blacklist, locks, `seize` remain direct TRANSFER_AGENT operations. Emergency flow = pause now → fix rules through the timelock → unpause.
+**Instant emergency toolbox (unchanged, by design):** `pause()`/`unpause()`, blacklist, locks, `seize` and `burn` remain direct operations, not routed through any timelock. Emergency flow = pause now → fix rules through the timelock → unpause.
+
+`seize` is `onlyTransferAgentOrAbove`; `burn` is `onlyIssuerOrTransferAgentOrAbove`. Both are deliberately instant so that an emergency response is not itself delayed, and neither consumes the BC-2132 mint allowance. The consequence is that any contract still holding `ROLE_ISSUER` or `ROLE_TRANSFER_AGENT` after a governance handover keeps an un-delayed path to move or destroy holder balances — which is why the handover has to account for *every* role holder, not just the ones reachable by service id. See [`tasks/README.md`](../../tasks/README.md).
 
 ## Deployment & handover
 

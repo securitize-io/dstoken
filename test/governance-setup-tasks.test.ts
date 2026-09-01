@@ -62,6 +62,54 @@ describe('Governance setup tasks (BC-2133)', function () {
     await expect(complianceConfigurationService.setTotalInvestorsLimit(1)).revertedWith('Insufficient trust level');
   });
 
+  it('Should abort handover when a governed contract is Ownable but not owned by the signer', async function () {
+    // A contract that keeps an owner outside the timelock retains an independent
+    // _authorizeUpgrade path, so completing the handover would misreport the result.
+    const { dsToken, trustService, bulkOperator, masterTimelock, complianceTimelock, rolesTimelock, proposer } =
+      await loadFixture(deployWithTimelocks);
+    const [master] = await hre.ethers.getSigners();
+
+    await dsToken.setDSService(DSConstants.services.BULK_OPERATOR, await bulkOperator.getAddress());
+    await bulkOperator.transferOwnership(proposer.address);
+
+    await expect(
+      hre.run('setup-governance', {
+        token: await dsToken.getAddress(),
+        masterTimelock: await masterTimelock.getAddress(),
+        complianceTimelock: await complianceTimelock.getAddress(),
+        rolesTimelock: await rolesTimelock.getAddress(),
+        handover: true,
+      }),
+    ).rejectedWith(/Refusing to hand over[\s\S]*BULK_OPERATOR/);
+
+    // aborted before touching anything: MASTER and owner() are untouched
+    expect(await trustService.getRole(master)).to.equal(DSConstants.roles.MASTER);
+    expect(await dsToken.owner()).to.equal(master.address);
+  });
+
+  it('Should proceed when the unowned contract is explicitly acknowledged via --skip-services', async function () {
+    const { dsToken, trustService, bulkOperator, masterTimelock, complianceTimelock, rolesTimelock, proposer } =
+      await loadFixture(deployWithTimelocks);
+    const masterTimelockAddress = await masterTimelock.getAddress();
+
+    await dsToken.setDSService(DSConstants.services.BULK_OPERATOR, await bulkOperator.getAddress());
+    await bulkOperator.transferOwnership(proposer.address);
+
+    await hre.run('setup-governance', {
+      token: await dsToken.getAddress(),
+      masterTimelock: masterTimelockAddress,
+      complianceTimelock: await complianceTimelock.getAddress(),
+      rolesTimelock: await rolesTimelock.getAddress(),
+      handover: true,
+      skipServices: 'BULK_OPERATOR',
+    });
+
+    expect(await trustService.getRole(masterTimelockAddress)).to.equal(DSConstants.roles.MASTER);
+    expect(await dsToken.owner()).to.equal(masterTimelockAddress);
+    // the skipped contract keeps its owner, as acknowledged
+    expect(await bulkOperator.owner()).to.equal(proposer.address);
+  });
+
   it('Should fail verification when enforcement and discovery drift', async function () {
     const { dsToken, complianceConfigurationService, masterTimelock, complianceTimelock, rolesTimelock } =
       await loadFixture(deployWithTimelocks);
