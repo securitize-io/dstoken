@@ -31,14 +31,31 @@ configuring. `setMultiplier` is `onlyMaster`, so post-handover a rate change is 
 master-timelock operation.
 
 ```bash
-# enable: delay first, then the cap (amount in SHARES)
-setOverCapDelay(<seconds>)
+# enable: delay first, then grace period, then the cap (amount in SHARES)
+setOverCapDelay(<seconds>)          # mandatory wait between schedule and execute
+setOverCapGracePeriod(<seconds>)    # how long after readyAt an op stays executable; 0 = never expires
 setMintCap(<shares>, <windowSeconds>)
 
 # disable: cap first, then the delay
 setMintCap(0, 0)
 setOverCapDelay(0)
 ```
+
+Both `overCapDelay` and `overCapGracePeriod` **default to 0** on every token, including after an
+upgrade. `setMintCap` refuses to enable a cap while the delay is 0, so that one cannot be forgotten;
+the grace period has no such guard, and leaving it at 0 means scheduled mints never expire and stay
+executable indefinitely. Set it deliberately.
+
+**Sizing the cap — the worst case is `2 × mintCapAmount`.** The window is *tumbling* and re-anchors
+to the mint that trips it, so a full cap consumed just before expiry and another just after land in
+different windows seconds apart. The sustained rate is still `mintCapAmount` per `mintCapWindow`;
+only the instantaneous burst doubles. If the tolerable burst is `B`, configure `B / 2`. See
+[Flow 14b](../bc-2132-mint-throttling-flows.md).
+
+Note also that `setMintCap` **resets the window on every call** — `windowStart = block.timestamp`,
+`mintedInWindow = 0`. Changing the cap therefore grants a fresh full allowance immediately, so
+lowering it mid-window does not restrict what remains mintable in that window. Treat a cap change as
+an allowance grant.
 
 `overCapDelay` only has to exceed detection and human response time. It does **not** need to
 outrun the master timelock delay: `cancelOverCapMint` is `onlyIssuerOrTransferAgentOrAbove`, so a
@@ -47,6 +64,48 @@ canceller outside the issuer set.
 
 Note that `pause()` does **not** stop a pending over-cap mint. The paused flag is only consulted on
 the transfer path, not on issuance, so cancellation is the intervention — not pausing.
+
+## Exceptional (over-cap) mints
+
+**None of these three calls goes through a timelock.** They are direct transactions on the token,
+gated by TrustService roles, and they remain direct after the governance handover:
+
+| Call | Authority | Notes |
+|---|---|---|
+| `scheduleOverCapIssuance(to, amount, salt)` | `onlyIssuerOrAbove` — ISSUER, MASTER | Returns `operationId`; `amount` is in **tokens** |
+| `executeOverCapMint(operationId)` | `onlyIssuerOrAbove` — ISSUER, MASTER | Only after `readyAt`, only before `expiresAt` |
+| `cancelOverCapMint(operationId)` | `onlyIssuerOrTransferAgentOrAbove` — ISSUER, TRANSFER_AGENT, MASTER | Any time before execution — no readiness or expiry check |
+
+The over-cap delay is the token's own `overCapDelay`, not a timelock `minDelay`, and it is
+deliberately independent of the master timelock. Cancellation in particular **must not** be a
+master-queue operation: a queued cancel would mature after the shorter `overCapDelay` had already
+let the mint execute. TRANSFER_AGENT is included so that a canceller exists outside the issuer set
+that scheduled the mint.
+
+### Procedure
+
+1. **Schedule** from an ISSUER wallet: `scheduleOverCapIssuance(to, amount, salt)`.
+   `operationId = keccak256(abi.encode(to, amount, salt))` — a pure function of the arguments, so
+   the id is computable before broadcasting and re-submitting the same request is idempotent
+   (it reverts as already scheduled rather than creating a second operation).
+   **The caller must supply a unique `salt` per request.** A salt stays spent once used, including
+   after the operation expires, so retrying an expired mint requires a fresh salt.
+2. **Announce.** `OverCapMintScheduled` carries `to`, `amount` and `readyAt`; this is the window in
+   which a mint that should not proceed gets cancelled. Route it to the operations channel.
+3. **Wait** until `readyAt` (`= schedule time + overCapDelay`).
+4. **Execute** from an ISSUER wallet: `executeOverCapMint(operationId)`. Compliance
+   (`validateIssuance`) is re-checked at execution time against current state, so a recipient whose
+   status changed during the delay causes a revert. The whole transaction reverts, so the operation
+   stays pending — fix the recipient's status and retry the same `operationId`, no rescheduling
+   needed. If `overCapGracePeriod > 0` the operation expires at `readyAt + overCapGracePeriod`;
+   after that it can never be executed, and because a spent salt stays spent, a retry needs a
+   **fresh salt** (which restarts `overCapDelay`).
+5. **Cancel instead**, if the mint should not proceed: `cancelOverCapMint(operationId)` from an
+   ISSUER, TRANSFER_AGENT or MASTER wallet. Do not wait for or route this through the master
+   timelock.
+
+Executed over-cap mints do **not** consume `mintedInWindow`, so they leave the ordinary allowance
+untouched; `OverCapMintExecuted` is the audit trail for them, not `MintCapConsumed`.
 
 ## Deployment & handover
 
@@ -99,6 +158,24 @@ Index these events on **all three** timelocks (escape-hatch operations for compl
   value including zero, and a zero delay makes `schedule` followed by `execute` in the same block
   permanently available.
 - `TimelockController.getOperationState(id)` → Unset / Waiting / Ready / Done for polling.
+
+Index these on the **token** as well. They are not timelock operations, so nothing in the three
+queues above will show them — an over-cap mint is invisible to timelock monitoring:
+
+- `OverCapMintScheduled(operationId, to, amount, readyAt)` — **page, do not just log.** This is the
+  only notice before an uncapped mint becomes executable, and the cancellation window closes at
+  `readyAt`. Decode `to` and `amount` in the alert.
+- `OverCapMintExecuted(operationId)` / `OverCapMintCancelled(operationId)` — terminal states.
+  An `operationId` that appears in `OverCapMintScheduled` and then in neither, past
+  `readyAt + overCapGracePeriod`, expired unused.
+- `MintCapConsumed(amount, totalInWindow, windowStart)` — ordinary throttled issuance, share-
+  denominated. A `windowStart` that moves without a preceding `MintCapUpdated` is a window rollover;
+  two rollovers seconds apart is the boundary case described under Mint controls.
+- `MintCapUpdated(mintCapAmount, mintCapWindow)`, `OverCapDelayUpdated(overCapDelay)`,
+  `OverCapGracePeriodUpdated(overCapGracePeriod)` — these are `onlyMaster`, so post-handover each
+  one should correspond to an executed master-timelock operation. One that appears *without* a
+  matching `CallExecuted` in the master queue means a key outside the timelock still holds MASTER —
+  escalate immediately.
 
 ### Operations targeting a timelock itself
 

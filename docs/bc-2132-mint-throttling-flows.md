@@ -1,5 +1,13 @@
 # BC-2132 — Mint Throttling & Over-Cap Timelock: All Flows
 
+> **This document records design analysis, not operator procedure.** Several flows below were
+> written before the design was settled and end in a **Recommendation** — that recommendation is
+> what shipped, so where a flow body and its recommendation disagree, the recommendation is the
+> code. For procedures, use
+> [`docs/runbooks/governance-timelocks.md`](runbooks/governance-timelocks.md); for the authoritative
+> per-function behaviour, use the NatSpec on
+> [`contracts/token/IDSMintThrottle.sol`](../contracts/token/IDSMintThrottle.sol).
+
 ## Overview
 
 Two mechanisms work together:
@@ -24,7 +32,7 @@ All issuance (On-Ramp, Bridge/Wormhole, any future ISSUER) routes through `issue
 uint256 public mintCapAmount;       // shares per window; 0 = cap disabled
 uint256 public mintCapWindow;       // seconds per window
 uint256 public windowStart;         // timestamp when current window started
-uint256 public mintedInWindow;      // tokens minted so far in current window
+uint256 public mintedInWindow;      // shares minted so far in current window
 uint256 public overCapDelay;        // seconds between schedule and execute
 uint256 public overCapGracePeriod;  // seconds after readyAt before op expires
 mapping(bytes32 => PendingMint) public pendingMints;
@@ -315,28 +323,78 @@ _checkThrottle(any_amount):
 
 ## Flow 14 — Cap parameters changed mid-window
 
+**Every `setMintCap` call resets the window**, whether it raises the cap, lowers it, or leaves the
+amount unchanged. There is no "window continues" case.
+
 ```
 State: mintCapAmount=20M, mintCapWindow=8h, windowStart=T0, mintedInWindow=15M
 
-// MASTER calls setMintCap(50M, 8h) — raises cap (no window reset)
-  mintCapAmount = 50M  (window continues, mintedInWindow=15M unchanged)
+// MASTER calls setMintCap(50M, 8h)
+  mintCapAmount  = 50M
+  mintCapWindow  = 8h
+  windowStart    = block.timestamp   ← reset
+  mintedInWindow = 0                 ← reset, the 15M already minted is discarded
+  emit MintCapUpdated(50M, 8h)
 
 Next mint of 30M:
-  remaining = 50M - 15M = 35M → 30M <= 35M → OK
+  remaining = 50M - 0 = 50M → 30M <= 50M → OK
 ```
 
 ```
-// MASTER calls setMintCap(10M, 8h) — lowers cap below current usage
-  mintCapAmount = 10M  (window continues, mintedInWindow=15M)
-
-Next mint of 1:
-  remaining = 10M - 15M → underflow risk!
+// MASTER calls setMintCap(10M, 8h) — lowers the cap below what was already minted
+  mintedInWindow = 0  → remaining = 10M, no underflow to handle
 ```
 
-> **Implementation note:** `_checkThrottle` must handle `mintedInWindow > mintCapAmount` gracefully.
-> Implemented as: `uint256 remaining = mintedInWindow >= mintCapAmount ? 0 : mintCapAmount - mintedInWindow;` then `require(_amount <= remaining, "Mint cap exceeded")`.
+**Operational consequence:** a cap change grants a fresh full allowance immediately, so lowering the
+cap mid-window does *not* restrict what is still mintable in that window — it enlarges it if more
+than the new cap was already consumed. Treat `setMintCap` as an allowance grant, not only as a
+configuration change.
 
-**Recommendation:** Cap parameter changes also reset the window (`windowStart = block.timestamp`, `mintedInWindow = 0`). Prevents the underflow edge case and gives a clean start. Document in NatSpec.
+> **Why reset unconditionally:** without it, lowering `mintCapAmount` below `mintedInWindow` makes
+> `mintCapAmount - mintedInWindow` underflow. `_checkThrottle` keeps a defensive
+> `mintedInWindow >= mintCapAmount ? 0 : mintCapAmount - mintedInWindow` anyway, so the two
+> protections are independent — the reset is the reason the branch is unreachable in practice, not a
+> substitute for it.
+
+`setMintCap` also refuses to enable a cap while `overCapDelay` is zero
+(`"Over-cap delay must be set when cap is active"`), because a zero delay makes the over-cap path
+schedule-and-execute in one block. Enable order is `setOverCapDelay` then `setMintCap`; disabling
+reverses it.
+
+---
+
+## Flow 14b — Tumbling-window boundary: `2 × mintCapAmount` in consecutive blocks
+
+`_checkThrottle` re-anchors `windowStart` to the **triggering call**, not to a fixed schedule. A
+full cap consumed just before expiry and another consumed just after are charged to different
+windows, seconds apart.
+
+```
+State: mintCapAmount=20M, mintCapWindow=8h, windowStart=T0, mintedInWindow=0
+
+t = T0 + 8h - 1s:  ISSUER → issueTokens(to, 20M)
+  block.timestamp < windowStart + mintCapWindow  → no reset
+  remaining = 20M → OK, mintedInWindow = 20M   (window still anchored at T0)
+
+t = T0 + 8h:       ISSUER → issueTokens(to, 20M)
+  block.timestamp >= windowStart + mintCapWindow  → RESET
+  windowStart = T0 + 8h, mintedInWindow = 0
+  remaining = 20M → OK, mintedInWindow = 20M
+
+→ 40M minted in a 1-second span.
+```
+
+**The real worst case per `mintCapWindow` interval is `2 × mintCapAmount`, not `mintCapAmount`.**
+Size the cap accordingly: if the tolerable burst is `B`, set `mintCapAmount = B / 2`.
+
+**Accepted, not fixed.** The long-run rate is unaffected — the next window is anchored at
+`T0 + 8h`, so the sustained ceiling stays `mintCapAmount` per `mintCapWindow`. The cap exists to
+bound damage within a detection-and-response interval, and the over-cap timelock is the intended
+path for genuinely large issuance. Enforcing "at most `mintCapAmount` in *any* interval of length
+`mintCapWindow`" needs sliding-window accounting, which means either storing every mint's
+`(timestamp, amount)` — unbounded per-window storage on the issuance hot path — or an approximation
+that under-counts. Neither is worth it for a factor of two that operators can absorb by halving the
+configured value.
 
 ---
 
