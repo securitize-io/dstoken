@@ -1,9 +1,25 @@
 # BC-2132 — Mint Throttling & Over-Cap Timelock: All Flows
 
+> **This document records design analysis, not operator procedure.** Several flows below were
+> written before the design was settled and end in a **Recommendation** — that recommendation is
+> what shipped, so where a flow body and its recommendation disagree, the recommendation is the
+> code. For procedures, use
+> [`docs/runbooks/governance-timelocks.md`](runbooks/governance-timelocks.md); for the authoritative
+> per-function behaviour, use the NatSpec on
+> [`contracts/token/IDSMintThrottle.sol`](../contracts/token/IDSMintThrottle.sol).
+
 ## Overview
 
 Two mechanisms work together:
-- **Tumbling-window cap**: `mintCapAmount` tokens per `mintCapWindow` seconds. Resets automatically when a new window starts. `0` = disabled.
+- **Tumbling-window cap**: `mintCapAmount` **shares** per `mintCapWindow` seconds. Resets automatically when a new window starts. `0` = disabled.
+
+> **The cap is denominated in shares, not tokens.** A balance *is* a share balance; the token
+> figure is `shares × multiplier`. Shares credited per token scale as `1 / multiplier`, so a
+> token-denominated cap would let whoever can move the multiplier redefine the unit the cap is
+> expressed in and mint an arbitrary multiple of it. Metering shares makes the cap independent of
+> the rate. Note shares are a larger number than tokens: at the standard `1e18` multiplier the
+> factor is `10 ** (18 - decimals)`, so for a 6-decimal token a cap of 1M tokens is
+> `1_000_000e6 * 1e12` shares. `setMultiplier` is `onlyMaster` for the same reason.
 - **Over-cap timelock**: For large exceptional mints. Schedule → wait `overCapDelay` → execute. Cancellable. Expires after `overCapGracePeriod`.
 
 All issuance (On-Ramp, Bridge/Wormhole, any future ISSUER) routes through `issueTokensWithMultipleLocks`, the single hook point.
@@ -13,10 +29,10 @@ All issuance (On-Ramp, Bridge/Wormhole, any future ISSUER) routes through `issue
 ## State Variables (appended to TokenDataStore, consuming __gap[35] → __gap[28])
 
 ```solidity
-uint256 public mintCapAmount;       // 0 = cap disabled
+uint256 public mintCapAmount;       // shares per window; 0 = cap disabled
 uint256 public mintCapWindow;       // seconds per window
 uint256 public windowStart;         // timestamp when current window started
-uint256 public mintedInWindow;      // tokens minted so far in current window
+uint256 public mintedInWindow;      // shares minted so far in current window
 uint256 public overCapDelay;        // seconds between schedule and execute
 uint256 public overCapGracePeriod;  // seconds after readyAt before op expires
 mapping(bytes32 => PendingMint) public pendingMints;
@@ -152,25 +168,25 @@ State: mintCapAmount=20M. Need to mint 500M (Grove subscription day).
 
 Step 1: Schedule
 ISSUER → scheduleOverCapIssuance(to, 500_000_000, salt)
-  operationId = keccak256(abi.encode(to, 500M, salt, block.timestamp))
+  operationId = keccak256(abi.encode(to, 500M, salt))
   check: pendingMints[operationId].readyAt == 0  → not a duplicate
   pendingMints[operationId] = PendingMint {
       to: to,
       amount: 500_000_000,
-      readyAt:   now + overCapDelay,    // e.g. now + 5h
-      expiresAt: now + overCapDelay + overCapGracePeriod,  // e.g. now + 29h
+      readyAt:   now + overCapDelay,    // e.g. now + overCapDelay
+      expiresAt: now + overCapDelay + overCapGracePeriod
       executed: false,
       cancelled: false
   }
   emit OverCapMintScheduled(operationId, to, 500M, readyAt)
 
---- wait overCapDelay (5 hours) ---
+--- wait overCapDelay ---
 
 Step 2: Execute
 ISSUER → executeOverCapMint(operationId)
   op = pendingMints[operationId]
   check: !op.executed && !op.cancelled     → OK
-  check: block.timestamp >= op.readyAt    → OK (5h passed)
+  check: block.timestamp >= op.readyAt    → OK (delay elapsed)
   check: block.timestamp < op.expiresAt   → OK (within 24h grace)
   op.executed = true                      // mark BEFORE external call (CEI)
   _issueUncapped(op.to, op.amount)        // bypasses _checkThrottle
@@ -184,7 +200,7 @@ ISSUER → executeOverCapMint(operationId)
 ## Flow 8 — Over-cap: execute too early
 
 ```
-ISSUER → scheduleOverCapIssuance(to, 500M, salt)  → readyAt = now + 5h
+ISSUER → scheduleOverCapIssuance(to, 500M, salt)  → readyAt = now + overCapDelay
 
 // 2 hours later:
 ISSUER → executeOverCapMint(operationId)
@@ -199,14 +215,14 @@ ISSUER → executeOverCapMint(operationId)
 
 ```
 ISSUER → scheduleOverCapIssuance(to, 500M, salt)
-         readyAt = T+5h, expiresAt = T+5h+24h = T+29h
+         readyAt = T+delay, expiresAt = T+delay+24h = T+29h
 
 // 30 hours later (overCapDelay + gracePeriod + 1h):
 ISSUER → executeOverCapMint(operationId)
   require(op.readyAt != 0, "Operation does not exist")                              → OK
   require(!op.executed, "Operation already executed")                              → OK
   require(!op.cancelled, "Operation already cancelled")                            → OK
-  require(block.timestamp >= op.readyAt, "Operation not ready")                     → OK (T+30h >= T+5h)
+  require(block.timestamp >= op.readyAt, "Operation not ready")                     → OK (T+30h >= T+delay)
   require(op.expiresAt == 0 || block.timestamp < op.expiresAt, "Operation expired") → FAILS (T+30h >= T+29h)
 ```
 
@@ -218,7 +234,7 @@ The old operationId is permanently tombstoned in `pendingMints` — cannot be re
 ## Flow 10 — Over-cap: cancelled before execution
 
 ```
-ISSUER → scheduleOverCapIssuance(to, 500M, salt)  → operationId stored, readyAt = T+5h
+ISSUER → scheduleOverCapIssuance(to, 500M, salt)  → operationId stored, readyAt = T+delay
 
 // Any time before execution:
 MASTER → cancelOverCapMint(operationId)
@@ -238,22 +254,32 @@ ISSUER → executeOverCapMint(operationId)
 
 ---
 
-## Flow 11 — Over-cap: duplicate operationId (replay protection)
+## Flow 11 — Over-cap: duplicate operationId (idempotency)
 
 ```
 // T=100:
 ISSUER → scheduleOverCapIssuance(to, 500M, salt=0xABC)
-  operationId = keccak256(abi.encode(to, 500M, 0xABC, 100))  → 0xDEF...
+  operationId = keccak256(abi.encode(to, 500M, 0xABC))  → 0xDEF...
 
-// T=100 (same block, same params, same salt):
+// T=1000 (any later block, same params, same salt):
 ISSUER → scheduleOverCapIssuance(to, 500M, salt=0xABC)
-  operationId = keccak256(abi.encode(to, 500M, 0xABC, 100))  → 0xDEF... (same!)
-  require(pendingMints[0xDEF].readyAt == 0, "Operation already scheduled")  → FAILS (already exists)
+  operationId = keccak256(abi.encode(to, 500M, 0xABC))  → 0xDEF... (same)
+  require(pendingMints[0xDEF].readyAt == 0, "Operation already scheduled")  → FAILS
 ```
 
-**Result:** Cannot schedule two ops with the same `(to, amount, salt)` in the same block.
-Different block → different `block.timestamp` → different `operationId` → fine.
-Different salt → different `operationId` → fine.
+**Result:** the same `(to, amount, salt)` can be scheduled once, ever — not merely once per block.
+The id is a pure function of its arguments, so re-submitting one request is idempotent and the id is
+computable before broadcasting. Different salt → different `operationId` → fine.
+
+`block.timestamp` was previously part of the preimage, which made the id change between blocks and
+limited the guard to a single block: two accidental submissions of one request — a retried job, a
+replaced transaction, a reorg re-mining at a different timestamp — each created a live pending mint.
+The salt is the disambiguator, as the governance runbook already documents for the administrative
+timelocks.
+
+**Retries after expiry need a fresh salt.** Executed, cancelled and expired operations all keep
+`readyAt != 0`, so the id stays tombstoned and a spent salt stays spent. Retrying an expired mint is
+a new authorization and must carry a new salt.
 
 ---
 
@@ -297,28 +323,78 @@ _checkThrottle(any_amount):
 
 ## Flow 14 — Cap parameters changed mid-window
 
+**Every `setMintCap` call resets the window**, whether it raises the cap, lowers it, or leaves the
+amount unchanged. There is no "window continues" case.
+
 ```
 State: mintCapAmount=20M, mintCapWindow=8h, windowStart=T0, mintedInWindow=15M
 
-// MASTER calls setMintCap(50M, 8h) — raises cap (no window reset)
-  mintCapAmount = 50M  (window continues, mintedInWindow=15M unchanged)
+// MASTER calls setMintCap(50M, 8h)
+  mintCapAmount  = 50M
+  mintCapWindow  = 8h
+  windowStart    = block.timestamp   ← reset
+  mintedInWindow = 0                 ← reset, the 15M already minted is discarded
+  emit MintCapUpdated(50M, 8h)
 
 Next mint of 30M:
-  remaining = 50M - 15M = 35M → 30M <= 35M → OK
+  remaining = 50M - 0 = 50M → 30M <= 50M → OK
 ```
 
 ```
-// MASTER calls setMintCap(10M, 8h) — lowers cap below current usage
-  mintCapAmount = 10M  (window continues, mintedInWindow=15M)
-
-Next mint of 1:
-  remaining = 10M - 15M → underflow risk!
+// MASTER calls setMintCap(10M, 8h) — lowers the cap below what was already minted
+  mintedInWindow = 0  → remaining = 10M, no underflow to handle
 ```
 
-> **Implementation note:** `_checkThrottle` must handle `mintedInWindow > mintCapAmount` gracefully.
-> Implemented as: `uint256 remaining = mintedInWindow >= mintCapAmount ? 0 : mintCapAmount - mintedInWindow;` then `require(_amount <= remaining, "Mint cap exceeded")`.
+**Operational consequence:** a cap change grants a fresh full allowance immediately, so lowering the
+cap mid-window does *not* restrict what is still mintable in that window — it enlarges it if more
+than the new cap was already consumed. Treat `setMintCap` as an allowance grant, not only as a
+configuration change.
 
-**Recommendation:** Cap parameter changes also reset the window (`windowStart = block.timestamp`, `mintedInWindow = 0`). Prevents the underflow edge case and gives a clean start. Document in NatSpec.
+> **Why reset unconditionally:** without it, lowering `mintCapAmount` below `mintedInWindow` makes
+> `mintCapAmount - mintedInWindow` underflow. `_checkThrottle` keeps a defensive
+> `mintedInWindow >= mintCapAmount ? 0 : mintCapAmount - mintedInWindow` anyway, so the two
+> protections are independent — the reset is the reason the branch is unreachable in practice, not a
+> substitute for it.
+
+`setMintCap` also refuses to enable a cap while `overCapDelay` is zero
+(`"Over-cap delay must be set when cap is active"`), because a zero delay makes the over-cap path
+schedule-and-execute in one block. Enable order is `setOverCapDelay` then `setMintCap`; disabling
+reverses it.
+
+---
+
+## Flow 14b — Tumbling-window boundary: `2 × mintCapAmount` in consecutive blocks
+
+`_checkThrottle` re-anchors `windowStart` to the **triggering call**, not to a fixed schedule. A
+full cap consumed just before expiry and another consumed just after are charged to different
+windows, seconds apart.
+
+```
+State: mintCapAmount=20M, mintCapWindow=8h, windowStart=T0, mintedInWindow=0
+
+t = T0 + 8h - 1s:  ISSUER → issueTokens(to, 20M)
+  block.timestamp < windowStart + mintCapWindow  → no reset
+  remaining = 20M → OK, mintedInWindow = 20M   (window still anchored at T0)
+
+t = T0 + 8h:       ISSUER → issueTokens(to, 20M)
+  block.timestamp >= windowStart + mintCapWindow  → RESET
+  windowStart = T0 + 8h, mintedInWindow = 0
+  remaining = 20M → OK, mintedInWindow = 20M
+
+→ 40M minted in a 1-second span.
+```
+
+**The real worst case per `mintCapWindow` interval is `2 × mintCapAmount`, not `mintCapAmount`.**
+Size the cap accordingly: if the tolerable burst is `B`, set `mintCapAmount = B / 2`.
+
+**Accepted, not fixed.** The long-run rate is unaffected — the next window is anchored at
+`T0 + 8h`, so the sustained ceiling stays `mintCapAmount` per `mintCapWindow`. The cap exists to
+bound damage within a detection-and-response interval, and the over-cap timelock is the intended
+path for genuinely large issuance. Enforcing "at most `mintCapAmount` in *any* interval of length
+`mintCapWindow`" needs sliding-window accounting, which means either storing every mint's
+`(timestamp, amount)` — unbounded per-window storage on the issuance hot path — or an approximation
+that under-counts. Neither is worth it for a factor of two that operators can absorb by halving the
+configured value.
 
 ---
 

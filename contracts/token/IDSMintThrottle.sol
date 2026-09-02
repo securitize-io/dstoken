@@ -29,8 +29,8 @@ interface IDSMintThrottle {
     // ─── Events ───────────────────────────────────────────────────────────────
 
     /// @notice Emitted on every successful throttled mint.
-    /// @param amount       Tokens minted in this call.
-    /// @param totalInWindow Cumulative tokens minted in the current window after this mint.
+    /// @param amount       Shares created by this mint (see setMintCap for why shares).
+    /// @param totalInWindow Cumulative shares minted in the current window after this mint.
     /// @param windowStart  Timestamp when the current window started.
     event MintCapConsumed(uint256 amount, uint256 totalInWindow, uint256 windowStart);
 
@@ -63,7 +63,10 @@ interface IDSMintThrottle {
     /// @dev Only callable by ISSUER or above. The mint cannot be executed until
     ///      block.timestamp >= readyAt (= block.timestamp + overCapDelay at schedule time).
     ///      If overCapGracePeriod > 0 the operation expires at readyAt + overCapGracePeriod.
-    ///      operationId = keccak256(abi.encode(to, amount, salt, block.timestamp)).
+    ///      operationId = keccak256(abi.encode(to, amount, salt)) — a pure function of its
+    ///      arguments, so re-submitting the same request is idempotent and the id is computable
+    ///      before broadcasting. A salt stays spent once used, including after expiry, so a retry
+    ///      of an expired operation needs a fresh salt.
     /// @param to     Recipient address. Must not be address(0).
     /// @param amount Token amount to mint. Must be > 0.
     /// @param salt   Caller-supplied entropy to prevent operationId collisions.
@@ -80,7 +83,10 @@ interface IDSMintThrottle {
     function executeOverCapMint(bytes32 operationId) external;
 
     /// @notice Cancels a pending over-cap mint before it is executed.
-    /// @dev Only callable by MASTER. Can be called after readyAt (even within grace period).
+    /// @dev Callable by ISSUER, TRANSFER_AGENT or MASTER. Deliberately not MASTER-only: once
+    /// governance is handed over MASTER is the master timelock, so a cancel would be a queued
+    /// operation maturing after a shorter overCapDelay had already let the mint execute.
+    /// Can be called after readyAt (even within grace period).
     /// @param operationId The identifier returned by scheduleOverCapIssuance.
     function cancelOverCapMint(bytes32 operationId) external;
 
@@ -89,7 +95,10 @@ interface IDSMintThrottle {
     ///      Set mintCapAmount to 0 to disable the cap entirely.
     ///      Once Ticket 2 (governance TimelockController) is deployed, calls to this
     ///      function should be routed through it.
-    /// @param mintCapAmount Max tokens mintable per window. 0 = cap disabled.
+    /// @param mintCapAmount Max SHARES mintable per window. 0 = cap disabled. Share-denominated
+    ///        because a balance is a share balance and shares credited per token scale as
+    ///        1 / multiplier, so a token-denominated cap could be inflated by moving the rate.
+    ///        Shares exceed tokens by 10 ** (18 - decimals) at the standard 1e18 multiplier.
     /// @param mintCapWindow Window duration in seconds. Must be > 0 when mintCapAmount > 0.
     function setMintCap(uint256 mintCapAmount, uint256 mintCapWindow) external;
 

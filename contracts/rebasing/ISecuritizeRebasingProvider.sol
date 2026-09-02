@@ -39,7 +39,9 @@ interface ISecuritizeRebasingProvider {
 
 
     /**
-     * @dev Set rebasing multiplier. It is expressed with the same decimal numbers as stable coin
+     * @dev Set rebasing multiplier. Callable by MASTER only: the multiplier converts an authorized
+     * token amount into the share balance actually credited, so it must not be settable by the
+     * same authority the mint allowance constrains. It is expressed with the same decimal numbers as stable coin
      */
     function setMultiplier(uint256 _multiplier) external;
 

@@ -184,18 +184,18 @@ describe('Rebasing', function () {
       expect(updated).to.equal(newMultiplier);
     });
 
-    it('should update the multiplier and emit event with issuer wallet', async function () {
+    it('should reject a multiplier update from an issuer wallet', async function () {
+      // The multiplier converts an authorized token amount into the share balance credited, so
+      // ROLE_ISSUER must not be able to set it: that is the authority the mint allowance exists to
+      // constrain, and moving the rate creates an unbounded multiple of the allowance in shares.
       const { rebasingProvider, trustService } = await loadFixture(deployFixture);
       const [, issuer] = await ethers.getSigners();
 
       await trustService.setRole(issuer, DSConstants.roles.ISSUER);
 
       await expect(rebasingProvider.connect(issuer).setMultiplier(newMultiplier))
-        .to.emit(rebasingProvider, 'RebasingRateUpdated')
-        .withArgs(initialMultiplier, newMultiplier);
-
-      const updated = await rebasingProvider.multiplier();
-      expect(updated).to.equal(newMultiplier);
+        .to.revertedWith('Insufficient trust level');
+      expect(await rebasingProvider.multiplier()).to.equal(initialMultiplier);
     });
 
     it('should fail when trying to update the multuplier from an unauthorized wallet', async function () {

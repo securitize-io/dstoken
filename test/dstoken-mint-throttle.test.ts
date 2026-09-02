@@ -6,7 +6,14 @@ import { DSConstants } from '../utils/globals';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const CAP_AMOUNT = 1_000n;
+// The cap is share-denominated: shares are what a mint credits, and shares per token scale as
+// 1 / multiplier, so metering tokens let an issuer redefine the unit the cap is expressed in.
+// Mint amounts below stay token-denominated, as callers pass them.
+const CAP_TOKENS = 1_000n;
+/** 10 ** (18 - decimals) at the initial 1e18 multiplier; the fixture deploys with decimals = 2. */
+const SHARES_PER_TOKEN = 10n ** 16n;
+const toShares = (tokens: bigint) => tokens * SHARES_PER_TOKEN;
+const CAP_AMOUNT = toShares(CAP_TOKENS);
 const CAP_WINDOW = BigInt(8 * HOURS);
 const OVER_CAP_DELAY = BigInt(5 * HOURS);
 const OVER_CAP_GRACE = BigInt(24 * HOURS);
@@ -14,13 +21,22 @@ const SALT = ethers.ZeroHash;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Deploys the token, wires an issuer role, and returns key handles. */
-async function fixture() {
+/**
+ * Deploys the token, wires an issuer role, and returns key handles.
+ *
+ * The over-cap delay is set up front because setMintCap now refuses to enable the cap while the
+ * delay is zero (a zero delay makes the over-cap path schedule-and-execute in one block, i.e. an
+ * unconditional bypass of the allowance). Pass false to get a token in the raw post-upgrade state.
+ */
+async function fixture(withOverCapDelay = true) {
   const contracts = await loadFixture(deployDSTokenPermissionless);
   const { dsToken, trustService } = contracts;
   const [master, issuer, recipient, unauthorized] = await hre.ethers.getSigners();
 
   await trustService.connect(master).setRole(issuer, DSConstants.roles.ISSUER);
+  if (withOverCapDelay) {
+    await dsToken.connect(master).setOverCapDelay(OVER_CAP_DELAY);
+  }
 
   return { dsToken, master, issuer, recipient, unauthorized };
 }
@@ -77,7 +93,7 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       const { dsToken, master, recipient } = await fixture();
       await dsToken.connect(master).setMintCap(CAP_AMOUNT, CAP_WINDOW);
       await dsToken.connect(master).issueTokens(recipient, 300n);
-      expect(await dsToken.mintedInWindow()).to.equal(300n);
+      expect(await dsToken.mintedInWindow()).to.equal(toShares(300n));
 
       await dsToken.connect(master).setMintCap(CAP_AMOUNT, CAP_WINDOW);
       expect(await dsToken.mintedInWindow()).to.equal(0n);
@@ -123,18 +139,18 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       const { dsToken, master, recipient } = await fixtureWithCap();
       await dsToken.connect(master).issueTokens(recipient, 500n);
       expect(await dsToken.balanceOf(recipient)).to.equal(500n);
-      expect(await dsToken.mintedInWindow()).to.equal(500n);
+      expect(await dsToken.mintedInWindow()).to.equal(toShares(500n));
     });
 
     it('allows a mint exactly at the cap boundary', async function () {
       const { dsToken, master, recipient } = await fixtureWithCap();
-      await dsToken.connect(master).issueTokens(recipient, CAP_AMOUNT);
+      await dsToken.connect(master).issueTokens(recipient, CAP_TOKENS);
       expect(await dsToken.mintedInWindow()).to.equal(CAP_AMOUNT);
     });
 
     it('reverts when a single mint exceeds the cap', async function () {
       const { dsToken, master, recipient } = await fixtureWithCap();
-      await expect(dsToken.connect(master).issueTokens(recipient, CAP_AMOUNT + 1n))
+      await expect(dsToken.connect(master).issueTokens(recipient, CAP_TOKENS + 1n))
         .to.be.revertedWith('Mint cap exceeded');
     });
 
@@ -154,12 +170,12 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
 
     it('resets the window automatically after CAP_WINDOW elapses (tumbling window)', async function () {
       const { dsToken, master, recipient } = await fixtureWithCap();
-      await dsToken.connect(master).issueTokens(recipient, CAP_AMOUNT);
+      await dsToken.connect(master).issueTokens(recipient, CAP_TOKENS);
 
       await time.increase(CAP_WINDOW + 1n);
 
       // Full cap available again in the new window
-      await dsToken.connect(master).issueTokens(recipient, CAP_AMOUNT);
+      await dsToken.connect(master).issueTokens(recipient, CAP_TOKENS);
       expect(await dsToken.mintedInWindow()).to.equal(CAP_AMOUNT);
     });
 
@@ -179,12 +195,12 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       const windowStart = await dsToken.windowStart();
       await expect(dsToken.connect(master).issueTokens(recipient, 300n))
         .to.emit(dsToken, 'MintCapConsumed')
-        .withArgs(300n, 300n, windowStart);
+        .withArgs(toShares(300n), toShares(300n), windowStart);
     });
 
     it('issuer role is also subject to the cap', async function () {
       const { dsToken, issuer, recipient } = await fixtureWithCap();
-      await expect(dsToken.connect(issuer).issueTokens(recipient, CAP_AMOUNT + 1n))
+      await expect(dsToken.connect(issuer).issueTokens(recipient, CAP_TOKENS + 1n))
         .to.be.revertedWith('Mint cap exceeded');
     });
   });
@@ -203,11 +219,11 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
     it('schedules a pending mint and stores it correctly', async function () {
       const { dsToken, master, recipient } = await fixtureWithDelay();
       const recipientAddress = await recipient.getAddress();
-      const operationId = await schedule(dsToken, master, recipientAddress, CAP_AMOUNT + 1n);
+      const operationId = await schedule(dsToken, master, recipientAddress, CAP_TOKENS + 1n);
 
       const op = await dsToken.pendingMints(operationId);
       expect(op.to).to.equal(recipientAddress);
-      expect(op.amount).to.equal(CAP_AMOUNT + 1n);
+      expect(op.amount).to.equal(CAP_TOKENS + 1n);
       expect(op.executed).to.be.false;
       expect(op.cancelled).to.be.false;
       expect(op.readyAt).to.be.gt(0n);
@@ -220,19 +236,19 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       const currentTime = BigInt(await time.latest());
       const expectedReadyAt = currentTime + OVER_CAP_DELAY + 1n; // +1 for next block
 
-      await expect(dsToken.connect(master).scheduleOverCapIssuance(recipientAddress, CAP_AMOUNT + 1n, SALT))
+      await expect(dsToken.connect(master).scheduleOverCapIssuance(recipientAddress, CAP_TOKENS + 1n, SALT))
         .to.emit(dsToken, 'OverCapMintScheduled')
         .withArgs(
           (_opId: string) => _opId.startsWith('0x'),
           recipientAddress,
-          CAP_AMOUNT + 1n,
+          CAP_TOKENS + 1n,
           expectedReadyAt
         );
     });
 
     it('reverts when to is address(0)', async function () {
       const { dsToken, master } = await fixtureWithDelay();
-      await expect(dsToken.connect(master).scheduleOverCapIssuance(ethers.ZeroAddress, CAP_AMOUNT + 1n, SALT))
+      await expect(dsToken.connect(master).scheduleOverCapIssuance(ethers.ZeroAddress, CAP_TOKENS + 1n, SALT))
         .to.be.revertedWith('Invalid address');
     });
 
@@ -247,7 +263,7 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       const recipientAddress = await recipient.getAddress();
       const dsTokenAddress = await dsToken.getAddress();
       const calldata = dsToken.interface.encodeFunctionData(
-        'scheduleOverCapIssuance', [recipientAddress, CAP_AMOUNT + 1n, SALT]
+        'scheduleOverCapIssuance', [recipientAddress, CAP_TOKENS + 1n, SALT]
       );
       const nonce = await hre.ethers.provider.getTransactionCount(master.address, 'pending');
 
@@ -268,19 +284,67 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       expect(receipt2?.status ?? 0).to.equal(0);
     });
 
+    it('is idempotent: the same recipient, amount and salt cannot be scheduled twice', async function () {
+      // Audit #10: block.timestamp was part of the operation id, so the duplicate guard bound only
+      // within a single block. Two accidental submissions of one request in different blocks each
+      // created a live, independently executable pending mint. The salt is the field an operator
+      // expects to prevent this, and it is the convention the governance runbook documents.
+      const { dsToken, master, recipient } = await fixtureWithDelay();
+      const recipientAddress = await recipient.getAddress();
+
+      await dsToken.connect(master).scheduleOverCapIssuance(recipientAddress, CAP_TOKENS + 1n, SALT);
+
+      // a later block, so a timestamp-dependent id would differ and let this through
+      await time.increase(60n);
+      await expect(dsToken.connect(master).scheduleOverCapIssuance(recipientAddress, CAP_TOKENS + 1n, SALT))
+        .to.be.revertedWith('Operation already scheduled');
+    });
+
+    it('produces an operation id computable before broadcasting', async function () {
+      // With the id a pure function of its arguments the platform can correlate its request
+      // without parsing the emitted event.
+      const { dsToken, master, recipient } = await fixtureWithDelay();
+      const recipientAddress = await recipient.getAddress();
+      const amount = CAP_TOKENS + 1n;
+
+      const predicted = ethers.keccak256(
+        ethers.AbiCoder.defaultAbiCoder().encode(['address', 'uint256', 'bytes32'], [recipientAddress, amount, SALT]),
+      );
+
+      const operationId = await schedule(dsToken, master, recipientAddress, amount);
+      expect(operationId).to.equal(predicted);
+    });
+
+    it('keeps a salt spent after expiry, so a retry needs a fresh salt', async function () {
+      // Executed, cancelled and expired operations all keep readyAt != 0, so the id stays
+      // tombstoned. Retrying an expired mint is a new authorization and takes a new salt.
+      const { dsToken, master, recipient } = await fixtureWithDelay();
+      const recipientAddress = await recipient.getAddress();
+      const amount = CAP_TOKENS + 1n;
+
+      await dsToken.connect(master).scheduleOverCapIssuance(recipientAddress, amount, SALT);
+      await time.increase(OVER_CAP_DELAY + OVER_CAP_GRACE + 1n);
+
+      await expect(dsToken.connect(master).scheduleOverCapIssuance(recipientAddress, amount, SALT))
+        .to.be.revertedWith('Operation already scheduled');
+
+      await expect(dsToken.connect(master).scheduleOverCapIssuance(recipientAddress, amount, ethers.id('retry-salt')))
+        .to.not.be.reverted;
+    });
+
     it('allows two schedules with different salts', async function () {
       const { dsToken, master, recipient } = await fixtureWithDelay();
       const recipientAddress = await recipient.getAddress();
       const salt2 = ethers.id('another-salt');
-      await expect(dsToken.connect(master).scheduleOverCapIssuance(recipientAddress, CAP_AMOUNT + 1n, SALT))
+      await expect(dsToken.connect(master).scheduleOverCapIssuance(recipientAddress, CAP_TOKENS + 1n, SALT))
         .to.not.be.reverted;
-      await expect(dsToken.connect(master).scheduleOverCapIssuance(recipientAddress, CAP_AMOUNT + 1n, salt2))
+      await expect(dsToken.connect(master).scheduleOverCapIssuance(recipientAddress, CAP_TOKENS + 1n, salt2))
         .to.not.be.reverted;
     });
 
     it('reverts from unauthorized caller', async function () {
       const { dsToken, unauthorized, recipient } = await fixtureWithDelay();
-      await expect(dsToken.connect(unauthorized).scheduleOverCapIssuance(recipient, CAP_AMOUNT + 1n, SALT))
+      await expect(dsToken.connect(unauthorized).scheduleOverCapIssuance(recipient, CAP_TOKENS + 1n, SALT))
         .to.be.revertedWith('Insufficient trust level');
     });
   });
@@ -294,7 +358,7 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       await f.dsToken.connect(f.master).setOverCapDelay(OVER_CAP_DELAY);
       await f.dsToken.connect(f.master).setOverCapGracePeriod(OVER_CAP_GRACE);
       const recipientAddress = await f.recipient.getAddress();
-      const operationId = await schedule(f.dsToken, f.master, recipientAddress, CAP_AMOUNT * 10n);
+      const operationId = await schedule(f.dsToken, f.master, recipientAddress, CAP_TOKENS * 10n);
       return { ...f, recipientAddress, operationId };
     }
 
@@ -304,7 +368,7 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
 
       await dsToken.connect(master).executeOverCapMint(operationId);
 
-      expect(await dsToken.balanceOf(recipientAddress)).to.equal(CAP_AMOUNT * 10n);
+      expect(await dsToken.balanceOf(recipientAddress)).to.equal(CAP_TOKENS * 10n);
       expect((await dsToken.pendingMints(operationId)).executed).to.be.true;
     });
 
@@ -313,7 +377,7 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       await time.increase(OVER_CAP_DELAY + 1n);
 
       await expect(dsToken.connect(master).executeOverCapMint(operationId))
-        .to.emit(dsToken, 'Transfer').withArgs(ethers.ZeroAddress, recipientAddress, CAP_AMOUNT * 10n)
+        .to.emit(dsToken, 'Transfer').withArgs(ethers.ZeroAddress, recipientAddress, CAP_TOKENS * 10n)
         .and.to.emit(dsToken, 'OverCapMintExecuted').withArgs(operationId);
     });
 
@@ -466,10 +530,29 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
         .to.be.revertedWith('Operation does not exist');
     });
 
-    it('reverts from issuer (not MASTER)', async function () {
+    it('allows issuer to cancel (cancelling must not itself be a queued master operation)', async function () {
+      // Audit #3: while cancelOverCapMint was onlyMaster, cancelling after handover meant a
+      // master-timelock op maturing after a shorter overCapDelay had already let the mint execute.
+      // ISSUER already schedules and executes over-cap mints, so it gains nothing here.
       const { dsToken, issuer, operationId } = await fixtureScheduled();
+
       await expect(dsToken.connect(issuer).cancelOverCapMint(operationId))
-        .to.be.revertedWith('Insufficient trust level');
+        .to.emit(dsToken, 'OverCapMintCancelled')
+        .withArgs(operationId);
+    });
+
+    it('allows a transfer agent to cancel, giving a canceller outside the issuer set', async function () {
+      // Covers the compromised-issuer case: the responder must not have to be an issuer.
+      const { dsToken, master, unauthorized, operationId } = await fixtureScheduled();
+      const trustService: any = await hre.ethers.getContractAt(
+        'TrustService',
+        await dsToken.getDSService(DSConstants.services.TRUST_SERVICE),
+      );
+      await trustService.connect(master).setRole(unauthorized, DSConstants.roles.TRANSFER_AGENT);
+
+      await expect(dsToken.connect(unauthorized).cancelOverCapMint(operationId))
+        .to.emit(dsToken, 'OverCapMintCancelled')
+        .withArgs(operationId);
     });
 
     it('reverts from unauthorized caller', async function () {
@@ -526,22 +609,82 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       const { dsToken, master, recipient } = await fixture();
       await dsToken.connect(master).setMintCap(CAP_AMOUNT, CAP_WINDOW);
       await dsToken.connect(master).issueTokens(recipient, 800n);
-      expect(await dsToken.mintedInWindow()).to.equal(800n);
+      expect(await dsToken.mintedInWindow()).to.equal(toShares(800n));
 
       // Lower the cap below what was already minted — window resets
-      await dsToken.connect(master).setMintCap(500n, CAP_WINDOW);
+      await dsToken.connect(master).setMintCap(toShares(500n), CAP_WINDOW);
       expect(await dsToken.mintedInWindow()).to.equal(0n);
       // New cap of 500 should work fine from a clean window
       await expect(dsToken.connect(master).issueTokens(recipient, 500n)).to.not.be.reverted;
     });
 
-    it('overCapDelay = 0 allows immediate execution (useful for testing)', async function () {
+    it('bounds shares, not tokens, so lowering the multiplier cannot amplify a mint', async function () {
+      // Audit #6: the allowance metered tokens while the balance credited is shares, and shares
+      // per token scale as 1 / multiplier. An issuer could lower the multiplier, mint exactly
+      // mintCapAmount tokens (the cap passing cleanly), restore the multiplier, and end up with an
+      // arbitrary multiple of the intended shares. Metering shares makes the cap independent of
+      // the rate, so the cheapened mint is rejected instead.
       const { dsToken, master, recipient } = await fixture();
-      // overCapDelay defaults to 0; no wait needed
-      const recipientAddress = await recipient.getAddress();
-      const operationId = await schedule(dsToken, master, recipientAddress, 500n);
+      const rebasing: any = await hre.ethers.getContractAt(
+        'SecuritizeRebasingProvider',
+        await dsToken.getDSService(DSConstants.services.REBASING_PROVIDER),
+      );
+      await dsToken.connect(master).setMintCap(CAP_AMOUNT, CAP_WINDOW);
 
-      await expect(dsToken.connect(master).executeOverCapMint(operationId)).to.not.be.reverted;
+      // a hundred-fold cheaper per token, so the same token amount buys 100x the shares
+      await rebasing.connect(master).setMultiplier(10n ** 16n);
+
+      await expect(dsToken.connect(master).issueTokens(recipient, CAP_TOKENS))
+        .to.be.revertedWith('Mint cap exceeded');
+
+      // the allowance still buys exactly what it is worth at that rate, and no more
+      await expect(dsToken.connect(master).issueTokens(recipient, CAP_TOKENS / 100n)).to.not.be.reverted;
+      expect(await dsToken.mintedInWindow()).to.equal(CAP_AMOUNT);
+    });
+
+    it('rejects a multiplier change from an issuer, closing the schedule-then-cheapen path', async function () {
+      // The over-cap path stores its approved amount in tokens and converts at execution, so an
+      // issuer able to move the multiplier in between would mint more shares than were approved.
+      const { dsToken, issuer } = await fixture();
+      const rebasing: any = await hre.ethers.getContractAt(
+        'SecuritizeRebasingProvider',
+        await dsToken.getDSService(DSConstants.services.REBASING_PROVIDER),
+      );
+
+      await expect(rebasing.connect(issuer).setMultiplier(10n ** 16n))
+        .to.be.revertedWith('Insufficient trust level');
+    });
+
+    it('cannot enable the cap while overCapDelay is 0, so the over-cap path is never instant', async function () {
+      // Audit #3: a zero delay made schedule-and-execute possible in one block, i.e. an
+      // unconditional bypass of the allowance for any ROLE_ISSUER holder.
+      const { dsToken, master } = await fixture(false);
+      expect(await dsToken.overCapDelay()).to.equal(0n);
+
+      await expect(dsToken.connect(master).setMintCap(CAP_AMOUNT, CAP_WINDOW))
+        .to.be.revertedWith('Over-cap delay must be set when cap is active');
+    });
+
+    it('cannot zero the delay while the cap is active', async function () {
+      const { dsToken, master } = await fixture();
+      await dsToken.connect(master).setMintCap(CAP_AMOUNT, CAP_WINDOW);
+
+      await expect(dsToken.connect(master).setOverCapDelay(0n))
+        .to.be.revertedWith('Over-cap delay must be > 0 while cap is active');
+    });
+
+    it('supports the documented enable and disable ordering', async function () {
+      const { dsToken, master } = await fixture(false);
+
+      // enable: delay first, then cap
+      await dsToken.connect(master).setOverCapDelay(OVER_CAP_DELAY);
+      await dsToken.connect(master).setMintCap(CAP_AMOUNT, CAP_WINDOW);
+      expect(await dsToken.mintCapAmount()).to.equal(CAP_AMOUNT);
+
+      // disable: cap first, then delay
+      await dsToken.connect(master).setMintCap(0n, 0n);
+      await dsToken.connect(master).setOverCapDelay(0n);
+      expect(await dsToken.overCapDelay()).to.equal(0n);
     });
 
     it('issueTokensCustom is also throttled', async function () {
@@ -549,7 +692,7 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       await dsToken.connect(master).setMintCap(CAP_AMOUNT, CAP_WINDOW);
 
       await expect(
-        dsToken.connect(master).issueTokensCustom(recipient, CAP_AMOUNT + 1n, 0n, 0n, '', 0n)
+        dsToken.connect(master).issueTokensCustom(recipient, CAP_TOKENS + 1n, 0n, 0n, '', 0n)
       ).to.be.revertedWith('Mint cap exceeded');
     });
 
@@ -558,7 +701,7 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       await dsToken.connect(master).setMintCap(CAP_AMOUNT, CAP_WINDOW);
 
       await expect(
-        dsToken.connect(master).issueTokensWithMultipleLocks(recipient, CAP_AMOUNT + 1n, 0n, [], '', [])
+        dsToken.connect(master).issueTokensWithMultipleLocks(recipient, CAP_TOKENS + 1n, 0n, [], '', [])
       ).to.be.revertedWith('Mint cap exceeded');
     });
   });

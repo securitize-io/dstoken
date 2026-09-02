@@ -53,13 +53,13 @@ contract TokenDataStore is ServiceConsumerDataStore {
         uint256 expiresAt; // 0 = never expires
     }
 
-    /// @notice Maximum tokens mintable in a single window. 0 = throttle disabled.
+    /// @notice Maximum SHARES mintable in a single window. 0 = throttle disabled.
     uint256 public mintCapAmount;
     /// @notice Duration of each tumbling window in seconds. Must be > 0 when mintCapAmount > 0.
     uint256 public mintCapWindow;
     /// @notice Timestamp when the current mint window started.
     uint256 public windowStart;
-    /// @notice Tokens already minted in the current window.
+    /// @notice Shares already minted in the current window.
     uint256 public mintedInWindow;
     /// @notice Seconds between scheduling and executing an over-cap mint. 0 = no wait.
     uint256 public overCapDelay;
