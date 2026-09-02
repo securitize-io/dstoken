@@ -160,7 +160,7 @@ State: mintCapAmount=20M. Need to mint 500M (Grove subscription day).
 
 Step 1: Schedule
 ISSUER → scheduleOverCapIssuance(to, 500_000_000, salt)
-  operationId = keccak256(abi.encode(to, 500M, salt, block.timestamp))
+  operationId = keccak256(abi.encode(to, 500M, salt))
   check: pendingMints[operationId].readyAt == 0  → not a duplicate
   pendingMints[operationId] = PendingMint {
       to: to,
@@ -246,22 +246,32 @@ ISSUER → executeOverCapMint(operationId)
 
 ---
 
-## Flow 11 — Over-cap: duplicate operationId (replay protection)
+## Flow 11 — Over-cap: duplicate operationId (idempotency)
 
 ```
 // T=100:
 ISSUER → scheduleOverCapIssuance(to, 500M, salt=0xABC)
-  operationId = keccak256(abi.encode(to, 500M, 0xABC, 100))  → 0xDEF...
+  operationId = keccak256(abi.encode(to, 500M, 0xABC))  → 0xDEF...
 
-// T=100 (same block, same params, same salt):
+// T=1000 (any later block, same params, same salt):
 ISSUER → scheduleOverCapIssuance(to, 500M, salt=0xABC)
-  operationId = keccak256(abi.encode(to, 500M, 0xABC, 100))  → 0xDEF... (same!)
-  require(pendingMints[0xDEF].readyAt == 0, "Operation already scheduled")  → FAILS (already exists)
+  operationId = keccak256(abi.encode(to, 500M, 0xABC))  → 0xDEF... (same)
+  require(pendingMints[0xDEF].readyAt == 0, "Operation already scheduled")  → FAILS
 ```
 
-**Result:** Cannot schedule two ops with the same `(to, amount, salt)` in the same block.
-Different block → different `block.timestamp` → different `operationId` → fine.
-Different salt → different `operationId` → fine.
+**Result:** the same `(to, amount, salt)` can be scheduled once, ever — not merely once per block.
+The id is a pure function of its arguments, so re-submitting one request is idempotent and the id is
+computable before broadcasting. Different salt → different `operationId` → fine.
+
+`block.timestamp` was previously part of the preimage, which made the id change between blocks and
+limited the guard to a single block: two accidental submissions of one request — a retried job, a
+replaced transaction, a reorg re-mining at a different timestamp — each created a live pending mint.
+The salt is the disambiguator, as the governance runbook already documents for the administrative
+timelocks.
+
+**Retries after expiry need a fresh salt.** Executed, cancelled and expired operations all keep
+`readyAt != 0`, so the id stays tombstoned and a spent salt stays spent. Retrying an expired mint is
+a new authorization and must carry a new salt.
 
 ---
 

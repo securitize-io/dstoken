@@ -63,7 +63,10 @@ interface IDSMintThrottle {
     /// @dev Only callable by ISSUER or above. The mint cannot be executed until
     ///      block.timestamp >= readyAt (= block.timestamp + overCapDelay at schedule time).
     ///      If overCapGracePeriod > 0 the operation expires at readyAt + overCapGracePeriod.
-    ///      operationId = keccak256(abi.encode(to, amount, salt, block.timestamp)).
+    ///      operationId = keccak256(abi.encode(to, amount, salt)) — a pure function of its
+    ///      arguments, so re-submitting the same request is idempotent and the id is computable
+    ///      before broadcasting. A salt stays spent once used, including after expiry, so a retry
+    ///      of an expired operation needs a fresh salt.
     /// @param to     Recipient address. Must not be address(0).
     /// @param amount Token amount to mint. Must be > 0.
     /// @param salt   Caller-supplied entropy to prevent operationId collisions.

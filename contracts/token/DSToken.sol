@@ -374,7 +374,16 @@ contract DSToken is StandardToken, IDSMintThrottle {
         require(_to != address(0), "Invalid address");
         require(_amount > 0, "Amount is zero");
 
-        operationId = keccak256(abi.encode(_to, _amount, _salt, block.timestamp));
+        // Deliberately excludes block.timestamp. With it, the id changed between blocks, so the
+        // guard below bound only within a single block and two accidental submissions of one
+        // request — a retried job, a replaced transaction, a reorg re-mining at a different
+        // timestamp — each created a live, independently executable pending mint. The salt is the
+        // disambiguator, matching the convention the governance runbook documents for the
+        // administrative timelocks. Keeping the id a pure function of its arguments also makes it
+        // computable before broadcasting, so a caller can correlate its request without parsing
+        // the emitted event. Executed, cancelled and expired operations all retain readyAt != 0,
+        // so a spent salt stays spent and a retry after expiry needs a fresh one.
+        operationId = keccak256(abi.encode(_to, _amount, _salt));
         require(pendingMints[operationId].readyAt == 0, "Operation already scheduled");
 
         uint256 readyAt = block.timestamp + overCapDelay;

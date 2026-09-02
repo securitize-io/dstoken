@@ -284,6 +284,54 @@ describe('Mint Throttle & Over-Cap Timelock (BC-2132)', function () {
       expect(receipt2?.status ?? 0).to.equal(0);
     });
 
+    it('is idempotent: the same recipient, amount and salt cannot be scheduled twice', async function () {
+      // Audit #10: block.timestamp was part of the operation id, so the duplicate guard bound only
+      // within a single block. Two accidental submissions of one request in different blocks each
+      // created a live, independently executable pending mint. The salt is the field an operator
+      // expects to prevent this, and it is the convention the governance runbook documents.
+      const { dsToken, master, recipient } = await fixtureWithDelay();
+      const recipientAddress = await recipient.getAddress();
+
+      await dsToken.connect(master).scheduleOverCapIssuance(recipientAddress, CAP_TOKENS + 1n, SALT);
+
+      // a later block, so a timestamp-dependent id would differ and let this through
+      await time.increase(60n);
+      await expect(dsToken.connect(master).scheduleOverCapIssuance(recipientAddress, CAP_TOKENS + 1n, SALT))
+        .to.be.revertedWith('Operation already scheduled');
+    });
+
+    it('produces an operation id computable before broadcasting', async function () {
+      // With the id a pure function of its arguments the platform can correlate its request
+      // without parsing the emitted event.
+      const { dsToken, master, recipient } = await fixtureWithDelay();
+      const recipientAddress = await recipient.getAddress();
+      const amount = CAP_TOKENS + 1n;
+
+      const predicted = ethers.keccak256(
+        ethers.AbiCoder.defaultAbiCoder().encode(['address', 'uint256', 'bytes32'], [recipientAddress, amount, SALT]),
+      );
+
+      const operationId = await schedule(dsToken, master, recipientAddress, amount);
+      expect(operationId).to.equal(predicted);
+    });
+
+    it('keeps a salt spent after expiry, so a retry needs a fresh salt', async function () {
+      // Executed, cancelled and expired operations all keep readyAt != 0, so the id stays
+      // tombstoned. Retrying an expired mint is a new authorization and takes a new salt.
+      const { dsToken, master, recipient } = await fixtureWithDelay();
+      const recipientAddress = await recipient.getAddress();
+      const amount = CAP_TOKENS + 1n;
+
+      await dsToken.connect(master).scheduleOverCapIssuance(recipientAddress, amount, SALT);
+      await time.increase(OVER_CAP_DELAY + OVER_CAP_GRACE + 1n);
+
+      await expect(dsToken.connect(master).scheduleOverCapIssuance(recipientAddress, amount, SALT))
+        .to.be.revertedWith('Operation already scheduled');
+
+      await expect(dsToken.connect(master).scheduleOverCapIssuance(recipientAddress, amount, ethers.id('retry-salt')))
+        .to.not.be.reverted;
+    });
+
     it('allows two schedules with different salts', async function () {
       const { dsToken, master, recipient } = await fixtureWithDelay();
       const recipientAddress = await recipient.getAddress();
