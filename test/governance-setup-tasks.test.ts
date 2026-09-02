@@ -62,6 +62,28 @@ describe('Governance setup tasks (BC-2133)', function () {
     await expect(complianceConfigurationService.setTotalInvestorsLimit(1)).revertedWith('Insufficient trust level');
   });
 
+  it('Should transfer BulkOperator ownership during handover', async function () {
+    // Audit #8: BulkOperator is an Ownable BaseDSContract holding ROLE_ISSUER, and the handover
+    // enumerates targets through getDSService. Without a service id it was skipped entirely, so
+    // the pre-handover key kept an upgrade path into a live issuance identity.
+    const { dsToken, bulkOperator, masterTimelock, complianceTimelock, rolesTimelock } =
+      await loadFixture(deployWithTimelocks);
+    const masterTimelockAddress = await masterTimelock.getAddress();
+
+    // it must be discoverable in the first place
+    expect(await dsToken.getDSService(DSConstants.services.BULK_OPERATOR)).to.equal(await bulkOperator.getAddress());
+
+    await hre.run('setup-governance', {
+      token: await dsToken.getAddress(),
+      masterTimelock: masterTimelockAddress,
+      complianceTimelock: await complianceTimelock.getAddress(),
+      rolesTimelock: await rolesTimelock.getAddress(),
+      handover: true,
+    });
+
+    expect(await bulkOperator.owner()).to.equal(masterTimelockAddress);
+  });
+
   it('Should abort handover when a governed contract is Ownable but not owned by the signer', async function () {
     // A contract that keeps an owner outside the timelock retains an independent
     // _authorizeUpgrade path, so completing the handover would misreport the result.

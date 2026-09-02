@@ -52,6 +52,13 @@ subtask('set-services', 'Set DS Services')
       console.log('Connecting token to transaction relayer');
       tx = await dsToken.setDSService(DSConstants.services.TRANSACTION_RELAYER, transactionRelayer.getAddress());
       await tx.wait();
+      // Registered so the governance handover can find it: BulkOperator is an Ownable
+      // BaseDSContract holding ROLE_ISSUER, and setup-governance enumerates targets via
+      // getDSService, so without an entry here its owner would keep an upgrade path outside the
+      // timelock. bc-deployment-task-svc already registers this id; this keeps both paths aligned.
+      console.log('Connecting token to bulk operator');
+      tx = await dsToken.setDSService(DSConstants.services.BULK_OPERATOR, bulkOperator.getAddress());
+      await tx.wait();
       console.log('Connecting token to rebasing provider');
       tx = await dsToken.setDSService(DSConstants.services.REBASING_PROVIDER, rebasingProvider.getAddress());
       await tx.wait();
