@@ -95,7 +95,31 @@ Index these events on **all three** timelocks (escape-hatch operations for compl
 
 - `CallScheduled(id, index, target, value, data, predecessor, delay)` — new pending operation. Alert the operations channel; cancellers act here.
 - `CallExecuted(id, index, target, value, data)` / `Cancelled(id)` — terminal states.
+- `MinDelayChange(oldDuration, newDuration)` — **page, do not just log.** `updateDelay` accepts any
+  value including zero, and a zero delay makes `schedule` followed by `execute` in the same block
+  permanently available.
 - `TimelockController.getOperationState(id)` → Unset / Waiting / Ready / Done for polling.
+
+### Operations targeting a timelock itself
+
+Escalate any `CallScheduled` whose `target` is one of the three timelock addresses, separately from
+ordinary traffic, and decode the calldata before alerting.
+
+The delay is not bypassable — `schedule` rejects any delay below the current `minDelay`, and
+cancellers keep their authority for the whole window even if the pending operation would revoke
+them — so an operation of this kind is cancellable exactly like any other. What makes it worth its
+own alert is that **missing this one cancellation is the only unrecoverable case.** Missing a cancel
+on a bad upgrade means one bad upgrade; missing a cancel on a batch containing `updateDelay(0)`,
+canceller revocations and a proposer self-grant means the timelock no longer delays anything, with
+no way back.
+
+After the temporary `DEFAULT_ADMIN_ROLE` is renounced the timelocks are self-administered, so every
+role change and every delay change is necessarily self-targeting. Target-is-a-timelock is therefore
+a precise, low-noise filter for exactly the operations that cannot be undone — not a heuristic.
+
+Re-run `verify-governance` on a schedule, passing `--expected-master-delay`,
+`--expected-compliance-delay` and `--expected-roles-delay`, so a mutated delay is caught even if the
+`MinDelayChange` alert is missed.
 
 ## Provider spec (contracts-data-service)
 

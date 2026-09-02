@@ -26,6 +26,16 @@ task('verify-governance', 'Verify BC-2133 governance wiring for a deployed DS to
     types.boolean,
   )
   .addOptionalParam(
+    'expectedMasterDelay',
+    'Assert the master timelock minDelay equals this many seconds. Supply on every scheduled re-run: ' +
+      'updateDelay accepts any value including zero, so a delay silently reduced after setup is only ' +
+      'caught by asserting it.',
+    undefined,
+    types.int,
+  )
+  .addOptionalParam('expectedComplianceDelay', 'Assert the compliance rules timelock minDelay, in seconds', undefined, types.int)
+  .addOptionalParam('expectedRolesDelay', 'Assert the roles timelock minDelay, in seconds', undefined, types.int)
+  .addOptionalParam(
     'skipServices',
     'Comma-separated service names deliberately excluded from the handover; reported, not asserted',
     '',
@@ -63,11 +73,24 @@ task('verify-governance', 'Verify BC-2133 governance wiring for a deployed DS to
     if (args.masterTimelock) check('master timelock is the expected address', same(masterEntry, args.masterTimelock), masterEntry);
 
     console.log('== Timelock delays ==');
+    const expectedDelays: Record<string, number | undefined> = {
+      master: args.expectedMasterDelay,
+      compliance: args.expectedComplianceDelay,
+      roles: args.expectedRolesDelay,
+    };
     for (const [label, address] of [['master', masterEntry], ['compliance', complianceEntry], ['roles', rolesEntry]]) {
       if (address === hre.ethers.ZeroAddress) continue;
       try {
         const timelock = await hre.ethers.getContractAt(TIMELOCK_ABI, address);
-        console.log(`  ${label} timelock minDelay: ${await timelock.getMinDelay()}s`);
+        const minDelay = await timelock.getMinDelay();
+        const expected = expectedDelays[label];
+        if (expected === undefined) {
+          console.log(`  ${label} timelock minDelay: ${minDelay}s (not asserted — pass --expected-${label}-delay)`);
+        } else {
+          // A delay of zero makes schedule-and-execute available in one block, so this asserts the
+          // value rather than reporting it.
+          check(`${label} timelock minDelay is ${expected}s`, minDelay === BigInt(expected), `${minDelay}s`);
+        }
       } catch {
         check(`${label} timelock responds to getMinDelay`, false, `${address} does not look like a TimelockController`);
       }

@@ -160,6 +160,31 @@ describe('Governance setup tasks (BC-2133)', function () {
     expect(await dsToken.owner()).to.equal(master.address);
   });
 
+  it('Should assert timelock delays, catching one reduced to zero after setup', async function () {
+    // Audit #9: updateDelay accepts any value including zero. The delay itself is not bypassable —
+    // schedule rejects anything below the current minDelay and cancellers keep their authority for
+    // the whole window — but a delay already reduced to zero is unrecoverable, and verification
+    // previously only printed the value.
+    const { dsToken, masterTimelock, complianceTimelock, rolesTimelock } = await loadFixture(deployWithTimelocks);
+    const args = {
+      token: await dsToken.getAddress(),
+      masterTimelock: await masterTimelock.getAddress(),
+      complianceTimelock: await complianceTimelock.getAddress(),
+      rolesTimelock: await rolesTimelock.getAddress(),
+    };
+    await hre.run('setup-governance', args);
+
+    const deployedDelay = Number(await masterTimelock.getMinDelay());
+
+    // matching the deployed value passes
+    await hre.run('verify-governance', { ...args, expectedMasterDelay: deployedDelay });
+
+    // a value other than the deployed one fails, which is what catches a post-setup mutation
+    await expect(
+      hre.run('verify-governance', { ...args, expectedMasterDelay: 0 }),
+    ).rejectedWith(/Governance verification failed/);
+  });
+
   it('Should fail verification when enforcement and discovery drift', async function () {
     const { dsToken, complianceConfigurationService, masterTimelock, complianceTimelock, rolesTimelock } =
       await loadFixture(deployWithTimelocks);
