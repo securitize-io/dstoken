@@ -49,7 +49,13 @@ contract SecuritizeRebasingProvider is BaseDSContract, ISecuritizeRebasingProvid
      *
      * @param _multiplier The new multiplier value, fixed to 18 decimals
      */
-    function setMultiplier(uint256 _multiplier) external override onlyIssuerOrAbove {
+    // onlyMaster, not onlyIssuerOrAbove: the multiplier is the conversion rate between the token
+    // amount a mint is authorized for and the share balance it credits, so an authority that can
+    // move it can create an unbounded multiple of the mint allowance in shares — on the capped
+    // path, and on the over-cap path by moving it between schedule and execute. ROLE_ISSUER is
+    // exactly the authority the allowance exists to constrain, so it must not also set the rate.
+    // Post-handover this inherits the master timelock delay.
+    function setMultiplier(uint256 _multiplier) external override onlyMaster {
         if (_multiplier == 0) {
             revert InvalidMultiplier(_multiplier);
         }

@@ -124,7 +124,12 @@ contract DSToken is StandardToken, IDSMintThrottle {
     onlyIssuerOrAbove
     returns (bool)
     {
-        _checkThrottle(_value);
+        // Meter the SHARES this mint creates, not the token amount. Ownership is the share
+        // balance, and shares credited scale as 1 / multiplier — a value the same ROLE_ISSUER
+        // authority can set. Metering tokens therefore let an issuer redefine the unit the cap is
+        // denominated in and acquire an unbounded multiple of the cap in shares while the cap
+        // recorded a compliant consumption.
+        _checkThrottle(getRebasingProvider().convertTokensToShares(_value));
         _issue(_to, _value, _issuanceTime, _valuesLocked, _reason, _releaseTimes);
         return true;
     }
@@ -422,7 +427,8 @@ contract DSToken is StandardToken, IDSMintThrottle {
 
     /// @dev Checks the tumbling-window mint cap and updates state. Called by issueTokensWithMultipleLocks.
     ///      mintCapAmount == 0 is the fast-exit (disabled) path — single SLOAD.
-    function _checkThrottle(uint256 _amount) internal {
+    /// @dev `_shares` is share-denominated; see mintCapAmount in IDSMintThrottle.
+    function _checkThrottle(uint256 _shares) internal {
         if (mintCapAmount == 0) return;
         if (block.timestamp >= windowStart + mintCapWindow) {
             windowStart = block.timestamp;
@@ -431,9 +437,9 @@ contract DSToken is StandardToken, IDSMintThrottle {
         // Defensive subtraction: handles the edge case where mintCapAmount was lowered
         // below mintedInWindow via setMintCap (which resets the window, making this 0).
         uint256 remaining = mintedInWindow >= mintCapAmount ? 0 : mintCapAmount - mintedInWindow;
-        require(_amount <= remaining, "Mint cap exceeded");
-        mintedInWindow += _amount;
-        emit MintCapConsumed(_amount, mintedInWindow, windowStart);
+        require(_shares <= remaining, "Mint cap exceeded");
+        mintedInWindow += _shares;
+        emit MintCapConsumed(_shares, mintedInWindow, windowStart);
     }
 
     /// @dev Mints tokens bypassing the cap check. Used by executeOverCapMint.

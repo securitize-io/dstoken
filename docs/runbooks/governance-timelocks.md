@@ -24,10 +24,16 @@ Configure these before enabling the allowance. `setMintCap` refuses to enable a 
 `overCapDelay` is zero, because a zero delay lets the over-cap path schedule and execute in one
 block — an unconditional bypass for any `ROLE_ISSUER` holder. Order therefore matters:
 
+`mintCapAmount` is **share-denominated** — see
+[`docs/bc-2132-mint-throttling-flows.md`](../bc-2132-mint-throttling-flows.md). Shares are a larger
+number than tokens by `10 ** (18 - decimals)` at the standard multiplier, so convert before
+configuring. `setMultiplier` is `onlyMaster`, so post-handover a rate change is itself a queued
+master-timelock operation.
+
 ```bash
-# enable: delay first, then the cap
+# enable: delay first, then the cap (amount in SHARES)
 setOverCapDelay(<seconds>)
-setMintCap(<amount>, <windowSeconds>)
+setMintCap(<shares>, <windowSeconds>)
 
 # disable: cap first, then the delay
 setMintCap(0, 0)

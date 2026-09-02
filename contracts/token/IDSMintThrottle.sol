@@ -29,8 +29,8 @@ interface IDSMintThrottle {
     // ─── Events ───────────────────────────────────────────────────────────────
 
     /// @notice Emitted on every successful throttled mint.
-    /// @param amount       Tokens minted in this call.
-    /// @param totalInWindow Cumulative tokens minted in the current window after this mint.
+    /// @param amount       Shares created by this mint (see setMintCap for why shares).
+    /// @param totalInWindow Cumulative shares minted in the current window after this mint.
     /// @param windowStart  Timestamp when the current window started.
     event MintCapConsumed(uint256 amount, uint256 totalInWindow, uint256 windowStart);
 
@@ -92,7 +92,10 @@ interface IDSMintThrottle {
     ///      Set mintCapAmount to 0 to disable the cap entirely.
     ///      Once Ticket 2 (governance TimelockController) is deployed, calls to this
     ///      function should be routed through it.
-    /// @param mintCapAmount Max tokens mintable per window. 0 = cap disabled.
+    /// @param mintCapAmount Max SHARES mintable per window. 0 = cap disabled. Share-denominated
+    ///        because a balance is a share balance and shares credited per token scale as
+    ///        1 / multiplier, so a token-denominated cap could be inflated by moving the rate.
+    ///        Shares exceed tokens by 10 ** (18 - decimals) at the standard 1e18 multiplier.
     /// @param mintCapWindow Window duration in seconds. Must be > 0 when mintCapAmount > 0.
     function setMintCap(uint256 mintCapAmount, uint256 mintCapWindow) external;
 

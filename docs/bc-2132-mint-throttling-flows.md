@@ -3,7 +3,15 @@
 ## Overview
 
 Two mechanisms work together:
-- **Tumbling-window cap**: `mintCapAmount` tokens per `mintCapWindow` seconds. Resets automatically when a new window starts. `0` = disabled.
+- **Tumbling-window cap**: `mintCapAmount` **shares** per `mintCapWindow` seconds. Resets automatically when a new window starts. `0` = disabled.
+
+> **The cap is denominated in shares, not tokens.** A balance *is* a share balance; the token
+> figure is `shares × multiplier`. Shares credited per token scale as `1 / multiplier`, so a
+> token-denominated cap would let whoever can move the multiplier redefine the unit the cap is
+> expressed in and mint an arbitrary multiple of it. Metering shares makes the cap independent of
+> the rate. Note shares are a larger number than tokens: at the standard `1e18` multiplier the
+> factor is `10 ** (18 - decimals)`, so for a 6-decimal token a cap of 1M tokens is
+> `1_000_000e6 * 1e12` shares. `setMultiplier` is `onlyMaster` for the same reason.
 - **Over-cap timelock**: For large exceptional mints. Schedule → wait `overCapDelay` → execute. Cancellable. Expires after `overCapGracePeriod`.
 
 All issuance (On-Ramp, Bridge/Wormhole, any future ISSUER) routes through `issueTokensWithMultipleLocks`, the single hook point.
@@ -13,7 +21,7 @@ All issuance (On-Ramp, Bridge/Wormhole, any future ISSUER) routes through `issue
 ## State Variables (appended to TokenDataStore, consuming __gap[35] → __gap[28])
 
 ```solidity
-uint256 public mintCapAmount;       // 0 = cap disabled
+uint256 public mintCapAmount;       // shares per window; 0 = cap disabled
 uint256 public mintCapWindow;       // seconds per window
 uint256 public windowStart;         // timestamp when current window started
 uint256 public mintedInWindow;      // tokens minted so far in current window
