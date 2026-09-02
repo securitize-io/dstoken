@@ -37,7 +37,7 @@ describe('Governance setup tasks (BC-2133)', function () {
   });
 
   it('Should hand over MASTER and every owner() to the master timelock', async function () {
-    const { dsToken, trustService, complianceConfigurationService, masterTimelock, complianceTimelock, rolesTimelock } =
+    const { dsToken, trustService, complianceConfigurationService, masterTimelock, complianceTimelock, rolesTimelock, proposer } =
       await loadFixture(deployWithTimelocks);
     const [master] = await hre.ethers.getSigners();
     const masterTimelockAddress = await masterTimelock.getAddress();
@@ -48,6 +48,7 @@ describe('Governance setup tasks (BC-2133)', function () {
       complianceTimelock: await complianceTimelock.getAddress(),
       rolesTimelock: await rolesTimelock.getAddress(),
       handover: true,
+      masterProposers: proposer.address,
     });
 
     // MASTER moved to the timelock, deployer fully out
@@ -66,7 +67,7 @@ describe('Governance setup tasks (BC-2133)', function () {
     // Audit #8: BulkOperator is an Ownable BaseDSContract holding ROLE_ISSUER, and the handover
     // enumerates targets through getDSService. Without a service id it was skipped entirely, so
     // the pre-handover key kept an upgrade path into a live issuance identity.
-    const { dsToken, bulkOperator, masterTimelock, complianceTimelock, rolesTimelock } =
+    const { dsToken, bulkOperator, masterTimelock, complianceTimelock, rolesTimelock, proposer } =
       await loadFixture(deployWithTimelocks);
     const masterTimelockAddress = await masterTimelock.getAddress();
 
@@ -79,6 +80,7 @@ describe('Governance setup tasks (BC-2133)', function () {
       complianceTimelock: await complianceTimelock.getAddress(),
       rolesTimelock: await rolesTimelock.getAddress(),
       handover: true,
+      masterProposers: proposer.address,
     });
 
     expect(await bulkOperator.owner()).to.equal(masterTimelockAddress);
@@ -101,6 +103,8 @@ describe('Governance setup tasks (BC-2133)', function () {
         complianceTimelock: await complianceTimelock.getAddress(),
         rolesTimelock: await rolesTimelock.getAddress(),
         handover: true,
+        masterProposers: proposer.address,
+      masterProposers: proposer.address,
       }),
     ).rejectedWith(/Refusing to hand over[\s\S]*BULK_OPERATOR/);
 
@@ -123,6 +127,7 @@ describe('Governance setup tasks (BC-2133)', function () {
       complianceTimelock: await complianceTimelock.getAddress(),
       rolesTimelock: await rolesTimelock.getAddress(),
       handover: true,
+      masterProposers: proposer.address,
       skipServices: 'BULK_OPERATOR',
     });
 
@@ -150,6 +155,8 @@ describe('Governance setup tasks (BC-2133)', function () {
         complianceTimelock: await complianceTimelock.getAddress(),
         rolesTimelock: await rolesTimelock.getAddress(),
         handover: true,
+        masterProposers: proposer.address,
+      masterProposers: proposer.address,
       }),
     ).rejectedWith(/Refusing to hand over[\s\S]*WALLET_REGISTRAR/);
 
@@ -183,6 +190,89 @@ describe('Governance setup tasks (BC-2133)', function () {
     await expect(
       hre.run('verify-governance', { ...args, expectedMasterDelay: 0 }),
     ).rejectedWith(/Governance verification failed/);
+  });
+
+  it('Should fail verification on a token that was never wired', async function () {
+    // Audit #13.1: the comparison helper guarded only against a missing CLI argument, but a slot
+    // read from chain arrives as the truthy string "0x0000...0", so two unset slots compared equal
+    // and every drift check passed on a token with no governance at all.
+    const { dsToken } = await loadFixture(deployWithTimelocks);
+
+    await expect(hre.run('verify-governance', { token: await dsToken.getAddress() })).rejectedWith(
+      /Governance verification failed/,
+    );
+
+    // reporting an unwired token is an explicit mode, not the default
+    await hre.run('verify-governance', { token: await dsToken.getAddress(), reportOnly: true });
+  });
+
+  it('Should fail verification when the expected timelock addresses are not supplied', async function () {
+    // Comparing two chain reads proves they agree, not that they are what was intended.
+    const { dsToken, masterTimelock, complianceTimelock, rolesTimelock, proposer } =
+      await loadFixture(deployWithTimelocks);
+    const args = {
+      token: await dsToken.getAddress(),
+      masterTimelock: await masterTimelock.getAddress(),
+      complianceTimelock: await complianceTimelock.getAddress(),
+      rolesTimelock: await rolesTimelock.getAddress(),
+    };
+    await hre.run('setup-governance', args);
+
+    await expect(hre.run('verify-governance', { token: args.token })).rejectedWith(
+      /Governance verification failed/,
+    );
+    await hre.run('verify-governance', args);
+    void proposer;
+  });
+
+  it('Should fail verification when a service resolves a different trust service than the token', async function () {
+    // Audit #13.4: every service consumer resolves roles through its own pointer, so a service
+    // aimed at another instance is governed by a different role set than the one verified here.
+    const { dsToken, complianceConfigurationService, masterTimelock, complianceTimelock, rolesTimelock } =
+      await loadFixture(deployWithTimelocks);
+    const args = {
+      token: await dsToken.getAddress(),
+      masterTimelock: await masterTimelock.getAddress(),
+      complianceTimelock: await complianceTimelock.getAddress(),
+      rolesTimelock: await rolesTimelock.getAddress(),
+    };
+    await hre.run('setup-governance', args);
+    await hre.run('verify-governance', args);
+
+    const otherTrustService = await hre.ethers.deployContract('TrustService');
+    await complianceConfigurationService.setDSService(
+      DSConstants.services.TRUST_SERVICE,
+      await otherTrustService.getAddress(),
+    );
+
+    await expect(hre.run('verify-governance', args)).rejectedWith(/Governance verification failed/);
+  });
+
+  it('Should refuse handover when the supplied proposer set does not hold the roles', async function () {
+    // Audit #13.5: after handover only a proposer can schedule against the master timelock, so a
+    // set that does not match on-chain reality leaves nothing able to act.
+    const { dsToken, trustService, masterTimelock, complianceTimelock, rolesTimelock } =
+      await loadFixture(deployWithTimelocks);
+    const [master, , stranger] = await hre.ethers.getSigners();
+    const args = {
+      token: await dsToken.getAddress(),
+      masterTimelock: await masterTimelock.getAddress(),
+      complianceTimelock: await complianceTimelock.getAddress(),
+      rolesTimelock: await rolesTimelock.getAddress(),
+    };
+
+    // omitted entirely
+    await expect(hre.run('setup-governance', { ...args, handover: true })).rejectedWith(
+      /Refusing to hand over without --master-proposers/,
+    );
+
+    // supplied but not actually a proposer
+    await expect(
+      hre.run('setup-governance', { ...args, handover: true, masterProposers: stranger.address }),
+    ).rejectedWith(/does not hold PROPOSER_ROLE/);
+
+    // MASTER is intact either way, so the mistake is still correctable
+    expect(await trustService.getRole(master)).to.equal(DSConstants.roles.MASTER);
   });
 
   it('Should fail verification when enforcement and discovery drift', async function () {

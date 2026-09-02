@@ -21,12 +21,31 @@ task('deploy-timelocks', 'Deploy the three BC-2133 governance TimelockController
   .addOptionalParam('rolesDelay', 'Roles timelock min delay in seconds', 86400, types.int)
   .setAction(async (args, hre) => {
     const [deployer] = await hre.ethers.getSigners();
-    const proposers = args.proposers.split(',').map((a: string) => a.trim());
+    // Validated because these go straight into the constructor and become the only accounts able
+    // to schedule anything. After handover the master timelock holds all authority, so a bad
+    // proposer set leaves nothing able to act, permanently.
+    const parseAddresses = (raw: string, label: string): string[] => {
+      const parsed = raw
+        .split(',')
+        .map((a: string) => a.trim())
+        .filter(Boolean)
+        .map((a: string) => {
+          if (!hre.ethers.isAddress(a)) throw new Error(`${label} contains an invalid address: ${a}`);
+          if (a === hre.ethers.ZeroAddress) throw new Error(`${label} contains the zero address`);
+          return hre.ethers.getAddress(a);
+        });
+      if (!parsed.length) throw new Error(`${label} is empty`);
+      const unique = new Set(parsed);
+      if (unique.size !== parsed.length) throw new Error(`${label} contains duplicates`);
+      return parsed;
+    };
+
+    const proposers = parseAddresses(args.proposers, 'proposers');
     const executors = !args.executors
       ? proposers
       : args.executors === 'permissionless'
         ? [hre.ethers.ZeroAddress]
-        : args.executors.split(',').map((a: string) => a.trim());
+        : parseAddresses(args.executors, 'executors');
     const admin = args.admin ?? deployer.address;
 
     const deployOne = async (label: string, minDelay: number) => {

@@ -1,6 +1,12 @@
 import { task, types } from 'hardhat/config';
 import { DSConstants } from '../utils/globals';
 
+const TIMELOCK_ROLES_ABI = [
+  'function PROPOSER_ROLE() view returns (bytes32)',
+  'function CANCELLER_ROLE() view returns (bytes32)',
+  'function hasRole(bytes32 role, address account) view returns (bool)',
+];
+
 const OWNABLE_ABI = [
   'function owner() view returns (address)',
   'function transferOwnership(address newOwner)',
@@ -25,6 +31,15 @@ task('setup-governance', 'Wire BC-2133 timelocks into a deployed DS token suite'
   .addParam('complianceTimelock', 'Compliance rules timelock address', undefined, types.string)
   .addParam('rolesTimelock', 'Roles timelock address', undefined, types.string)
   .addOptionalParam('handover', 'Also transfer MASTER and every owner() to the master timelock', false, types.boolean)
+  .addOptionalParam(
+    'masterProposers',
+    'Comma-separated addresses expected to hold PROPOSER_ROLE and CANCELLER_ROLE on the master ' +
+      'timelock. Required with --handover: after handover only a proposer can schedule against it. ' +
+      'Note this confirms the on-chain set matches what you supply — it cannot prove you control ' +
+      'those keys, which only scheduling from one of them would.',
+    undefined,
+    types.string,
+  )
   .addOptionalParam(
     'skipServices',
     'Comma-separated service names to leave untouched during handover (e.g. a shared Global Registry Service). Anything skipped keeps its current owner — record why.',
@@ -58,6 +73,46 @@ task('setup-governance', 'Wire BC-2133 timelocks into a deployed DS token suite'
     if (args.handover) {
       const [signer] = await hre.ethers.getSigners();
       console.log(`\nHandover: transferring ownership to master timelock ${args.masterTimelock}`);
+
+      // After this step the master timelock is the sole holder of master authority and of every
+      // owner(), so nothing can be scheduled against it except by a proposer. Confirm the set the
+      // operator believes is live actually holds the roles on-chain before surrendering anything.
+      if (!args.masterProposers) {
+        throw new Error(
+          'Refusing to hand over without --master-proposers: after handover only a proposer can ' +
+            'schedule anything against the master timelock, so the set must be verified first.',
+        );
+      }
+
+      const expectedProposers = String(args.masterProposers)
+        .split(',')
+        .map((a: string) => a.trim())
+        .filter(Boolean);
+      const masterTimelockContract = await hre.ethers.getContractAt(TIMELOCK_ROLES_ABI, args.masterTimelock);
+      const proposerRole = await masterTimelockContract.PROPOSER_ROLE();
+      const cancellerRole = await masterTimelockContract.CANCELLER_ROLE();
+      const proposerProblems: string[] = [];
+
+      for (const address of expectedProposers) {
+        if (!hre.ethers.isAddress(address)) {
+          proposerProblems.push(`${address} is not a valid address`);
+          continue;
+        }
+        if (!(await masterTimelockContract.hasRole(proposerRole, address))) {
+          proposerProblems.push(`${address} does not hold PROPOSER_ROLE on ${args.masterTimelock}`);
+        }
+        if (!(await masterTimelockContract.hasRole(cancellerRole, address))) {
+          proposerProblems.push(`${address} does not hold CANCELLER_ROLE on ${args.masterTimelock}`);
+        }
+      }
+
+      if (proposerProblems.length) {
+        throw new Error(
+          `Refusing to hand over: the master timelock proposer set does not match what was ` +
+            `supplied:\n  - ${proposerProblems.join('\n  - ')}`,
+        );
+      }
+      console.log(`  proposer set verified on the master timelock: ${expectedProposers.join(', ')}`);
 
       const skipped = new Set(
         String(args.skipServices || '')
