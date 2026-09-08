@@ -13,6 +13,17 @@ task('deploy-all', 'Deploy DS Protocol')
   .setAction(async (args, { run, ethers }) => {
     await run("compile");
 
+    // Only ComplianceServicePermissionless (wired for both PERMISSIONLESS and BLACKLISTED,
+    // see getComplianceContractName) ever calls isGloballyDenylisted. Every other
+    // compliance type would accept the address, report success, and never consult it —
+    // silently deploying an unenforced denylist. Fail fast, before deploying anything.
+    const DENYLIST_COMPLIANCE_TYPES = ['PERMISSIONLESS', 'BLACKLISTED'];
+    if (args.globalDenylistManagerAddress && !DENYLIST_COMPLIANCE_TYPES.includes(args.compliance)) {
+      throw new Error(
+        `--global-denylist-manager-address is only supported with --compliance PERMISSIONLESS or BLACKLISTED, got ${args.compliance}`,
+      );
+    }
+
     if (args.compliance === 'PERMISSIONLESS' && args.registryType === 'REGULATED') {
       args.registryType = 'STUB';
     }
