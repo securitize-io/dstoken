@@ -219,7 +219,24 @@ contract DSToken is StandardToken, IDSMintThrottle {
      * @param _value The amount of tokens to be transferred.
      */
     function transferFrom(address _from, address _to, uint256 _value) public virtual override canTransfer(_from, _to, _value) returns (bool) {
+        // canTransfer only screens _from/_to; the spender exercising the allowance
+        // (msg.sender) never reaches compliance otherwise, letting a globally denylisted
+        // address direct a transfer between two clean wallets (OFAC FAQ 400).
+        require(!getComplianceService().isGloballyDenylistedWallet(msg.sender), "Spender is globally denylisted");
         return postTransferImpl(super.transferFrom(_from, _to, _value), _from, _to, _value);
+    }
+
+    /**
+     * @dev override for approve: rejects granting a fresh allowance to a spender that is
+     * already globally denylisted, so authority can't be handed to a designated address
+     * after the fact. transferFrom's own check (above) is what stops an already-approved
+     * spender that becomes denylisted later — this covers the other direction.
+     * @param _spender The address being granted the allowance.
+     * @param _value The amount approved.
+     */
+    function approve(address _spender, uint256 _value) public virtual override returns (bool) {
+        require(!getComplianceService().isGloballyDenylistedWallet(_spender), "Spender is globally denylisted");
+        return super.approve(_spender, _value);
     }
 
     function postTransferImpl(bool _superResult, address _from, address _to, uint256 _value) internal returns (bool) {

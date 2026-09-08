@@ -114,4 +114,12 @@ abstract contract IDSComplianceService {
         uint256 _time,
         uint64 _lockTime
     ) public view virtual returns (uint256);
+
+    /**
+     * @dev Checks a wallet against the global denylist, independent of preTransferCheck's
+     * _from/_to screening — used to reject a spender exercising a transferFrom allowance,
+     * which never reaches _from/_to. Compliance types with no global-denylist concept
+     * (regulated, whitelisted) return false unconditionally.
+     */
+    function isGloballyDenylistedWallet(address _wallet) public view virtual returns (bool);
 }

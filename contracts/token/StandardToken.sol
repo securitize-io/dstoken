@@ -169,7 +169,7 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract, ERC
         return true;
     }
 
-    function approve(address _spender, uint256 _value) public returns (bool) {
+    function approve(address _spender, uint256 _value) public virtual returns (bool) {
         _approve(msg.sender, _spender, _value);
         return true;
     }

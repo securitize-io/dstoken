@@ -97,6 +97,10 @@ contract ComplianceServicePermissionless is ComplianceService, ComplianceService
         return newPreTransferCheck(_from, _to, _value, getToken().balanceOf(_from), getToken().isPaused());
     }
 
+    function isGloballyDenylistedWallet(address _wallet) public view override returns (bool) {
+        return _isGloballyDenylisted(_wallet);
+    }
+
     // ─── Issuance checks ──────────────────────────────────────────────────────
 
     function preIssuanceCheck(

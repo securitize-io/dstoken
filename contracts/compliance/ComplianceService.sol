@@ -180,6 +180,11 @@ abstract contract ComplianceService is IDSComplianceService, ComplianceServiceDa
         return true;
     }
 
+    /// @inheritdoc IDSComplianceService
+    function isGloballyDenylistedWallet(address /*_wallet*/) public view virtual override returns (bool) {
+        return false;
+    }
+
     // These functions should be implemented by the concrete compliance manager
     function recordIssuance(
         address _to,
