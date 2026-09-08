@@ -6,7 +6,7 @@ import { registerInvestor } from './utils/test-helper';
 import { DSConstants } from '../utils/globals';
 
 describe('Compliance Service Regulated Unit Tests', function() {
-  describe('Issue 8: isGloballyDenylistedWallet (BC-2490)', function () {
+  describe('isGloballyDenylistedWallet', function () {
     it('always returns false — regulated compliance has no global-denylist concept', async function () {
       const { complianceService } = await loadFixture(deployDSTokenRegulated);
       const [, someWallet] = await hre.ethers.getSigners();

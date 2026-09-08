@@ -477,7 +477,7 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
     });
   });
 
-  describe("Issue 8: spender screening on transferFrom/approve (BC-2490)", function () {
+  describe("Spender screening on transferFrom/approve", function () {
     it("transferFrom reverts when the spender is locally blacklisted, even though owner and recipient are clean", async function () {
       const { dsToken, trustService, registryService, blacklistManager: bm } = await loadFixture(deployDSTokenGlobalWhitelisted);
       const [master, ta, owner, recipient, spender] = await hre.ethers.getSigners();

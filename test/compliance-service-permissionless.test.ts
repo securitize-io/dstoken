@@ -758,7 +758,7 @@ describe("ComplianceServicePermissionless", function () {
       expect(globalCheck[1]).to.equal("Wallet is globally denylisted");
     });
 
-    // ─── Issue 8: spender screening on transferFrom/approve ────────────────
+    // ─── Spender screening on transferFrom/approve ──────────────────────────
     // checkTransfer only ever screens _from/_to — the spender exercising an allowance
     // never reaches compliance through that path, so a globally denylisted address could
     // move a clean owner's tokens to a clean recipient (OFAC FAQ 400: a blocked party
