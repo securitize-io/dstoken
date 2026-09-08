@@ -122,4 +122,12 @@ abstract contract IDSComplianceService {
      * (regulated, whitelisted) return false unconditionally.
      */
     function isGloballyDenylistedWallet(address _wallet) public view virtual returns (bool);
+
+    /**
+     * @dev Checks a wallet against the local (per-token) blacklist, independent of
+     * preTransferCheck's _from/_to screening — same gap as isGloballyDenylistedWallet,
+     * for BLACKLIST_MANAGER instead of GLOBAL_DENYLIST_MANAGER. Compliance types with no
+     * local blacklist concept return false unconditionally.
+     */
+    function isLocallyBlacklistedWallet(address _wallet) public view virtual returns (bool);
 }

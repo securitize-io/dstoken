@@ -823,5 +823,28 @@ describe("ComplianceServicePermissionless", function () {
           .transferWithPermit(user1Address, user2Address, 100, deadline, 0, hre.ethers.ZeroHash, hre.ethers.ZeroHash),
       ).to.be.revertedWith("Spender is globally denylisted");
     });
+
+    it("transferFrom reverts when the spender is locally blacklisted, even though owner and recipient are clean", async function () {
+      const { dsToken, blacklistManager, transferAgent, user1, user1Address, user2Address } =
+        await fixtureWithGlobalDenylist();
+      const [, , , , spender] = await hre.ethers.getSigners();
+      const spenderAddress = await spender.getAddress();
+
+      await dsToken.connect(user1).approve(spenderAddress, 100);
+      await blacklistManager.connect(transferAgent).addToBlacklist(spenderAddress, "spender blacklisted locally");
+
+      await expect(dsToken.connect(spender).transferFrom(user1Address, user2Address, 100)).to.be.revertedWith(
+        "Spender is blacklisted",
+      );
+    });
+
+    it("approve reverts when the spender being approved is already locally blacklisted", async function () {
+      const { dsToken, blacklistManager, transferAgent, user1 } = await fixtureWithGlobalDenylist();
+      const [, , , , spender] = await hre.ethers.getSigners();
+      const spenderAddress = await spender.getAddress();
+
+      await blacklistManager.connect(transferAgent).addToBlacklist(spenderAddress, "spender blacklisted locally");
+      await expect(dsToken.connect(user1).approve(spenderAddress, 100)).to.be.revertedWith("Spender is blacklisted");
+    });
   });
 });

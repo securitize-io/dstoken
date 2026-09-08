@@ -101,6 +101,10 @@ contract ComplianceServicePermissionless is ComplianceService, ComplianceService
         return _isGloballyDenylisted(_wallet);
     }
 
+    function isLocallyBlacklistedWallet(address _wallet) public view override returns (bool) {
+        return _isLocallyBlacklisted(_wallet);
+    }
+
     // ─── Issuance checks ──────────────────────────────────────────────────────
 
     function preIssuanceCheck(

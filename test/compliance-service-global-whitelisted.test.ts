@@ -476,4 +476,36 @@ describe("ComplianceServiceGlobalWhitelisted", function () {
       expect(transferableTokens).to.equal(0);
     });
   });
+
+  describe("Issue 8: spender screening on transferFrom/approve (BC-2490)", function () {
+    it("transferFrom reverts when the spender is locally blacklisted, even though owner and recipient are clean", async function () {
+      const { dsToken, trustService, registryService, blacklistManager: bm } = await loadFixture(deployDSTokenGlobalWhitelisted);
+      const [master, ta, owner, recipient, spender] = await hre.ethers.getSigners();
+      await trustService.connect(master).setRole(ta, DSConstants.roles.TRANSFER_AGENT);
+      await registryService.registerInvestor("inv-owner", "coll-owner");
+      await registryService.addWallet(owner, "inv-owner");
+      await registryService.registerInvestor("inv-recipient", "coll-recipient");
+      await registryService.addWallet(recipient, "inv-recipient");
+      await dsToken.issueTokens(owner, 1_000);
+
+      await dsToken.connect(owner).approve(spender, 100);
+      await bm.connect(ta).addToBlacklist(spender, "spender blacklisted locally");
+
+      await expect(dsToken.connect(spender).transferFrom(owner, recipient, 100)).to.be.revertedWith(
+        "Spender is blacklisted",
+      );
+    });
+
+    it("approve reverts when the spender being approved is already locally blacklisted", async function () {
+      const { dsToken, trustService, registryService, blacklistManager: bm } = await loadFixture(deployDSTokenGlobalWhitelisted);
+      const [master, ta, owner, , spender] = await hre.ethers.getSigners();
+      await trustService.connect(master).setRole(ta, DSConstants.roles.TRANSFER_AGENT);
+      await registryService.registerInvestor("inv-owner", "coll-owner");
+      await registryService.addWallet(owner, "inv-owner");
+      await dsToken.issueTokens(owner, 1_000);
+
+      await bm.connect(ta).addToBlacklist(spender, "spender blacklisted locally");
+      await expect(dsToken.connect(owner).approve(spender, 100)).to.be.revertedWith("Spender is blacklisted");
+    });
+  });
 });

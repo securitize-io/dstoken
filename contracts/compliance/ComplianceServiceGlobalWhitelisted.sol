@@ -110,4 +110,8 @@ contract ComplianceServiceGlobalWhitelisted is ComplianceServiceWhitelisted {
 
         return getLockManager().getTransferableTokens(_who, _time);
     }
+
+    function isLocallyBlacklistedWallet(address _wallet) public view override returns (bool) {
+        return getBlackListManager().isBlacklisted(_wallet);
+    }
 }
