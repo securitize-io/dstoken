@@ -224,7 +224,7 @@ contract DSToken is StandardToken, IDSMintThrottle {
         // (msg.sender) never reaches compliance otherwise, letting a denylisted/blacklisted
         // address direct a transfer between two clean wallets (OFAC FAQ 400). Same gap,
         // same fix, for both the global list and this token's own local list.
-        _requireSpenderNotDenylistedOrBlacklisted(msg.sender);
+        _requireSpenderNotDenylisted(msg.sender);
         return postTransferImpl(super.transferFrom(_from, _to, _value), _from, _to, _value);
     }
 
@@ -237,14 +237,14 @@ contract DSToken is StandardToken, IDSMintThrottle {
      * @param _value The amount approved.
      */
     function approve(address _spender, uint256 _value) public virtual override returns (bool) {
-        _requireSpenderNotDenylistedOrBlacklisted(_spender);
+        _requireSpenderNotDenylisted(_spender);
         return super.approve(_spender, _value);
     }
 
     // Shared by transferFrom/approve so the check exists once in the runtime bytecode
     // instead of inlined at every call site — DSToken is already within a few hundred
     // bytes of the EIP-170 24576-byte contract size limit.
-    function _requireSpenderNotDenylistedOrBlacklisted(address _spender) private view {
+    function _requireSpenderNotDenylisted(address _spender) private view {
         IDSComplianceService complianceService = getComplianceService();
         require(!complianceService.isGloballyDenylistedWallet(_spender), "Spender is globally denylisted");
         require(!complianceService.isLocallyBlacklistedWallet(_spender), "Spender is blacklisted");
