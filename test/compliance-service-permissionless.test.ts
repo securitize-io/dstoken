@@ -757,5 +757,94 @@ describe("ComplianceServicePermissionless", function () {
       expect(globalCheck[0]).to.equal(102);
       expect(globalCheck[1]).to.equal("Wallet is globally denylisted");
     });
+
+    // ─── Spender screening on transferFrom/approve ──────────────────────────
+    // checkTransfer only ever screens _from/_to — the spender exercising an allowance
+    // never reaches compliance through that path, so a globally denylisted address could
+    // move a clean owner's tokens to a clean recipient (OFAC FAQ 400: a blocked party
+    // directing a transaction is prohibited even when it owns neither end of the value
+    // flow). DSToken.transferFrom/approve now screen msg.sender/the spender directly.
+
+    it("transferFrom reverts when the spender is globally denylisted, even though owner and recipient are clean", async function () {
+      const { dsToken, globalDenylistManager, user1, user1Address, user2Address } = await fixtureWithGlobalDenylist();
+      const [, , , , spender] = await hre.ethers.getSigners();
+      const spenderAddress = await spender.getAddress();
+
+      await dsToken.connect(user1).approve(spenderAddress, 100);
+      await globalDenylistManager.setGloballyDenylisted(spenderAddress, true);
+
+      await expect(dsToken.connect(spender).transferFrom(user1Address, user2Address, 100)).to.be.revertedWith(
+        "Spender is globally denylisted",
+      );
+    });
+
+    it("transferFrom still works when the spender is clean (owner and recipient clean)", async function () {
+      const { dsToken, user1, user1Address, user2Address } = await fixtureWithGlobalDenylist();
+      const [, , , , spender] = await hre.ethers.getSigners();
+      const spenderAddress = await spender.getAddress();
+
+      await dsToken.connect(user1).approve(spenderAddress, 100);
+      await expect(dsToken.connect(spender).transferFrom(user1Address, user2Address, 100)).to.not.be.reverted;
+    });
+
+    it("approve reverts when the spender being approved is already globally denylisted", async function () {
+      const { dsToken, globalDenylistManager, user1 } = await fixtureWithGlobalDenylist();
+      const [, , , , spender] = await hre.ethers.getSigners();
+      const spenderAddress = await spender.getAddress();
+
+      await globalDenylistManager.setGloballyDenylisted(spenderAddress, true);
+      await expect(dsToken.connect(user1).approve(spenderAddress, 100)).to.be.revertedWith(
+        "Spender is globally denylisted",
+      );
+    });
+
+    it("approve still works for a clean spender", async function () {
+      const { dsToken, user1 } = await fixtureWithGlobalDenylist();
+      const [, , , , spender] = await hre.ethers.getSigners();
+      const spenderAddress = await spender.getAddress();
+
+      await expect(dsToken.connect(user1).approve(spenderAddress, 100)).to.not.be.reverted;
+    });
+
+    it("transferWithPermit is covered for free — reverts when the spender is globally denylisted", async function () {
+      // transferWithPermit (StandardToken) calls transferFrom internally, so it inherits
+      // the spender check without its own guard.
+      const { dsToken, globalDenylistManager, user1, user1Address, user2Address } = await fixtureWithGlobalDenylist();
+      const [, , , , spender] = await hre.ethers.getSigners();
+      const spenderAddress = await spender.getAddress();
+
+      await dsToken.connect(user1).approve(spenderAddress, 100);
+      await globalDenylistManager.setGloballyDenylisted(spenderAddress, true);
+
+      const deadline = (await hre.ethers.provider.getBlock("latest"))!.timestamp + 3600;
+      await expect(
+        dsToken
+          .connect(spender)
+          .transferWithPermit(user1Address, user2Address, 100, deadline, 0, hre.ethers.ZeroHash, hre.ethers.ZeroHash),
+      ).to.be.revertedWith("Spender is globally denylisted");
+    });
+
+    it("transferFrom reverts when the spender is locally blacklisted, even though owner and recipient are clean", async function () {
+      const { dsToken, blacklistManager, transferAgent, user1, user1Address, user2Address } =
+        await fixtureWithGlobalDenylist();
+      const [, , , , spender] = await hre.ethers.getSigners();
+      const spenderAddress = await spender.getAddress();
+
+      await dsToken.connect(user1).approve(spenderAddress, 100);
+      await blacklistManager.connect(transferAgent).addToBlacklist(spenderAddress, "spender blacklisted locally");
+
+      await expect(dsToken.connect(spender).transferFrom(user1Address, user2Address, 100)).to.be.revertedWith(
+        "Spender is blacklisted",
+      );
+    });
+
+    it("approve reverts when the spender being approved is already locally blacklisted", async function () {
+      const { dsToken, blacklistManager, transferAgent, user1 } = await fixtureWithGlobalDenylist();
+      const [, , , , spender] = await hre.ethers.getSigners();
+      const spenderAddress = await spender.getAddress();
+
+      await blacklistManager.connect(transferAgent).addToBlacklist(spenderAddress, "spender blacklisted locally");
+      await expect(dsToken.connect(user1).approve(spenderAddress, 100)).to.be.revertedWith("Spender is blacklisted");
+    });
   });
 });
