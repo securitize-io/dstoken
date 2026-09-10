@@ -3,6 +3,7 @@ import { expect } from "chai";
 import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { deployDSTokenPermissionless, deployDSTokenPermissionlessWithGlobalDenylist, DAYS } from "./utils/fixture";
 import { DSConstants } from "../utils/globals";
+import { buildPermitSignature } from "./utils/test-helper";
 
 describe("ComplianceServicePermissionless", function () {
   const reason = "freeze reason";
@@ -845,6 +846,107 @@ describe("ComplianceServicePermissionless", function () {
 
       await blacklistManager.connect(transferAgent).addToBlacklist(spenderAddress, "spender blacklisted locally");
       await expect(dsToken.connect(user1).approve(spenderAddress, 100)).to.be.revertedWith("Spender is blacklisted");
+    });
+
+    // ─── Screening only blocks an increase in authority — the remediation path (zeroing
+    // or reducing an existing allowance for a spender that becomes denylisted later) must
+    // stay open, same principle as seize/burn against a denylisted wallet elsewhere in
+    // this codebase. Covers approve/permit (both route through StandardToken::_approve)
+    // and increaseApproval/decreaseApproval separately, since they bypass _approve.
+
+    it("approve(spender, 0) still works for an already-denylisted spender — full revocation stays open", async function () {
+      const { dsToken, globalDenylistManager, user1 } = await fixtureWithGlobalDenylist();
+      const [, , , , spender] = await hre.ethers.getSigners();
+      const spenderAddress = await spender.getAddress();
+
+      await dsToken.connect(user1).approve(spenderAddress, 100);
+      await globalDenylistManager.setGloballyDenylisted(spenderAddress, true);
+
+      await expect(dsToken.connect(user1).approve(spenderAddress, 0)).to.not.be.reverted;
+      expect(await dsToken.allowance(user1, spenderAddress)).to.equal(0);
+    });
+
+    it("approve reducing (but not zeroing) an existing allowance still works for an already-denylisted spender", async function () {
+      const { dsToken, globalDenylistManager, user1 } = await fixtureWithGlobalDenylist();
+      const [, , , , spender] = await hre.ethers.getSigners();
+      const spenderAddress = await spender.getAddress();
+
+      await dsToken.connect(user1).approve(spenderAddress, 100);
+      await globalDenylistManager.setGloballyDenylisted(spenderAddress, true);
+
+      await expect(dsToken.connect(user1).approve(spenderAddress, 40)).to.not.be.reverted;
+      expect(await dsToken.allowance(user1, spenderAddress)).to.equal(40);
+    });
+
+    it("approve reverts when it would raise an existing allowance for an already-denylisted spender", async function () {
+      const { dsToken, globalDenylistManager, user1 } = await fixtureWithGlobalDenylist();
+      const [, , , , spender] = await hre.ethers.getSigners();
+      const spenderAddress = await spender.getAddress();
+
+      await dsToken.connect(user1).approve(spenderAddress, 100);
+      await globalDenylistManager.setGloballyDenylisted(spenderAddress, true);
+
+      await expect(dsToken.connect(user1).approve(spenderAddress, 150)).to.be.revertedWith(
+        "Spender is globally denylisted",
+      );
+      expect(await dsToken.allowance(user1, spenderAddress)).to.equal(100);
+    });
+
+    it("increaseApproval reverts for an already-denylisted spender when it would raise the allowance", async function () {
+      const { dsToken, globalDenylistManager, user1 } = await fixtureWithGlobalDenylist();
+      const [, , , , spender] = await hre.ethers.getSigners();
+      const spenderAddress = await spender.getAddress();
+
+      await globalDenylistManager.setGloballyDenylisted(spenderAddress, true);
+      await expect(dsToken.connect(user1).increaseApproval(spenderAddress, 1)).to.be.revertedWith(
+        "Spender is globally denylisted",
+      );
+    });
+
+    it("increaseApproval(spender, 0) is a no-op and still works for an already-denylisted spender", async function () {
+      const { dsToken, globalDenylistManager, user1 } = await fixtureWithGlobalDenylist();
+      const [, , , , spender] = await hre.ethers.getSigners();
+      const spenderAddress = await spender.getAddress();
+
+      await globalDenylistManager.setGloballyDenylisted(spenderAddress, true);
+      await expect(dsToken.connect(user1).increaseApproval(spenderAddress, 0)).to.not.be.reverted;
+    });
+
+    it("decreaseApproval still works for an already-denylisted spender — it can never raise the allowance", async function () {
+      const { dsToken, globalDenylistManager, user1 } = await fixtureWithGlobalDenylist();
+      const [, , , , spender] = await hre.ethers.getSigners();
+      const spenderAddress = await spender.getAddress();
+
+      await dsToken.connect(user1).approve(spenderAddress, 100);
+      await globalDenylistManager.setGloballyDenylisted(spenderAddress, true);
+
+      await expect(dsToken.connect(user1).decreaseApproval(spenderAddress, 30)).to.not.be.reverted;
+      expect(await dsToken.allowance(user1, spenderAddress)).to.equal(70);
+    });
+
+    it("permit reverts when it would grant a fresh allowance to an already-denylisted spender", async function () {
+      // permit (ERC20PermitMixin) delegates straight to StandardToken::_approve, so it
+      // inherits the same screening without its own guard.
+      const { dsToken, globalDenylistManager, user1 } = await fixtureWithGlobalDenylist();
+      const [, , , , spender] = await hre.ethers.getSigners();
+      const spenderAddress = await spender.getAddress();
+
+      await globalDenylistManager.setGloballyDenylisted(spenderAddress, true);
+
+      const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+      const value = 100;
+      const message = {
+        owner: user1.address,
+        spender: spenderAddress,
+        value,
+        nonce: await dsToken.nonces(user1.address),
+        deadline,
+      };
+      const { v, r, s } = await buildPermitSignature(user1, message, await dsToken.name(), await dsToken.getAddress());
+
+      await expect(dsToken.permit(user1.address, spenderAddress, value, deadline, v, r, s)).to.be.revertedWith(
+        "Spender is globally denylisted",
+      );
     });
   });
 });
