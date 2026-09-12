@@ -41,6 +41,12 @@ const config: HardhatUserConfig = {
       url: process.env.AVALANCHE_RPC_URL ?? '',
       accounts: [process.env.DEPLOYER_PRIV_KEY!].filter((x) => x),
     },
+    amoy: {
+      chainId: 80002,
+      gas: "auto",
+      url: process.env.AMOY_POLYGON_RPC_URL ?? "",
+      accounts: [process.env.DEPLOYER_PRIV_KEY!].filter((x) => x),
+    },
   },
   etherscan: {
     apiKey: process.env.API_KEY_ETHERSCAN,
