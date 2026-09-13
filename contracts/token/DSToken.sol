@@ -211,6 +211,16 @@ contract DSToken is StandardToken {
         return postTransferImpl(super.transferFrom(_from, _to, _value), _from, _to, _value);
     }
 
+    function emitOmnibusTBEEvent(address omnibusWallet, int256 totalDelta, int256 accreditedDelta,
+        int256 usAccreditedDelta, int256 usTotalDelta, int256 jpTotalDelta) public onlyOmnibusTbeController {
+        emit OmnibusTBEOperation(omnibusWallet, totalDelta, accreditedDelta, usAccreditedDelta, usTotalDelta, jpTotalDelta);
+    }
+
+    function emitOmnibusTBETransferEvent(address omnibusWallet, string memory externalId) public onlyOmnibusTbeController {
+        emit OmnibusTBETransfer(omnibusWallet, externalId);
+    }
+
+
     function postTransferImpl(bool _superResult, address _from, address _to, uint256 _value) internal returns (bool) {
         if (_superResult) {
             updateInvestorsBalancesOnTransfer(_from, _to, _value);

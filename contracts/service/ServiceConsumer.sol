@@ -89,6 +89,11 @@ abstract contract ServiceConsumer is IDSServiceConsumer, ServiceConsumerDataStor
         _;
     }
 
+    modifier onlyOmnibusTbeController {
+        require(msg.sender == getDSService(DEPRECATED_OMNIBUS_TBE_CONTROLLER), "This function can only called by the omnibus tbe controller");
+        _;
+    }
+
     modifier onlyIssuerOrAboveOrToken {
         if (msg.sender != getDSService(DS_TOKEN)) {
             IDSTrustService trustManager = IDSTrustService(getDSService(TRUST_SERVICE));
