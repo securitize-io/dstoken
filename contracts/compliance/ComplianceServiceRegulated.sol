@@ -862,7 +862,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return jpInvestorsCount;
     }
 
-    function setTotalInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+    function setTotalInvestorsCount(uint256 _value) public onlyIssuerOrAbove returns (bool) {
         require(_value >= accreditedInvestorsCount, "Total must be >= accredited");
         require(_value >= usInvestorsCount, "Total must be >= US investors");
         totalInvestors = _value;
@@ -870,7 +870,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return true;
     }
 
-    function setUSInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+    function setUSInvestorsCount(uint256 _value) public onlyIssuerOrAbove returns (bool) {
         require(_value <= totalInvestors, "US investors must be <= total");
         require(_value >= usAccreditedInvestorsCount, "US investors must be >= US accredited");
         usInvestorsCount = _value;
@@ -878,7 +878,7 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return true;
     }
 
-    function setUSAccreditedInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+    function setUSAccreditedInvestorsCount(uint256 _value) public onlyIssuerOrAbove returns (bool) {
         require(_value <= usInvestorsCount, "US accredited must be <= US investors");
         require(_value <= accreditedInvestorsCount, "US accredited must be <= accredited");
         usAccreditedInvestorsCount = _value;
@@ -886,20 +886,20 @@ contract ComplianceServiceRegulated is ComplianceServiceWhitelisted {
         return true;
     }
 
-    function setAccreditedInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+    function setAccreditedInvestorsCount(uint256 _value) public onlyIssuerOrAbove returns (bool) {
         require(_value <= totalInvestors, "Accredited must be <= total");
         accreditedInvestorsCount = _value;
 
         return true;
     }
 
-    function setEURetailInvestorsCount(string calldata _country, uint256 _value) public onlyMaster returns (bool) {
+    function setEURetailInvestorsCount(string calldata _country, uint256 _value) public onlyIssuerOrAbove returns (bool) {
         euRetailInvestorsCount[_country] = _value;
 
         return true;
     }
 
-    function setJPInvestorsCount(uint256 _value) public onlyMaster returns (bool) {
+    function setJPInvestorsCount(uint256 _value) public onlyIssuerOrAbove returns (bool) {
         jpInvestorsCount = _value;
 
         return true;
