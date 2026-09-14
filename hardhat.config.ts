@@ -36,6 +36,13 @@ const config: HardhatUserConfig = {
       url: process.env.OPTIMISM_RPC_URL ?? "",
       accounts: [process.env.DEPLOYER_PRIV_KEY!].filter((x) => x),
     },
+    amoy: {
+      chainId: 80002,
+      gas: "auto",
+      url: process.env.AMOY_POLYGON_RPC_URL ?? "",
+      accounts: [process.env.DEPLOYER_PRIV_KEY!].filter((x) => x),
+      timeout: 180000,
+    },
     fuji: {
       chainId: 43113,
       url: process.env.AVALANCHE_RPC_URL ?? '',
