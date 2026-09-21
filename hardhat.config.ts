@@ -59,7 +59,13 @@ const config: HardhatUserConfig = {
     },
     fuji: {
       chainId: 43113,
-      url: process.env.AVALANCHE_RPC_URL ?? '',
+      // Public endpoint as a fallback so read-only audits work without a configured RPC.
+      url: process.env.AVALANCHE_RPC_URL || 'https://api.avax-test.network/ext/bc/C/rpc',
+      accounts,
+    },
+    amoy: {
+      chainId: 80002,
+      url: process.env.POLYGON_RPC_URL || 'https://polygon-amoy-bor-rpc.publicnode.com',
       accounts,
     },
   },

@@ -3,6 +3,7 @@ export * from './deploy-token';
 export * from './upgrade-token';
 export * from './upgrade-ds-contract';
 export * from './token-state';
+export * from './check-owner-vs-master';
 export * from './qa-scenario-a';
 export * from './qa-scenario-b';
 export * from './deploy-trust-service';
