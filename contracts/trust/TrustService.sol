@@ -86,10 +86,24 @@ contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable
     }
 
     /**
+   * @dev Allow role management only by the roles governor (when set) or MASTER.
+   * @dev When no governor is set, falls back to the legacy behavior (MASTER, ISSUER or TRANSFER_AGENT).
+   */
+    modifier onlyRoleAdmin() {
+        if (rolesGovernor == address(0)) {
+            require(roles[msg.sender] == MASTER || roles[msg.sender] == ISSUER || roles[msg.sender] == TRANSFER_AGENT, "Not enough permissions");
+        } else {
+            require(msg.sender == rolesGovernor || roles[msg.sender] == MASTER, "Not enough permissions");
+        }
+        _;
+    }
+
+    /**
    * @dev Allow setting roles only by the user who has the same role.
+   * @dev The roles governor is not subject to same-role restrictions.
    */
     modifier onlySameRole(uint8 _role) {
-        if (roles[msg.sender] != MASTER) {
+        if (msg.sender != rolesGovernor && roles[msg.sender] != MASTER) {
             if (roles[msg.sender] == ISSUER) {
                 require(_role == ISSUER || _role == EXCHANGE, "Not enough permissions. Only same role allowed");
             } else {
@@ -101,9 +115,10 @@ contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable
 
     /**
    * @dev Allow setting roles only by the user who has the same role.
+   * @dev The roles governor is not subject to same-role restrictions.
    */
     modifier onlySameRoleForAddress(address _address) {
-        if (roles[msg.sender] != MASTER) {
+        if (msg.sender != rolesGovernor && roles[msg.sender] != MASTER) {
             uint8 role = roles[_address];
             if (roles[msg.sender] == ISSUER) {
                 require(role == ISSUER || role == EXCHANGE, "Not enough permissions. Only same role allowed");
@@ -155,7 +170,7 @@ contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable
    * @param _roles The array of role to be set. Length and order must match wit _addresss
    * @return A boolean that indicates if the operation was successful.
    */
-    function setRoles(address[] calldata _addresses, uint8[] calldata _roles) public override onlyMasterOrIssuerOrTransferAgent returns (bool) {
+    function setRoles(address[] calldata _addresses, uint8[] calldata _roles) public override onlyRoleAdmin returns (bool) {
         require(_addresses.length <= 30, "Exceeded the maximum number of addresses");
         require(_addresses.length == _roles.length, "Wrong length of parameters");
         for (uint8 i = 0; i < _addresses.length; i++) {
@@ -171,7 +186,7 @@ contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable
    * @param _role The role to be set.
    * @return A boolean that indicates if the operation was successful.
    */
-    function setRole(address _address, uint8 _role) public override onlyMasterOrIssuerOrTransferAgent onlySameRole(_role) returns (bool) {
+    function setRole(address _address, uint8 _role) public override onlyRoleAdmin onlySameRole(_role) returns (bool) {
         require(_role == ISSUER || _role == EXCHANGE || _role == TRANSFER_AGENT, "Invalid target role");
 
         setRoleImpl(_address, _role);
@@ -185,7 +200,7 @@ contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable
    * @param _address The wallet whose role needs to be removed.
    * @return A boolean that indicates if the operation was successful.
    */
-    function removeRole(address _address) public override onlyMasterOrIssuerOrTransferAgent onlySameRoleForAddress(_address) returns (bool) {
+    function removeRole(address _address) public override onlyRoleAdmin onlySameRoleForAddress(_address) returns (bool) {
         uint8 role = roles[_address];
         require(role != MASTER, "Cannot remove master");
 
@@ -201,6 +216,27 @@ contract TrustService is IDSTrustService, TrustServiceDataStore, UUPSUpgradeable
    */
     function getRole(address _address) public view override returns (uint8) {
         return roles[_address];
+    }
+
+    /**
+   * @dev Sets or clears the roles governor (typically a TimelockController).
+   * @dev While set, setRole/setRoles/removeRole can only be called by the governor or MASTER.
+   * @dev Setting address(0) disables governance gating and restores legacy role management.
+   * @param _address The governor address, or address(0) to disable.
+   * @return A boolean that indicates if the operation was successful.
+   */
+    function setRolesGovernor(address _address) public override onlyMaster returns (bool) {
+        emit DSTrustServiceRolesGovernorSet(rolesGovernor, _address, msg.sender);
+        rolesGovernor = _address;
+
+        return true;
+    }
+
+    /**
+   * @dev Gets the roles governor. address(0) means role governance is not enabled.
+   */
+    function getRolesGovernor() public view override returns (address) {
+        return rolesGovernor;
     }
 
 }

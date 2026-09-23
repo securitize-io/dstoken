@@ -6,6 +6,14 @@ import { registerInvestor } from './utils/test-helper';
 import { DSConstants } from '../utils/globals';
 
 describe('Compliance Service Regulated Unit Tests', function() {
+  describe('isGloballyDenylistedWallet', function () {
+    it('always returns false — regulated compliance has no global-denylist concept', async function () {
+      const { complianceService } = await loadFixture(deployDSTokenRegulated);
+      const [, someWallet] = await hre.ethers.getSigners();
+      expect(await complianceService.isGloballyDenylistedWallet(someWallet)).to.equal(false);
+    });
+  });
+
   describe('Investor Liquidate Only', function () {
     it('should set and unset investor to liquidate only mode', async function () {
       const [ transferAgent ] = await hre.ethers.getSigners();

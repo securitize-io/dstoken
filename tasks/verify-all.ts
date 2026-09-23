@@ -99,5 +99,8 @@ task('verify-all', 'Verify DS Protocol')
       });
     }
 
+    // GlobalDenyListManager (service id 8201) is deployed and verified from
+    // bc-global-denylist-manager-sc, not here — this repo only wires an existing address in.
+
     return;
   });

@@ -25,6 +25,7 @@ import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvid
 import {RebasingLibrary} from "../rebasing/RebasingLibrary.sol";
 import {TokenDataStore} from "../data-stores/TokenDataStore.sol";
 import {ERC20PermitMixin} from "./ERC20PermitMixin.sol";
+import {IDSComplianceService} from "../compliance/IDSComplianceService.sol";
 
 abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract, ERC20PermitMixin {
     event Pause();
@@ -64,7 +65,7 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract, ERC
         emit Pause();
     }
 
-    function unpause() public onlyTransferAgentOrAbove whenPaused {
+    function unpause() public onlyMaster whenPaused {
         paused = false;
         emit Unpause();
     }
@@ -169,7 +170,7 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract, ERC
         return true;
     }
 
-    function approve(address _spender, uint256 _value) public returns (bool) {
+    function approve(address _spender, uint256 _value) public virtual returns (bool) {
         _approve(msg.sender, _spender, _value);
         return true;
     }
@@ -178,8 +179,26 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract, ERC
         require(owner != address(0), "Approve from zero");
         require(spender != address(0), "Approve to zero");
 
+        // Only an actual increase in authority needs screening — a denylisted/blacklisted
+        // spender's allowance must still be reducible (down to and including zero), the
+        // same "remediation path stays open" principle applied elsewhere in this repo.
+        // Covers approve() and permit() (ERC20PermitMixin delegates to this), the two
+        // callers that can set an arbitrary absolute value.
+        if (value > allowances[owner][spender]) {
+            _requireSpenderNotDenylisted(spender);
+        }
+
         allowances[owner][spender] = value;
         emit Approval(owner, spender, value);
+    }
+
+    // Shared by _approve/transferFrom (DSToken) so the check exists once in the runtime
+    // bytecode instead of inlined at every call site — DSToken is already within a few
+    // hundred bytes of the EIP-170 24576-byte contract size limit.
+    function _requireSpenderNotDenylisted(address _spender) internal view {
+        IDSComplianceService complianceService = getComplianceService();
+        require(!complianceService.isGloballyDenylistedWallet(_spender), "Spender is globally denylisted");
+        require(!complianceService.isLocallyBlacklistedWallet(_spender), "Spender is blacklisted");
     }
 
     function _name() internal view virtual override returns (string memory) {
@@ -191,8 +210,10 @@ abstract contract StandardToken is IDSToken, TokenDataStore, BaseDSContract, ERC
     }
 
     function increaseApproval(address _spender, uint256 _addedValue) public returns (bool) {
-        allowances[msg.sender][_spender] = allowances[msg.sender][_spender] + _addedValue;
-        emit Approval(msg.sender, _spender, allowances[msg.sender][_spender]);
+        // Routed through _approve (not a direct storage write) so a positive _addedValue
+        // gets the same denylist/blacklist screening as approve()/permit() — this can only
+        // ever raise the allowance, so it always needs the check when _addedValue > 0.
+        _approve(msg.sender, _spender, allowances[msg.sender][_spender] + _addedValue);
         return true;
     }
 

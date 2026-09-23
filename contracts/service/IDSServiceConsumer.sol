@@ -33,11 +33,20 @@ abstract contract IDSServiceConsumer {
     uint256 public constant DEPRECATED_OMNIBUS_TBE_CONTROLLER = 2048; // Deprecated, keep for backward compatibility
     uint256 public constant TRANSACTION_RELAYER = 4096;
     uint256 public constant DEPRECATED_TOKEN_REALLOCATOR = 8192; // Deprecated, keep for backward compatibility
-    uint256 public constant DEPRECATED_ISSUER_MULTICALL = 0;
-    uint256 public constant DEPRECATED_TA_MULTICALL = 0;
+    uint256 public constant BULK_OPERATOR = 8193;
+    // Previously declared as 0, which is not a usable service id and made any token that had
+    // registered these ids impossible to enumerate from Solidity. Realigned with the ids actually
+    // used on-chain (and already present in utils/globals.ts). Both are unreferenced in this repo,
+    // so this only affects what the public getters report.
+    uint256 public constant DEPRECATED_ISSUER_MULTICALL = 8194;
+    uint256 public constant DEPRECATED_TA_MULTICALL = 8195;
     uint256 public constant DEPRECATED_SECURITIZE_SWAP = 16384;
     uint256 public constant REBASING_PROVIDER = 8196;
     uint256 public constant BLACKLIST_MANAGER = 8197;
+    uint256 public constant MASTER_TIMELOCK = 8198;
+    uint256 public constant COMPLIANCE_RULES_TIMELOCK = 8199;
+    uint256 public constant ROLES_TIMELOCK = 8200;
+    uint256 public constant GLOBAL_DENYLIST_MANAGER = 8201;
 
     function getDSService(uint256 _serviceId) public view virtual returns (address);
 

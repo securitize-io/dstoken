@@ -30,6 +30,7 @@ import {IDSTrustService} from "../trust/IDSTrustService.sol";
 import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvider.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {IDSBlackListManager} from "../compliance/IDSBlackListManager.sol";
+import {IDSGlobalDenyListManager} from "../compliance/IDSGlobalDenyListManager.sol";
 
 abstract contract ServiceConsumer is IDSServiceConsumer, ServiceConsumerDataStore, OwnableUpgradeable {
     // Bring role constants to save gas both in deployment (less bytecode) and usage
@@ -157,5 +158,9 @@ abstract contract ServiceConsumer is IDSServiceConsumer, ServiceConsumerDataStor
 
     function getBlackListManager() internal view returns (IDSBlackListManager) {
         return IDSBlackListManager(getDSService(BLACKLIST_MANAGER));
+    }
+
+    function getGlobalDenyListManager() internal view returns (IDSGlobalDenyListManager) {
+        return IDSGlobalDenyListManager(getDSService(GLOBAL_DENYLIST_MANAGER));
     }
 }

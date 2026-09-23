@@ -21,6 +21,7 @@ subtask('set-services', 'Set DS Services')
         bulkOperator,
         rebasingProvider,
         blacklistManager,
+        globalDenylistManager,
       } = dsContracts;
 
       // Token
@@ -51,12 +52,24 @@ subtask('set-services', 'Set DS Services')
       console.log('Connecting token to transaction relayer');
       tx = await dsToken.setDSService(DSConstants.services.TRANSACTION_RELAYER, transactionRelayer.getAddress());
       await tx.wait();
+      // Registered so the governance handover can find it: BulkOperator is an Ownable
+      // BaseDSContract holding ROLE_ISSUER, and setup-governance enumerates targets via
+      // getDSService, so without an entry here its owner would keep an upgrade path outside the
+      // timelock. bc-deployment-task-svc already registers this id; this keeps both paths aligned.
+      console.log('Connecting token to bulk operator');
+      tx = await dsToken.setDSService(DSConstants.services.BULK_OPERATOR, bulkOperator.getAddress());
+      await tx.wait();
       console.log('Connecting token to rebasing provider');
       tx = await dsToken.setDSService(DSConstants.services.REBASING_PROVIDER, rebasingProvider.getAddress());
       await tx.wait();
       console.log('Connecting token to blacklist manager');
       tx = await dsToken.setDSService(DSConstants.services.BLACKLIST_MANAGER, blacklistManager.getAddress());
       await tx.wait();
+      if (globalDenylistManager) {
+        console.log('Connecting token to global denylist manager');
+        tx = await dsToken.setDSService(DSConstants.services.GLOBAL_DENYLIST_MANAGER, globalDenylistManager.getAddress());
+        await tx.wait();
+      }
 
       // Registry Service, only if not GRS (Global Registry Service)
       if (!isGRS) {
@@ -106,6 +119,11 @@ subtask('set-services', 'Set DS Services')
       console.log('Connecting compliance service to blacklist manager');
       tx = await complianceService.setDSService(DSConstants.services.BLACKLIST_MANAGER, blacklistManager.getAddress());
       await tx.wait();
+      if (globalDenylistManager) {
+        console.log('Connecting compliance service to global denylist manager');
+        tx = await complianceService.setDSService(DSConstants.services.GLOBAL_DENYLIST_MANAGER, globalDenylistManager.getAddress());
+        await tx.wait();
+      }
 
       // Lock Manager
       console.log('Connecting lock manager to trust service');

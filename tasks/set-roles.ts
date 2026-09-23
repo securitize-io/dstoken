@@ -10,10 +10,14 @@ subtask('set-roles', 'Set roles')
       console.log(`Granting issuer permissions to Token Issuer ${await dsContracts.tokenIssuer.getAddress()}`);
       let tx = await dsContracts.trustService.setRole(await dsContracts.tokenIssuer.getAddress(), DSConstants.roles.ISSUER);
       await tx.wait();
-      console.log(`Granting issuer permissions to Wallet Registrar`);
-      tx = await dsContracts.trustService.setRole(await dsContracts.walletRegistrar.getAddress(), DSConstants.roles.ISSUER);
+      // EXCHANGE, not ISSUER: the registrar's only downstream call is
+      // RegistryService::updateInvestor, which is onlyExchangeOrAbove. ISSUER would additionally
+      // authorize DSToken::burn (onlyIssuerOrTransferAgentOrAbove), and this proxy is owned by the
+      // wallet syncer rather than the master timelock, so that key would keep an instant burn path.
+      console.log(`Granting exchange permissions to Wallet Registrar`);
+      tx = await dsContracts.trustService.setRole(await dsContracts.walletRegistrar.getAddress(), DSConstants.roles.EXCHANGE);
       await tx.wait();
-      console.log(`Granting issuer permissions to Transaction Relayer`);
+      console.log(`Granting exchange permissions to Transaction Relayer`);
       tx = await dsContracts.trustService.setRole(await dsContracts.transactionRelayer.getAddress(), DSConstants.roles.EXCHANGE);
       await tx.wait();
       console.log(`Granting issuer permissions to Bulk Operator`);
