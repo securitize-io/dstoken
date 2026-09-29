@@ -13,7 +13,7 @@ subtask('deploy-token', 'Deploy DS Token')
 
       const libraries = { TokenLibrary: tokenLib};
 
-      const tokenContractName = getTokenContractName(args.compliance);
+      const tokenContractName = getTokenContractName();
       const DSToken = await hre.ethers.getContractFactory(tokenContractName, { libraries });
 
       const dsToken = await hre.upgrades.deployProxy(
