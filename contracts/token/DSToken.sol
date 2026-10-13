@@ -25,8 +25,28 @@ import {ISecuritizeRebasingProvider} from "../rebasing/ISecuritizeRebasingProvid
 import {RebasingLibrary} from "../rebasing/RebasingLibrary.sol";
 import {TokenLibrary} from "./TokenLibrary.sol";
 import {CommonUtils} from "../utils/CommonUtils.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
+import {IERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
+import {
+    IScaledUIAmount,
+    IScaledUIAmountNewUIMultiplier,
+    IScaledUIAmountConversion,
+    IScaledUIAmountBalances,
+    IDSScaledUIAmount
+} from "./IScaledUIAmount.sol";
 
-contract DSToken is StandardToken, IDSMintThrottle {
+contract DSToken is
+    StandardToken,
+    IDSMintThrottle,
+    IERC165,
+    IScaledUIAmount,
+    IScaledUIAmountNewUIMultiplier,
+    IScaledUIAmountConversion,
+    IScaledUIAmountBalances,
+    IDSScaledUIAmount
+{
     // using FeaturesLibrary for SupportedFeatures;
     using TokenLibrary for TokenLibrary.SupportedFeatures;
     uint256 internal constant DEPRECATED_OMNIBUS_NO_ACTION = 0;  // Deprecated, kept for backward compatibility
@@ -46,6 +66,14 @@ contract DSToken is StandardToken, IDSMintThrottle {
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
+
+        // New tokens default to ERC-8056 SCALED_UI mode (BC-2599): raw balances, display multiplier.
+        // The rebasing provider wired later must keep its multiplier at 1e18 (deploy-all enforces it,
+        // and the provider refuses to move it while this flag is set). MASTER can switch to REBASING
+        // with setScaledUIAmountMode(false). Proxies upgraded from older versions never run this
+        // initializer again, so they stay in REBASING mode.
+        scaledUIAmountMode = true;
+        TokenLibrary.enableScaledUIAmount(scaledUIAmount);
     }
 
     /******************************
@@ -336,6 +364,117 @@ contract DSToken is StandardToken, IDSMintThrottle {
         services[0] = getDSService(COMPLIANCE_SERVICE);
         services[1] = getDSService(REGISTRY_SERVICE);
         return services;
+    }
+
+    /******************************
+       ERC-165 (BC-2599)
+    *******************************/
+
+    /// @inheritdoc IERC165
+    /// @dev ERC-20 (+ Metadata, Permit) always; the ERC-8056 ids only in SCALED_UI mode, so an
+    ///      ERC-8056-aware integrator never applies a UI multiplier on top of a rebased balance.
+    function supportsInterface(bytes4 interfaceId) public view override returns (bool) {
+        if (
+            interfaceId == type(IERC165).interfaceId ||
+            interfaceId == type(IERC20).interfaceId ||
+            interfaceId == type(IERC20Metadata).interfaceId ||
+            interfaceId == type(IERC20Permit).interfaceId
+        ) {
+            return true;
+        }
+        if (!scaledUIAmountMode) {
+            return false;
+        }
+        return
+            interfaceId == type(IScaledUIAmount).interfaceId ||
+            interfaceId == type(IScaledUIAmountNewUIMultiplier).interfaceId ||
+            interfaceId == type(IScaledUIAmountConversion).interfaceId ||
+            interfaceId == type(IScaledUIAmountBalances).interfaceId;
+    }
+
+    /******************************
+       ERC-8056 SCALED UI AMOUNT (BC-2599)
+    *******************************/
+
+    /// @inheritdoc IDSScaledUIAmount
+    function setScaledUIAmountMode(bool _enabled) external override onlyMaster {
+        require(scaledUIAmountMode != _enabled, "Scaled UI amount mode unchanged");
+        if (_enabled) {
+            // balanceOf must stay raw in this mode; the provider refuses to move away from 1e18 afterwards.
+            require(getRebasingProvider().multiplier() == TokenLibrary.UI_MULTIPLIER_ONE, "Rebasing multiplier must be 1e18");
+            TokenLibrary.enableScaledUIAmount(scaledUIAmount);
+        } else {
+            // Leaving the mode must not change any number an integrator reads: the display multiplier
+            // has to be identity with nothing scheduled. (The rebasing multiplier is 1e18 already.)
+            require(
+                block.timestamp >= scaledUIAmount.effectiveAt && scaledUIAmount.newMultiplier == TokenLibrary.UI_MULTIPLIER_ONE,
+                "UI multiplier must be 1e18 with no pending update"
+            );
+        }
+        scaledUIAmountMode = _enabled;
+        emit ScaledUIAmountModeChanged(_enabled);
+    }
+
+    /// @inheritdoc IDSScaledUIAmount
+    function scaledUIAmountEnabled() public view override returns (bool) {
+        return scaledUIAmountMode;
+    }
+
+    /// @inheritdoc IDSScaledUIAmount
+    function setUIMultiplier(uint256 _newMultiplier, uint256 _effectiveAt) external override onlyIssuerOrAbove {
+        _requireScaledUIAmount();
+        TokenLibrary.setUIMultiplier(scaledUIAmount, _newMultiplier, _effectiveAt);
+    }
+
+    /// @inheritdoc IDSScaledUIAmount
+    function cancelUIMultiplierUpdate() external override onlyIssuerOrAbove {
+        _requireScaledUIAmount();
+        TokenLibrary.cancelUIMultiplierUpdate(scaledUIAmount);
+    }
+
+    /// @inheritdoc IScaledUIAmount
+    function uiMultiplier() external view override returns (uint256) {
+        _requireScaledUIAmount();
+        return TokenLibrary.currentUIMultiplier(scaledUIAmount);
+    }
+
+    /// @inheritdoc IScaledUIAmountNewUIMultiplier
+    function newUIMultiplier() external view override returns (uint256) {
+        _requireScaledUIAmount();
+        return scaledUIAmount.newMultiplier;
+    }
+
+    /// @inheritdoc IScaledUIAmountNewUIMultiplier
+    function effectiveAt() external view override returns (uint256) {
+        _requireScaledUIAmount();
+        return scaledUIAmount.effectiveAt;
+    }
+
+    /// @inheritdoc IScaledUIAmountConversion
+    function toUIAmount(uint256 _rawAmount) public view override returns (uint256) {
+        _requireScaledUIAmount();
+        return TokenLibrary.toUIAmount(scaledUIAmount, _rawAmount);
+    }
+
+    /// @inheritdoc IScaledUIAmountConversion
+    function fromUIAmount(uint256 _uiAmount) external view override returns (uint256) {
+        _requireScaledUIAmount();
+        return TokenLibrary.fromUIAmount(scaledUIAmount, _uiAmount);
+    }
+
+    /// @inheritdoc IScaledUIAmountBalances
+    function balanceOfUI(address _account) external view override returns (uint256) {
+        return toUIAmount(balanceOf(_account));
+    }
+
+    /// @inheritdoc IScaledUIAmountBalances
+    function totalSupplyUI() external view override returns (uint256) {
+        return toUIAmount(totalSupply());
+    }
+
+    /// @dev One copy of the check instead of an inlined modifier at nine call sites (bytecode).
+    function _requireScaledUIAmount() private view {
+        require(scaledUIAmountMode, "Scaled UI amount not enabled");
     }
 
     /******************************

@@ -58,10 +58,21 @@ contract TokenDataStore is ServiceConsumerDataStore {
     /// @notice Pending over-cap mints keyed by operationId.
     mapping(bytes32 => TokenLibrary.PendingMint) public pendingMints;
 
+    // ─── ERC-8056 scaled UI amount (BC-2599) ─────────────────────────────────
+    // 4 slots taken from __gap (28 → 24). Zero values mean REBASING mode, i.e. the behaviour every
+    // proxy deployed before this version has, so upgrading is a no-op for them. New tokens are put
+    // in SCALED_UI mode by DSToken.initialize.
+
+    /// @dev True in SCALED_UI mode. Exposed by DSToken.scaledUIAmountEnabled() (an interface
+    ///      function, so not an auto getter).
+    bool internal scaledUIAmountMode;
+    /// @dev Current / pending multiplier and the timestamp the pending one takes effect.
+    TokenLibrary.ScaledUIAmountData internal scaledUIAmount;
+
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint256[28] private __gap;
+    uint256[24] private __gap;
 }

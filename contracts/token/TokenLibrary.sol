@@ -23,6 +23,7 @@ import {IDSLockManager} from "../compliance/IDSLockManager.sol";
 import {IDSComplianceService} from "../compliance/IDSComplianceService.sol";
 import {IDSRegistryService} from "../registry/IDSRegistryService.sol";
 import {CommonUtils} from "../utils/CommonUtils.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 
 library TokenLibrary {
@@ -63,6 +64,22 @@ library TokenLibrary {
     event OverCapMintScheduled(bytes32 indexed operationId, address indexed to, uint256 amount, uint256 readyAt);
     event OverCapMintExecuted(bytes32 indexed operationId);
     event OverCapMintCancelled(bytes32 indexed operationId);
+
+    // ─── ERC-8056 scaled UI amount (BC-2599) ─────────────────────────────────
+    // State transitions and conversions for SCALED_UI mode. Storage is DSToken's
+    // (TokenDataStore.scaledUIAmount); the events mirror IScaledUIAmount's and are emitted by the token.
+
+    /// @dev 18-decimal fixed point: 1e18 = 1.0, as required by ERC-8056.
+    uint256 internal constant UI_MULTIPLIER_ONE = 1e18;
+
+    struct ScaledUIAmountData {
+        uint256 multiplier;    // current until effectiveAt
+        uint256 newMultiplier; // current from effectiveAt on
+        uint256 effectiveAt;   // 0 = nothing pending
+    }
+
+    event UIMultiplierUpdated(uint256 oldMultiplier, uint256 newMultiplier, uint256 effectiveAtTimestamp);
+    event UIMultiplierUpdateCancelled(uint256 cancelledMultiplier, uint256 cancelledEffectiveAt);
 
     struct IssueParams {
         address _to;
@@ -260,5 +277,59 @@ library TokenLibrary {
 
         op.cancelled = true;
         emit OverCapMintCancelled(_operationId);
+    }
+
+    // ─── ERC-8056 scaled UI amount (BC-2599) ─────────────────────────────────
+
+    /// @dev The multiplier in force now. The pending value is current from effectiveAt inclusive.
+    function currentUIMultiplier(ScaledUIAmountData storage _data) public view returns (uint256) {
+        return block.timestamp >= _data.effectiveAt ? _data.newMultiplier : _data.multiplier;
+    }
+
+    /// @dev raw → UI, rounded down so a display never exceeds what the holder owns.
+    function toUIAmount(ScaledUIAmountData storage _data, uint256 _rawAmount) public view returns (uint256) {
+        return Math.mulDiv(_rawAmount, currentUIMultiplier(_data), UI_MULTIPLIER_ONE);
+    }
+
+    /// @dev UI → raw, rounded down so the result never exceeds the raw balance behind a UI amount.
+    ///      Round trips are therefore lossy: fromUIAmount(toUIAmount(x)) <= x.
+    function fromUIAmount(ScaledUIAmountData storage _data, uint256 _uiAmount) public view returns (uint256) {
+        return Math.mulDiv(_uiAmount, UI_MULTIPLIER_ONE, currentUIMultiplier(_data));
+    }
+
+    /// @dev Initialises the multiplier at 1.0 and announces it, so indexers have a starting point.
+    function enableScaledUIAmount(ScaledUIAmountData storage _data) public {
+        _data.multiplier = UI_MULTIPLIER_ONE;
+        _data.newMultiplier = UI_MULTIPLIER_ONE;
+        _data.effectiveAt = 0;
+        emit UIMultiplierUpdated(0, UI_MULTIPLIER_ONE, block.timestamp);
+    }
+
+    /// @dev Schedules `_newMultiplier` for `_effectiveAt`. Mirrors the EIP reference implementation:
+    ///      a pending update (now < effectiveAt) is superseded and announced as cancelled first; an
+    ///      already-applied one is folded into `multiplier` before the new schedule is stored.
+    function setUIMultiplier(ScaledUIAmountData storage _data, uint256 _newMultiplier, uint256 _effectiveAt) public {
+        require(_newMultiplier > 0, "Multiplier must be positive");
+        require(_effectiveAt > block.timestamp, "Effective At must be in the future");
+
+        if (block.timestamp >= _data.effectiveAt) {
+            // Nothing pending: the previously scheduled value is the current one.
+            _data.multiplier = _data.newMultiplier;
+        } else {
+            emit UIMultiplierUpdateCancelled(_data.newMultiplier, _data.effectiveAt);
+        }
+
+        emit UIMultiplierUpdated(_data.multiplier, _newMultiplier, _effectiveAt);
+        _data.newMultiplier = _newMultiplier;
+        _data.effectiveAt = _effectiveAt;
+    }
+
+    /// @dev Drops a pending update; the current multiplier stays in force.
+    function cancelUIMultiplierUpdate(ScaledUIAmountData storage _data) public {
+        require(block.timestamp < _data.effectiveAt, "No pending update to cancel");
+
+        emit UIMultiplierUpdateCancelled(_data.newMultiplier, _data.effectiveAt);
+        _data.newMultiplier = _data.multiplier;
+        _data.effectiveAt = 0;
     }
 }

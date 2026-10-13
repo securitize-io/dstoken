@@ -21,6 +21,8 @@ miss one by omission from a hardcoded list.
 ```bash
 # 1. protocol contracts (also runs set-roles and set-services; deployer is MASTER at this point)
 npx hardhat deploy-all --network <net> --name "My Token" --symbol MTK --decimals 18 --compliance REGULATED
+#    new tokens default to ERC-8056 SCALED_UI mode (raw balances + display multiplier);
+#    add --token-mode REBASING to opt out (see docs/runbooks/scaled-ui-amount.md)
 
 # 2. the three BC-2133 timelocks
 npx hardhat deploy-timelocks --network <net> \
