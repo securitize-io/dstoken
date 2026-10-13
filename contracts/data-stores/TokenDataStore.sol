@@ -43,16 +43,6 @@ contract TokenDataStore is ServiceConsumerDataStore {
     // existing proxy upgrades: all new vars default to 0, which means cap
     // disabled and no pending mints — identical behaviour to pre-upgrade state.
 
-    /// @dev Packed: address (20 bytes) + executed bool (1 byte) + cancelled bool (1 byte) = 22/32 bytes in slot 0.
-    struct PendingMint {
-        address to;
-        bool executed;
-        bool cancelled;
-        uint256 amount;
-        uint256 readyAt;
-        uint256 expiresAt; // 0 = never expires
-    }
-
     /// @notice Maximum SHARES mintable in a single window. 0 = throttle disabled.
     uint256 public mintCapAmount;
     /// @notice Duration of each tumbling window in seconds. Must be > 0 when mintCapAmount > 0.
@@ -66,7 +56,7 @@ contract TokenDataStore is ServiceConsumerDataStore {
     /// @notice Seconds after readyAt before a scheduled mint expires. 0 = never expires.
     uint256 public overCapGracePeriod;
     /// @notice Pending over-cap mints keyed by operationId.
-    mapping(bytes32 => PendingMint) public pendingMints;
+    mapping(bytes32 => TokenLibrary.PendingMint) public pendingMints;
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
