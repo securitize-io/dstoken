@@ -58,3 +58,7 @@ deployments-zk/
 exported-abi-bytecodes/
 CLAUDE.md
 .claude/settings.local.json
+
+# Olympix CLI session state
+.opix/
+olympix-results/
