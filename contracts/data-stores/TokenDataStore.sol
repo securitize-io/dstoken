@@ -43,16 +43,6 @@ contract TokenDataStore is ServiceConsumerDataStore {
     // existing proxy upgrades: all new vars default to 0, which means cap
     // disabled and no pending mints — identical behaviour to pre-upgrade state.
 
-    /// @dev Packed: address (20 bytes) + executed bool (1 byte) + cancelled bool (1 byte) = 22/32 bytes in slot 0.
-    struct PendingMint {
-        address to;
-        bool executed;
-        bool cancelled;
-        uint256 amount;
-        uint256 readyAt;
-        uint256 expiresAt; // 0 = never expires
-    }
-
     /// @notice Maximum SHARES mintable in a single window. 0 = throttle disabled.
     uint256 public mintCapAmount;
     /// @notice Duration of each tumbling window in seconds. Must be > 0 when mintCapAmount > 0.
@@ -66,12 +56,23 @@ contract TokenDataStore is ServiceConsumerDataStore {
     /// @notice Seconds after readyAt before a scheduled mint expires. 0 = never expires.
     uint256 public overCapGracePeriod;
     /// @notice Pending over-cap mints keyed by operationId.
-    mapping(bytes32 => PendingMint) public pendingMints;
+    mapping(bytes32 => TokenLibrary.PendingMint) public pendingMints;
+
+    // ─── ERC-8056 scaled UI amount (BC-2599) ─────────────────────────────────
+    // 4 slots taken from __gap (28 → 24). Zero values mean REBASING mode, i.e. the behaviour every
+    // proxy deployed before this version has, so upgrading is a no-op for them. New tokens are put
+    // in SCALED_UI mode by DSToken.initialize.
+
+    /// @dev True in SCALED_UI mode. Exposed by DSToken.scaledUIAmountEnabled() (an interface
+    ///      function, so not an auto getter).
+    bool internal scaledUIAmountMode;
+    /// @dev Current / pending multiplier and the timestamp the pending one takes effect.
+    TokenLibrary.ScaledUIAmountData internal scaledUIAmount;
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint256[28] private __gap;
+    uint256[24] private __gap;
 }

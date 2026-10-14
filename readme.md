@@ -100,6 +100,7 @@ In addition to implementing the DS Protocol, the token also offers the following
 - **Proxy** - The main token contract is deployed behind a proxy, OpenZeppelin's ERC1967 implementation. This allows for seamless upgrade of a deployed token in case a new protocol version is required or a problem is found.
 - **BulkOperator** - Operations can be sent in bulk (tokens issuances and wallet registrations) using the BulkOperator contract
 - **Rebasing provider** - The protocol now includes a Rebasing feature, allowing token balances to adjust via a multiplier or formula to support use cases like dividend accrual, splits, and reverse splits efficiently.
+- **ERC-165 + ERC-8056 scaled UI amount** - Every DSToken answers `supportsInterface` (ERC-165, ERC-20, Metadata, Permit). New tokens default to SCALED_UI mode: raw ERC-20 balances plus the [ERC-8056](https://eips.ethereum.org/EIPS/eip-8056) display multiplier (`uiMultiplier`, `balanceOfUI`, scheduled updates). MASTER can switch a token to REBASING mode (`--token-mode REBASING` at deploy, or `setScaledUIAmountMode(false)`). See `docs/runbooks/scaled-ui-amount.md`.
 
 ### Installation
 

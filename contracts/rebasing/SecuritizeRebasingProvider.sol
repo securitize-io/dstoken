@@ -23,6 +23,7 @@ import {ServiceConsumer} from "../service/ServiceConsumer.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {BaseDSContract} from "../utils/BaseDSContract.sol";
 import {RebasingLibrary} from "./RebasingLibrary.sol";
+import {IDSScaledUIAmount} from "../token/IScaledUIAmount.sol";
 
 contract SecuritizeRebasingProvider is BaseDSContract, ISecuritizeRebasingProvider {
     uint256 public multiplier; // Multiplier is fixed to 18 decimals
@@ -58,6 +59,13 @@ contract SecuritizeRebasingProvider is BaseDSContract, ISecuritizeRebasingProvid
     function setMultiplier(uint256 _multiplier) external override onlyMaster {
         if (_multiplier == 0) {
             revert InvalidMultiplier(_multiplier);
+        }
+        // A SCALED_UI token (ERC-8056, BC-2599) keeps balanceOf raw and scales for display only;
+        // moving this multiplier would scale its balances a second time. Providers with no token
+        // wired (legacy deployments) keep the old behaviour.
+        address token = getDSService(DS_TOKEN);
+        if (token != address(0)) {
+            require(!IDSScaledUIAmount(token).scaledUIAmountEnabled(), "Multiplier is frozen in scaled UI mode");
         }
 
         uint256 old = multiplier;

@@ -8,7 +8,9 @@ hre.upgrades.silenceWarnings();
 export const deployDSTokenRegulated = async () => {
   const name = 'Token Example 1';
   const symbol = 'TX1';
-  const contracts = await hre.run('deploy-all', { name, symbol, decimals: 2 });
+  // Rebasing-focused tests (dstoken-regulated, rebasing-provider) move the multiplier: opt out of the
+  // SCALED_UI default.
+  const contracts = await hre.run('deploy-all', { name, symbol, decimals: 2, tokenMode: 'REBASING' });
   return { ...contracts };
 };
 
@@ -35,6 +37,7 @@ export const deployDSTokenPermissionless = () => {
     decimals: 2,
     compliance: 'PERMISSIONLESS',
     registryType: 'STUB',
+    tokenMode: 'REBASING', // dstoken-mint-throttle moves the multiplier to prove the cap is in shares
   });
 };
 
@@ -68,14 +71,14 @@ export const deployDSTokenRegulatedWithRebasing = async () => {
   const name = 'Token Example 1';
   const symbol = 'TX1';
   const multiplier = '1500000000000000000';
-  const contracts = await hre.run('deploy-all', { name, symbol, decimals: 2, multiplier });
+  const contracts = await hre.run('deploy-all', { name, symbol, decimals: 2, multiplier, tokenMode: 'REBASING' });
   return { ...contracts };
 };
 export const deployDSTokenRegulatedWithRebasingAndSixDecimal = async () => {
   const name = 'Token Example 1';
   const symbol = 'TX1';
   const multiplier = '1730000000000000000';
-  const contracts = await hre.run('deploy-all', { name, symbol, decimals: 6, multiplier });
+  const contracts = await hre.run('deploy-all', { name, symbol, decimals: 6, multiplier, tokenMode: 'REBASING' });
   return { ...contracts };
 };
 
@@ -83,9 +86,25 @@ export const deployDSTokenRegulatedWithRebasingAndEighteenDecimal = async () => 
   const name = 'Token Example 1';
   const symbol = 'TX1';
   const multiplier = '1250000000000000000';
-  const contracts = await hre.run('deploy-all', { name, symbol, decimals: 18, multiplier });
+  const contracts = await hre.run('deploy-all', { name, symbol, decimals: 18, multiplier, tokenMode: 'REBASING' });
   return { ...contracts };
 };
+
+// ERC-8056 SCALED_UI mode (BC-2599): raw balances + display multiplier. Permissionless compliance
+// with a stub registry so tests can issue to any wallet without registry setup. loadFixture needs
+// stable named functions, hence one per decimals value.
+const deployScaledUI = (decimals: number) =>
+  hre.run('deploy-all', {
+    name: 'Token Example 1',
+    symbol: 'TX1',
+    decimals,
+    compliance: 'PERMISSIONLESS',
+    registryType: 'STUB',
+    tokenMode: 'SCALED_UI',
+  });
+export const deployDSTokenScaledUI = () => deployScaledUI(2);
+export const deployDSTokenScaledUISixDecimals = () => deployScaledUI(6);
+export const deployDSTokenScaledUIEighteenDecimals = () => deployScaledUI(18);
 
 export const MINUTES = 60;
 export const HOURS = 60 * MINUTES;
