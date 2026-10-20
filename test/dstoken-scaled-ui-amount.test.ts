@@ -272,7 +272,19 @@ describe('ERC-8056 Scaled UI Amount (BC-2599)', function () {
     it('reverts for a zero multiplier', async function () {
       const { dsToken, issuer } = await scaledUIFixture();
       const effectiveAt = BigInt(await time.latest()) + DELAY;
-      await expect(dsToken.connect(issuer).setUIMultiplier(0, effectiveAt)).to.be.revertedWith('Multiplier must be positive');
+      await expect(dsToken.connect(issuer).setUIMultiplier(0, effectiveAt)).to.be.revertedWith('Multiplier out of range');
+    });
+
+    it('reverts for a multiplier typed without its 18 decimals', async function () {
+      const { dsToken, issuer } = await scaledUIFixture();
+      const effectiveAt = BigInt(await time.latest()) + DELAY;
+      await expect(dsToken.connect(issuer).setUIMultiplier(2, effectiveAt)).to.be.revertedWith('Multiplier out of range');
+    });
+
+    it('reverts for a multiplier above the upper bound', async function () {
+      const { dsToken, issuer } = await scaledUIFixture();
+      const effectiveAt = BigInt(await time.latest()) + DELAY;
+      await expect(dsToken.connect(issuer).setUIMultiplier(10n ** 25n, effectiveAt)).to.be.revertedWith('Multiplier out of range');
     });
 
     it('reverts when effectiveAt is not in the future', async function () {
