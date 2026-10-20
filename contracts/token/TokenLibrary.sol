@@ -72,6 +72,10 @@ library TokenLibrary {
     /// @dev 18-decimal fixed point: 1e18 = 1.0, as required by ERC-8056.
     uint256 internal constant UI_MULTIPLIER_ONE = 1e18;
 
+    /// @dev bounds on a scheduled multiplier, 1e-6 to 1e6 in 18-decimal fixed point
+    uint256 internal constant MIN_UI_MULTIPLIER = 1e12;
+    uint256 internal constant MAX_UI_MULTIPLIER = 1e24;
+
     struct ScaledUIAmountData {
         uint256 multiplier;    // current until effectiveAt
         uint256 newMultiplier; // current from effectiveAt on
@@ -309,7 +313,7 @@ library TokenLibrary {
     ///      a pending update (now < effectiveAt) is superseded and announced as cancelled first; an
     ///      already-applied one is folded into `multiplier` before the new schedule is stored.
     function setUIMultiplier(ScaledUIAmountData storage _data, uint256 _newMultiplier, uint256 _effectiveAt) public {
-        require(_newMultiplier > 0, "Multiplier must be positive");
+        require(_newMultiplier >= MIN_UI_MULTIPLIER && _newMultiplier <= MAX_UI_MULTIPLIER, "Multiplier out of range");
         require(_effectiveAt > block.timestamp, "Effective At must be in the future");
 
         if (block.timestamp >= _data.effectiveAt) {

@@ -75,7 +75,7 @@ cap, locks or compliance, so they are not routed through the governance timelock
 DSToken.setUIMultiplier(newMultiplier, effectiveAtTimestamp)
 ```
 
-- `newMultiplier > 0`; `effectiveAtTimestamp > block.timestamp`.
+- `1e12 <= newMultiplier <= 1e24` (1e-6 to 1e6); `effectiveAtTimestamp > block.timestamp`.
 - Emits `UIMultiplierUpdated(oldMultiplier, newMultiplier, effectiveAtTimestamp)`.
 - `uiMultiplier()` keeps returning the old value until `block.timestamp >= effectiveAtTimestamp`, then switches
   by itself. **There is no execute step.**
