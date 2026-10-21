@@ -7,11 +7,19 @@ task('deploy-all', 'Deploy DS Protocol')
   .addParam('decimals', 'DS Token decimals', 2, types.int)
   .addParam('compliance', 'Compliance Type', 'REGULATED', types.string)
   .addOptionalParam('multiplier', 'Rebasing Multiplier', '1000000000000000000', types.string)
+  .addOptionalParam('tokenMode', 'Token mode: SCALED_UI (default; ERC-8056, raw balances + display multiplier) or REBASING', 'SCALED_UI', types.string)
   .addOptionalParam('globalRegistryService', 'Global Registry Service Address', undefined, types.string)
   .addOptionalParam('registryType', 'Registry type: REGULATED or STUB', 'REGULATED', types.string)
   .addOptionalParam('globalDenylistManagerAddress', 'Address of a pre-existing shared Global Denylist Manager to wire in (deployment lives outside this repo)', undefined, types.string)
   .setAction(async (args, { run, ethers }) => {
     await run("compile");
+
+    if (!['REBASING', 'SCALED_UI'].includes(args.tokenMode)) {
+      throw new Error(`--token-mode must be REBASING or SCALED_UI, got ${args.tokenMode}`);
+    }
+    if (args.tokenMode === 'SCALED_UI' && args.multiplier !== '1000000000000000000') {
+      throw new Error('--multiplier must be 1e18 (the default) with --token-mode SCALED_UI: balances are raw in that mode');
+    }
 
     // Only ComplianceServicePermissionless (wired for both PERMISSIONLESS and BLACKLISTED,
     // see getComplianceContractName) ever calls isGloballyDenylisted. Every other
@@ -109,6 +117,14 @@ task('deploy-all', 'Deploy DS Protocol')
 
     await run("set-roles", { dsContracts });
     await run("set-services", { dsContracts, isGRS: !!args.globalRegistryService });
+
+    if (args.tokenMode === 'REBASING') {
+      // DSToken.initialize puts every new token in ERC-8056 SCALED_UI mode; opt out here, after
+      // set-services (the token reads the rebasing provider when switching modes).
+      console.log('Switching token to REBASING mode');
+      const tx = await dsToken.setScaledUIAmountMode(false);
+      await tx.wait();
+    }
 
     return dsContracts;
   });

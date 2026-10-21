@@ -1224,7 +1224,7 @@ describe('DS Token Regulated Unit Tests', function() {
       const symbol = 'TX1';
       const decimals = 1;
       const multiplier = hre.ethers.parseUnits('2', 18).toString();
-      const { dsToken, registryService, rebasingProvider } = await hre.run('deploy-all', { name, symbol, decimals, multiplier });
+      const { dsToken, registryService, rebasingProvider } = await hre.run('deploy-all', { name, symbol, decimals, multiplier, tokenMode: 'REBASING' });
 
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
@@ -1263,7 +1263,7 @@ describe('DS Token Regulated Unit Tests', function() {
       const symbol = 'TX1';
       const decimals = 1;
       const multiplier = hre.ethers.parseUnits('10', 18).toString();
-      const { dsToken, registryService, rebasingProvider } = await hre.run('deploy-all', { name, symbol, decimals, multiplier });
+      const { dsToken, registryService, rebasingProvider } = await hre.run('deploy-all', { name, symbol, decimals, multiplier, tokenMode: 'REBASING' });
 
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
@@ -1302,7 +1302,7 @@ describe('DS Token Regulated Unit Tests', function() {
       const symbol = 'TX1';
       const decimals = 1;
       const multiplier = hre.ethers.parseUnits('3', 18).toString();
-      const { dsToken, registryService, rebasingProvider } = await hre.run('deploy-all', { name, symbol, decimals, multiplier });
+      const { dsToken, registryService, rebasingProvider } = await hre.run('deploy-all', { name, symbol, decimals, multiplier, tokenMode: 'REBASING' });
 
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
@@ -1343,7 +1343,7 @@ describe('DS Token Regulated Unit Tests', function() {
       const symbol = 'TX1';
       const decimals = 0;
       const multiplier = hre.ethers.parseUnits('2', 18).toString();
-      const { dsToken, registryService, rebasingProvider } = await hre.run('deploy-all', { name, symbol, decimals, multiplier });
+      const { dsToken, registryService, rebasingProvider } = await hre.run('deploy-all', { name, symbol, decimals, multiplier, tokenMode: 'REBASING' });
 
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
@@ -1389,7 +1389,7 @@ describe('DS Token Regulated Unit Tests', function() {
       const symbol = 'TX1';
       const decimals = 0;
       const multiplier = hre.ethers.parseUnits('3', 18).toString();
-      const { dsToken, registryService, rebasingProvider } = await hre.run('deploy-all', { name, symbol, decimals, multiplier });
+      const { dsToken, registryService, rebasingProvider } = await hre.run('deploy-all', { name, symbol, decimals, multiplier, tokenMode: 'REBASING' });
 
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);
@@ -1428,7 +1428,7 @@ describe('DS Token Regulated Unit Tests', function() {
       const symbol = 'TX1';
       const decimals = 0;
       const multiplier = hre.ethers.parseUnits('10', 18).toString();
-      const { dsToken, registryService, rebasingProvider } = await hre.run('deploy-all', { name, symbol, decimals, multiplier });
+      const { dsToken, registryService, rebasingProvider } = await hre.run('deploy-all', { name, symbol, decimals, multiplier, tokenMode: 'REBASING' });
 
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_1, investor, registryService);
       await registerInvestor(INVESTORS.INVESTOR_ID.INVESTOR_ID_2, investor2, registryService);

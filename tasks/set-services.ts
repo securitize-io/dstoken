@@ -186,6 +186,11 @@ subtask('set-services', 'Set DS Services')
       tx = await rebasingProvider.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());
       await tx.wait();
 
+      // Lets setMultiplier refuse to move while the token is in ERC-8056 scaled UI mode (BC-2599)
+      console.log('Connecting rebasing provider to token');
+      tx = await rebasingProvider.setDSService(DSConstants.services.DS_TOKEN, dsToken.getAddress());
+      await tx.wait();
+
       // Blacklist Manager
       console.log('Connecting blacklist manager to trust service');
       tx = await blacklistManager.setDSService(DSConstants.services.TRUST_SERVICE, trustService.getAddress());

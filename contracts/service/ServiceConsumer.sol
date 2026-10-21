@@ -45,7 +45,7 @@ abstract contract ServiceConsumer is IDSServiceConsumer, ServiceConsumerDataStor
     }
 
     modifier onlyMaster {
-        if (owner() != msg.sender) require(getTrustService().getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
+        _requireMaster();
         _;
     }
 
@@ -53,30 +53,22 @@ abstract contract ServiceConsumer is IDSServiceConsumer, ServiceConsumerDataStor
      * @dev Allow invoking functions only by the users who have the MASTER role or the ISSUER role or the TRANSFER AGENT role.
      */
     modifier onlyIssuerOrTransferAgentOrAbove() {
-        IDSTrustService trustManager = getTrustService();
-        uint8 role = trustManager.getRole(msg.sender);
-        require(role == ROLE_TRANSFER_AGENT || role == ROLE_ISSUER || role == ROLE_MASTER, "Insufficient trust level");
+        _requireIssuerOrTransferAgentOrAbove();
         _;
     }
 
     modifier onlyIssuerOrAbove {
-        IDSTrustService trustManager = getTrustService();
-        uint8 role = trustManager.getRole(msg.sender);
-        require(role == ROLE_ISSUER || role == ROLE_MASTER, "Insufficient trust level");
+        _requireIssuerOrAbove();
         _;
     }
 
     modifier onlyTransferAgentOrAbove {
-        IDSTrustService trustManager = getTrustService();
-        uint8 role = trustManager.getRole(msg.sender);
-        require(role == ROLE_TRANSFER_AGENT || role == ROLE_MASTER, "Insufficient trust level");
+        _requireTransferAgentOrAbove();
         _;
     }
 
     modifier onlyExchangeOrAbove {
-        IDSTrustService trustManager = getTrustService();
-        uint8 role = trustManager.getRole(msg.sender);
-        require(role == ROLE_EXCHANGE || role == ROLE_ISSUER || role == ROLE_TRANSFER_AGENT || role == ROLE_MASTER, "Insufficient trust level");
+        _requireExchangeOrAbove();
         _;
     }
 
@@ -112,6 +104,33 @@ abstract contract ServiceConsumer is IDSServiceConsumer, ServiceConsumerDataStor
             require(trustManager.getRole(msg.sender) == ROLE_ISSUER || trustManager.getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
         }
         _;
+    }
+
+    // Modifier bodies are inlined at every use site. Routing each role check through one internal
+    // function keeps a single copy of the trust-service call in the runtime bytecode (DSToken is
+    // within a few hundred bytes of the EIP-170 limit). Semantics and revert strings are unchanged.
+    function _requireMaster() internal view {
+        if (owner() != msg.sender) require(getTrustService().getRole(msg.sender) == ROLE_MASTER, "Insufficient trust level");
+    }
+
+    function _requireIssuerOrTransferAgentOrAbove() internal view {
+        uint8 role = getTrustService().getRole(msg.sender);
+        require(role == ROLE_TRANSFER_AGENT || role == ROLE_ISSUER || role == ROLE_MASTER, "Insufficient trust level");
+    }
+
+    function _requireIssuerOrAbove() internal view {
+        uint8 role = getTrustService().getRole(msg.sender);
+        require(role == ROLE_ISSUER || role == ROLE_MASTER, "Insufficient trust level");
+    }
+
+    function _requireTransferAgentOrAbove() internal view {
+        uint8 role = getTrustService().getRole(msg.sender);
+        require(role == ROLE_TRANSFER_AGENT || role == ROLE_MASTER, "Insufficient trust level");
+    }
+
+    function _requireExchangeOrAbove() internal view {
+        uint8 role = getTrustService().getRole(msg.sender);
+        require(role == ROLE_EXCHANGE || role == ROLE_ISSUER || role == ROLE_TRANSFER_AGENT || role == ROLE_MASTER, "Insufficient trust level");
     }
 
     function getDSService(uint256 _serviceId) public view override returns (address) {
