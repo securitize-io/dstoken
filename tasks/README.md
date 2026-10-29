@@ -106,6 +106,7 @@ master timelock would hand that token's governance control over a contract other
 |---|---|
 | `GLOBAL_DENYLIST_MANAGER` (8201) | Shared denylist, lives in `bc-global-denylist-manager-sc` with its own AccessControl admin. Marked `transferable: false` — reported, never transferred. |
 | `REGISTRY_SERVICE` (4), when it is a shared **Global Registry Service** | Sometimes one GRS is reused across tokens (`deploy-all --global-registry-service`, and the `GLOBAL_WHITELISTED` path in `bc-deployment-task-svc`). Its admin is not this token's master. |
+| `BLACKLIST_MANAGER` (8197), when it is the shared **CET Global blacklist** | One BlackListManager reused by GlobalWhitelisted tokens, with its own dedicated TrustService. See [`docs/runbooks/global-blacklist.md`](../docs/runbooks/global-blacklist.md). |
 
 The GRS case cannot be detected from the service id alone — id 4 is a per-token registry on most
 tokens and a shared one on others. The handover will stop with an error if id 4 is owned by someone
@@ -153,6 +154,12 @@ an instant value-moving path, which is the reason step 3 matters.
 | `set-roles` / `set-services` | Role grants and service wiring (invoked by `deploy-all`) |
 | `verify-all` | Etherscan-style verification of deployed contracts |
 | `contract-call` | Ad-hoc call helper |
+| `deploy-global-blacklist` | Shared BlackListManager + dedicated TrustService for GlobalWhitelisted tokens |
+| `migrate-token-blacklist` | Copy a token's local blacklist to the shared one and repoint `8197` on token and compliance (dry run by default) |
+| `verify-blacklist-wiring` | Read-only: token and compliance `8197` agree (and equal the shared list) |
+
+The three blacklist tasks are documented in
+[`docs/runbooks/global-blacklist.md`](../docs/runbooks/global-blacklist.md).
 
 `setup-governance` and `verify-governance` share
 [`utils/governed-services.ts`](./utils/governed-services.ts) deliberately: a verifier with its own

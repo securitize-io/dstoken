@@ -22,3 +22,6 @@ export * from './deploy-stub-registry-service';
 export * from './deploy-timelocks';
 export * from './setup-governance';
 export * from './verify-governance';
+export * from './deploy-global-blacklist';
+export * from './migrate-token-blacklist';
+export * from './verify-blacklist-wiring';
